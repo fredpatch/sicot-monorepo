@@ -2,7 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import { verifyEmailConnection } from './utils/email.js';
 import path from 'path';
 
 // Routes (à créer au fil des sprints)
@@ -46,6 +48,9 @@ const authLimiter = rateLimit({
   message: { message: 'Trop de tentatives de connexion, réessayez dans 15 minutes.' },
 });
 
+// ── Cookies ───────────────────────────────────────────────────────────────
+app.use(cookieParser());
+
 // ── Body parsing ───────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -75,6 +80,8 @@ app.get('/api/health', (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+verifyEmailConnection();
 
 // ── 404 handler ────────────────────────────────────────────────────────────
 app.use((_req, res) => {
