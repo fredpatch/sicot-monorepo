@@ -1,0 +1,172 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+// Traductions FR
+const fr = {
+  // Navigation
+  nav: {
+    dashboard: 'Tableau de bord',
+    accords: 'Accords',
+    partenaires: 'Partenaires',
+    missions: 'Missions',
+    courriers: 'Courriers',
+    traductions: 'Traductions',
+    demandes: 'Demandes',
+    glossaire: 'Glossaire',
+    documents: 'Documents',
+    administration: 'Administration',
+    audit: 'Journal d\'audit',
+  },
+  // Auth
+  auth: {
+    title: 'SICOT – Connexion',
+    matricule: 'Matricule',
+    otp: 'Code OTP',
+    motDePasse: 'Mot de passe',
+    connexion: 'Se connecter',
+    premiereConnexion: 'Première connexion : veuillez définir votre mot de passe.',
+    nouveauMotDePasse: 'Nouveau mot de passe',
+    confirmerMotDePasse: 'Confirmer le mot de passe',
+    deconnexion: 'Se déconnecter',
+  },
+  // Commun
+  common: {
+    save: 'Enregistrer',
+    cancel: 'Annuler',
+    delete: 'Supprimer',
+    edit: 'Modifier',
+    view: 'Consulter',
+    search: 'Rechercher',
+    filter: 'Filtrer',
+    export: 'Exporter',
+    loading: 'Chargement…',
+    noData: 'Aucune donnée à afficher.',
+    active: 'Actif',
+    inactive: 'Inactif',
+    yes: 'Oui',
+    no: 'Non',
+    status: 'Statut',
+    date: 'Date',
+    reference: 'Référence',
+    actions: 'Actions',
+    confirm: 'Confirmer',
+    page: 'Page',
+    of: 'sur',
+  },
+  // Statuts
+  statuts: {
+    actif: 'Actif',
+    expire: 'Expiré',
+    suspendu: 'Suspendu',
+    en_renouvellement: 'En renouvellement',
+    entrant: 'Entrant',
+    sortant: 'Sortant',
+    en_attente: 'En attente',
+    en_cours: 'En cours',
+    realisee: 'Réalisée',
+    repondu: 'Répondu',
+    archive: 'Archivé',
+    soumise: 'Soumise',
+    en_relecture: 'En relecture',
+    validee: 'Validée',
+    a_reviser: 'À réviser',
+    approuvee: 'Approuvée',
+    manuelle_requise: 'Traduction manuelle requise',
+    planifiee: 'Planifiée',
+    terminee: 'Terminée',
+    annulee: 'Annulée',
+  },
+};
+
+// Traductions EN
+const en = {
+  nav: {
+    dashboard: 'Dashboard',
+    accords: 'Agreements',
+    partenaires: 'Partners',
+    missions: 'Missions',
+    courriers: 'Correspondence',
+    traductions: 'Translations',
+    demandes: 'Requests',
+    glossaire: 'Glossary',
+    documents: 'Documents',
+    administration: 'Administration',
+    audit: 'Audit Log',
+  },
+  auth: {
+    title: 'SICOT – Sign In',
+    matricule: 'Staff ID',
+    otp: 'OTP Code',
+    motDePasse: 'Password',
+    connexion: 'Sign In',
+    premiereConnexion: 'First login: please set your password.',
+    nouveauMotDePasse: 'New password',
+    confirmerMotDePasse: 'Confirm password',
+    deconnexion: 'Sign Out',
+  },
+  common: {
+    save: 'Save',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    edit: 'Edit',
+    view: 'View',
+    search: 'Search',
+    filter: 'Filter',
+    export: 'Export',
+    loading: 'Loading…',
+    noData: 'No data to display.',
+    active: 'Active',
+    inactive: 'Inactive',
+    yes: 'Yes',
+    no: 'No',
+    status: 'Status',
+    date: 'Date',
+    reference: 'Reference',
+    actions: 'Actions',
+    confirm: 'Confirm',
+    page: 'Page',
+    of: 'of',
+  },
+  statuts: {
+    actif: 'Active',
+    expire: 'Expired',
+    suspendu: 'Suspended',
+    en_renouvellement: 'Under renewal',
+    entrant: 'Incoming',
+    sortant: 'Outgoing',
+    en_attente: 'Pending',
+    en_cours: 'In progress',
+    realisee: 'Completed',
+    repondu: 'Replied',
+    archive: 'Archived',
+    soumise: 'Submitted',
+    en_relecture: 'Under review',
+    validee: 'Validated',
+    a_reviser: 'To revise',
+    approuvee: 'Approved',
+    manuelle_requise: 'Manual translation required',
+    planifiee: 'Planned',
+    terminee: 'Completed',
+    annulee: 'Cancelled',
+  },
+};
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      fr: { translation: fr },
+      en: { translation: en },
+    },
+    fallbackLng: 'fr',
+    supportedLngs: ['fr', 'en'],
+    interpolation: { escapeValue: false },
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
+  });
+
+export default i18n;
