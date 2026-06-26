@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Candara, Calibri, 'Trebuchet MS', ui-sans-serif, system-ui;
+  --text-base: 13px;
+  --text-sm: 12px;
+
+  --color-anac-navy: #1B2A5E;
+  --color-anac-blue: #2B4DAE;
+  --color-anac-sky: #4A90D9;
+  --color-anac-white: #FFFFFF;
+  --color-anac-gray: #F4F6FA;
+  --color-anac-border: #D1D9E6;
+  --color-anac-text: #1A2340;
+  --color-anac-muted: #6B7A99;
+  --color-anac-success: #16A34A;
+  --color-anac-warning: #D97706;
+  --color-anac-danger: #DC2626;
+  --color-anac-info: #0891B2;
+}
+
+@layer base {
+  html {
+    font-size: 13px;
+    color: #1A2340;
+  }
+
+  body {
+    @apply bg-anac-gray;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-anac-gray;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-anac-border rounded-full;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-anac-navy text-white px-4 py-2 rounded hover:bg-anac-blue transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-anac-navy border border-anac-border px-4 py-2 rounded hover:bg-anac-gray transition-colors font-medium;
+  }
+
+  .btn-danger {
+    @apply bg-anac-danger text-white px-4 py-2 rounded hover:opacity-90 transition-opacity font-medium;
+  }
+
+  .card {
+    @apply bg-white border border-anac-border rounded-lg shadow-sm p-6;
+  }
+
+  .input {
+    @apply border border-anac-border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-anac-sky focus:border-transparent text-sm;
+  }
+
+  .label {
+    @apply block text-anac-text font-medium mb-1 text-sm;
+  }
+
+  .badge-actif {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800;
+  }
+
+  .badge-expire {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800;
+  }
+
+  .badge-info {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800;
+  }
+
+  .table-header {
+    @apply bg-anac-navy text-white text-sm font-semibold;
+  }
+
+  .table-row {
+    @apply border-b border-anac-border hover:bg-anac-gray transition-colors;
+  }
+}
