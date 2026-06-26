@@ -4,25 +4,36 @@
 
 - [ ] **Kick-off : validation CDC, affectation ressources** - CR de kick-off signé par toute l'équipe
 - [ ] **Audit de l'existant** - Collecter et analyser les fichiers Excel CCIT actuels, documenter les process manuels
-- [ ] **Valider la stack technique** - Confirmer React + Express + Drizzle + PostgreSQL, configurer ESLint/Prettier/tsconfig, initialiser le monorepo
-- [ ] **Installer l'environnement dev sur SERV-APPI** - PostgreSQL, LibreTranslate, Tesseract 5
+- [x] ~~**Valider la stack technique**~~ - React + Express + Drizzle + PostgreSQL confirmé, ESLint/Prettier/tsconfig configurés, monorepo initialisé (juin 2026)
+- [x] ~~**Installer l'environnement dev**~~ - PostgreSQL installé et opérationnel sur poste dev Windows (juin 2026)
 - [ ] **Test OCR sur corpus réel ANAC** - 5 à 10 documents représentatifs (accords, correspondances), produire rapport qualité
 - [ ] **Test LibreTranslate FR↔EN** - Extraits aéronautiques réels, produire rapport qualité traduction
 - [ ] **Import glossaire initial** - Si fichier fourni par CCIT, script import CSV/Excel → seed BDD
-- [ ] **Modélisation BDD complète** - Schéma de toutes les entités (10 modules), validé par l'équipe
+- [x] ~~**Modélisation BDD complète**~~ - Schéma Drizzle de toutes les entités (10 modules) créé et migré (juin 2026)
 
 ## Sprint 1 – Administration & Auth (M10) | 2 semaines
 
-- [ ] **Structure projet** - Routing, middleware, modèles BDD de base
+- [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
 - [ ] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel
 - [ ] **Flux bootstrap admin** - Sélection agent → email → génération OTP → envoi SMTP
 - [ ] **Page connexion** - Matricule + OTP → changement mot de passe obligatoire à la première connexion
-- [ ] **Gestion des rôles** - Agent / Traducteur / Relecteur / Admin / Super Admin
+- [x] ~~**Gestion des rôles**~~ - Middleware requireRole avec hiérarchie agent/traducteur/relecteur/admin/super_admin (juin 2026)
 - [ ] **Interface admin utilisateurs** - Liste, activation/désactivation, réinitialisation OTP
 - [ ] **Journal d'audit** - Enregistrement toutes actions, interface consultation + export PDF/Excel (non modifiable)
 - [ ] **Sauvegarde automatique BDD** - Cron quotidien local (SERV-APPI) + hebdomadaire NAS, rétention 30j/12 mois
-- [ ] **Interface bilingue FR/EN** - i18n configuré sur toute l'application
-- [ ] **Charte graphique ANAC** - Police Candara, couleurs institutionnelles, logo officiel
+- [x] ~~**Interface bilingue FR/EN**~~ - i18n configuré avec react-i18next, traductions FR/EN complètes pour tous les modules (juin 2026)
+- [x] ~~**Charte graphique ANAC**~~ - Police Candara, couleurs institutionnelles (#1B2A5E), Tailwind configuré (juin 2026)
+
+### Fichiers complétés Sprint 1
+
+- [x] ~~`src/utils/jwt.ts`~~ - signAccessToken, signRefreshToken, verify (juin 2026)
+- [x] ~~`src/utils/otp.ts`~~ - generateOTP, hashOTP, verifyOTP, expiration (juin 2026)
+- [x] ~~`src/utils/email.ts`~~ - sendOTPEmail, sendAccordEcheanceEmail, sendRecommandationEmail (juin 2026)
+- [x] ~~`src/middleware/auth.ts`~~ - authenticate via cookies httpOnly, clearAuthCookies (juin 2026)
+- [x] ~~`src/middleware/requireRole.ts`~~ - hiérarchie des rôles, requireAdmin, requireSuperAdmin (juin 2026)
+- [x] ~~`src/services/auth.service.ts`~~ - login, setPassword, refreshToken, genererEtEnvoyerOTP, logAudit (juin 2026)
+- [x] ~~`src/controllers/auth.controller.ts`~~ - login, setPassword, refresh, logout, me (juin 2026)
+- [x] ~~`src/routes/auth.ts`~~ - /login, /set-password, /refresh, /logout, /me (juin 2026)
 
 ## Sprint 2 – Documentaire & Partenaires (M8 + M2) | 2 semaines
 
@@ -115,3 +126,9 @@
 
 ## Done
 
+- [x] ~~**Monorepo SICOT initialisé**~~ - Structure 3 packages, tsconfig, ESLint, Prettier, .gitignore (juin 2026)
+- [x] ~~**Schema BDD Drizzle complet**~~ - 10 modules, enums, tables, relations, index, migration appliquée (juin 2026)
+- [x] ~~**Stack client configurée**~~ - React 18 + Vite + Tailwind, couleurs ANAC, i18n FR/EN, router (juin 2026)
+- [x] ~~**Utilitaires serveur**~~ - jwt.ts, otp.ts, email.ts opérationnels (juin 2026)
+- [x] ~~**Middleware auth + rôles**~~ - Cookies httpOnly, hiérarchie rôles, requireRole (juin 2026)
+- [x] ~~**Auth service/controller/route**~~ - Architecture 3 couches, flux OTP complet, refresh token (juin 2026)
