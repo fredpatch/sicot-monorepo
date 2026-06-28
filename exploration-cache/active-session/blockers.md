@@ -38,3 +38,6 @@ Last updated: 2026-06-28
 | Tailwind v4 + shadcn CLI incompatibility | 2026-06-27 | Manual component creation |
 | framer-motion TypeScript strict mode on `ease` | 2026-06-27 | Moved transition to prop, extracted `slideTx` constant |
 | `tsconfig.base.json ignoreDeprecations TS5103` | 2026-06-27 | Removed from base, kept only in client tsconfig |
+| OCR approach decision (npm vs Python) | 2026-06-28 | Python microservice chosen — Flask on port 5001 |
+| OCR quality validation | 2026-06-28 | Tesseract 5 validated on real ANAC docs (FR+EN) |
+| LibreTranslate quality validation | 2026-06-28 | Validated FR↔EN, apostrophe cleanup implemented in OCR service |

@@ -2,7 +2,20 @@
 
 ## [Unreleased]
 
-- exploration-cache initialized (knowledge base, session tracking, documentation)
+### Added
+- `packages/ocr-service/main.py` — Python/Flask OCR microservice, port 5001
+  - Routes: `POST /extract`, `GET /health`
+  - Extractors: PDF (native+scanned), DOCX, DOC (LibreOffice), TXT, XLSX, XLS, images
+  - Text cleanup: apostrophe normalization
+  - Language detection: langdetect
+  - Served via Waitress (production WSGI)
+- `packages/ocr-service/requirements.txt`
+- `packages/server/src/utils/ocr.ts` — TypeScript HTTP client (`extraireTexte`, `verifierServiceOCR`)
+
+### Changed
+- `packages/server/src/index.ts` — added OCR health check at startup
+- `packages/server/package.json` — added `axios`, `form-data`, `@types/form-data`
+- `docs/TASKS.md` — marked OCR test ✅, LibreTranslate test ✅, added Sprint 2 technical decisions
 
 ---
 

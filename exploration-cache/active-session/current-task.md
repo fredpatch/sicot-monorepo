@@ -1,50 +1,51 @@
 # 🎯 Current Task
 
 **Session date**: 2026-06-28
-**Status**: 🟡 Sprint 1 complete — preparing Sprint 2
+**Status**: 🟡 Sprint 2 — OCR microservice complete, starting Documents module
 
 ## What Just Finished
 
-Sprint 1 (M10 — Administration & Auth) is 100% complete and pushed to `origin/main`.
+- ✅ exploration-cache initialized and pushed (`43a858d`)
+- ✅ OCR microservice built (`packages/ocr-service/main.py`) — Flask + Waitress, port 5001
+- ✅ `packages/server/src/utils/ocr.ts` — TypeScript HTTP client for OCR service
+- ✅ `server/index.ts` updated — OCR health check at startup
+- ✅ `packages/server/package.json` — added `axios`, `form-data`, `@types/form-data`
+- ✅ OCR tested on real ANAC documents — Tesseract 5, FR+EN validated
+- ✅ LibreTranslate FR↔EN tested — quality acceptable for V1, apostrophe cleanup implemented
 
-Final commit: `d51eee7` — 27 files changed, 1441 insertions
-- Login page fully redesigned (framer-motion, shadcn-style components, 2-step flow)
-- `packages/client/src/` restructured: `lib/`, `components/ui/`, `pages/login/`
-- All API files split: `axios.ts`, `auth.api.ts`, `users.api.ts`, `audit.api.ts`, `api.ts` (barrel)
-- exploration-cache initialized
+## 🚀 Now: Module Documents server (M8)
 
-## 🚀 Next: Sprint 2 — M8 Documents + M2 Partenaires
-
-### Priority 1 — Server: Module Documents (M8)
 - [ ] `modules/documents/services/documents.service.ts`
-  - `upload(file, userId)` — multer integration, MD5 hash, dedup check
-  - `lister(filters)` — paginated, filter by categorie/statut_ocr
-  - `getById(id)` — with related user
+  - `upload({ buffer, nomFichier, mimeType, userId })` — save file, compute MD5, call `extraireTexte()`, check dedup
+  - `lister(filters)` — paginated, filters: categorie, statut_ocr, langue, uploadePar
+  - `getById(id)` — with uploader info
   - `mettreAJour(id, data)` — categorie, langue corrections
-  - `supprimerVersion(id)` — soft delete (mark inactive or remove version)
+  - `getVersions(parentId)` — version chain
 - [ ] `modules/documents/controllers/documents.controller.ts`
 - [ ] `modules/documents/routes/documents.route.ts`
-  - `POST /api/documents/upload` (multer middleware)
-  - `GET /api/documents`
-  - `GET /api/documents/:id`
+  - `POST /api/documents/upload` (multer)
+  - `GET /api/documents` / `GET /api/documents/:id`
   - `PATCH /api/documents/:id`
-- [ ] OCR integration — Tesseract (likely Python microservice or `tesseract` npm)
-- [ ] Watched folder `/temp/` auto-import job
+  - `GET /api/documents/:id/versions`
+- [ ] Upload middleware (`middleware/upload.ts`) — multer, 50MB limit, allowed extensions
+- [ ] Mount route in `index.ts`
 
-### Priority 2 — Server: Module Organisations (M2)
+## Next: Module Organisations (M2)
+
 - [ ] CRUD organisations + contacts
-- [ ] Routes: standard REST on `/api/organisations`, `/api/contacts`
+- [ ] `/api/organisations` + `/api/contacts` routes
 
-### Priority 3 — Client Pages
-- [ ] `DocumentsPage.tsx` — upload UI, OCR status indicator, version history sidebar
-- [ ] `PartenairesPage.tsx` — org list table, filters, org detail + contacts
-- [ ] File upload component — drag & drop, progress bar, mime type validation
+## Client Pages (after server)
+
+- [ ] `DocumentsPage.tsx` — upload, OCR status, version history
+- [ ] `PartenairesPage.tsx` — org + contacts table
+- [ ] File upload component (drag & drop, progress)
 
 ## Progress Tracker
 
 ```
-Sprint 2 setup    ████░░░░░░  10% (exploration-cache done, starting code)
-Documents server  ░░░░░░░░░░   0%
+OCR microservice  ██████████ 100% ✅
+Documents server  ░░░░░░░░░░   0% ← START HERE
 Organisations     ░░░░░░░░░░   0%
 Documents client  ░░░░░░░░░░   0%
 Partenaires client░░░░░░░░░░   0%
