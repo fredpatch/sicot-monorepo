@@ -8,9 +8,11 @@ import rateLimit from 'express-rate-limit';
 // Routes
 import authRoutes from './modules/auth/routes/auth.route';
 import usersRoutes from './modules/users/routes/users.route';
+import auditRoutes from './modules/audit/routes/audit.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
+import { demarrerJobsSauvegarde } from './jobs/backup';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -53,7 +55,7 @@ app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? '/sicot/documents')
 // ── Routes API ─────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', usersRoutes);
-
+app.use('/api/audit', auditRoutes);
 // À brancher au fil des sprints :
 // app.use('/api/documents', documentsRoutes);
 // app.use('/api/organisations', organisationsRoutes);
@@ -76,8 +78,6 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-verifyEmailConnection();
-
 // ── 404 handler ────────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({ message: 'Route introuvable.' });
@@ -90,9 +90,11 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 
 // ── Démarrage ──────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`✅ SICOT API démarrée sur http://localhost:${PORT}`);
   console.log(`📋 Environnement : ${process.env.NODE_ENV ?? 'development'}`);
+  await verifyEmailConnection();
+  demarrerJobsSauvegarde();
 });
 
 export default app;

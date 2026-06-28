@@ -58,3 +58,21 @@ export function handleUsersError(res: Response, error: unknown): void {
   console.error('[users.controller]', error);
   res.status(500).json({ message: 'Erreur interne du serveur.' });
 }
+
+// ── Traduction des codes d'erreur ─────────────────────────────────────────
+export function handleAuditError(res: Response, error: unknown): void {
+  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
+
+  const errorMap: Record<string, { status: number; message: string }> = {
+    AUDIT_LOG_INTROUVABLE: { status: 404, message: 'Entrée de journal introuvable.' },
+  };
+
+  const mapped = errorMap[message];
+  if (mapped) {
+    res.status(mapped.status).json({ message: mapped.message, code: message });
+    return;
+  }
+
+  console.error('[audit.controller]', error);
+  res.status(500).json({ message: 'Erreur interne du serveur.' });
+}
