@@ -94,6 +94,16 @@ const variants = {
 
 ---
 
+## 11. 🗂️ Radix UI for Dialog and Select — Manual Wrappers
+
+**Decision**: Use `@radix-ui/react-dialog` and `@radix-ui/react-select` as the accessibility/behavior foundation for `dialog.tsx` and `select.tsx` shadcn wrappers.
+**Why**: Radix provides fully accessible primitives (focus trapping, keyboard navigation, screen reader support) that would take hundreds of lines to implement correctly from scratch. These packages are the same foundation shadcn officially uses, so the manual wrapper approach stays consistent with the project's "no shadcn CLI" constraint.
+**Installed packages**: `@radix-ui/react-dialog`, `@radix-ui/react-select`, `@radix-ui/react-scroll-area` (in `packages/client` only)
+**Pattern**: Wrap Radix primitives with ANAC design tokens, forward refs, and animate with framer-motion or Tailwind transition classes. Match `SelectTrigger` height/border to `Input` exactly so forms look visually uniform.
+**Gotcha**: Radix Select requires non-empty string values — use `__all__` sentinel for "show all" filter options (see G11 in gotchas.md).
+
+---
+
 ## 10. 🛡️ Admin Activation Required
 
 **Decision**: New users are created with `actif: false`. Admin must explicitly activate via `PATCH /api/users/:id/activation`.

@@ -1,6 +1,36 @@
 # 📝 SICOT – Changelog
 
-## [Unreleased]
+## [9249c49] — 2026-06-28 — feat(client): UI/UX hardening — shadcn Dialog/Select, RHF modals, Lucide icons
+
+### Added
+- `packages/client/src/components/ui/dialog.tsx` — shadcn Dialog on `@radix-ui/react-dialog`; animated overlay + content; Header/Body/Footer/Title/Description sub-parts
+- `packages/client/src/components/ui/select.tsx` — shadcn Select on `@radix-ui/react-select`; matches Input height/border; Check indicator
+- `packages/client/src/pages/BootstrapPage.tsx` — full redesign matching LoginPage (RHF + zod, framer-motion, `useTranslation`, required badge, success screen)
+- `packages/client/src/pages/DocumentsPage.tsx` — shadcn Select filters + Dialog+RHF OCR modal; Lucide icons throughout
+- `packages/client/src/pages/PartenairesPage.tsx` — shadcn Dialog modals for org/contact forms; RHF + zod; shadcn Select/Input/Label
+- `packages/client/src/lib/documents.api.ts` — client API module for documents
+- `packages/client/src/lib/organisations.api.ts` — client API module for organisations
+- `packages/server/src/modules/partenaires/` — organisations CRUD (service + controller + route)
+- `packages/server/src/start/` — bootstrap routes (service + controller + route)
+
+### Changed
+- `packages/client/src/components/layouts/Layout.tsx` — Lucide nav icons, `motion.aside` sidebar collapse, shadcn Button logout/language, avatar initials `rounded-lg`
+- `packages/client/src/pages/login/components/FormField.tsx` — `required?: boolean` prop shows red badge via `t('common.required')`
+- `packages/client/src/i18n/index.ts` — added `bootstrap.*` namespace + `common.required` (FR + EN)
+- `packages/client/src/App.tsx` — DocumentsPage + PartenairesPage routes wired
+- `packages/client/package.json` — added `@radix-ui/react-dialog`, `@radix-ui/react-select`, `@radix-ui/react-scroll-area`
+- `packages/server/src/index.ts` — partenaires + bootstrap routes mounted
+
+---
+
+## [41d3cde] — 2026-06-28 — chore(cache): update manifest lastCommit to 14dd4da
+
+### Changed
+- `exploration-cache/manifest.json` — lastCommit pointer updated
+
+---
+
+## [14dd4da] — 2026-06-28 — feat(server): documents module + @/ path alias
 
 ### Added
 - `packages/ocr-service/main.py` — Python/Flask OCR microservice, port 5001
@@ -106,6 +136,11 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
+| 2026-06-28 | 9249c49 | UI/UX hardening — Dialog/Select, RHF modals, partenaires + bootstrap modules |
+| 2026-06-28 | 41d3cde | Cache manifest update |
+| 2026-06-28 | 14dd4da | Documents server module + @/ path alias |
+| 2026-06-28 | 5d193f5 | OCR microservice |
+| 2026-06-28 | 43a858d | exploration-cache initialized |
 | 2026-06-27 | d51eee7 | Login page redesign + client lib split |
 | 2026-06-26 | 48e85d1 | Audit + backup |
 | 2026-06-26 | 8eb2eed | Drizzle version fix |
