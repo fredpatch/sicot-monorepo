@@ -124,9 +124,8 @@ export const users = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
-  (t) => ({
-    matriculeIdx: uniqueIndex('users_matricule_idx').on(t.matricule),
-  })
+  // ✅ Nouvelle API : tableau au lieu d'objet
+  (t) => [uniqueIndex('users_matricule_idx').on(t.matricule)]
 );
 
 // ── M10 – Journal d'audit ──────────────────────────────────────────────────
@@ -142,11 +141,11 @@ export const auditLogs = pgTable(
     ip: varchar('ip', { length: 45 }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
-  (t) => ({
-    userIdx: index('audit_logs_user_idx').on(t.userId),
-    moduleIdx: index('audit_logs_module_idx').on(t.module),
-    createdAtIdx: index('audit_logs_created_at_idx').on(t.createdAt),
-  })
+  (t) => [
+    index('audit_logs_user_idx').on(t.userId),
+    index('audit_logs_module_idx').on(t.module),
+    index('audit_logs_created_at_idx').on(t.createdAt),
+  ]
 );
 
 // ── M2 – Organisations ─────────────────────────────────────────────────────
@@ -200,17 +199,17 @@ export const documents = pgTable(
       .references(() => users.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
-  (t) => ({
-    hashIdx: index('documents_hash_idx').on(t.hashMD5),
-    categorieIdx: index('documents_categorie_idx').on(t.categorie),
-    statutOCRIdx: index('documents_statut_ocr_idx').on(t.statutOCR),
-  })
+  (t) => [
+    index('documents_hash_idx').on(t.hashMD5),
+    index('documents_categorie_idx').on(t.categorie),
+    index('documents_statut_ocr_idx').on(t.statutOCR),
+  ]
 );
 
 // ── M1 – Accords ───────────────────────────────────────────────────────────
 export const accords = pgTable('accords', {
   id: serial('id').primaryKey(),
-  reference: varchar('reference', { length: 20 }).notNull().unique(), // ACC-2026-XXXX
+  reference: varchar('reference', { length: 20 }).notNull().unique(),
   titre: varchar('titre', { length: 255 }).notNull(),
   statut: accordStatutEnum('statut').notNull().default('actif'),
   dateSignature: timestamp('date_signature').notNull(),
@@ -223,7 +222,7 @@ export const accords = pgTable('accords', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// M1 – Relation many-to-many accords ↔ organisations
+// ── M1 – Relation many-to-many accords ↔ organisations ────────────────────
 export const accordsOrganisations = pgTable('accords_organisations', {
   accordId: integer('accord_id')
     .notNull()
@@ -238,7 +237,7 @@ export const courriers = pgTable(
   'courriers',
   {
     id: serial('id').primaryKey(),
-    reference: varchar('reference', { length: 20 }).notNull().unique(), // CORR-2026-XXXX
+    reference: varchar('reference', { length: 20 }).notNull().unique(),
     referenceExpediteur: varchar('reference_expediteur', { length: 100 }),
     direction: courrierDirectionEnum('direction').notNull(),
     objet: varchar('objet', { length: 500 }).notNull(),
@@ -259,10 +258,10 @@ export const courriers = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
-  (t) => ({
-    directionIdx: index('courriers_direction_idx').on(t.direction),
-    statutIdx: index('courriers_statut_idx').on(t.suiviStatut),
-  })
+  (t) => [
+    index('courriers_direction_idx').on(t.direction),
+    index('courriers_statut_idx').on(t.suiviStatut),
+  ]
 );
 
 // ── M3 – Missions ──────────────────────────────────────────────────────────
@@ -280,7 +279,7 @@ export const missions = pgTable('missions', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// M3 – Participants à une mission
+// ── M3 – Participants a une mission ─────────────────────────────────────
 export const missionParticipants = pgTable('mission_participants', {
   missionId: integer('mission_id')
     .notNull()
@@ -290,7 +289,7 @@ export const missionParticipants = pgTable('mission_participants', {
     .references(() => users.id),
 });
 
-// M3 – Recommandations
+// ── M3 – Recommandations ───────────────────────────────────────────────────
 export const recommandations = pgTable('recommandations', {
   id: serial('id').primaryKey(),
   missionId: integer('mission_id')
@@ -318,13 +317,13 @@ export const glossaire = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
-  (t) => ({
-    termeFrIdx: index('glossaire_terme_fr_idx').on(t.termeFr),
-    termeEnIdx: index('glossaire_terme_en_idx').on(t.termeEn),
-  })
+  (t) => [
+    index('glossaire_terme_fr_idx').on(t.termeFr),
+    index('glossaire_terme_en_idx').on(t.termeEn),
+  ]
 );
 
-// M7 – Historique des modifications de termes
+// ── M7 – Historique glossaire ──────────────────────────────────────────────
 export const glossaireHistorique = pgTable('glossaire_historique', {
   id: serial('id').primaryKey(),
   termeId: integer('terme_id')
@@ -372,10 +371,10 @@ export const demandesTraduction = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
-  (t) => ({
-    statutIdx: index('demandes_statut_idx').on(t.statut),
-    traducteurIdx: index('demandes_traducteur_idx').on(t.traducteurId),
-  })
+  (t) => [
+    index('demandes_statut_idx').on(t.statut),
+    index('demandes_traducteur_idx').on(t.traducteurId),
+  ]
 );
 
 // ── Relations ──────────────────────────────────────────────────────────────
