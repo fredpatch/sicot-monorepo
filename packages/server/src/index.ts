@@ -4,21 +4,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import { verifyEmailConnection } from './utils/email.js';
-import path from 'path';
 
-// Routes (à créer au fil des sprints)
-// import authRoutes from './routes/auth.js';
-// import usersRoutes from './routes/users.js';
-// import documentsRoutes from './routes/documents.js';
-// import accordsRoutes from './routes/accords.js';
-// import courriersRoutes from './routes/courriers.js';
-// import missionsRoutes from './routes/missions.js';
-// import traductionsRoutes from './routes/traductions.js';
-// import demandesRoutes from './routes/demandes.js';
-// import glossaireRoutes from './routes/glossaire.js';
-// import dashboardRoutes from './routes/dashboard.js';
-// import auditRoutes from './routes/audit.js';
+// Routes
+import authRoutes from './modules/auth/routes/auth.route';
+import usersRoutes from './modules/users/routes/users.route';
+
+// Utilitaires
+import { verifyEmailConnection } from './utils/email.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -28,9 +20,12 @@ app.use(helmet());
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-    credentials: true,
+    credentials: true, // indispensable pour que les cookies soient envoyés
   })
 );
+
+// ── Cookies ────────────────────────────────────────────────────────────────
+app.use(cookieParser());
 
 // ── Rate limiting ──────────────────────────────────────────────────────────
 const limiter = rateLimit({
@@ -48,9 +43,6 @@ const authLimiter = rateLimit({
   message: { message: 'Trop de tentatives de connexion, réessayez dans 15 minutes.' },
 });
 
-// ── Cookies ───────────────────────────────────────────────────────────────
-app.use(cookieParser());
-
 // ── Body parsing ───────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -59,9 +51,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? '/sicot/documents'));
 
 // ── Routes API ─────────────────────────────────────────────────────────────
-// app.use('/api/auth', authLimiter, authRoutes);
-// app.use('/api/users', usersRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/users', usersRoutes);
+
+// À brancher au fil des sprints :
 // app.use('/api/documents', documentsRoutes);
+// app.use('/api/organisations', organisationsRoutes);
 // app.use('/api/accords', accordsRoutes);
 // app.use('/api/courriers', courriersRoutes);
 // app.use('/api/missions', missionsRoutes);
