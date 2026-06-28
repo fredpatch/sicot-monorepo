@@ -6,40 +6,58 @@
 - [ ] **Audit de l'existant** - Collecter et analyser les fichiers Excel CCIT actuels, documenter les process manuels
 - [x] ~~**Valider la stack technique**~~ - React + Express + Drizzle + PostgreSQL confirmé, ESLint/Prettier/tsconfig configurés, monorepo initialisé (juin 2026)
 - [x] ~~**Installer l'environnement dev**~~ - PostgreSQL installé et opérationnel sur poste dev Windows (juin 2026)
-- [ ] **Test OCR sur corpus réel ANAC** - 5 à 10 documents représentatifs (accords, correspondances), produire rapport qualité
-- [ ] **Test LibreTranslate FR↔EN** - Extraits aéronautiques réels, produire rapport qualité traduction
+- [x] ~~**Test OCR sur corpus réel ANAC**~~ - Tesseract 5 validé sur documents convertis PDF→image, FR+EN opérationnels (juin 2026)
+- [x] ~~**Test LibreTranslate FR↔EN**~~ - Validé FR↔EN, qualité acceptable V1, ajustements apostrophes+découpage paragraphes identifiés (juin 2026)
 - [ ] **Import glossaire initial** - Si fichier fourni par CCIT, script import CSV/Excel → seed BDD
 - [x] ~~**Modélisation BDD complète**~~ - Schéma Drizzle de toutes les entités (10 modules) créé et migré (juin 2026)
 
-## Sprint 1 – Administration & Auth (M10) | 2 semaines
+## Sprint 1 – Administration & Auth (M10) | ✅ COMPLÉTÉ
 
 - [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
 - [ ] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel
 - [ ] **Flux bootstrap admin** - Sélection agent → email → génération OTP → envoi SMTP
-- [ ] **Page connexion** - Matricule + OTP → changement mot de passe obligatoire à la première connexion
+- [x] ~~**Page connexion**~~ - LoginPage.tsx avec OTP + mot de passe, indicateur de force, 2 étapes (juin 2026)
 - [x] ~~**Gestion des rôles**~~ - Middleware requireRole avec hiérarchie agent/traducteur/relecteur/admin/super_admin (juin 2026)
-- [ ] **Interface admin utilisateurs** - Liste, activation/désactivation, réinitialisation OTP
-- [ ] **Journal d'audit** - Enregistrement toutes actions, interface consultation + export PDF/Excel (non modifiable)
-- [ ] **Sauvegarde automatique BDD** - Cron quotidien local (SERV-APPI) + hebdomadaire NAS, rétention 30j/12 mois
+- [x] ~~**Interface admin utilisateurs**~~ - service/controller/route CRUD complet, activation, réinitialisation OTP (juin 2026)
+- [x] ~~**Journal d'audit**~~ - service/controller/route lecture seule, filtres, métadonnées modules/actions (juin 2026)
+- [x] ~~**Sauvegarde automatique BDD**~~ - Cron quotidien 02h00 local + hebdomadaire 03h00 NAS, rétention automatique (juin 2026)
 - [x] ~~**Interface bilingue FR/EN**~~ - i18n configuré avec react-i18next, traductions FR/EN complètes pour tous les modules (juin 2026)
 - [x] ~~**Charte graphique ANAC**~~ - Police Candara, couleurs institutionnelles (#1B2A5E), Tailwind configuré (juin 2026)
 
 ### Fichiers complétés Sprint 1
 
-- [x] ~~`src/utils/jwt.ts`~~ - signAccessToken, signRefreshToken, verify (juin 2026)
+**Serveur**
+
+- [x] ~~`src/utils/jwt.ts`~~ - signAccessToken, signRefreshToken, verify, cookies httpOnly (juin 2026)
 - [x] ~~`src/utils/otp.ts`~~ - generateOTP, hashOTP, verifyOTP, expiration (juin 2026)
 - [x] ~~`src/utils/email.ts`~~ - sendOTPEmail, sendAccordEcheanceEmail, sendRecommandationEmail (juin 2026)
-- [x] ~~`src/middleware/auth.ts`~~ - authenticate via cookies httpOnly, clearAuthCookies (juin 2026)
+- [x] ~~`src/middleware/auth.ts`~~ - authenticate via cookies httpOnly, clearAuthCookies, options cookies (juin 2026)
 - [x] ~~`src/middleware/requireRole.ts`~~ - hiérarchie des rôles, requireAdmin, requireSuperAdmin (juin 2026)
 - [x] ~~`src/services/auth.service.ts`~~ - login, setPassword, refreshToken, genererEtEnvoyerOTP, logAudit (juin 2026)
 - [x] ~~`src/controllers/auth.controller.ts`~~ - login, setPassword, refresh, logout, me (juin 2026)
 - [x] ~~`src/routes/auth.ts`~~ - /login, /set-password, /refresh, /logout, /me (juin 2026)
+- [x] ~~`src/services/users.service.ts`~~ - lister, getById, creer, mettreAJour, toggleActivation, reinitialiserOTP (juin 2026)
+- [x] ~~`src/controllers/users.controller.ts`~~ - CRUD complet, validation entrées, gestion erreurs (juin 2026)
+- [x] ~~`src/routes/users.ts`~~ - GET /, POST /, GET /:id, PATCH /:id, PATCH /:id/activation, POST /:id/reinitialiser-otp (juin 2026)
+- [x] ~~`src/services/audit.service.ts`~~ - listerAuditLogs, getAuditLog, getModulesDisponibles, getActionsDisponibles (juin 2026)
+- [x] ~~`src/controllers/audit.controller.ts`~~ - lister, getById, getModules, getActions (juin 2026)
+- [x] ~~`src/routes/audit.ts`~~ - GET /, GET /:id, GET /meta/modules, GET /meta/actions (juin 2026)
+- [x] ~~`src/jobs/backup.ts`~~ - cron quotidien 02h00 + hebdomadaire dimanche 03h00, rétention 30j/12 mois (juin 2026)
+- [x] ~~`src/index.ts`~~ - cookieParser, toutes routes branchées, jobs démarrés (juin 2026)
+
+**Client**
+
+- [x] ~~`src/lib/api.ts`~~ - instance Axios, intercepteur refresh automatique, endpoints auth/users/audit (juin 2026)
+- [x] ~~`src/pages/LoginPage.tsx`~~ - connexion OTP + mot de passe, indicateur force, 2 étapes (juin 2026)
+- [x] ~~`src/components/Layout.tsx`~~ - sidebar rétractable, header, toggle FR/EN, filtrage nav par rôle (juin 2026)
+- [x] ~~`src/App.tsx`~~ - AuthContext, ProtectedRoute, AdminRoute, vérification session au démarrage (juin 2026)
 
 ## Sprint 2 – Documentaire & Partenaires (M8 + M2) | 2 semaines
 
-- [ ] **Module upload fichiers** - PDF, Word, images — stockage structuré /sicot/documents/
+- [ ] **Module upload fichiers** - PDF, Word, Doc, Txt, Excel, images — stockage structuré /sicot/documents/
 - [ ] **Dossier surveillé /temp/** - Détection auto nouveaux fichiers, import sans action utilisateur
-- [ ] **Intégration Tesseract** - Extraction texte depuis PDF scanné et images, microservice Python
+- [ ] **Microservice OCR Python** - Extraction texte multi-format : PDF natif (pdfplumber) + PDF scanné (pdf2image+Tesseract) + DOCX (python-docx) + DOC (LibreOffice headless) + TXT + images (Tesseract direct)
+- [ ] **Détection automatique PDF natif vs scanné** - Bascule pdfplumber → Tesseract si page vide
 - [ ] **Détection langue source automatique**
 - [ ] **Classification auto par mots-clés** - Catégorie proposée, corrigeable par utilisateur
 - [ ] **Gestion des versions documentaires** - Historique, version active marquée
@@ -49,6 +67,14 @@
 - [ ] **Fiche Contact rattachée** - Plusieurs contacts par organisation, marquage 'principal', historique rattachement
 - [ ] **Tableau partenaires** - Filtres pays / région / type
 - [ ] **Recherche full-text dans documents archivés** - PostgreSQL FTS
+
+### Décisions techniques Sprint 2
+
+- Microservice Python séparé exposé en HTTP local (port 5001) — appelé par Express
+- Formats supportés : .pdf, .docx, .doc, .txt, .xlsx, .xls, .jpg, .png, .tiff
+- PDF natif → pdfplumber ; PDF scanné → pdf2image + Tesseract ; DOCX → python-docx ; DOC → LibreOffice headless
+- Nettoyage post-OCR : suppression espaces parasites autour apostrophes (identifié lors test LibreTranslate)
+- Conversion toujours côté serveur — l'utilisateur uploade le fichier original, pas d'action manuelle requise
 
 ## Sprint 3 – Accords, Correspondances & Missions (M1 + M4 + M3) | 2 semaines
 
@@ -120,7 +146,8 @@
 ## Waiting On
 
 - [ ] **Glossaire CCIT existant** - Attente fichier CSV/Excel de la Cellule CCIT pour seed initial M7
-- [ ] **Accès API Personnel ANAC** - Confirmer disponibilité et documentation de l'API pour M10
+- [ ] **Intégration API Personnel ANAC** - En attente documentation complète de l'API (Sprint 1 partiel)
+- [ ] **Flux bootstrap admin** - Dépend de l'API Personnel ANAC (Sprint 1 partiel)
 - [ ] **Accès SERV-APPI** - Confirmer droits d'installation pour l'équipe dev (PostgreSQL, LibreTranslate, Tesseract)
 - [ ] **Décision DeepL** - La DG valide-t-elle l'option fallback cloud DeepL ? Contrat RGPD à prévoir
 
@@ -129,6 +156,4 @@
 - [x] ~~**Monorepo SICOT initialisé**~~ - Structure 3 packages, tsconfig, ESLint, Prettier, .gitignore (juin 2026)
 - [x] ~~**Schema BDD Drizzle complet**~~ - 10 modules, enums, tables, relations, index, migration appliquée (juin 2026)
 - [x] ~~**Stack client configurée**~~ - React 18 + Vite + Tailwind, couleurs ANAC, i18n FR/EN, router (juin 2026)
-- [x] ~~**Utilitaires serveur**~~ - jwt.ts, otp.ts, email.ts opérationnels (juin 2026)
-- [x] ~~**Middleware auth + rôles**~~ - Cookies httpOnly, hiérarchie rôles, requireRole (juin 2026)
-- [x] ~~**Auth service/controller/route**~~ - Architecture 3 couches, flux OTP complet, refresh token (juin 2026)
+- [x] ~~**Sprint 1 M10 complété**~~ - Auth, Users, Audit, Backup, Layout, LoginPage, App.tsx, api.ts (juin 2026)
