@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
-import { logAudit } from '../modules/auth/services/auth.service';
+import { logAudit } from '@/modules/auth/services/auth.service';
 
 const execAsync = promisify(exec);
 

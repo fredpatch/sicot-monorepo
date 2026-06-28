@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as auditService from '../services/audit.service.js';
-import { handleAuditError } from '../../../utils/error.js';
+import { handleAuditError } from '@/utils/error.js';
 
 // ── GET /api/audit ────────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

@@ -4,32 +4,30 @@ Last updated: 2026-06-28
 
 ## 🔥 Immediate (start here next session)
 
-1. **Create `middleware/upload.ts`**
-   - multer already in package.json ✅
-   - Config: `dest: UPLOAD_DIR`, 50MB limit, filter by extension (.pdf .docx .doc .txt .xlsx .xls .jpg .png .tiff)
-
-2. **Create `modules/documents/` scaffold**
+1. **Scaffold `modules/organisations/`** — standard CRUD
    ```
-   packages/server/src/modules/documents/
-   ├── controllers/documents.controller.ts
-   ├── services/documents.service.ts
-   └── routes/documents.route.ts
+   packages/server/src/modules/organisations/
+   ├── controllers/organisations.controller.ts
+   ├── services/organisations.service.ts
+   └── routes/organisations.route.ts
    ```
+   - `lister()`, `getById()`, `creer()`, `mettreAJour()`, `archiver()`
+   - Mount: `app.use('/api/organisations', organisationsRoutes)` in `index.ts`
 
-3. **Implement `documents.service.ts`**
-   - `upload()`: save file → MD5 hash → dedup check → call `extraireTexte()` → insert to DB
-   - MD5: use `crypto.createHash('md5').update(buffer).digest('hex')`
-   - OCR call: `import { extraireTexte } from '../../../utils/ocr'` (already exists ✅)
-   - `lister()`, `getById()`, `mettreAJour()`, `getVersions()`
+2. **`DocumentsPage.tsx`** (client)
+   - List with columns: nom, catégorie, OCR status badge, langue, taille, date
+   - Upload button → modal with drag & drop + catégorie selector
+   - Doublon warning (207 response handling)
 
-4. **Mount in `index.ts`** — uncomment `app.use('/api/documents', documentsRoutes)`
+3. **File upload component** — `packages/client/src/components/ui/file-upload.tsx`
+   - Drag & drop zone, file type validation client-side, progress indicator
+   - Pre-upload MD5 check via `GET /api/documents/doublon?hash=…`
 
 ## 📅 Today / This Sprint
 
-5. **Implement `organisations.service.ts`** + controller + routes — standard CRUD
-6. **Wire organisations route** in `index.ts`
-7. **`DocumentsPage.tsx`** — list, upload button, OCR status badge, version number
-8. **File upload component** — drag & drop (native or react-dropzone)
+4. **Wire organisations route** in `index.ts`
+5. **`PartenairesPage.tsx`** — org list + contacts panel, filters pays/région/type
+6. **`documents.api.ts`** — client API module for documents
 
 ## 📆 This Week
 

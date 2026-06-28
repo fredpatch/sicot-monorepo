@@ -4,18 +4,24 @@
 
 ### Added
 - `packages/ocr-service/main.py` — Python/Flask OCR microservice, port 5001
-  - Routes: `POST /extract`, `GET /health`
-  - Extractors: PDF (native+scanned), DOCX, DOC (LibreOffice), TXT, XLSX, XLS, images
-  - Text cleanup: apostrophe normalization
-  - Language detection: langdetect
-  - Served via Waitress (production WSGI)
 - `packages/ocr-service/requirements.txt`
 - `packages/server/src/utils/ocr.ts` — TypeScript HTTP client (`extraireTexte`, `verifierServiceOCR`)
+- `packages/server/src/utils/hash.ts` — `calculerMD5(buffer)`
+- `packages/server/src/middleware/upload.ts` — multer memoryStorage, 50MB, MIME filter, `handleMulterError`
+- `packages/server/src/modules/document/services/documents.types.ts` — interfaces + `DocumentCategorie`
+- `packages/server/src/modules/document/services/documents.constants.ts` — storage config + keyword classifier data
+- `packages/server/src/modules/document/services/documents.helpers.ts` — pure utility functions
+- `packages/server/src/modules/document/services/documents.service.ts` — service layer
+- `packages/server/src/modules/document/controllers/documents.errors.ts` — `handleDocumentsError`
+- `packages/server/src/modules/document/controllers/documents.controller.ts` — all route handlers
+- `packages/server/src/modules/document/routes/documents.route.ts` — Express router, wired
 
 ### Changed
-- `packages/server/src/index.ts` — added OCR health check at startup
-- `packages/server/package.json` — added `axios`, `form-data`, `@types/form-data`
-- `docs/TASKS.md` — marked OCR test ✅, LibreTranslate test ✅, added Sprint 2 technical decisions
+- `packages/server/src/index.ts` — OCR health check at startup, documents route mounted
+- `packages/server/package.json` — added `axios`, `form-data`, `tsc-alias`; build: `tsc && tsc-alias`
+- `packages/server/tsconfig.json` — added `baseUrl: "./src"`, `@/*` path alias
+- 15 server source files — all `../../`/`../../../` imports migrated to `@/` alias
+- `docs/TASKS.md` — marked OCR test ✅, LibreTranslate test ✅
 
 ---
 

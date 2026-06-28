@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import * as usersService from '../services/users.service';
 import { UserRole } from '@sicot/shared';
-import { handleUsersError } from '../../../utils/error';
+import { handleUsersError } from '@/utils/error';
 
 // ── GET /api/users ────────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
