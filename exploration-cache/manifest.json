@@ -1,0 +1,171 @@
+{
+  "project": "SICOT – Système Intégré de Coopération Internationale et de Traduction",
+  "client": "ANAC Gabon",
+  "repo": "fredpatch/sicot-monorepo",
+  "branch": "main",
+  "lastUpdated": "2026-06-28",
+  "lastCommit": "d51eee7",
+  "currentSprint": 2,
+  "currentSprintFocus": "M8 Documents + M2 Partenaires",
+  "status": "Sprint 1 complete. Sprint 2 starting.",
+
+  "activeSession": {
+    "task": "exploration-cache reorganized and expanded",
+    "startedAt": "2026-06-28",
+    "nextAction": "Commit exploration-cache, then scaffold modules/documents/ on server"
+  },
+
+  "index": [
+    {
+      "path": "index.md",
+      "type": "navigation",
+      "tags": ["index", "overview", "navigation"],
+      "summary": "Human-readable index of all files with descriptions and update instructions"
+    },
+    {
+      "path": "quick-ref.md",
+      "type": "reference",
+      "tags": ["commands", "api", "colors", "rules", "sprint"],
+      "summary": "One-page quick reference: dev commands, key paths, CSS classes, API routes, active blockers"
+    },
+    {
+      "path": "changelog.md",
+      "type": "history",
+      "tags": ["git", "commits", "history"],
+      "summary": "Commit history with files changed per commit. Covers f5a382a through d51eee7."
+    },
+    {
+      "path": "active-session/current-task.md",
+      "type": "session",
+      "tags": ["current", "sprint2", "documents", "partenaires"],
+      "summary": "Sprint 1 done. Sprint 2 scope: M8 + M2. Progress tracker and definition of done."
+    },
+    {
+      "path": "active-session/blockers.md",
+      "type": "session",
+      "tags": ["blockers", "api-personnel", "serv-appi", "deepl", "glossaire"],
+      "summary": "4 active blockers: API Personnel ANAC, SERV-APPI access, glossaire file, DeepL approval"
+    },
+    {
+      "path": "active-session/next-actions.md",
+      "type": "session",
+      "tags": ["actions", "immediate", "sprint2", "documents", "organisations"],
+      "summary": "Prioritized: mount document route → scaffold modules/documents/ → multer middleware → M2 organisations"
+    },
+    {
+      "path": "active-session/context.md",
+      "type": "session",
+      "tags": ["orientation", "rules", "environment", "git"],
+      "summary": "Fresh-session context: critical rules (framer-motion, Tailwind v4, cookies, tsconfig), environment assumptions, how to re-orient"
+    },
+    {
+      "path": "project/overview.md",
+      "type": "project",
+      "tags": ["sicot", "anac", "modules", "stakeholders", "sprint-status"],
+      "summary": "What SICOT is, 10 modules table (M1–M10), stakeholders, current status, repository info"
+    },
+    {
+      "path": "project/architecture.md",
+      "type": "project",
+      "tags": ["stack", "react", "express", "drizzle", "auth-flow", "environment"],
+      "summary": "Full stack: React+Vite+Tailwind v4 client, Express+Drizzle+PG server. Auth flow, env vars, module pattern, backup cron"
+    },
+    {
+      "path": "project/database-schema.md",
+      "type": "project",
+      "tags": ["schema", "tables", "enums", "drizzle", "postgresql", "relations"],
+      "summary": "All 15 enums and all tables with columns/types/indexes/relations. DB commands reference."
+    },
+    {
+      "path": "project/decisions.md",
+      "type": "project",
+      "tags": ["decisions", "shadcn", "tailwind", "framer-motion", "cookies", "lockout"],
+      "summary": "10 decisions: no shadcn CLI, Tailwind v4 config, framer-motion transitions, ignoreDeprecations, httpOnly cookies, refresh queue, inline step views, OTP hashing, lockout, admin activation"
+    },
+    {
+      "path": "tasks/backlog.md",
+      "type": "tasks",
+      "tags": ["backlog", "sprint2", "sprint3", "sprint4", "sprint5", "sprint6", "sprint7"],
+      "summary": "Full backlog Sprint 2–7, 40+ tasks organized by sprint. Includes pending/waiting-on table."
+    },
+    {
+      "path": "tasks/sprint-1.md",
+      "type": "tasks",
+      "tags": ["sprint1", "completed", "auth", "users", "audit", "login"],
+      "summary": "Sprint 1 completion status table. All server + client tasks ✅. Two items deferred (API Personnel)."
+    },
+    {
+      "path": "tasks/completed/sprint-1-done.md",
+      "type": "tasks",
+      "tags": ["sprint1", "lessons", "framer-motion", "shadcn", "discriminatedunion"],
+      "summary": "What was built in Sprint 1 + lessons learned (framer-motion 45min bug, shadcn CLI discovery, discriminatedUnion casting)"
+    },
+    {
+      "path": "technical/cheat-sheet.md",
+      "type": "technical",
+      "tags": ["commands", "imports", "api-routes", "env-vars", "checklist", "colors"],
+      "summary": "All-in-one reference: npm commands, file locations, full API route table, env vars, color tokens, common imports, new module checklist"
+    },
+    {
+      "path": "technical/patterns.md",
+      "type": "technical",
+      "tags": ["patterns", "service", "controller", "route", "usequery", "mutation", "form", "cva"],
+      "summary": "Code patterns: 3-layer module, audit logging, TanStack Query hooks, mutation, form setup, CVA component, page layout"
+    },
+    {
+      "path": "technical/conventions.md",
+      "type": "technical",
+      "tags": ["naming", "files", "language", "french", "typescript", "git", "css"],
+      "summary": "Naming conventions, file organization, language policy (French domain terms), reference format (ACC-2026-XXXX), TypeScript rules, CSS rules, git commit format"
+    },
+    {
+      "path": "technical/gotchas.md",
+      "type": "technical",
+      "tags": ["gotchas", "framer-motion", "tailwind", "shadcn", "cors", "discriminatedunion", "multer", "drizzle", "enum", "otp"],
+      "summary": "10 gotchas with exact symptoms and fixes: transition in Variants, Tailwind v4 config, shadcn CLI, CORS wildcard, discriminatedUnion casting, ignoreDeprecations, multer limits, Drizzle where(), PG enums, premier_login role"
+    },
+    {
+      "path": "sessions/2026-06-28.md",
+      "type": "session-log",
+      "tags": ["2026-06-28", "exploration-cache"],
+      "summary": "Session: exploration-cache initialized. Sprint 1 reviewed. No code changes. Next: commit + Sprint 2."
+    },
+    {
+      "path": "sessions/2026-06-27.md",
+      "type": "session-log",
+      "tags": ["2026-06-27", "login-page", "shadcn", "framer-motion", "lib-split", "d51eee7"],
+      "summary": "Session: api.ts split, LoginPage redesigned, shadcn components created, path alias added, framer-motion issues solved. Commit d51eee7 pushed."
+    }
+  ],
+
+  "quickRef": {
+    "devCommand": "npm run dev",
+    "ports": { "client": 5173, "server": 3001 },
+    "stack": {
+      "client": "React 18 + Vite 5 + Tailwind v4 + framer-motion v12 + react-hook-form + zod + axios + TanStack Query",
+      "server": "Express 4 + Drizzle ORM + PostgreSQL + bcryptjs + jsonwebtoken + nodemailer + node-cron"
+    },
+    "pathAlias": "@/ → packages/client/src/",
+    "designTokenPrefix": "anac-",
+    "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
+    "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health"],
+    "pendingRoutes": ["/api/documents", "/api/organisations", "/api/accords", "/api/courriers", "/api/missions", "/api/traductions", "/api/demandes", "/api/glossaire", "/api/dashboard"]
+  },
+
+  "blockers": [
+    { "id": "B1", "severity": "hard", "item": "API Personnel ANAC", "waitingOn": "ANAC IT dept" },
+    { "id": "B2", "severity": "soft", "item": "SERV-APPI server access", "waitingOn": "IT dept" },
+    { "id": "B3", "severity": "soft", "item": "Glossaire CCIT Excel", "waitingOn": "CCIT" },
+    { "id": "B4", "severity": "soft", "item": "DeepL approval", "waitingOn": "DG + RGPD" }
+  ],
+
+  "criticalRules": [
+    "NEVER run shadcn CLI — Tailwind v4 incompatibility",
+    "NEVER put transition inside framer-motion Variants objects",
+    "NEVER use CORS origin wildcard with credentials: true",
+    "KEEP ignoreDeprecations: '6.0' in packages/client/tsconfig.json",
+    "ALWAYS use @/ path alias for client imports",
+    "ALWAYS use ANAC design tokens (bg-anac-navy), never raw hex"
+  ]
+}
