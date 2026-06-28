@@ -13,6 +13,7 @@ import auditRoutes from './modules/audit/routes/audit.route';
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
 import { demarrerJobsSauvegarde } from './jobs/backup';
+import { verifierServiceOCR } from './utils/ocr';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -94,6 +95,12 @@ app.listen(PORT, async () => {
   console.log(`✅ SICOT API démarrée sur http://localhost:${PORT}`);
   console.log(`📋 Environnement : ${process.env.NODE_ENV ?? 'development'}`);
   await verifyEmailConnection();
+  const ocrAvailable = await verifierServiceOCR();
+  if (ocrAvailable) {
+    console.log('✅ Service OCR disponible');
+  } else {
+    console.warn('⚠️  Service OCR indisponible — démarrez packages/ocr-service/main.py');
+  }
   demarrerJobsSauvegarde();
 });
 

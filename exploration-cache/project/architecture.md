@@ -7,7 +7,10 @@ sicot-monorepo/                     npm workspaces root
 ├── packages/
 │   ├── client/     @sicot/client   React SPA (Vite)
 │   ├── server/     @sicot/server   Express REST API
-│   └── shared/     @sicot/shared   Shared TS types (minimal, grows over sprints)
+│   ├── shared/     @sicot/shared   Shared TS types (minimal, grows over sprints)
+│   └── ocr-service/                Python microservice (Flask + Waitress) — NOT an npm package
+│       ├── main.py                 Flask app, /extract and /health routes
+│       └── requirements.txt        Python deps (pdfplumber, pytesseract, pdf2image, python-docx, ...)
 ├── docs/                           Project docs (PDF, DOCX, TASKS.md)
 ├── scripts/setup-db.sql            Initial DB setup
 ├── exploration-cache/              ← This knowledge base
@@ -120,6 +123,54 @@ packages/server/src/modules/<name>/
   routes/<name>.route.ts             — Express Router, auth/role middleware applied here
 ```
 Then mounted in `src/index.ts` as `app.use('/api/<name>', ...routes)`.
+
+## OCR Microservice (`packages/ocr-service/`)
+
+A standalone Python/Flask service that handles all text extraction. Express calls it over HTTP — no Node OCR libraries needed.
+
+| Concern | Detail |
+|---------|--------|
+| Language | Python 3 |
+| Server | Flask + Waitress (production WSGI) |
+| Port | 5001 (env: `OCR_PORT`) |
+| Start | `python main.py` (inside `packages/ocr-service/`, venv activated) |
+
+### Routes
+- `POST /extract` — multipart file → `{ texte, langue, format, caracteres, succes }`
+- `GET /health` — liveness check, returns Tesseract version
+
+### Supported Formats & Extractors
+| Extension | Library | Notes |
+|-----------|---------|-------|
+| `.pdf` | pdfplumber + pdf2image + Tesseract | Auto-detects native vs scanned per page |
+| `.docx` | python-docx | Includes table cells |
+| `.doc` | LibreOffice headless → docx → python-docx | Requires LibreOffice installed |
+| `.txt` | Built-in decode | Tries utf-8, latin-1, cp1252 |
+| `.xlsx` | openpyxl | All sheets |
+| `.xls` | xlrd | All sheets |
+| `.jpg/.jpeg/.png/.tiff` | Tesseract direct | `lang=fra+eng`, `--psm 3` |
+
+### System dependencies (must be installed on SERV-APPI)
+- Tesseract OCR 5.x — `fra+eng` language packs
+- LibreOffice (headless) — for `.doc` conversion
+- Poppler — for `pdf2image`
+
+### Text cleanup (post-extraction)
+- Removes spurious spaces around apostrophes: `"l ' annexe"` → `"l'annexe"` (identified in LibreTranslate tests)
+- Collapses multiple spaces and blank lines
+
+### TypeScript client
+`packages/server/src/utils/ocr.ts` — wraps the HTTP calls:
+- `extraireTexte({ buffer, nomFichier, mimeType })` → `OCRResult`
+- `verifierServiceOCR()` → `boolean` (called at server startup)
+- Error codes: `OCR_SERVICE_INDISPONIBLE`, `OCR_TIMEOUT`, `OCR_ERREUR`
+- Timeout: 60 seconds (large PDFs)
+
+### Environment variables
+- `OCR_SERVICE_URL` — default: `http://localhost:5001`
+- `OCR_PORT` — (Python side) default: `5001`
+- `TESSERACT_CMD` — full path to tesseract.exe (Windows)
+- `LIBREOFFICE_CMD` — full path to soffice.exe (Windows)
 
 ## Backup Jobs
 

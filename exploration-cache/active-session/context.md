@@ -49,11 +49,26 @@ packages/client/tsconfig.json               (added baseUrl + paths)
 4. **`ignoreDeprecations: "6.0"`** in `packages/client/tsconfig.json` — leave it alone
 5. **DB runs locally**: PostgreSQL on Windows, connection via `DATABASE_URL` in `.env`
 
+## OCR Service
+
+`packages/ocr-service/main.py` — Python/Flask, port 5001. **Must be started separately.**
+```
+cd packages/ocr-service
+.venv\Scripts\activate      # Windows
+python main.py
+```
+The Express server checks OCR health at startup and warns if unavailable — it does NOT crash.
+TypeScript client: `utils/ocr.ts` — `extraireTexte()` + `verifierServiceOCR()`.
+
 ## Environment Assumptions
 
 - Node.js available in PATH
 - PostgreSQL running locally on default port 5432
+- Python 3 + venv in `packages/ocr-service/.venv`
+- Tesseract 5.x installed at `C:\Users\Prime Daily\AppData\Local\Programs\Tesseract-OCR\tesseract.exe`
+- LibreOffice installed at `C:\Program Files\LibreOffice\program\soffice.exe`
 - `npm run dev` starts both server (3001) and client (5173) via `concurrently`
+- OCR service started separately (`python main.py` in `packages/ocr-service/`)
 - No Docker in use currently
 
 ## How to Re-orient After a Break

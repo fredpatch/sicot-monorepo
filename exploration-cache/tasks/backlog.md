@@ -4,15 +4,24 @@ Last updated: 2026-06-28
 
 ## 🔥 Sprint 2 — M8 Documents + M2 Partenaires
 
+### Technical Decisions Made ✅
+- OCR: **Python microservice** (Flask, port 5001) — NOT npm package. Already built and tested.
+- Formats: `.pdf .docx .doc .txt .xlsx .xls .jpg .jpeg .png .tiff .tif`
+- PDF strategy: pdfplumber (native) → auto-fallback to pdf2image+Tesseract (scanned) per page
+- `.doc` format: LibreOffice headless conversion → docx → python-docx
+- Text cleanup: apostrophe normalization implemented (identified from LibreTranslate tests)
+- Language detection: `langdetect` library in OCR service
+- OCR client: `packages/server/src/utils/ocr.ts` (`extraireTexte()`, `verifierServiceOCR()`)
+
 ### Server
+- [ ] `middleware/upload.ts` — multer, 50MB limit, filter by extension
 - [ ] `modules/documents/` — service + controller + routes
-  - [ ] `upload()` — multer, MD5 dedup, metadata extraction
-  - [ ] `lister()` — paginated, filters: categorie, statut_ocr, langue
+  - [ ] `upload()` — save file, MD5 hash, dedup check, call `extraireTexte()`, insert to DB
+  - [ ] `lister()` — paginated, filters: categorie, statut_ocr, langue, uploadePar
   - [ ] `getById()` — with uploader info
   - [ ] `mettreAJour()` — categorie, langue corrections post-upload
-  - [ ] `getVersions()` — version history for a document
-- [ ] Upload middleware (`src/middleware/upload.ts`) — multer config, 50MB limit, allowed MIME types
-- [ ] OCR integration — Tesseract (decision: npm `node-tesseract-ocr` vs Python microservice)
+  - [ ] `getVersions(parentId)` — version chain
+- [ ] ✅ `utils/ocr.ts` — already done
 - [ ] Watched folder job (`src/jobs/watchFolder.ts`) — poll `/temp/`, auto-import on new file
 - [ ] `modules/organisations/` — service + controller + routes
   - [ ] `lister()` — filters: type, pays, region, actif

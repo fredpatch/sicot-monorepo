@@ -6,6 +6,11 @@
 # Development
 npm run dev                    # Start both server (3001) + client (5173)
 
+# OCR Service (separate terminal — must be started manually)
+cd packages/ocr-service
+.venv\Scripts\activate         # Windows
+python main.py                 # Starts on :5001
+
 # Individual packages
 npm run dev --workspace=packages/server
 npm run dev --workspace=packages/client
