@@ -117,3 +117,40 @@ db.select().from(documents).where(and(...conditions));
 **Cause**: The temp token has `role: 'premier_login'` — it's not in `user_role` enum, it's a special string.
 **Existing protection**: `authenticate` middleware sets `req.user.role = 'premier_login'`. `requireRole()` will reject it since it's not in any allowed role list.
 **Do not** accidentally allow `premier_login` role in any route that shouldn't be accessible during first login.
+
+---
+
+## G11 — Radix Select rejects empty string as value
+
+**Symptom**: `<SelectItem value="">` causes Radix to throw or silently break — the "all" filter option doesn't work.
+**Cause**: `@radix-ui/react-select` requires non-empty string values for all `SelectItem` elements.
+**Fix**: Use a sentinel value instead of empty string:
+```tsx
+// ❌ Breaks with Radix
+<SelectItem value="">Tous</SelectItem>
+
+// ✅ Use a sentinel
+const TOUS = '__all__';
+<SelectItem value={TOUS}>Tous</SelectItem>
+
+// Then in filter logic:
+const filtered = items.filter(i =>
+  statutFiltre === TOUS || i.statut === statutFiltre
+);
+```
+
+---
+
+## G12 — react-hook-form doesn't reset when editing a different entity in the same modal
+
+**Symptom**: Opening the edit modal for entity A, closing it, then opening for entity B still shows A's values.
+**Cause**: `useForm` initializes once on mount. The modal component is not unmounted between opens if the parent keeps the same component instance in the tree.
+**Fix**: Add `key={entity?.id ?? 'new'}` to the form sub-component. React will unmount + remount it (and therefore re-run `useForm`) whenever the key changes.
+```tsx
+// ✅ Forces RHF re-initialization when editing a different org
+<FormulaireOrganisation
+  key={orgSelectionnee?.id ?? 'new'}
+  org={orgSelectionnee}
+  onSubmit={handleSubmit}
+/>
+```

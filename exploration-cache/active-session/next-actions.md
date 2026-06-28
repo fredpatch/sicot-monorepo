@@ -4,48 +4,46 @@ Last updated: 2026-06-28
 
 ## 🔥 Immediate (start here next session)
 
-1. **Scaffold `modules/organisations/`** — standard CRUD
+1. **Scaffold `modules/accords/`** — standard CRUD
    ```
-   packages/server/src/modules/organisations/
-   ├── controllers/organisations.controller.ts
-   ├── services/organisations.service.ts
-   └── routes/organisations.route.ts
+   packages/server/src/modules/accords/
+   ├── controllers/accords.controller.ts
+   ├── services/accords.service.ts
+   └── routes/accords.route.ts
    ```
    - `lister()`, `getById()`, `creer()`, `mettreAJour()`, `archiver()`
-   - Mount: `app.use('/api/organisations', organisationsRoutes)` in `index.ts`
+   - Mount: `app.use('/api/accords', accordsRoutes)` in `index.ts`
 
-2. **`DocumentsPage.tsx`** (client)
-   - List with columns: nom, catégorie, OCR status badge, langue, taille, date
-   - Upload button → modal with drag & drop + catégorie selector
-   - Doublon warning (207 response handling)
+2. **Scaffold `modules/courriers/`** — same pattern as above
 
-3. **File upload component** — `packages/client/src/components/ui/file-upload.tsx`
-   - Drag & drop zone, file type validation client-side, progress indicator
-   - Pre-upload MD5 check via `GET /api/documents/doublon?hash=…`
+3. **Scaffold `modules/missions/`** — same pattern, add `participants` sub-resource
 
-## 📅 Today / This Sprint
+## 📅 Today / This Sprint (Sprint 3)
 
-4. **Wire organisations route** in `index.ts`
-5. **`PartenairesPage.tsx`** — org list + contacts panel, filters pays/région/type
-6. **`documents.api.ts`** — client API module for documents
+4. **Wire all 3 routes** in `server/index.ts`
+5. **`AccordsPage.tsx`** — list + create/edit modal (shadcn Dialog + RHF + zod)
+6. **`CourriersPage.tsx`** — list + filters + create modal
+7. **`MissionsPage.tsx`** — list + participants panel
 
-## 📆 This Week
+## 📆 Next Sprint (Sprint 4)
 
-9. **`PartenairesPage.tsx`** — org list + contacts panel, filters pays/région/type
-10. **Update `App.tsx`** — uncomment DocumentsPage, PartenairesPage routes
-11. **Watched folder job** (`src/jobs/watchFolder.ts`) — poll `/temp/`, auto-import
+8. **Module Traduction (M5)** — connect LibreTranslate client, build translation request flow
+9. **Module Glossaire (M7)** — import CCIT Excel (when received), CRUD terms
+10. **Module Demandes (M6)** — translation request workflow
 
 ## 🗓️ Backlog (See `tasks/backlog.md`)
 
-12. Module Accords (M1) — Sprint 3
-13. Module Courriers (M4) — Sprint 3
-14. Module Missions (M3) — Sprint 3
+11. Dashboard (M9) — Sprint 5
+12. Tests & Recette — Sprint 6
+13. Déploiement SERV-APPI — Sprint 7
 
-## 📋 Definition of "Sprint 2 Done"
+## 📋 Definition of "Sprint 3 Done"
 
-- [ ] `GET/POST /api/documents` working (upload + list)
-- [ ] `GET/POST/PATCH /api/organisations` working
-- [ ] `DocumentsPage.tsx` renders document list with filters
-- [ ] `PartenairesPage.tsx` renders org list + contacts
-- [ ] Upload component works end-to-end (file → server → DB → OCR queued)
+- [ ] `GET/POST/PATCH /api/accords` working
+- [ ] `GET/POST/PATCH /api/courriers` working
+- [ ] `GET/POST/PATCH /api/missions` working
+- [ ] `AccordsPage.tsx` renders accord list with create/edit modal
+- [ ] `CourriersPage.tsx` renders courrier list with filters
+- [ ] `MissionsPage.tsx` renders mission list with participant detail
+- [ ] All client pages use shadcn Dialog + RHF + zod (consistent with Sprint 2 pattern)
 - [ ] Committed and pushed to `origin/main`

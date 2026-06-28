@@ -53,6 +53,13 @@ GET  /api/users                Admin only
 POST /api/users/:id/reinitialiser-otp   Reset OTP + email user
 GET  /api/audit                Admin only, filter by module/action/date
 GET  /api/health               200 ok
+GET  /api/documents            List documents (filter: categorie, statut_ocr, langue)
+POST /api/documents            Upload (multipart/form-data, field: 'file')
+GET  /api/documents/doublon?hash=…      Pre-upload duplicate check
+GET  /api/organisations        List organisations (filter: pays, type)
+POST /api/organisations        Create organisation
+PATCH /api/organisations/:id   Update organisation
+POST /api/bootstrap            Create initial super_admin account
 ```
 
 ## 🚫 Rules
@@ -65,14 +72,16 @@ GET  /api/health               200 ok
 | Use `origin: '*'` with credentials | Use explicit `CORS_ORIGIN` env var |
 | Import colors as raw hex | Use `bg-anac-navy` etc. |
 | Remove `ignoreDeprecations` from client tsconfig | Leave it |
+| `<SelectItem value="">` (Radix) | Use `value="__all__"` sentinel |
+| Emoji as icons in UI | Lucide React icons only |
 
 ## 📊 Sprint Status
 
 ```
 ✅ Sprint 0 — Init
 ✅ Sprint 1 — Auth & Admin (M10)
-⏳ Sprint 2 — Documents + Partenaires (M8 + M2)  ← CURRENT
-⏳ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)
+✅ Sprint 2 — Documents + Partenaires (M8 + M2) + UI/UX hardening
+⏳ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)  ← CURRENT
 ⏳ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)
 ⏳ Sprint 5 — Dashboard (M9)
 ⏳ Sprint 6 — Tests & Recette

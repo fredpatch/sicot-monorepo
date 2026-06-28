@@ -4,15 +4,15 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-28",
-  "lastCommit": "14dd4da",
-  "currentSprint": 2,
-  "currentSprintFocus": "M8 Documents (done) → M2 Organisations",
-  "status": "Sprint 2 in progress. Documents server complete. @/ alias live. Organisations next.",
+  "lastCommit": "9249c49",
+  "currentSprint": 3,
+  "currentSprintFocus": "M1 Accords + M4 Courriers + M3 Missions",
+  "status": "Sprint 2 DONE. Both client pages + server organisations module complete. UI/UX hardened. Sprint 3 next.",
 
   "activeSession": {
-    "task": "Documents module server complete. @/ path alias migrated across all server files.",
+    "task": "UI/UX hardening complete. Partenaires server module + bootstrap routes added. Sprint 2 closed.",
     "startedAt": "2026-06-28",
-    "nextAction": "Scaffold modules/organisations/ (M2) — CRUD service + controller + route"
+    "nextAction": "Scaffold modules/accords/ (M1) — CRUD service + controller + route"
   },
 
   "index": [
@@ -127,8 +127,8 @@
     {
       "path": "sessions/2026-06-28.md",
       "type": "session-log",
-      "tags": ["2026-06-28", "exploration-cache"],
-      "summary": "Session: exploration-cache initialized. Sprint 1 reviewed. No code changes. Next: commit + Sprint 2."
+      "tags": ["2026-06-28", "exploration-cache", "sprint2", "ui-ux", "partenaires", "bootstrap"],
+      "summary": "Session: exploration-cache init, OCR microservice, Documents server, UI/UX hardening (Layout, Dialog, Select, RHF modals), Partenaires + Bootstrap server modules. Sprint 2 closed."
     },
     {
       "path": "sessions/2026-06-27.md",
@@ -149,8 +149,8 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health"],
-    "pendingRoutes": ["/api/documents", "/api/organisations", "/api/accords", "/api/courriers", "/api/missions", "/api/traductions", "/api/demandes", "/api/glossaire", "/api/dashboard"]
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap"],
+    "pendingRoutes": ["/api/accords", "/api/courriers", "/api/missions", "/api/traductions", "/api/demandes", "/api/glossaire", "/api/dashboard"]
   },
 
   "blockers": [
