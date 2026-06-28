@@ -23,10 +23,16 @@ import {
   ServerError,
   PasswordStrength,
 } from './login/components';
+import { useAuth } from '@/App';
+
+// Bootstrap creds
+// 0000
+// *Secure@5003*
 
 export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const [etape, setEtape] = useState<Etape>('login');
   const [direction, setDirection] = useState(1);
@@ -79,6 +85,7 @@ export default function LoginPage() {
         setDirection(1);
         setEtape('set-password');
       } else {
+        setUser(res.data.user); // Set the user in context or state
         navigate('/dashboard');
       }
     } catch (err: unknown) {
@@ -92,7 +99,8 @@ export default function LoginPage() {
   async function onSetPasswordSubmit(data: SetPasswordFormData) {
     setServerError(null);
     try {
-      await authApi.setPassword(data.motDePasse, data.confirmation);
+      const res = await authApi.setPassword(data.motDePasse, data.confirmation);
+      setUser(res.data.user);
       navigate('/dashboard');
     } catch (err: unknown) {
       setServerError(
@@ -141,9 +149,19 @@ export default function LoginPage() {
           <div className="h-[3px] bg-gradient-to-r from-anac-navy via-anac-blue to-anac-sky" />
 
           <div className="flex border-b border-anac-border">
-            <StepTab active={etape === 'login'} completed={etape === 'set-password'} step={1} label="Connexion" />
+            <StepTab
+              active={etape === 'login'}
+              completed={etape === 'set-password'}
+              step={1}
+              label="Connexion"
+            />
             <div className="w-px bg-anac-border" />
-            <StepTab active={etape === 'set-password'} completed={false} step={2} label="Mot de passe" />
+            <StepTab
+              active={etape === 'set-password'}
+              completed={false}
+              step={2}
+              label="Mot de passe"
+            />
           </div>
 
           <div className="p-6 overflow-hidden">
@@ -266,8 +284,16 @@ function LoginStep({
           role="group"
           aria-label="Mode de connexion"
         >
-          <ModeTab active={!premiereConnexion} onClick={() => onToggleMode(false)} label="Mot de passe" />
-          <ModeTab active={premiereConnexion} onClick={() => onToggleMode(true)} label="Première connexion (OTP)" />
+          <ModeTab
+            active={!premiereConnexion}
+            onClick={() => onToggleMode(false)}
+            label="Mot de passe"
+          />
+          <ModeTab
+            active={premiereConnexion}
+            onClick={() => onToggleMode(true)}
+            label="Première connexion (OTP)"
+          />
         </div>
 
         <AnimatePresence mode="wait" initial={false}>
@@ -354,7 +380,10 @@ function LoginStep({
 
         <Button type="submit" className="w-full" disabled={loginForm.formState.isSubmitting}>
           {loginForm.formState.isSubmitting ? (
-            <><Loader2 size={14} className="animate-spin" />{t('common.loading')}</>
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              {t('common.loading')}
+            </>
           ) : (
             t('auth.connexion')
           )}
@@ -468,7 +497,10 @@ function SetPasswordStep({
           </Button>
           <Button type="submit" className="flex-1" disabled={errors.isSubmitting}>
             {errors.isSubmitting ? (
-              <><Loader2 size={14} className="animate-spin" />{t('common.loading')}</>
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                {t('common.loading')}
+              </>
             ) : (
               'Définir mon mot de passe'
             )}

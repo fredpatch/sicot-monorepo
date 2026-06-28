@@ -1,25 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { authApi } from './lib/auth.api';
-
-// Contexte pour partager l'état de l'utilisateur connecté
 import Layout from './components/layouts/Layout';
-
-// Pages (à implémenter au fil des sprints)
 import LoginPage from './pages/LoginPage';
-// import DashboardPage from './pages/DashboardPage';
-// import AccordsPage from './pages/AccordsPage';
-// import PartenairesPage from './pages/PartenairesPage';
-// import MissionsPage from './pages/MissionsPage';
-// import CourriersPage from './pages/CourriersPage';
-// import TraductionsPage from './pages/TraductionsPage';
-// import DemandesPage from './pages/DemandesPage';
-// import GlossairePage from './pages/GlossairePage';
-// import DocumentsPage from './pages/DocumentsPage';
-// import AdminPage from './pages/AdminPage';
-// import AuditPage from './pages/AuditPage';
+import DocumentsPage from './pages/DocumentsPage';
+import PartenairesPage from './pages/PartenairesPage';
+import BootstrapPage from './pages/BootstrapPage';
+import axios from 'axios';
 
-// ── Placeholder pages (à remplacer au fil des sprints) ────────────────────
 function ComingSoon({ module }: { module: string }) {
   return (
     <div className="flex items-center justify-center h-64">
@@ -32,8 +20,6 @@ function ComingSoon({ module }: { module: string }) {
   );
 }
 
-// ── Contexte Auth ─────────────────────────────────────────────────────────
-// Permet à n'importe quel composant enfant d'accéder à l'utilisateur connecté
 interface AuthUser {
   id: number;
   matricule: string;
@@ -59,7 +45,6 @@ export function useAuth() {
 }
 
 // ── Route protégée ────────────────────────────────────────────────────────
-// Redirige vers /login si l'utilisateur n'est pas connecté
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, chargement } = useAuth();
 
@@ -78,7 +63,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// ── Route réservée aux admins ──────────────────────────────────────────────
+// ── Route réservée aux admins ─────────────────────────────────────────────
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
 
@@ -89,20 +74,35 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// ── Route bootstrap — redirige si déjà initialisé ────────────────────────
+function BootstrapRoute({ bootstrapNeeded }: { bootstrapNeeded: boolean }) {
+  if (!bootstrapNeeded) {
+    return <Navigate to="/login" replace />;
+  }
+  return <BootstrapPage />;
+}
+
 // ── Composant racine ──────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [chargement, setChargement] = useState(true);
+  const [bootstrapNeeded, setBootstrapNeeded] = useState(false);
 
-  // Au chargement de l'app, vérifier si une session existe déjà
-  // (cookie valide → /api/auth/me retourne l'utilisateur)
   useEffect(() => {
     async function verifierSession() {
       try {
+        // 1. Vérifier si le système est initialisé
+        const bootstrapRes = await axios.get('/api/bootstrap/status');
+        if (!bootstrapRes.data.initialise) {
+          setBootstrapNeeded(true);
+          setChargement(false);
+          return;
+        }
+
+        // 2. Vérifier la session existante
         const response = await authApi.me();
         setUser(response.data);
       } catch {
-        // Pas de session valide — l'utilisateur devra se connecter
         setUser(null);
       } finally {
         setChargement(false);
@@ -112,10 +112,33 @@ export default function App() {
     verifierSession();
   }, []);
 
+  // Écran de chargement initial — avant même de savoir si bootstrap est nécessaire
+  if (chargement) {
+    return (
+      <div className="min-h-screen bg-anac-gray flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div
+            className="bg-anac-navy inline-flex items-center justify-center
+                          w-12 h-12 rounded-full"
+          >
+            <span className="text-white font-bold text-sm">AN</span>
+          </div>
+          <p className="text-anac-muted text-sm">Chargement de SICOT...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={{ user, setUser, chargement }}>
       <Routes>
-        {/* ── Route publique ─────────────────────────────────────────── */}
+        {/* ── Bootstrap — premier démarrage ─────────────────────────── */}
+        <Route path="/bootstrap" element={<BootstrapRoute bootstrapNeeded={bootstrapNeeded} />} />
+
+        {/* ── Redirection automatique si bootstrap nécessaire ───────── */}
+        {bootstrapNeeded && <Route path="*" element={<Navigate to="/bootstrap" replace />} />}
+
+        {/* ── Routes publiques ──────────────────────────────────────── */}
         <Route path="/login" element={<LoginPage />} />
 
         {/* ── Routes protégées dans le Layout ───────────────────────── */}
@@ -126,23 +149,16 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          {/* Dashboard */}
           <Route path="/dashboard" element={<ComingSoon module="Tableau de bord" />} />
-
-          {/* Sprint 2 */}
           <Route path="/accords/*" element={<ComingSoon module="Accords & Partenariats" />} />
-          <Route
-            path="/partenaires/*"
-            element={<ComingSoon module="Partenaires Internationaux" />}
-          />
+          <Route path="/partenaires/*" element={<PartenairesPage />} />
           <Route path="/missions/*" element={<ComingSoon module="Missions & Événements" />} />
           <Route path="/courriers/*" element={<ComingSoon module="Correspondances" />} />
           <Route path="/traductions/*" element={<ComingSoon module="Traduction IA" />} />
           <Route path="/demandes/*" element={<ComingSoon module="Demandes de Traduction" />} />
           <Route path="/glossaire/*" element={<ComingSoon module="Glossaire" />} />
-          <Route path="/documents/*" element={<ComingSoon module="Gestion Documentaire" />} />
+          <Route path="/documents/*" element={<DocumentsPage />} />
 
-          {/* Admin uniquement */}
           <Route
             path="/admin/*"
             element={
@@ -161,7 +177,7 @@ export default function App() {
           />
         </Route>
 
-        {/* ── Redirections ───────────────────────────────────────────── */}
+        {/* ── Redirections ──────────────────────────────────────────── */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
