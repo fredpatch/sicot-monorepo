@@ -9,12 +9,16 @@
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@sicot/shared": "*",
     "@tanstack/react-query": "^5.36.2",
     "axios": "^1.7.2",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.42.0",
     "i18next": "^23.11.5",
     "i18next-browser-languagedetector": "^8.0.0",
+    "lucide-react": "^1.21.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.51.5",
