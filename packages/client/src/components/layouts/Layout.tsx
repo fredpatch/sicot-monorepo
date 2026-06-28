@@ -1,44 +1,64 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import {
+  LayoutDashboard,
+  FileText,
+  Globe2,
+  Plane,
+  Mail,
+  Languages,
+  Inbox,
+  BookOpen,
+  FolderOpen,
+  Settings2,
+  ClipboardList,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Loader2,
+  ShieldCheck,
+} from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { authApi } from '../../lib/auth.api';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface NavItem {
   to: string;
   labelKey: string;
-  icon: string;
-  roles?: string[]; // si défini, visible uniquement pour ces rôles
+  icon: React.ElementType;
+  roles?: string[];
 }
 
 // ── Items de navigation ───────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', labelKey: 'nav.dashboard', icon: '📊' },
-  { to: '/accords', labelKey: 'nav.accords', icon: '📋' },
-  { to: '/partenaires', labelKey: 'nav.partenaires', icon: '🤝' },
-  { to: '/missions', labelKey: 'nav.missions', icon: '✈️' },
-  { to: '/courriers', labelKey: 'nav.courriers', icon: '✉️' },
-  { to: '/traductions', labelKey: 'nav.traductions', icon: '🌐' },
-  { to: '/demandes', labelKey: 'nav.demandes', icon: '📥' },
-  { to: '/glossaire', labelKey: 'nav.glossaire', icon: '📖' },
-  { to: '/documents', labelKey: 'nav.documents', icon: '🗂️' },
+  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/accords', labelKey: 'nav.accords', icon: FileText },
+  { to: '/partenaires', labelKey: 'nav.partenaires', icon: Globe2 },
+  { to: '/missions', labelKey: 'nav.missions', icon: Plane },
+  { to: '/courriers', labelKey: 'nav.courriers', icon: Mail },
+  { to: '/traductions', labelKey: 'nav.traductions', icon: Languages },
+  { to: '/demandes', labelKey: 'nav.demandes', icon: Inbox },
+  { to: '/glossaire', labelKey: 'nav.glossaire', icon: BookOpen },
+  { to: '/documents', labelKey: 'nav.documents', icon: FolderOpen },
   {
     to: '/admin',
     labelKey: 'nav.administration',
-    icon: '⚙️',
+    icon: Settings2,
     roles: ['admin', 'super_admin'],
   },
   {
     to: '/audit',
     labelKey: 'nav.audit',
-    icon: '🔍',
+    icon: ClipboardList,
     roles: ['admin', 'super_admin'],
   },
 ];
 
-// ── Hook pour récupérer l'utilisateur connecté depuis le contexte ─────────
-// On le passera via props pour l'instant — on ajoutera un contexte Auth
-// dans le prochain fichier
+// ── Props ─────────────────────────────────────────────────────────────────
 interface LayoutProps {
   userRole?: string;
   userNom?: string;
@@ -54,7 +74,7 @@ export default function Layout({ userRole, userNom, userPrenom }: LayoutProps) {
 
   // Filtrer les items de nav selon le rôle de l'utilisateur
   const itemsVisibles = NAV_ITEMS.filter((item) => {
-    if (!item.roles) return true; // visible par tous
+    if (!item.roles) return true;
     return userRole ? item.roles.includes(userRole) : false;
   });
 
@@ -71,116 +91,125 @@ export default function Layout({ userRole, userNom, userPrenom }: LayoutProps) {
     i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr');
   }
 
+  const initiales = `${userPrenom?.[0] ?? ''}${userNom?.[0] ?? ''}`.toUpperCase();
+
   return (
     <div className="flex h-screen bg-anac-gray overflow-hidden">
       {/* ── Sidebar ──────────────────────────────────────────────────── */}
-      <aside
-        className={`flex flex-col bg-anac-navy transition-all duration-300 
-                    ${sidebarOuverte ? 'w-56' : 'w-14'}`}
+      <motion.aside
+        animate={{ width: sidebarOuverte ? 224 : 45 }}
+        transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+        className="flex flex-col bg-anac-navy overflow-hidden flex-shrink-0"
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-anac-blue">
-          <div
-            className="flex-shrink-0 bg-white rounded-full w-8 h-8
-                          flex items-center justify-center"
-          >
-            <span className="text-anac-navy font-bold text-xs">AN</span>
+        <div className="flex items-center gap-3 px-3 py-4 border-b border-white/10 h-[57px] overflow-hidden">
+          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0">
+            <ShieldCheck size={15} className="text-white" strokeWidth={1.75} />
           </div>
-          {sidebarOuverte && (
-            <div>
-              <p className="text-white font-bold text-sm leading-tight">SICOT</p>
-              <p className="text-anac-sky text-xs">ANAC Gabon</p>
-            </div>
-          )}
+          <div
+            className={cn(
+              'overflow-hidden whitespace-nowrap transition-opacity duration-200',
+              sidebarOuverte ? 'opacity-100' : 'opacity-0'
+            )}
+          >
+            <p className="text-white font-bold text-sm leading-tight">SICOT</p>
+            <p className="text-anac-sky text-[10px] leading-tight">ANAC Gabon</p>
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 space-y-1 px-2">
-          {itemsVisibles.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md text-sm
-                 transition-colors group
-                 ${
-                   isActive
-                     ? 'bg-anac-blue text-white'
-                     : 'text-anac-sky hover:bg-anac-blue/50 hover:text-white'
-                 }`
-              }
-              title={!sidebarOuverte ? t(item.labelKey) : undefined}
-            >
-              <span className="flex-shrink-0 text-base">{item.icon}</span>
-              {sidebarOuverte && <span className="truncate">{t(item.labelKey)}</span>}
-            </NavLink>
-          ))}
+        <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-2">
+          {itemsVisibles.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                title={!sidebarOuverte ? t(item.labelKey) : undefined}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-2.5 px-2.5 py-[7px] rounded-md transition-colors overflow-hidden',
+                    isActive
+                      ? 'bg-anac-blue text-white'
+                      : 'text-white/60 hover:bg-white/10 hover:text-white'
+                  )
+                }
+              >
+                <Icon size={15} className="flex-shrink-0" strokeWidth={1.75} />
+                <span
+                  className={cn(
+                    'text-[12px] font-medium truncate whitespace-nowrap transition-opacity duration-150',
+                    sidebarOuverte ? 'opacity-100' : 'opacity-0'
+                  )}
+                >
+                  {t(item.labelKey)}
+                </span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Toggle sidebar */}
         <button
           onClick={() => setSidebarOuverte(!sidebarOuverte)}
-          className="flex items-center justify-center py-3 border-t border-anac-blue
-                     text-anac-sky hover:text-white hover:bg-anac-blue/50
-                     transition-colors text-sm"
-          title={sidebarOuverte ? 'Réduire' : 'Agrandir'}
+          className="flex items-center justify-center h-10 border-t border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+          aria-label={sidebarOuverte ? 'Réduire la barre latérale' : 'Agrandir la barre latérale'}
         >
-          {sidebarOuverte ? '◀' : '▶'}
+          {sidebarOuverte ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
         </button>
-      </aside>
+      </motion.aside>
 
       {/* ── Contenu principal ─────────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
         {/* Header */}
-        <header
-          className="bg-white border-b border-anac-border
-                           flex items-center justify-between px-6 py-3 flex-shrink-0"
-        >
-          {/* Titre de la page — injecté par chaque page via document.title */}
-          <h1 className="text-anac-navy font-semibold text-base">
+        <header className="bg-white border-b border-anac-border flex items-center justify-between px-6 h-[57px] flex-shrink-0">
+          <h1 className="text-anac-navy font-semibold text-sm truncate">
             Système Intégré de Coopération Internationale et de Traduction
           </h1>
 
-          {/* Actions header */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 flex-shrink-0 ml-4">
             {/* Toggle langue FR/EN */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={toggleLangue}
-              className="text-sm text-anac-muted hover:text-anac-navy
-                         border border-anac-border rounded px-2 py-1
-                         transition-colors font-medium"
+              className="h-8 px-2.5 text-anac-muted hover:text-anac-navy font-bold text-[11px] tracking-wide"
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
-            </button>
+            </Button>
+
+            <div className="w-px h-5 bg-anac-border mx-1" />
 
             {/* Utilisateur connecté */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 px-1.5">
               <div className="text-right">
-                <p className="text-sm font-medium text-anac-navy">
+                <p className="text-[12px] font-semibold text-anac-navy leading-tight">
                   {userPrenom} {userNom}
                 </p>
-                <p className="text-xs text-anac-muted capitalize">{userRole}</p>
+                <p className="text-[10px] text-anac-muted capitalize leading-tight">{userRole}</p>
               </div>
-
-              {/* Avatar */}
-              <div
-                className="bg-anac-navy text-white rounded-full w-8 h-8
-                              flex items-center justify-center text-xs font-bold
-                              flex-shrink-0"
-              >
-                {userPrenom?.[0]}
-                {userNom?.[0]}
+              <div className="w-8 h-8 rounded-lg bg-anac-navy text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 select-none">
+                {initiales || '—'}
               </div>
             </div>
 
+            <div className="w-px h-5 bg-anac-border mx-1" />
+
             {/* Déconnexion */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleLogout}
               disabled={chargementLogout}
-              className="btn-secondary text-sm py-1.5"
+              className="h-8 px-2.5 gap-1.5 text-anac-muted hover:text-anac-danger hover:bg-red-50"
             >
-              {chargementLogout ? '...' : t('auth.deconnexion')}
-            </button>
+              {chargementLogout ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <LogOut size={13} />
+              )}
+              <span className="text-[11px]">{t('auth.deconnexion')}</span>
+            </Button>
           </div>
         </header>
 

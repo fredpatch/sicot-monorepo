@@ -1,5 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 
 interface FormFieldProps {
@@ -7,13 +8,22 @@ interface FormFieldProps {
   label: string;
   error?: string;
   hint?: string;
+  required?: boolean;
   children: React.ReactNode;
 }
 
-export function FormField({ id, label, error, hint, children }: FormFieldProps) {
+export function FormField({ id, label, error, hint, required, children }: FormFieldProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        {required && (
+          <span className="inline-flex items-center px-1.5 py-px rounded text-[9px] font-semibold bg-red-50 text-red-500 border border-red-100 leading-none select-none">
+            {t('common.required')}
+          </span>
+        )}
+      </div>
       {children}
       <AnimatePresence>
         {error ? (

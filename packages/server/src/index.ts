@@ -10,6 +10,8 @@ import authRoutes from './modules/auth/routes/auth.route';
 import usersRoutes from './modules/users/routes/users.route';
 import auditRoutes from './modules/audit/routes/audit.route';
 import documentsRoutes from './modules/document/routes/documents.route';
+import organisationsRoutes from './modules/partenaires/routes/organisations.route';
+import bootstrapRoutes from './start/routes/bootstrap.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
@@ -55,12 +57,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? '/sicot/documents'));
 
 // ── Routes API ─────────────────────────────────────────────────────────────
+app.use('/api/bootstrap', bootstrapRoutes);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/documents', documentsRoutes);
+app.use('/api/organisations', organisationsRoutes);
 // À brancher au fil des sprints :
-// app.use('/api/organisations', organisationsRoutes);
 // app.use('/api/accords', accordsRoutes);
 // app.use('/api/courriers', courriersRoutes);
 // app.use('/api/missions', missionsRoutes);

@@ -15,7 +15,7 @@
 
 - [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
 - [ ] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel
-- [ ] **Flux bootstrap admin** - Sélection agent → email → génération OTP → envoi SMTP
+- [x] ~~**Flux bootstrap admin**~~ - Page BootstrapPage.tsx + service/controller/route, création Super Admin sans API Personnel ANAC (juin 2026)
 - [x] ~~**Page connexion**~~ - LoginPage.tsx avec OTP + mot de passe, indicateur de force, 2 étapes (juin 2026)
 - [x] ~~**Gestion des rôles**~~ - Middleware requireRole avec hiérarchie agent/traducteur/relecteur/admin/super_admin (juin 2026)
 - [x] ~~**Interface admin utilisateurs**~~ - service/controller/route CRUD complet, activation, réinitialisation OTP (juin 2026)
@@ -54,27 +54,61 @@
 
 ## Sprint 2 – Documentaire & Partenaires (M8 + M2) | 2 semaines
 
-- [ ] **Module upload fichiers** - PDF, Word, Doc, Txt, Excel, images — stockage structuré /sicot/documents/
+- [x] ~~**Module upload fichiers**~~ - PDF, Word, Doc, Txt, Excel, images — Multer memoryStorage, stockage structuré /sicot/documents/ par catégorie (juin 2026)
 - [ ] **Dossier surveillé /temp/** - Détection auto nouveaux fichiers, import sans action utilisateur
-- [ ] **Microservice OCR Python** - Extraction texte multi-format : PDF natif (pdfplumber) + PDF scanné (pdf2image+Tesseract) + DOCX (python-docx) + DOC (LibreOffice headless) + TXT + images (Tesseract direct)
-- [ ] **Détection automatique PDF natif vs scanné** - Bascule pdfplumber → Tesseract si page vide
-- [ ] **Détection langue source automatique**
-- [ ] **Classification auto par mots-clés** - Catégorie proposée, corrigeable par utilisateur
-- [ ] **Gestion des versions documentaires** - Historique, version active marquée
-- [ ] **Détection doublons MD5** - Alerte si document similaire existant à l'upload
-- [ ] **Interface correction OCR manuelle**
-- [ ] **Fiche Organisation (M2)** - Création, édition, statut actif/inactif, types (ANAC étrangère / Orga internationale / Autre)
-- [ ] **Fiche Contact rattachée** - Plusieurs contacts par organisation, marquage 'principal', historique rattachement
-- [ ] **Tableau partenaires** - Filtres pays / région / type
+- [x] ~~**Microservice OCR Python**~~ - Flask+Waitress opérationnel port 5001, extraction validée PDF/DOCX/PNG/TXT/XLS, détection langue FR/EN (juin 2026)
+- [x] ~~**Détection automatique PDF natif vs scanné**~~ - pdfplumber→Tesseract fallback implémenté et testé (juin 2026)
+- [x] ~~**Détection langue source automatique**~~ - langdetect intégré dans microservice OCR, validé sur documents FR (juin 2026)
+- [x] ~~**Classification auto par mots-clés**~~ - Analyse nom fichier + texte extrait, catégorie proposée corrigeable (juin 2026)
+- [x] ~~**Gestion des versions documentaires**~~ - nouvellVersionDocument, parentId, version incrémentée (juin 2026)
+- [x] ~~**Détection doublons MD5**~~ - calculerMD5, verifierDoublon, alerte 207 Multi-Status à l'upload (juin 2026)
+- [x] ~~**Interface correction OCR manuelle**~~ - PATCH /:id/ocr, texte corrigé enregistré, statut→traite (juin 2026)
+- [x] ~~**Fiche Organisation (M2)**~~ - CRUD complet, statut actif/inactif, types, filtres pays/région/type (juin 2026)
+- [x] ~~**Fiche Contact rattachée**~~ - Plusieurs contacts par organisation, marquage principal, definirContactPrincipal (juin 2026)
+- [x] ~~**Tableau partenaires**~~ - Filtres pays/région/type, métadonnées pays+régions disponibles (juin 2026)
 - [ ] **Recherche full-text dans documents archivés** - PostgreSQL FTS
 
 ### Décisions techniques Sprint 2
 
-- Microservice Python séparé exposé en HTTP local (port 5001) — appelé par Express
+- Microservice Python séparé exposé en HTTP local (port 5001) — appelé par Express via axios+form-data
 - Formats supportés : .pdf, .docx, .doc, .txt, .xlsx, .xls, .jpg, .png, .tiff
 - PDF natif → pdfplumber ; PDF scanné → pdf2image + Tesseract ; DOCX → python-docx ; DOC → LibreOffice headless
 - Nettoyage post-OCR : suppression espaces parasites autour apostrophes (identifié lors test LibreTranslate)
 - Conversion toujours côté serveur — l'utilisateur uploade le fichier original, pas d'action manuelle requise
+- Multer memoryStorage — fichier en Buffer, sauvegarde disque après OCR dans le bon dossier catégorie
+
+### Fichiers complétés Sprint 2
+
+**Microservice OCR**
+
+- [x] ~~`packages/ocr-service/requirements.txt`~~ - Flask, pdfplumber, pdf2image, pytesseract, python-docx, openpyxl, langdetect (juin 2026)
+- [x] ~~`packages/ocr-service/main.py`~~ - Serveur Flask port 5001, extracteurs multi-format, nettoyage texte, détection langue (juin 2026)
+
+**Serveur**
+
+- [x] ~~`src/utils/ocr.ts`~~ - Client axios vers microservice OCR, gestion erreurs ECONNREFUSED/timeout (juin 2026)
+- [x] ~~`src/utils/hash.ts`~~ - calculerMD5, hashesIdentiques (juin 2026)
+- [x] ~~`src/services/documents.service.ts`~~ - upload, lister, getById, corrigerOCR, mettreAJourCategorie, nouvellVersion, verifierDoublon (juin 2026)
+- [x] ~~`src/controllers/documents.controller.ts`~~ - upload, lister, getById, corrigerOCR, mettreAJourCategorie, nouvelleVersion, verifierDoublon (juin 2026)
+- [x] ~~`src/routes/documents.ts`~~ - Multer config, /upload, /:id, /:id/ocr, /:id/categorie, /:id/nouvelle-version, /doublon (juin 2026)
+- [x] ~~`src/services/organisations.service.ts`~~ - CRUD organisations+contacts, definirPrincipal, getPays, getRegions (juin 2026)
+- [x] ~~`src/controllers/organisations.controller.ts`~~ - CRUD complet, listerContacts, creerContact, definirPrincipal, meta pays/regions (juin 2026)
+- [x] ~~`src/routes/organisations.ts`~~ - /meta/pays, /meta/regions, CRUD, /:id/contacts, /contacts/:contactId (juin 2026)
+
+**Client React Sprint 2**
+
+- [x] ~~`src/lib/api.ts`~~ - endpoints documents + organisations ajoutés, timeout 120s upload (juin 2026)
+- [x] ~~`src/pages/DocumentsPage.tsx`~~ - liste filtrable, upload multi-format, badge OCR, modal correction, pagination (juin 2026)
+- [x] ~~`src/pages/PartenairesPage.tsx`~~ - tableau organisations, filtres pays/région/type, modal contacts, formulaires (juin 2026)
+
+**Bootstrap & Auth (ajout post-Sprint 1)**
+
+- [x] ~~`src/services/bootstrap.service.ts`~~ - estInitialise, initialiserSuperAdmin (juin 2026)
+- [x] ~~`src/controllers/bootstrap.controller.ts`~~ - status, init (juin 2026)
+- [x] ~~`src/routes/bootstrap.ts`~~ - GET /status, POST /init, routes publiques (juin 2026)
+- [x] ~~`src/pages/BootstrapPage.tsx`~~ - formulaire Super Admin, indicateur force mot de passe, redirection login (juin 2026)
+- [x] ~~`src/App.tsx`~~ - vérification bootstrap au démarrage, BootstrapRoute, écran chargement initial (juin 2026)
+- [x] ~~`src/pages/LoginPage.tsx`~~ - setUser après connexion réussie, redirection dashboard corrigée (juin 2026)
 
 ## Sprint 3 – Accords, Correspondances & Missions (M1 + M4 + M3) | 2 semaines
 
@@ -147,7 +181,6 @@
 
 - [ ] **Glossaire CCIT existant** - Attente fichier CSV/Excel de la Cellule CCIT pour seed initial M7
 - [ ] **Intégration API Personnel ANAC** - En attente documentation complète de l'API (Sprint 1 partiel)
-- [ ] **Flux bootstrap admin** - Dépend de l'API Personnel ANAC (Sprint 1 partiel)
 - [ ] **Accès SERV-APPI** - Confirmer droits d'installation pour l'équipe dev (PostgreSQL, LibreTranslate, Tesseract)
 - [ ] **Décision DeepL** - La DG valide-t-elle l'option fallback cloud DeepL ? Contrat RGPD à prévoir
 
@@ -157,3 +190,6 @@
 - [x] ~~**Schema BDD Drizzle complet**~~ - 10 modules, enums, tables, relations, index, migration appliquée (juin 2026)
 - [x] ~~**Stack client configurée**~~ - React 18 + Vite + Tailwind, couleurs ANAC, i18n FR/EN, router (juin 2026)
 - [x] ~~**Sprint 1 M10 complété**~~ - Auth, Users, Audit, Backup, Layout, LoginPage, App.tsx, api.ts (juin 2026)
+- [x] ~~**Sprint 2 M8+M2 complété**~~ - OCR microservice Python, Documents, Organisations+Contacts, pages React (juin 2026)
+- [x] ~~**Bootstrap admin opérationnel**~~ - Premier démarrage sans API Personnel ANAC, Super Admin créable via formulaire (juin 2026)
+- [x] ~~**Flux connexion complet**~~ - Bootstrap → Login → Dashboard, AuthContext mis à jour, redirections fonctionnelles (juin 2026)
