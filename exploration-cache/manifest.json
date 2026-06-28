@@ -4,15 +4,15 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-28",
-  "lastCommit": "43a858d",
+  "lastCommit": "pending",
   "currentSprint": 2,
-  "currentSprintFocus": "M8 Documents + M2 Partenaires",
-  "status": "Sprint 2 in progress. OCR microservice done. Documents module next.",
+  "currentSprintFocus": "M8 Documents (done) → M2 Organisations",
+  "status": "Sprint 2 in progress. Documents server complete. @/ alias live. Organisations next.",
 
   "activeSession": {
-    "task": "OCR microservice + utils/ocr.ts built and tested. exploration-cache updated.",
+    "task": "Documents module server complete. @/ path alias migrated across all server files.",
     "startedAt": "2026-06-28",
-    "nextAction": "Commit OCR service files, then scaffold modules/documents/ on server"
+    "nextAction": "Scaffold modules/organisations/ (M2) — CRUD service + controller + route"
   },
 
   "index": [

@@ -13,24 +13,20 @@
 - ✅ OCR tested on real ANAC documents — Tesseract 5, FR+EN validated
 - ✅ LibreTranslate FR↔EN tested — quality acceptable for V1, apostrophe cleanup implemented
 
-## 🚀 Now: Module Documents server (M8)
+## ✅ Done: Module Documents server (M8)
 
-- [ ] `modules/documents/services/documents.service.ts`
-  - `upload({ buffer, nomFichier, mimeType, userId })` — save file, compute MD5, call `extraireTexte()`, check dedup
-  - `lister(filters)` — paginated, filters: categorie, statut_ocr, langue, uploadePar
-  - `getById(id)` — with uploader info
-  - `mettreAJour(id, data)` — categorie, langue corrections
-  - `getVersions(parentId)` — version chain
-- [ ] `modules/documents/controllers/documents.controller.ts`
-- [ ] `modules/documents/routes/documents.route.ts`
-  - `POST /api/documents/upload` (multer)
-  - `GET /api/documents` / `GET /api/documents/:id`
-  - `PATCH /api/documents/:id`
-  - `GET /api/documents/:id/versions`
-- [ ] Upload middleware (`middleware/upload.ts`) — multer, 50MB limit, allowed extensions
-- [ ] Mount route in `index.ts`
+- ✅ `middleware/upload.ts` — multer memoryStorage, 50MB, MIME filter, `handleMulterError`
+- ✅ `modules/document/services/documents.types.ts` — all interfaces + `DocumentCategorie`
+- ✅ `modules/document/services/documents.constants.ts` — `UPLOAD_DIR`, `DOSSIERS`, `MOTS_CLES_CATEGORIES`
+- ✅ `modules/document/services/documents.helpers.ts` — `assurerDossiers`, `toDocumentView`, `genererNomFichier`, `classerAutomatiquement`
+- ✅ `modules/document/services/documents.service.ts` — all service functions
+- ✅ `modules/document/controllers/documents.errors.ts` — `handleDocumentsError`
+- ✅ `modules/document/controllers/documents.controller.ts` — all handlers
+- ✅ `modules/document/routes/documents.route.ts` — full router wired
+- ✅ Route mounted in `index.ts` (`app.use('/api/documents', documentsRoutes)`)
+- ✅ `@/` path alias — tsconfig + all server imports migrated (30 files), `tsc-alias` for prod build
 
-## Next: Module Organisations (M2)
+## 🚀 Now: Module Organisations (M2)
 
 - [ ] CRUD organisations + contacts
 - [ ] `/api/organisations` + `/api/contacts` routes
@@ -45,8 +41,8 @@
 
 ```
 OCR microservice  ██████████ 100% ✅
-Documents server  ░░░░░░░░░░   0% ← START HERE
-Organisations     ░░░░░░░░░░   0%
+Documents server  ██████████ 100% ✅
+Organisations     ░░░░░░░░░░   0% ← START HERE
 Documents client  ░░░░░░░░░░   0%
 Partenaires client░░░░░░░░░░   0%
 ```

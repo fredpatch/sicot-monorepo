@@ -1,5 +1,5 @@
-import { db } from '../../../db';
-import { auditLogs, users } from '../../../db/schema';
+import { db } from '@/db';
+import { auditLogs, users } from '@/db/schema';
 import { eq, gte, lte, ilike, and, desc } from 'drizzle-orm';
 
 // ── Types ──────────────────────────────────────────────────────────────────

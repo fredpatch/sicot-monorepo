@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
-import { db } from '../../../db/index.js';
-import { users, auditLogs } from '../../../db/schema';
+import { db } from '@/db/index.js';
+import { users, auditLogs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { signAccessToken, signRefreshToken, verifyRefreshToken, TokenPayload } from '../../../utils/jwt';
-import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '../../../utils/otp';
-import { sendOTPEmail } from '../../../utils/email.js';
+import { signAccessToken, signRefreshToken, verifyRefreshToken, TokenPayload } from '@/utils/jwt';
+import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
+import { sendOTPEmail } from '@/utils/email.js';
 
 const SALT_ROUNDS = 10;
 const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS ?? '5');

@@ -80,6 +80,17 @@ src/
 - **Never** use `any` — use `unknown` with type guards, or `Record<string, unknown>`
 - **Import types** with `import type { Foo }` for type-only imports
 
+## Path Aliases
+
+| Package | Alias | Resolves to |
+|---------|-------|-------------|
+| `@sicot/client` | `@/` | `packages/client/src/` |
+| `@sicot/server` | `@/` | `packages/server/src/` |
+
+- **Always** use `@/` for cross-module imports on both client and server
+- **Keep** same-directory imports (`./documents.types`) as relative — they don't benefit from the alias
+- **Server note**: `tsc-alias` rewrites `@/` in compiled output (`dist/`) so `node dist/index.js` works in prod
+
 ## Git
 
 - Commit message format: `type(scope): description`

@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
-import { handleAuthError } from '../../../utils/error';
+import { handleAuthError } from '@/utils/error';
 import {
   accessCookieOptions,
   refreshCookieOptions,
   clearAuthCookies,
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
-} from '../../../middleware/auth';
-import { db } from '../../../db/index';
-import { users } from '../../../db/schema';
+} from '@/middleware/auth';
+import { db } from '@/db/index';
+import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 // ── POST /api/auth/login ───────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './modules/auth/routes/auth.route';
 import usersRoutes from './modules/users/routes/users.route';
 import auditRoutes from './modules/audit/routes/audit.route';
+import documentsRoutes from './modules/document/routes/documents.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
@@ -57,8 +58,8 @@ app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? '/sicot/documents')
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/documents', documentsRoutes);
 // À brancher au fil des sprints :
-// app.use('/api/documents', documentsRoutes);
 // app.use('/api/organisations', organisationsRoutes);
 // app.use('/api/accords', accordsRoutes);
 // app.use('/api/courriers', courriersRoutes);

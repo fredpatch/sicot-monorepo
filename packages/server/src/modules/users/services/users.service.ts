@@ -1,10 +1,10 @@
-import { db } from '../../../db';
-import { users } from '../../../db/schema';
+import { db } from '@/db';
+import { users } from '@/db/schema';
 import { eq, ilike, or, desc } from 'drizzle-orm';
 import { UserRole } from '@sicot/shared';
-import { generateOTP, hashOTP, otpExpiresAt } from '../../../utils/otp';
-import { sendOTPEmail } from '../../../utils/email';
-import { logAudit } from '../../auth/services/auth.service';
+import { generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
+import { sendOTPEmail } from '@/utils/email';
+import { logAudit } from '@/modules/auth/services/auth.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 export interface CreateUserParams {
