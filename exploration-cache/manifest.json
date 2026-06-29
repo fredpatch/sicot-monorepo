@@ -4,7 +4,7 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-29",
-  "lastCommit": "c8b6578",
+  "lastCommit": "1ec9cca",
   "currentSprint": 3,
   "currentSprintFocus": "M3 Missions client (MissionsPage + MissionFormPage) — server complete",
   "status": "Sprint 3 IN PROGRESS. Server: accords/courriers/missions modules live. Client: Accords ✅ Courriers ✅ Missions pending.",
