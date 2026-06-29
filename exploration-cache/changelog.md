@@ -1,6 +1,6 @@
 # 📝 SICOT – Changelog
 
-## [UNCOMMITTED] — 2026-06-29 — feat(sprint3+sprint4): Missions client done + M6 Traduction + M7 Glossaire + translate-service
+## [f292f88] — 2026-06-29 — feat(sprint3+sprint4): Missions client done + M6 Traduction + M7 Glossaire + translate-service
 
 ### Added — Sprint 3 Client (Missions complete)
 - `packages/client/src/pages/MissionsPage.tsx` — two-column inbox layout, filters, mission list + detail panel

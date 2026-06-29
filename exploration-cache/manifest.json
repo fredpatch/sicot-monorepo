@@ -4,7 +4,7 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-29",
-  "lastCommit": "1ec9cca",
+  "lastCommit": "f292f88",
   "currentSprint": 4,
   "currentSprintFocus": "Sprint 4 M6+M7 — server done (traduction + glossaire modules). Client: GlossairePage done, TraductionsPage + DemandesPage (M5) pending.",
   "status": "Sprint 3 COMPLETE ✅. Sprint 4 IN PROGRESS. Server: accords/courriers/missions/glossaire/traductions live. translate-service microservice done. Client: Accords ✅ Courriers ✅ Missions ✅ Glossaire ✅ Traductions/Demandes pending.",
