@@ -1,49 +1,56 @@
 # ⚡ Next Actions
 
-Last updated: 2026-06-28
+Last updated: 2026-06-29
 
 ## 🔥 Immediate (start here next session)
 
-1. **Scaffold `modules/accords/`** — standard CRUD
+1. **`pages/MissionsPage.tsx`** — inbox-style two-column layout (consistent with Accords + Courriers)
+   - Left: mission list with filters (destination/pays/statut/dates)
+   - Right: detail panel — participants, dates, rapport doc link, recommandations list
+   - Badge: overdue recommandations flagged red
+
+2. **`pages/MissionFormPage.tsx`** — creation/edit form
+   - Fields: titre, description, destination, pays, dateDebut, dateFin
+   - Participants: add/remove ANAC users (multi-select)
+   - Rapport: link to existing document OR upload new (same Option C pattern as AccordFormPage)
+   - Recommandations: inline CRUD (ajout + mise à jour statut)
+
+3. **Wire missions routes in `App.tsx`**
+   ```tsx
+   <Route path="/missions" element={<MissionsPage />} />
+   <Route path="/missions/:id" element={<MissionsPage />} />
+   <Route path="/missions/new" element={<MissionFormPage />} />
+   <Route path="/missions/:id/edit" element={<MissionFormPage />} />
    ```
-   packages/server/src/modules/accords/
-   ├── controllers/accords.controller.ts
-   ├── services/accords.service.ts
-   └── routes/accords.route.ts
-   ```
-   - `lister()`, `getById()`, `creer()`, `mettreAJour()`, `archiver()`
-   - Mount: `app.use('/api/accords', accordsRoutes)` in `index.ts`
 
-2. **Scaffold `modules/courriers/`** — same pattern as above
+## 📅 This Sprint — Remaining (Sprint 3)
 
-3. **Scaffold `modules/missions/`** — same pattern, add `participants` sub-resource
+4. **PDF/DOCX export** (optional for Sprint 3, could defer to Sprint 4)
+   - Puppeteer PDF for accords and courriers
+   - Mission report PDF template (ANAC colors + logo)
 
-## 📅 Today / This Sprint (Sprint 3)
+5. **Re-enable auth rate limiter** once dev is stable (currently commented out in `index.ts`)
 
-4. **Wire all 3 routes** in `server/index.ts`
-5. **`AccordsPage.tsx`** — list + create/edit modal (shadcn Dialog + RHF + zod)
-6. **`CourriersPage.tsx`** — list + filters + create modal
-7. **`MissionsPage.tsx`** — list + participants panel
+## 📆 Sprint 4 — Next Sprint
 
-## 📆 Next Sprint (Sprint 4)
-
-8. **Module Traduction (M5)** — connect LibreTranslate client, build translation request flow
-9. **Module Glossaire (M7)** — import CCIT Excel (when received), CRUD terms
-10. **Module Demandes (M6)** — translation request workflow
+6. **Module Traduction (M5)** — connect LibreTranslate client, translation request flow
+7. **Module Glossaire (M7)** — import CCIT Excel (when received), CRUD terms
+8. **Module Demandes (M6)** — translation request workflow, kanban statuses
 
 ## 🗓️ Backlog (See `tasks/backlog.md`)
 
-11. Dashboard (M9) — Sprint 5
-12. Tests & Recette — Sprint 6
-13. Déploiement SERV-APPI — Sprint 7
+9. Dashboard (M9) — Sprint 5
+10. Tests & Recette — Sprint 6
+11. Déploiement SERV-APPI — Sprint 7
 
 ## 📋 Definition of "Sprint 3 Done"
 
-- [ ] `GET/POST/PATCH /api/accords` working
-- [ ] `GET/POST/PATCH /api/courriers` working
-- [ ] `GET/POST/PATCH /api/missions` working
-- [ ] `AccordsPage.tsx` renders accord list with create/edit modal
-- [ ] `CourriersPage.tsx` renders courrier list with filters
+- [x] `GET/POST/PATCH /api/accords` working ✅
+- [x] `GET/POST/PATCH /api/courriers` working ✅
+- [x] `GET/POST/PATCH /api/missions` working ✅
+- [x] `AccordsPage.tsx` renders accord list with create/edit + detail view ✅
+- [x] `CourriersPage.tsx` renders courrier inbox with fil correspondance ✅
 - [ ] `MissionsPage.tsx` renders mission list with participant detail
-- [ ] All client pages use shadcn Dialog + RHF + zod (consistent with Sprint 2 pattern)
+- [ ] `MissionFormPage.tsx` create/edit with participants + rapport
+- [x] All client pages use shadcn Dialog + RHF + zod (consistent pattern) ✅
 - [ ] Committed and pushed to `origin/main`

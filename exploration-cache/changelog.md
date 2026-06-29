@@ -1,5 +1,33 @@
 # 📝 SICOT – Changelog
 
+## [uncommitted] — 2026-06-29 — feat(sprint3): M1 Accords + M4 Courriers + M3 Missions server + client (partial)
+
+### Added — Server
+- `packages/server/src/modules/accords/` — CRUD service + controller + route (lister, creer, mettreAJour, renouveler, getAccordsExpirantDans)
+- `packages/server/src/modules/courriers/` — CRUD service + controller + route (lister, creer, mettreAJour, getSansReponse, getFilCorrespondance)
+- `packages/server/src/modules/missions/` — CRUD service + controller + route (lister, creer, mettreAJour, recommandations CRUD, getRecommandationsEnAttente)
+- `packages/server/src/jobs/alertes.ts` — cron 08h00 daily, 30/60/90-day expiry alerts for accords, email admins
+
+### Added — Client
+- `packages/client/src/lib/accords.api.ts` — accords API client
+- `packages/client/src/lib/courriers.api.ts` — courriers API client
+- `packages/client/src/lib/missions.api.ts` — missions API client
+- `packages/client/src/pages/AccordsPage.tsx` — two-column inbox layout, filters, expiry badges
+- `packages/client/src/pages/accords/components/AccordDetail.tsx` — read-only detail view
+- `packages/client/src/pages/accords/components/AccordFormPage.tsx` — create/edit with doc upload (Option C)
+- `packages/client/src/pages/CourriersPage.tsx` — inbox layout, direction/status filters, urgency flags
+- `packages/client/src/pages/courriers/components/CourrierDetail.tsx` — full detail + reply thread
+- `packages/client/src/pages/courriers/components/CourrierFormPage.tsx` — create/edit/reply, doc + accord links
+
+### Changed
+- `packages/server/src/index.ts` — mounted /api/accords, /api/courriers, /api/missions; added morgan logging; demarrerJobsAlertes() at startup
+- `packages/server/src/db/schema.ts` — added `document_id` column to `courriers` table
+- `packages/client/src/App.tsx` — wired accords and courriers routes (4 each)
+- `packages/client/src/lib/api.ts` — accords/courriers/missions added to barrel exports
+- `docs/TASKS.md` — Sprint 3 server complete, client Accords+Courriers complete
+
+---
+
 ## [9249c49] — 2026-06-28 — feat(client): UI/UX hardening — shadcn Dialog/Select, RHF modals, Lucide icons
 
 ### Added
@@ -136,6 +164,7 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
+| 2026-06-29 | (pending) | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |
 | 2026-06-28 | 9249c49 | UI/UX hardening — Dialog/Select, RHF modals, partenaires + bootstrap modules |
 | 2026-06-28 | 41d3cde | Cache manifest update |
 | 2026-06-28 | 14dd4da | Documents server module + @/ path alias |

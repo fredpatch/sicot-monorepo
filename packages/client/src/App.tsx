@@ -7,6 +7,10 @@ import DocumentsPage from './pages/DocumentsPage';
 import PartenairesPage from './pages/PartenairesPage';
 import BootstrapPage from './pages/BootstrapPage';
 import axios from 'axios';
+import AccordsPage from './pages/AccordsPage';
+import AccordFormPage from './pages/accords/components/AccordFormPage';
+import CourriersPage from './pages/CourriersPage';
+import CourrierFormPage from './pages/courriers/components/CourrierFormPage';
 
 function ComingSoon({ module }: { module: string }) {
   return (
@@ -150,10 +154,16 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<ComingSoon module="Tableau de bord" />} />
-          <Route path="/accords/*" element={<ComingSoon module="Accords & Partenariats" />} />
+          <Route path="/accords" element={<AccordsPage />} />
+          <Route path="/accords/:id" element={<AccordsPage />} />
+          <Route path="/accords/new" element={<AccordFormPage />} />
+          <Route path="/accords/:id/edit" element={<AccordFormPage />} />
           <Route path="/partenaires/*" element={<PartenairesPage />} />
           <Route path="/missions/*" element={<ComingSoon module="Missions & Événements" />} />
-          <Route path="/courriers/*" element={<ComingSoon module="Correspondances" />} />
+          <Route path="/courriers" element={<CourriersPage />} />
+          <Route path="/courriers/:id" element={<CourriersPage />} />
+          <Route path="/courriers/new" element={<CourrierFormPage />} />
+          <Route path="/courriers/:id/edit" element={<CourrierFormPage />} />
           <Route path="/traductions/*" element={<ComingSoon module="Traduction IA" />} />
           <Route path="/demandes/*" element={<ComingSoon module="Demandes de Traduction" />} />
           <Route path="/glossaire/*" element={<ComingSoon module="Glossaire" />} />

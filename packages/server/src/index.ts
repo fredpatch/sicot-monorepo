@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
 
 // Routes
 import authRoutes from './modules/auth/routes/auth.route';
@@ -12,11 +14,15 @@ import auditRoutes from './modules/audit/routes/audit.route';
 import documentsRoutes from './modules/document/routes/documents.route';
 import organisationsRoutes from './modules/partenaires/routes/organisations.route';
 import bootstrapRoutes from './start/routes/bootstrap.route';
+import accordsRoutes from './modules/accords/routes/accords.route';
+import courriersRoutes from './modules/courriers/routes/courriers.route';
+import missionsRoutes from './modules/missions/routes/missions.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
 import { demarrerJobsSauvegarde } from './jobs/backup';
 import { verifierServiceOCR } from './utils/ocr';
+import { demarrerJobsAlertes } from './jobs/alertes';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -53,25 +59,35 @@ const authLimiter = rateLimit({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// ── Logging ───────────────────────────────────────────────────────────────
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
+
 // ── Fichiers statiques uploadés ────────────────────────────────────────────
 app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? '/sicot/documents'));
 
 // ── Routes API ─────────────────────────────────────────────────────────────
 app.use('/api/bootstrap', bootstrapRoutes);
-app.use('/api/auth', authLimiter, authRoutes);
+app.use(
+  '/api/auth',
+  //  authLimiter,
+  authRoutes
+);
 app.use('/api/users', usersRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/organisations', organisationsRoutes);
+app.use('/api/accords', accordsRoutes);
+app.use('/api/courriers', courriersRoutes);
+app.use('/api/missions', missionsRoutes);
 // À brancher au fil des sprints :
-// app.use('/api/accords', accordsRoutes);
-// app.use('/api/courriers', courriersRoutes);
-// app.use('/api/missions', missionsRoutes);
 // app.use('/api/traductions', traductionsRoutes);
 // app.use('/api/demandes', demandesRoutes);
 // app.use('/api/glossaire', glossaireRoutes);
 // app.use('/api/dashboard', dashboardRoutes);
-// app.use('/api/audit', auditRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -106,6 +122,7 @@ app.listen(PORT, async () => {
     console.warn('⚠️  Service OCR indisponible — démarrez packages/ocr-service/main.py');
   }
   demarrerJobsSauvegarde();
+  demarrerJobsAlertes();
 });
 
 export default app;

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as documentsService from '@/modules/document/services/documents.service.js';
 import { handleDocumentsError } from './documents.errors';
+import fs from 'fs';
 
 // ── POST /api/documents/upload ────────────────────────────────────────────
 export async function upload(req: Request, res: Response): Promise<void> {
@@ -171,6 +172,30 @@ export async function verifierDoublon(req: Request, res: Response): Promise<void
 
     const result = await documentsService.verifierDoublon(hash);
     res.json(result);
+  } catch (error) {
+    handleDocumentsError(res, error);
+  }
+}
+
+// ── GET /api/documents/:id/telecharger ───────────────────────────────────────
+export async function telecharger(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const { chemin, nomOriginal, mimeType } = await documentsService.getCheminDocument(id);
+
+    if (!fs.existsSync(chemin)) {
+      res.status(404).json({ message: 'Fichier introuvable sur le serveur.' });
+      return;
+    }
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(nomOriginal)}"`);
+    fs.createReadStream(chemin).pipe(res);
   } catch (error) {
     handleDocumentsError(res, error);
   }
