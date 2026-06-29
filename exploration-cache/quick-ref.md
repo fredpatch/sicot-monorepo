@@ -75,6 +75,12 @@ POST /api/traductions          Launch translation (texteOriginal + direction)
 GET  /api/traductions/moteur/status  LibreTranslate health check
 PATCH /api/traductions/:id/correction  Save human correction
 PATCH /api/traductions/:id/approuver  Approve translation
+GET  /api/demandes             List demandes (filter: statut, priorite, demandeurId)
+POST /api/demandes             Create demande (direction, priorite, documentId|texteLibre)
+PATCH /api/demandes/:id/prendre-en-charge  Assign to current user (optimistic lock)
+PATCH /api/demandes/:id/rappeler  Release assignment
+PATCH /api/demandes/:id/soumettre  Submit for review (→ en_relecture)
+PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ```
 
 ## 🚫 Rules
@@ -97,8 +103,8 @@ PATCH /api/traductions/:id/approuver  Approve translation
 ✅ Sprint 1 — Auth & Admin (M10)
 ✅ Sprint 2 — Documents + Partenaires (M8 + M2) + UI/UX hardening
 ✅ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)
-⏳ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)  ← CURRENT
-⏳ Sprint 5 — Dashboard (M9)
+✅ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)
+⏳ Sprint 5 — Dashboard (M9)  ← CURRENT
 ⏳ Sprint 6 — Tests & Recette
 ⏳ Sprint 7 — Déploiement + Formation
 ```

@@ -1,5 +1,31 @@
 # 📝 SICOT – Changelog
 
+## [UNCOMMITTED] — 2026-06-29 — feat(sprint4): M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage
+
+### Added — Sprint 4 Client (Traductions + Demandes)
+- `packages/client/src/pages/TraductionsPage.tsx` — list with statut/direction filters, lancer traduction dialog, moteur status badge
+- `packages/client/src/pages/traductions/components/TraductionEditeur.tsx` — côte-à-côte éditeur (texteOriginal/texteIA/texteFinal), approve/archive workflow, suggestions glossaire panel
+- `packages/client/src/pages/DemandesPage.tsx` — kanban inbox: Soumise→En cours→En relecture→Validée→Archivée, prendreEnCharge, priorité badge
+- `packages/client/src/lib/demandes.api.ts` — lister, getById, creer, prendreEnCharge, rappeler, validerPriorite, soumettre, archiver
+
+### Added — Sprint 4 Server (M5 Demandes)
+- `packages/server/src/modules/demandes/services/demandes.service.ts` — CRUD + optimistic lock (prendreEnCharge/rappeler), priorité, statuts pipeline
+- `packages/server/src/modules/demandes/controllers/demandes.controller.ts`
+- `packages/server/src/modules/demandes/routes/demandes.route.ts`
+
+### Changed
+- `packages/client/src/App.tsx` — /traductions + /traductions/:id + /demandes routes wired (ComingSoon replaced)
+- `packages/client/src/lib/api.ts` — demandesApi added to barrel exports
+- `packages/client/src/lib/traductions.api.ts` — refinements
+- `packages/server/src/index.ts` — /api/demandes mounted; cleaned up commented-out route stubs
+- `packages/server/src/modules/document/` — controller/service/types/route/errors refinements
+- `packages/server/src/modules/traduction/` — controller/service/route refinements
+- `packages/server/src/utils/traduction.ts` — refinements
+- `packages/server/src/db/schema.ts` — minor additions
+- `docs/TASKS.md` — Sprint 4 complete, Sprint 5 items
+
+---
+
 ## [f292f88] — 2026-06-29 — feat(sprint3+sprint4): Missions client done + M6 Traduction + M7 Glossaire + translate-service
 
 ### Added — Sprint 3 Client (Missions complete)
@@ -194,6 +220,8 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
+| 2026-06-29 | UNCOMMITTED | Sprint 4 — M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage |
+| 2026-06-29 | f292f88 | Sprint 3 Missions client + Sprint 4 M6+M7 server + translate-service + GlossairePage |
 | 2026-06-29 | 1ec9cca | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |
 | 2026-06-28 | 9249c49 | UI/UX hardening — Dialog/Select, RHF modals, partenaires + bootstrap modules |
 | 2026-06-28 | 41d3cde | Cache manifest update |
