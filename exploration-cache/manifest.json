@@ -5,14 +5,14 @@
   "branch": "main",
   "lastUpdated": "2026-06-29",
   "lastCommit": "1ec9cca",
-  "currentSprint": 3,
-  "currentSprintFocus": "M3 Missions client (MissionsPage + MissionFormPage) — server complete",
-  "status": "Sprint 3 IN PROGRESS. Server: accords/courriers/missions modules live. Client: Accords ✅ Courriers ✅ Missions pending.",
+  "currentSprint": 4,
+  "currentSprintFocus": "Sprint 4 M6+M7 — server done (traduction + glossaire modules). Client: GlossairePage done, TraductionsPage + DemandesPage (M5) pending.",
+  "status": "Sprint 3 COMPLETE ✅. Sprint 4 IN PROGRESS. Server: accords/courriers/missions/glossaire/traductions live. translate-service microservice done. Client: Accords ✅ Courriers ✅ Missions ✅ Glossaire ✅ Traductions/Demandes pending.",
 
   "activeSession": {
-    "task": "Sprint 3 server (M1+M4+M3) done. Accords+Courriers client done. MissionsPage+MissionFormPage remaining.",
+    "task": "Sprint 3 fully done. Sprint 4 server M6+M7 done + translate-service + GlossairePage. Remaining: TraductionsPage + DemandesPage + M5 server.",
     "startedAt": "2026-06-29",
-    "nextAction": "Build MissionsPage.tsx — list + detail panel + recommendations. Then MissionFormPage."
+    "nextAction": "Build TraductionsPage.tsx (éditeur côte-à-côte, workflow statuts). Then demandes server module + DemandesPage."
   },
 
   "index": [
@@ -127,8 +127,8 @@
     {
       "path": "sessions/2026-06-29.md",
       "type": "session-log",
-      "tags": ["2026-06-29", "sprint3", "accords", "courriers", "missions", "alertes", "morgan"],
-      "summary": "Session: Sprint 3 server M1+M4+M3 complete (accords/courriers/missions modules + alertes cron). Client Accords+Courriers done. Missions client pending."
+      "tags": ["2026-06-29", "sprint3", "sprint4", "missions", "glossaire", "traductions", "translate-service"],
+      "summary": "Session: Sprint 3 fully complete (Missions client done). Sprint 4 started: translate-service, traduction module, glossaire module, GlossairePage, glossaire.api.ts, traductions.api.ts."
     },
     {
       "path": "sessions/2026-06-28.md",
@@ -145,8 +145,8 @@
   ],
 
   "quickRef": {
-    "devCommand": "npm run dev  (+ separately: cd packages/ocr-service && python main.py)",
-    "ports": { "client": 5173, "server": 3001, "ocr": 5001 },
+    "devCommand": "npm run dev  (+ separately: cd packages/ocr-service && python main.py  +  cd packages/translate-service && python main.py)",
+    "ports": { "client": 5173, "server": 3001, "ocr": 5001, "translate": 5002 },
     "stack": {
       "client": "React 18 + Vite 5 + Tailwind v4 + framer-motion v12 + react-hook-form + zod + axios + TanStack Query",
       "server": "Express 4 + Drizzle ORM + PostgreSQL + bcryptjs + jsonwebtoken + nodemailer + node-cron"
@@ -155,8 +155,8 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions"],
-    "pendingRoutes": ["/api/traductions", "/api/demandes", "/api/glossaire", "/api/dashboard"]
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions"],
+    "pendingRoutes": ["/api/demandes", "/api/dashboard"]
   },
 
   "blockers": [

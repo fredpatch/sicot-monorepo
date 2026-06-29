@@ -7,6 +7,9 @@
 ```bash
 npm run dev        # both server :3001 + client :5173
 npm run db:studio  # Drizzle Studio (DB browser)
+# Microservices (run separately):
+cd packages/ocr-service && python main.py        # OCR :5001
+cd packages/translate-service && python main.py  # Traduction :5002
 ```
 
 ## 📁 Where Is…
@@ -60,6 +63,18 @@ GET  /api/organisations        List organisations (filter: pays, type)
 POST /api/organisations        Create organisation
 PATCH /api/organisations/:id   Update organisation
 POST /api/bootstrap            Create initial super_admin account
+GET  /api/accords              List accords (filter: statut, partenaire, expirant)
+POST /api/accords/:id/renouveler  Renew accord
+GET  /api/courriers            List courriers (filter: direction, statut, sansReponse)
+GET  /api/courriers/:id/fil    Thread (fil de correspondance)
+GET  /api/missions             List missions + recommandations
+GET  /api/missions/recommandations/en-attente  Pending recommandations
+GET  /api/glossaire            List terms (filter: search, domaine, actif)
+GET  /api/glossaire/suggestions?q=…  Glossaire suggestions for editor
+POST /api/traductions          Launch translation (texteOriginal + direction)
+GET  /api/traductions/moteur/status  LibreTranslate health check
+PATCH /api/traductions/:id/correction  Save human correction
+PATCH /api/traductions/:id/approuver  Approve translation
 ```
 
 ## 🚫 Rules
@@ -81,8 +96,8 @@ POST /api/bootstrap            Create initial super_admin account
 ✅ Sprint 0 — Init
 ✅ Sprint 1 — Auth & Admin (M10)
 ✅ Sprint 2 — Documents + Partenaires (M8 + M2) + UI/UX hardening
-⏳ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)  ← CURRENT
-⏳ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)
+✅ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)
+⏳ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)  ← CURRENT
 ⏳ Sprint 5 — Dashboard (M9)
 ⏳ Sprint 6 — Tests & Recette
 ⏳ Sprint 7 — Déploiement + Formation

@@ -1,5 +1,35 @@
 # 📝 SICOT – Changelog
 
+## [UNCOMMITTED] — 2026-06-29 — feat(sprint3+sprint4): Missions client done + M6 Traduction + M7 Glossaire + translate-service
+
+### Added — Sprint 3 Client (Missions complete)
+- `packages/client/src/pages/MissionsPage.tsx` — two-column inbox layout, filters, mission list + detail panel
+- `packages/client/src/pages/missions/components/MissionDetails.tsx` — full detail: participants, dates, rapport link, recommandations
+- `packages/client/src/pages/missions/components/MissionFormPage.tsx` — création/édition with participants + rapport link
+
+### Added — Sprint 4 translate-service
+- `packages/translate-service/requirements.txt`
+- `packages/translate-service/main.py` — /translate, /translate/batch, /detect, /health, DeepL fallback, text cleanup
+
+### Added — Sprint 4 Server (M7 Glossaire + M6 Traduction)
+- `packages/server/src/modules/glossaire/` — service + controller + route
+- `packages/server/src/modules/traduction/` — service + controller + route
+- `packages/server/src/utils/traduction.ts` — traduireSegment, traduireTexte batch, detecterLangue, verifierLibreTranslate
+
+### Added — Sprint 4 Client (Glossaire)
+- `packages/client/src/lib/glossaire.api.ts` — lister, getById, suggestions, creer, mettreAJour
+- `packages/client/src/lib/traductions.api.ts` — lister, getById, moteurStatus, lancer, correction, approuver, archiver, suggestions
+- `packages/client/src/pages/GlossairePage.tsx` — CRUD termes, suggestions, pagination
+
+### Changed
+- `packages/server/src/index.ts` — mounted /api/glossaire + /api/traductions
+- `packages/client/src/App.tsx` — missions routes wired (4 routes) + /glossaire route
+- `packages/client/src/lib/api.ts` — glossaireApi + traductionsApi added to barrel exports
+- `packages/client/src/pages/accords/components/AccordDetail.tsx` — em dash → hyphen in empty date + expiry alert
+- `docs/TASKS.md` — Sprint 3 complete, Sprint 4 server items checked
+
+---
+
 ## [1ec9cca] — 2026-06-29 — feat(sprint3): M1 Accords + M4 Courriers + M3 Missions server + client (partial)
 
 ### Added — Server

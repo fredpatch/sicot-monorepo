@@ -4,53 +4,55 @@ Last updated: 2026-06-29
 
 ## 🔥 Immediate (start here next session)
 
-1. **`pages/MissionsPage.tsx`** — inbox-style two-column layout (consistent with Accords + Courriers)
-   - Left: mission list with filters (destination/pays/statut/dates)
-   - Right: detail panel — participants, dates, rapport doc link, recommandations list
-   - Badge: overdue recommandations flagged red
+1. **`pages/TraductionsPage.tsx`** — éditeur côte-à-côte
+   - Left: list of traductions with filters (statut, direction, date)
+   - Right: editor panel — original text + translated text side by side, inline correction
+   - Moteur status badge (LibreTranslate UP/DOWN indicator from /traductions/moteur/status)
+   - Action buttons: Corriger → Approuver → Archiver (workflow statuts)
+   - Suggestions glossaire panel: fetched from /traductions/:id/suggestions
 
-2. **`pages/MissionFormPage.tsx`** — creation/edit form
-   - Fields: titre, description, destination, pays, dateDebut, dateFin
-   - Participants: add/remove ANAC users (multi-select)
-   - Rapport: link to existing document OR upload new (same Option C pattern as AccordFormPage)
-   - Recommandations: inline CRUD (ajout + mise à jour statut)
+2. **`pages/traductions/components/TraductionEditor.tsx`** (if too large for one file)
+   - Inline correction textarea, auto-save delta, suggestions list from glossaire
 
-3. **Wire missions routes in `App.tsx`**
+3. **Wire traductions route in `App.tsx`**
    ```tsx
-   <Route path="/missions" element={<MissionsPage />} />
-   <Route path="/missions/:id" element={<MissionsPage />} />
-   <Route path="/missions/new" element={<MissionFormPage />} />
-   <Route path="/missions/:id/edit" element={<MissionFormPage />} />
+   <Route path="/traductions" element={<TraductionsPage />} />
+   <Route path="/traductions/:id" element={<TraductionsPage />} />
    ```
 
-## 📅 This Sprint — Remaining (Sprint 3)
+## 📅 This Sprint — Remaining (Sprint 4)
 
-4. **PDF/DOCX export** (optional for Sprint 3, could defer to Sprint 4)
-   - Puppeteer PDF for accords and courriers
-   - Mission report PDF template (ANAC colors + logo)
+4. **M5 Demandes server module**
+   - `modules/demandes/services/demandes.service.ts` — inbox, verrou BDD optimiste, priorités
+   - `modules/demandes/controllers/demandes.controller.ts`
+   - `modules/demandes/routes/demandes.route.ts`
+   - Mount: `app.use('/api/demandes', demandesRoutes)`
 
-5. **Re-enable auth rate limiter** once dev is stable (currently commented out in `index.ts`)
+5. **`pages/DemandesPage.tsx`** — kanban-style inbox
+   - Statuts: Soumise → En cours → En relecture → Validée → Archivée
+   - Assignation auto, verrou BDD (seul assigné peut éditer)
+   - Priorité: proposée par demandeur, validable/modifiable par admin
 
-## 📆 Sprint 4 — Next Sprint
+6. **Re-enable auth rate limiter** once dev is stable (commented out in `index.ts`)
 
-6. **Module Traduction (M5)** — connect LibreTranslate client, translation request flow
-7. **Module Glossaire (M7)** — import CCIT Excel (when received), CRUD terms
-8. **Module Demandes (M6)** — translation request workflow, kanban statuses
+## 📆 Sprint 5 — Next
 
-## 🗓️ Backlog (See `tasks/backlog.md`)
+7. **Dashboard (M9)** — 5 blocs: Traductions / Courriers sans réponse / Accords expirant / Missions recommandations / Documents archivés
+8. **Rapport mensuel automatique** — Cron 1er du mois, PDF + Excel, archivé M8
 
-9. Dashboard (M9) — Sprint 5
+## 🗓️ Backlog
+
+9. Export PDF/DOCX (Accords, Courriers, Rapports mission)
 10. Tests & Recette — Sprint 6
 11. Déploiement SERV-APPI — Sprint 7
 
-## 📋 Definition of "Sprint 3 Done"
+## 📋 Definition of "Sprint 4 Done"
 
-- [x] `GET/POST/PATCH /api/accords` working ✅
-- [x] `GET/POST/PATCH /api/courriers` working ✅
-- [x] `GET/POST/PATCH /api/missions` working ✅
-- [x] `AccordsPage.tsx` renders accord list with create/edit + detail view ✅
-- [x] `CourriersPage.tsx` renders courrier inbox with fil correspondance ✅
-- [ ] `MissionsPage.tsx` renders mission list with participant detail
-- [ ] `MissionFormPage.tsx` create/edit with participants + rapport
-- [x] All client pages use shadcn Dialog + RHF + zod (consistent pattern) ✅
+- [x] `translate-service` microservice live port 5002 ✅
+- [x] `GET/POST/PATCH /api/traductions` working ✅
+- [x] `GET/POST/PATCH /api/glossaire` working ✅
+- [x] `GlossairePage.tsx` renders with CRUD ✅
+- [ ] `TraductionsPage.tsx` renders éditeur côte-à-côte with workflow
+- [ ] `GET/POST/PATCH /api/demandes` working
+- [ ] `DemandesPage.tsx` renders kanban inbox
 - [ ] Committed and pushed to `origin/main`

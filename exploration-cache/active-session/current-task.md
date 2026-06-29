@@ -1,64 +1,78 @@
 # 🎯 Current Task
 
 **Session date**: 2026-06-29
-**Status**: 🔄 Sprint 3 — IN PROGRESS
+**Status**: 🔄 Sprint 4 — IN PROGRESS
 
-## ✅ Done: Sprint 3 Server — M1 Accords + M4 Courriers + M3 Missions
+## ✅ Done: Sprint 3 COMPLETE
 
-### M1 Accords (server)
-- ✅ `modules/accords/services/accords.service.ts` — lister, getAccord, creerAccord, mettreAJour, renouveler, getAccordsExpirantDans
-- ✅ `modules/accords/controllers/accords.controller.ts` — lister, expirantBientot, getById, creer, mettreAJour, renouveler
-- ✅ `modules/accords/routes/accords.route.ts` — /expirant, CRUD, /:id/renouveler
-- ✅ `jobs/alertes.ts` — cron 08h00 quotidien, alertes 30/60/90j accords expirants, email admins
-- ✅ Route mounted: `app.use('/api/accords', accordsRoutes)`
+### M3 Missions (client)
+- ✅ `pages/MissionsPage.tsx` — inbox two-column layout, mission list, filters, detail panel
+- ✅ `pages/missions/components/MissionDetails.tsx` — detail view, participants, recommandations
+- ✅ `pages/missions/components/MissionFormPage.tsx` — création/édition, participants, rapport lié
+- ✅ `App.tsx` — /missions, /missions/:id, /missions/new, /missions/:id/edit wired
+- ✅ `lib/api.ts` — missionsApi already exported (was in previous commit)
 
-### M4 Courriers (server)
-- ✅ `modules/courriers/services/courriers.service.ts` — lister, getCourrier, creerCourrier, mettreAJour, getSansReponse, getFilCorrespondance + documentId
-- ✅ `modules/courriers/controllers/courriers.controller.ts` — lister, sansReponse, getById, getFilCorrespondance, creer, mettreAJour
-- ✅ `modules/courriers/routes/courriers.route.ts` — /sans-reponse, CRUD, /:id/fil
-- ✅ Schema: `documentId` column added to courriers table
-- ✅ Route mounted: `app.use('/api/courriers', courriersRoutes)`
+> Sprint 3 fully closed: M1 Accords + M4 Courriers + M3 Missions — server + client all done.
 
-### M3 Missions (server)
-- ✅ `modules/missions/services/missions.service.ts` — lister, getMission, creerMission, mettreAJour, ajouterRecommandation, mettreAJourRecommandation, getRecommandationsEnAttente
-- ✅ `modules/missions/controllers/missions.controller.ts` — lister, recommandationsEnAttente, getById, creer, mettreAJour, listerRecommandations, ajouterRecommandation, mettreAJourRecommandation
-- ✅ `modules/missions/routes/missions.route.ts` — /recommandations/en-attente, CRUD, /:id/recommandations, /recommandations/:recId
-- ✅ Route mounted: `app.use('/api/missions', missionsRoutes)`
+---
 
-### Server infra
-- ✅ `morgan` HTTP logging middleware added (dev: 'dev', prod: 'combined')
-- ✅ `demarrerJobsAlertes()` called at startup
-- ✅ Auth rate limiter temporarily commented out for dev
+## ✅ Done: Sprint 4 Server — M6 Traduction + M7 Glossaire + translate-service
 
-## ✅ Done: Sprint 3 Client — M1 Accords + M4 Courriers
+### translate-service microservice (new package)
+- ✅ `packages/translate-service/requirements.txt` — flask, waitress, langdetect, requests
+- ✅ `packages/translate-service/main.py` — /translate, /translate/batch, /detect, /health, fallback DeepL, nettoyage texte
 
-- ✅ `lib/accords.api.ts` — lister, getById, expirantBientot, creer, mettreAJour, renouveler
-- ✅ `lib/courriers.api.ts` — lister, getById, getFilCorrespondance, sansReponse, creer, mettreAJour
-- ✅ `lib/missions.api.ts` — lister, getById, recommandationsEnAttente, creer, mettreAJour, listerRecommandations, ajouterRecommandation, mettreAJourRecommandation
-- ✅ `pages/AccordsPage.tsx` — layout inbox deux colonnes, liste filtrée, badges statut/expiration
-- ✅ `pages/accords/components/AccordDetail.tsx` — vue détail, partenaires, accord parent, renouvellements
-- ✅ `pages/accords/components/AccordFormPage.tsx` — création/édition, upload doc, sélecteur partenaires
-- ✅ `pages/CourriersPage.tsx` — layout inbox deux colonnes, filtres direction/statut, badges urgence
-- ✅ `pages/courriers/components/CourrierDetail.tsx` — détail, fil correspondance, accord lié
-- ✅ `pages/courriers/components/CourrierFormPage.tsx` — création/édition/réponse, document joint
-- ✅ `App.tsx` — /accords, /accords/:id, /accords/new, /accords/:id/edit, /courriers, /courriers/:id, /courriers/new, /courriers/:id/edit
+### M7 Glossaire (server)
+- ✅ `modules/glossaire/services/glossaire.service.ts`
+- ✅ `modules/glossaire/controllers/glossaire.controller.ts`
+- ✅ `modules/glossaire/routes/glossaire.route.ts`
+- ✅ Route mounted: `app.use('/api/glossaire', glossaireRoutes)`
 
-## 🔄 Remaining: Sprint 3 Client — M3 Missions
+### M6 Traduction (server)
+- ✅ `utils/traduction.ts` — traduireSegment, traduireTexte batch, detecterLangue, verifierLibreTranslate (calls port 5002)
+- ✅ `modules/traduction/services/traduction.service.ts` — lancerTraduction, sauvegarderCorrection, approuver, archiver, lister, getSuggestionsGlossaire, enrichirGlossaire
+- ✅ `modules/traduction/controllers/traduction.controller.ts`
+- ✅ `modules/traduction/routes/traduction.route.ts`
+- ✅ Route mounted: `app.use('/api/traductions', traductionsRoutes)`
 
-- [ ] `pages/MissionsPage.tsx` — liste missions, vue détail inline, liste recommandations
-- [ ] `pages/MissionFormPage.tsx` — création/édition, participants ANAC, rapport lié à M8
+### Sprint 4 Client (partial)
+- ✅ `lib/glossaire.api.ts` — lister, getById, suggestions, creer, mettreAJour
+- ✅ `lib/traductions.api.ts` — lister, getById, moteurStatus, lancer, correction, approuver, archiver, suggestions
+- ✅ `lib/api.ts` — glossaireApi + traductionsApi exported
+- ✅ `pages/GlossairePage.tsx` — CRUD termes glossaire, suggestions, historique, pagination
+- ✅ `App.tsx` — /glossaire route wired
+
+### Minor fixes
+- ✅ `AccordDetail.tsx` — em dash → hyphen in date empty-state and expiry alert text (encoding safety)
+
+---
+
+## 🔄 Remaining: Sprint 4 Client
+
+- [ ] `pages/TraductionsPage.tsx` — éditeur côte-à-côte (texte original / traduction), workflow statuts, moteur status badge
+- [ ] `pages/traductions/components/TraductionEditor.tsx` — inline correction, suggestions glossaire panel
+
+## 🔄 Remaining: Sprint 4 Server — M5 Demandes
+
+- [ ] `modules/demandes/services/demandes.service.ts` — inbox, verrou BDD, priorités, statuts
+- [ ] `modules/demandes/controllers/demandes.controller.ts`
+- [ ] `modules/demandes/routes/demandes.route.ts`
+- [ ] `pages/DemandesPage.tsx` — kanban statuts (Soumise→En cours→En relecture→Validée→Archivée)
 
 ## Progress Tracker
 
 ```
-Accords server (M1)   ██████████ 100% ✅
-Courriers server (M4) ██████████ 100% ✅
-Missions server (M3)  ██████████ 100% ✅
-Alertes cron          ██████████ 100% ✅
-─────────────────────────────────────────
-Accords client        ██████████ 100% ✅
-Courriers client      ██████████ 100% ✅
-Missions client       ░░░░░░░░░░   0% ← START HERE
-─────────────────────────────────────────
-PDF/DOCX export       ░░░░░░░░░░   0% (Sprint 3 optional)
+translate-service         ██████████ 100% ✅
+Traduction server (M6)    ██████████ 100% ✅
+Glossaire server (M7)     ██████████ 100% ✅
+─────────────────────────────────────────────
+Accords client (M1)       ██████████ 100% ✅
+Courriers client (M4)     ██████████ 100% ✅
+Missions client (M3)      ██████████ 100% ✅
+Glossaire client (M7)     ██████████ 100% ✅
+Traductions client (M6)   ░░░░░░░░░░   0% ← START HERE
+Demandes server (M5)      ░░░░░░░░░░   0%
+Demandes client (M5)      ░░░░░░░░░░   0%
+─────────────────────────────────────────────
+PDF/DOCX export           ░░░░░░░░░░   0% (Sprint 4 optional)
 ```
