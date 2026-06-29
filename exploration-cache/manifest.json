@@ -4,15 +4,15 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-29",
-  "lastCommit": "f292f88",
+  "lastCommit": "[UNCOMMITTED]",
   "currentSprint": 4,
-  "currentSprintFocus": "Sprint 4 M6+M7 — server done (traduction + glossaire modules). Client: GlossairePage done, TraductionsPage + DemandesPage (M5) pending.",
-  "status": "Sprint 3 COMPLETE ✅. Sprint 4 IN PROGRESS. Server: accords/courriers/missions/glossaire/traductions live. translate-service microservice done. Client: Accords ✅ Courriers ✅ Missions ✅ Glossaire ✅ Traductions/Demandes pending.",
+  "currentSprintFocus": "Sprint 4 COMPLETE — M5 Demandes + M6 Traduction + M7 Glossaire all done server + client. Next: Sprint 5 Dashboard.",
+  "status": "Sprint 3 COMPLETE ✅. Sprint 4 COMPLETE ✅. All server routes live. All client pages done (Accords/Courriers/Missions/Glossaire/Traductions/Demandes). Uncommitted changes pending push.",
 
   "activeSession": {
-    "task": "Sprint 3 fully done. Sprint 4 server M6+M7 done + translate-service + GlossairePage. Remaining: TraductionsPage + DemandesPage + M5 server.",
+    "task": "Sprint 4 fully done: M5 Demandes + M6 Traduction + M7 Glossaire server+client all complete. TraductionsPage, TraductionEditeur, DemandesPage done. /api/demandes mounted.",
     "startedAt": "2026-06-29",
-    "nextAction": "Build TraductionsPage.tsx (éditeur côte-à-côte, workflow statuts). Then demandes server module + DemandesPage."
+    "nextAction": "Sprint 5: Dashboard (M9) — 5 blocs KPI + rapport mensuel cron."
   },
 
   "index": [
@@ -155,8 +155,8 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions"],
-    "pendingRoutes": ["/api/demandes", "/api/dashboard"]
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes"],
+    "pendingRoutes": ["/api/dashboard"]
   },
 
   "blockers": [
