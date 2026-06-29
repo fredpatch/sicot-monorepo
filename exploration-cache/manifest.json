@@ -4,7 +4,7 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-29",
-  "lastCommit": "[UNCOMMITTED]",
+  "lastCommit": "9e67bee",
   "currentSprint": 4,
   "currentSprintFocus": "Sprint 4 COMPLETE — M5 Demandes + M6 Traduction + M7 Glossaire all done server + client. Next: Sprint 5 Dashboard.",
   "status": "Sprint 3 COMPLETE ✅. Sprint 4 COMPLETE ✅. All server routes live. All client pages done (Accords/Courriers/Missions/Glossaire/Traductions/Demandes). Uncommitted changes pending push.",
