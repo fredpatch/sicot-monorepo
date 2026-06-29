@@ -41,4 +41,8 @@ export const documentsApi = {
   getUrlTelechargement: (id: number) => `/api/documents/${id}/telecharger`,
 
   verifierDoublon: (hash: string) => api.get('/documents/doublon', { params: { hash } }),
+
+  supprimer: (id: number) => api.delete(`/documents/${id}`),
+  restaurer: (id: number) => api.patch(`/documents/${id}/restaurer`),
+  retraiterOCR: (id: number) => api.post(`/documents/${id}/retraiter-ocr`),
 };

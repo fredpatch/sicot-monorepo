@@ -8,6 +8,8 @@ const TRANSLATE_SERVICE_URL = process.env.TRANSLATE_SERVICE_URL ?? 'http://local
 // ── Types ──────────────────────────────────────────────────────────────────
 export type TraductionDirection = 'fr_en' | 'en_fr';
 
+export type MoteurTraduction = 'libretranslate' | 'deepl' | 'manuel';
+
 export interface ResultatTraduction {
   texteTraduit: string;
   moteur: 'libretranslate' | 'deepl' | 'manuel';

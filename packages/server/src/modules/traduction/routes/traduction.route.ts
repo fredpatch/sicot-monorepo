@@ -7,6 +7,12 @@ const router = Router();
 
 router.use(authenticate);
 
+// ── Timeout 3 minutes pour les traductions longues ────────────────────────
+router.use((req, res, next) => {
+  res.setTimeout(450000); // 7.5 minutes pour les gros documents
+  next();
+});
+
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
 router.get('/moteur/status', traductionController.moteurStatus);
 
@@ -28,5 +34,9 @@ router.patch(
 );
 router.patch('/:id/approuver', requireRole('relecteur'), traductionController.approuver);
 router.patch('/:id/archiver', requireRole('relecteur'), traductionController.archiver);
+
+// ── Suppression / restauration ─────────────────────────────────────────────
+router.delete('/:id', requireRole('traducteur'), traductionController.supprimer);
+router.patch('/:id/restaurer', requireRole('traducteur'), traductionController.restaurer);
 
 export default router;

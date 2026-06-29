@@ -198,6 +198,7 @@ export const documents = pgTable(
       .notNull()
       .references(() => users.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at'),
   },
   (t) => [
     index('documents_hash_idx').on(t.hashMD5),
@@ -350,6 +351,7 @@ export const traductions = pgTable('traductions', {
   relecteurId: integer('relecteur_id').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 });
 
 // ── M5 – Demandes de traduction ────────────────────────────────────────────

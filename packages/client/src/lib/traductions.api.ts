@@ -17,7 +17,7 @@ export const traductionsApi = {
   moteurStatus: () => api.get('/traductions/moteur/status'),
 
   lancer: (data: { texteOriginal: string; direction: TraductionDirection; documentId?: number }) =>
-    api.post('/traductions', data),
+    api.post('/traductions', data, { timeout: 450000 }), // 7.5 minutes pour les gros documents
 
   sauvegarderCorrection: (id: number, texteFinal: string) =>
     api.patch(`/traductions/${id}/correction`, { texteFinal }),
@@ -28,4 +28,8 @@ export const traductionsApi = {
 
   suggestions: (id: number, texte: string) =>
     api.get(`/traductions/${id}/suggestions`, { params: { texte } }),
+
+  supprimer: (id: number) => api.delete(`/traductions/${id}`),
+
+  restaurer: (id: number) => api.patch(`/traductions/${id}/restaurer`),
 };

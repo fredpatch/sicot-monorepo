@@ -9,3 +9,4 @@ export { courriersApi } from './courriers.api';
 export { missionsApi } from './missions.api';
 export { glossaireApi } from './glossaire.api';
 export { traductionsApi } from './traductions.api';
+export { demandesApi } from './demandes.api';
