@@ -48,7 +48,7 @@ interface AccordDetailProps {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function formaterDate(iso?: string) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: 'long',
@@ -145,7 +145,7 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
 
   // ── Rendu ─────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl mx-auto px-6 py-6 space-y-6">
+    <div className="max-w-2xl mx-auto px-6 py-6 space-y-6 border border-anac-border rounded-lg">
       {/* ── En-tête ──────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
@@ -169,7 +169,7 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
       {/* ── Alerte expiration ─────────────────────────────────────────── */}
       {expirationProche && !estExpire && (
         <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-3 text-sm font-medium">
-          ⚠ Cet accord expire le {formaterDate(accord.dateExpiration)} — pensez au renouvellement.
+          ⚠ Cet accord expire le {formaterDate(accord.dateExpiration)} - pensez au renouvellement.
         </div>
       )}
 
