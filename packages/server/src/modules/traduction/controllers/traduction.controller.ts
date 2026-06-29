@@ -12,6 +12,16 @@ function handleTraductionError(res: Response, error: unknown): void {
       status: 400,
       message: 'La traduction doit être approuvée avant archivage.',
     },
+    TRADUCTION_APPROUVEE_NON_SUPPRIMABLE: {
+      status: 400,
+      message: 'Une traduction approuvée ne peut pas être supprimée.',
+    },
+    TRADUCTION_ARCHIVEE_NON_SUPPRIMABLE: {
+      status: 400,
+      message: 'Une traduction archivée ne peut pas être supprimée.',
+    },
+    TRADUCTION_DEJA_SUPPRIMEE: { status: 400, message: 'Cette traduction est déjà supprimée.' },
+    TRADUCTION_NON_SUPPRIMEE: { status: 400, message: "Cette traduction n'est pas supprimée." },
   };
 
   const mapped = errorMap[message];
@@ -174,6 +184,38 @@ export async function suggestions(req: Request, res: Response): Promise<void> {
     const resultats = await traductionService.getSuggestionsGlossaire(texte, traduction.direction);
 
     res.json(resultats);
+  } catch (error) {
+    handleTraductionError(res, error);
+  }
+}
+
+// ── DELETE /api/traductions/:id ───────────────────────────────────────────
+export async function supprimer(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const traduction = await traductionService.supprimerTraduction(id, req.user!.userId);
+    res.json({ traduction, message: 'Traduction supprimée.' });
+  } catch (error) {
+    handleTraductionError(res, error);
+  }
+}
+
+// ── PATCH /api/traductions/:id/restaurer ──────────────────────────────────
+export async function restaurer(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const traduction = await traductionService.restaurerTraduction(id, req.user!.userId);
+    res.json({ traduction, message: 'Traduction restaurée.' });
   } catch (error) {
     handleTraductionError(res, error);
   }

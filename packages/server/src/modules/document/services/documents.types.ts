@@ -1,10 +1,5 @@
 export type DocumentCategorie =
-  | 'accord'
-  | 'correspondance'
-  | 'mission'
-  | 'traduction'
-  | 'glossaire'
-  | 'autre';
+  'accord' | 'correspondance' | 'mission' | 'traduction' | 'glossaire' | 'autre';
 
 export interface UploadDocumentParams {
   buffer: Buffer;
@@ -38,6 +33,7 @@ export interface DocumentFilters {
   statutOCR?: string;
   page?: number;
   pageSize?: number;
+  avecSupprimes?: boolean;
 }
 
 export interface DoublonInfo {

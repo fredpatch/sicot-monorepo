@@ -200,3 +200,57 @@ export async function telecharger(req: Request, res: Response): Promise<void> {
     handleDocumentsError(res, error);
   }
 }
+
+// ── DELETE /api/documents/:id ─────────────────────────────────────────────
+export async function supprimer(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const document = await documentsService.supprimerDocument(id, req.user!.userId);
+    res.json({ document, message: 'Document supprimé (corbeille).' });
+  } catch (error) {
+    handleDocumentsError(res, error);
+  }
+}
+
+// ── PATCH /api/documents/:id/restaurer ───────────────────────────────────
+export async function restaurer(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const document = await documentsService.restaurerDocument(id, req.user!.userId);
+    res.json({ document, message: 'Document restauré.' });
+  } catch (error) {
+    handleDocumentsError(res, error);
+  }
+}
+
+// ── POST /api/documents/:id/retraiter-ocr ────────────────────────────────
+export async function retraiterOCR(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const document = await documentsService.retraiterOCR(id, req.user!.userId);
+    res.json({
+      document,
+      message:
+        document.statutOCR === 'traite'
+          ? 'OCR retraité avec succès.'
+          : 'OCR retraité — extraction partielle ou échec.',
+    });
+  } catch (error) {
+    handleDocumentsError(res, error);
+  }
+}

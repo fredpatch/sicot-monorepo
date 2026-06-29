@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { db } from '@/db';
 import { documents } from '@/db/schema';
-import { eq, ilike, or, desc, and } from 'drizzle-orm';
+import { eq, ilike, or, desc, and, isNull } from 'drizzle-orm';
 import { extraireTexte } from '@/utils/ocr';
 import { calculerMD5 } from '@/utils/hash';
 import { logAudit } from '@/modules/auth/services/auth.service';
@@ -128,6 +128,11 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
     conditions.push(eq(documents.statutOCR, filters.statutOCR as never));
   }
 
+  // Dans listerDocuments, ajouter dans les conditions :
+  if (!filters.avecSupprimes) {
+    conditions.push(isNull(documents.deletedAt));
+  }
+
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const rows = await db
@@ -236,4 +241,114 @@ export async function getCheminDocument(
   const [doc] = await db.select().from(documents).where(eq(documents.id, id));
   if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
   return { chemin: doc.chemin, nomOriginal: doc.nomOriginal, mimeType: doc.mimeType };
+}
+
+// ── Soft delete ───────────────────────────────────────────────────────────
+export async function supprimerDocument(id: number, userId: number): Promise<DocumentView> {
+  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+
+  if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+  if (doc.deletedAt) throw new Error('DOCUMENT_DEJA_SUPPRIME');
+
+  const [updated] = await db
+    .update(documents)
+    .set({ deletedAt: new Date() })
+    .where(eq(documents.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: 'DOCUMENT_SUPPRIME',
+    module: 'M8',
+    entiteId: id,
+    details: { nomOriginal: doc.nomOriginal },
+  });
+
+  return toDocumentView(updated);
+}
+
+// ── Restaurer un document supprimé ────────────────────────────────────────
+export async function restaurerDocument(id: number, userId: number): Promise<DocumentView> {
+  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+
+  if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+  if (!doc.deletedAt) throw new Error('DOCUMENT_NON_SUPPRIME');
+
+  const [updated] = await db
+    .update(documents)
+    .set({ deletedAt: null })
+    .where(eq(documents.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: 'DOCUMENT_RESTAURE',
+    module: 'M8',
+    entiteId: id,
+    details: { nomOriginal: doc.nomOriginal },
+  });
+
+  return toDocumentView(updated);
+}
+
+// ── Relancer OCR sur un document existant ─────────────────────────────────
+export async function retraiterOCR(id: number, userId: number): Promise<DocumentView> {
+  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+
+  if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+  if (doc.deletedAt) throw new Error('DOCUMENT_SUPPRIME');
+
+  // Vérifier que le fichier physique existe encore
+  if (!fs.existsSync(doc.chemin)) {
+    throw new Error('FICHIER_INTROUVABLE');
+  }
+
+  // Relire le fichier depuis le disque
+  const buffer = fs.readFileSync(doc.chemin);
+
+  // Marquer en cours de retraitement
+  await db.update(documents).set({ statutOCR: 'en_attente' }).where(eq(documents.id, id));
+
+  let texteExtrait: string | undefined;
+  let langue: string | undefined;
+  let statutOCR: 'traite' | 'echec' | 'en_attente' = 'en_attente';
+
+  try {
+    const ocrResult = await extraireTexte({
+      buffer,
+      nomFichier: doc.nomOriginal,
+      mimeType: doc.mimeType,
+    });
+
+    if (ocrResult.succes && ocrResult.texte) {
+      texteExtrait = ocrResult.texte;
+      langue = ocrResult.langue;
+      statutOCR = 'traite';
+    } else {
+      statutOCR = 'echec';
+    }
+  } catch (error) {
+    console.warn('[documents.service] Retraitement OCR échoué:', error);
+    statutOCR = 'echec';
+  }
+
+  const [updated] = await db
+    .update(documents)
+    .set({
+      texteExtrait: texteExtrait ?? doc.texteExtrait,
+      langue: langue ?? doc.langue,
+      statutOCR,
+    })
+    .where(eq(documents.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: 'DOCUMENT_OCR_RETRAITE',
+    module: 'M8',
+    entiteId: id,
+    details: { statutOCR, nomOriginal: doc.nomOriginal },
+  });
+
+  return toDocumentView(updated);
 }

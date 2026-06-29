@@ -14,6 +14,9 @@ import CourrierFormPage from './pages/courriers/components/CourrierFormPage';
 import MissionsPage from './pages/MissionsPage';
 import MissionFormPage from './pages/missions/components/MissionFormPage';
 import GlossairePage from './pages/GlossairePage';
+import TraductionsPage from './pages/TraductionsPage';
+import TraductionEditeur from './pages/traductions/components/TraductionEditeur';
+import DemandesPage from './pages/DemandesPage';
 
 function ComingSoon({ module }: { module: string }) {
   return (
@@ -170,8 +173,9 @@ export default function App() {
           <Route path="/courriers/:id" element={<CourriersPage />} />
           <Route path="/courriers/new" element={<CourrierFormPage />} />
           <Route path="/courriers/:id/edit" element={<CourrierFormPage />} />
-          <Route path="/traductions/*" element={<ComingSoon module="Traduction IA" />} />
-          <Route path="/demandes/*" element={<ComingSoon module="Demandes de Traduction" />} />
+          <Route path="/traductions" element={<TraductionsPage />} />
+          <Route path="/traductions/:id" element={<TraductionEditeur />} />
+          <Route path="/demandes" element={<DemandesPage />} />
           <Route path="/glossaire" element={<GlossairePage />} />
           <Route path="/documents" element={<DocumentsPage />} />
 

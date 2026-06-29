@@ -8,6 +8,10 @@ export function handleDocumentsError(res: Response, error: unknown): void {
     DOCUMENT_INTROUVABLE: { status: 404, message: 'Document introuvable.' },
     OCR_SERVICE_INDISPONIBLE: { status: 503, message: 'Service OCR indisponible.' },
     OCR_TIMEOUT: { status: 504, message: 'Délai OCR dépassé.' },
+    DOCUMENT_DEJA_SUPPRIME: { status: 400, message: 'Ce document est déjà dans la corbeille.' },
+    DOCUMENT_NON_SUPPRIME: { status: 400, message: "Ce document n'est pas dans la corbeille." },
+    DOCUMENT_SUPPRIME: { status: 400, message: 'Ce document est dans la corbeille.' },
+    FICHIER_INTROUVABLE: { status: 404, message: 'Fichier physique introuvable sur le serveur.' },
   };
 
   const mapped = errorMap[message];

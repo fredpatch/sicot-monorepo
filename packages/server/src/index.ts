@@ -19,6 +19,7 @@ import courriersRoutes from './modules/courriers/routes/courriers.route';
 import missionsRoutes from './modules/missions/routes/missions.route';
 import glossaireRoutes from './modules/glossaire/routes/glossaire.route';
 import traductionsRoutes from './modules/traduction/routes/traduction.route';
+import demandesRoutes from './modules/demandes/routes/demandes.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
@@ -87,10 +88,9 @@ app.use('/api/courriers', courriersRoutes);
 app.use('/api/missions', missionsRoutes);
 app.use('/api/glossaire', glossaireRoutes);
 app.use('/api/traductions', traductionsRoutes);
+app.use('/api/demandes', demandesRoutes);
 
 // À brancher au fil des sprints :
-// app.use('/api/traductions', traductionsRoutes);
-// app.use('/api/demandes', demandesRoutes);
 // app.use('/api/dashboard', dashboardRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────

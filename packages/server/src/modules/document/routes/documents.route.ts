@@ -40,4 +40,9 @@ router.patch('/:id/categorie', requireRole('traducteur'), documentsController.me
 // ── Téléchargement ───────────────────────────────────────────────────────
 router.get('/:id/telecharger', documentsController.telecharger);
 
+// ── Suppression / restauration / retraitement OCR ─────────────────────────
+router.delete('/:id', requireRole('traducteur'), documentsController.supprimer);
+router.patch('/:id/restaurer', requireRole('traducteur'), documentsController.restaurer);
+router.post('/:id/retraiter-ocr', requireRole('traducteur'), documentsController.retraiterOCR);
+
 export default router;

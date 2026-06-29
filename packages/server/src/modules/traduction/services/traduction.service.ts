@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { db } from '@/db/index.js';
-import { traductions, documents, glossaire } from '@/db/schema';
-import { eq, and, ilike, or, desc } from 'drizzle-orm';
+import { traductions, documents, glossaire, demandesTraduction } from '@/db/schema';
+import { eq, and, ilike, or, desc, isNull } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import {
   traduireTexte,
   traduireSegment,
   verifierLibreTranslate,
   type TraductionDirection,
+  type MoteurTraduction,
 } from '@/utils/traduction.js';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -62,11 +63,10 @@ function toTraductionView(t: typeof traductions.$inferSelect): TraductionView {
 
 // ── SERVICE : Lancer une traduction ───────────────────────────────────────
 export async function lancerTraduction(params: LancerTraductionParams): Promise<TraductionView> {
-  // Vérifier LibreTranslate disponible
+  // Vérifier que le translate-service ET LibreTranslate sont accessibles
   const { accessible } = await verifierLibreTranslate();
 
   if (!accessible) {
-    // Créer traduction avec statut manuelle_requise
     const [traduction] = await db
       .insert(traductions)
       .values({
@@ -84,17 +84,20 @@ export async function lancerTraduction(params: LancerTraductionParams): Promise<
       action: 'TRADUCTION_LANCEE',
       module: 'M6',
       entiteId: traduction.id,
-      details: { statut: 'manuelle_requise', raison: 'LibreTranslate inaccessible' },
+      details: { statut: 'manuelle_requise', raison: 'Translate service inaccessible' },
     });
 
     return toTraductionView(traduction);
   }
 
-  // Traduire le texte
-  const { texteFinal, succes, erreurs } = await traduireTexte(
+  // ── Traduire via le microservice translate-service (port 5002) ────────
+  const { texteFinal, succes, erreurs, moteur } = await traduireTexte(
     params.texteOriginal,
     params.direction
   );
+
+  const moteurValide: MoteurTraduction =
+    moteur === 'deepL' ? 'deepl' : moteur === 'manuel' ? 'manuel' : 'libretranslate';
 
   const statut: TraductionStatut = succes ? 'a_reviser' : 'manuelle_requise';
 
@@ -106,7 +109,7 @@ export async function lancerTraduction(params: LancerTraductionParams): Promise<
       texteIA: succes ? texteFinal : null,
       direction: params.direction,
       statut,
-      moteurUtilise: 'libretranslate',
+      moteurUtilise: moteurValide, // ← moteur retourné par le microservice
       traducteurId: params.userId,
     })
     .returning();
@@ -116,14 +119,13 @@ export async function lancerTraduction(params: LancerTraductionParams): Promise<
     action: 'TRADUCTION_LANCEE',
     module: 'M6',
     entiteId: traduction.id,
-    details: { direction: params.direction, statut, erreurs },
+    details: { direction: params.direction, statut, erreurs, moteur },
   });
 
   return toTraductionView(traduction);
 }
 
 // ── SERVICE : Sauvegarder la correction du traducteur ─────────────────────
-// Calcule le delta IA vs corrigé → enrichit M7
 export async function sauvegarderCorrection(
   params: SauvegarderCorrectionParams
 ): Promise<TraductionView> {
@@ -141,9 +143,7 @@ export async function sauvegarderCorrection(
     .where(eq(traductions.id, params.id))
     .returning();
 
-  // ── Delta : enrichir le glossaire automatiquement ─────────────────────
-  // Si la correction diffère significativement de la traduction IA,
-  // on extrait les termes modifiés et on les propose au glossaire
+  // Delta : enrichir le glossaire automatiquement si correction différente de l'IA
   if (existante.texteIA && params.texteFinal !== existante.texteIA) {
     await enrichirGlossaireDepuisCorrection({
       texteOriginal: existante.texteOriginal ?? '',
@@ -194,7 +194,6 @@ export async function approuverTraduction(id: number, userId: number): Promise<T
 }
 
 // ── SERVICE : Archiver une traduction ─────────────────────────────────────
-// Bloqué sans approbation humaine — règle métier non contournable
 export async function archiverTraduction(id: number, userId: number): Promise<TraductionView> {
   const [existante] = await db.select().from(traductions).where(eq(traductions.id, id));
 
@@ -231,6 +230,9 @@ export async function listerTraductions(filters: {
   const offset = (page - 1) * pageSize;
 
   const conditions = [];
+  // Toujours filtrer les supprimées par défaut
+  conditions.push(isNull(traductions.deletedAt));
+
   if (filters.statut) conditions.push(eq(traductions.statut, filters.statut));
   if (filters.direction) conditions.push(eq(traductions.direction, filters.direction));
 
@@ -294,7 +296,7 @@ export async function getSuggestionsGlossaire(
   }));
 }
 
-// ── SERVICE : Vérifier LibreTranslate ────────────────────────────────────
+// ── SERVICE : Vérifier le translate-service + LibreTranslate ─────────────
 export async function verifierMoteur(): Promise<{
   accessible: boolean;
   langues: string[];
@@ -304,7 +306,6 @@ export async function verifierMoteur(): Promise<{
 }
 
 // ── Enrichissement glossaire depuis delta corrections ─────────────────────
-// Fonction interne — compare IA vs corrigé, propose les termes nouveaux
 async function enrichirGlossaireDepuisCorrection(params: {
   texteOriginal: string;
   texteIA: string;
@@ -313,7 +314,6 @@ async function enrichirGlossaireDepuisCorrection(params: {
   userId: number;
 }): Promise<void> {
   try {
-    // Segmenter les deux versions
     const segmentsIA = params.texteIA.split(/\n{2,}/);
     const segmentsCorrige = params.texteCorrige.split(/\n{2,}/);
     const segmentsOrig = params.texteOriginal.split(/\n{2,}/);
@@ -323,12 +323,10 @@ async function enrichirGlossaireDepuisCorrection(params: {
       const corrige = segmentsCorrige[i]?.trim() ?? '';
       const orig = segmentsOrig[i]?.trim() ?? '';
 
-      // Si le segment a été modifié de façon significative
       if (ia !== corrige && orig.length > 0 && orig.length < 100) {
         const termeFr = params.direction === 'fr_en' ? orig : corrige;
         const termeEn = params.direction === 'fr_en' ? corrige : orig;
 
-        // Vérifier si le terme n'existe pas déjà
         const [existant] = await db
           .select()
           .from(glossaire)
@@ -347,7 +345,69 @@ async function enrichirGlossaireDepuisCorrection(params: {
       }
     }
   } catch (error) {
-    // Non bloquant — on log mais on ne fait pas échouer la sauvegarde
     console.warn('[traduction] Enrichissement glossaire échoué:', error);
   }
+}
+
+// ── Soft delete traduction ────────────────────────────────────────────────
+export async function supprimerTraduction(id: number, userId: number): Promise<TraductionView> {
+  const [existante] = await db.select().from(traductions).where(eq(traductions.id, id));
+
+  if (!existante) throw new Error('TRADUCTION_INTROUVABLE');
+
+  // Bloquer suppression si approuvée ou archivée
+  if (existante.statut === 'approuvee') {
+    throw new Error('TRADUCTION_APPROUVEE_NON_SUPPRIMABLE');
+  }
+  if (existante.statut === 'archivee') {
+    throw new Error('TRADUCTION_ARCHIVEE_NON_SUPPRIMABLE');
+  }
+  if (existante.deletedAt) {
+    throw new Error('TRADUCTION_DEJA_SUPPRIMEE');
+  }
+
+  const [updated] = await db
+    .update(traductions)
+    .set({ deletedAt: new Date() })
+    .where(eq(traductions.id, id))
+    .returning();
+
+  // Si une demande M5 est liée — la remettre en statut soumise
+  await db
+    .update(demandesTraduction)
+    .set({ statut: 'soumise', traducteurId: null, verrou: false, updatedAt: new Date() })
+    .where(eq(demandesTraduction.traductionId, id));
+
+  await logAudit({
+    userId,
+    action: 'TRADUCTION_SUPPRIMEE',
+    module: 'M6',
+    entiteId: id,
+    details: { statut: existante.statut },
+  });
+
+  return toTraductionView(updated);
+}
+
+// ── Restaurer une traduction supprimée ────────────────────────────────────
+export async function restaurerTraduction(id: number, userId: number): Promise<TraductionView> {
+  const [existante] = await db.select().from(traductions).where(eq(traductions.id, id));
+
+  if (!existante) throw new Error('TRADUCTION_INTROUVABLE');
+  if (!existante.deletedAt) throw new Error('TRADUCTION_NON_SUPPRIMEE');
+
+  const [updated] = await db
+    .update(traductions)
+    .set({ deletedAt: null })
+    .where(eq(traductions.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: 'TRADUCTION_RESTAUREE',
+    module: 'M6',
+    entiteId: id,
+  });
+
+  return toTraductionView(updated);
 }
