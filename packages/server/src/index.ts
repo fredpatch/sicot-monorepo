@@ -17,6 +17,8 @@ import bootstrapRoutes from './start/routes/bootstrap.route';
 import accordsRoutes from './modules/accords/routes/accords.route';
 import courriersRoutes from './modules/courriers/routes/courriers.route';
 import missionsRoutes from './modules/missions/routes/missions.route';
+import glossaireRoutes from './modules/glossaire/routes/glossaire.route';
+import traductionsRoutes from './modules/traduction/routes/traduction.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
@@ -83,10 +85,12 @@ app.use('/api/organisations', organisationsRoutes);
 app.use('/api/accords', accordsRoutes);
 app.use('/api/courriers', courriersRoutes);
 app.use('/api/missions', missionsRoutes);
+app.use('/api/glossaire', glossaireRoutes);
+app.use('/api/traductions', traductionsRoutes);
+
 // À brancher au fil des sprints :
 // app.use('/api/traductions', traductionsRoutes);
 // app.use('/api/demandes', demandesRoutes);
-// app.use('/api/glossaire', glossaireRoutes);
 // app.use('/api/dashboard', dashboardRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────

@@ -7,3 +7,5 @@ export { organisationsApi } from './organisations.api';
 export { accordsApi } from './accords.api';
 export { courriersApi } from './courriers.api';
 export { missionsApi } from './missions.api';
+export { glossaireApi } from './glossaire.api';
+export { traductionsApi } from './traductions.api';
