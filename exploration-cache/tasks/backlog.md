@@ -1,8 +1,8 @@
 # 📋 SICOT – Full Backlog
 
-Last updated: 2026-06-28
+Last updated: 2026-06-29
 
-## 🔥 Sprint 2 — M8 Documents + M2 Partenaires
+## ✅ Sprint 2 — M8 Documents + M2 Partenaires (COMPLETE)
 
 ### Technical Decisions Made ✅
 - OCR: **Python microservice** (Flask, port 5001) — NOT npm package. Already built and tested.
@@ -39,23 +39,24 @@ Last updated: 2026-06-28
 
 ---
 
-## 📦 Sprint 3 — M1 Accords + M4 Correspondances + M3 Missions
+## 🔄 Sprint 3 — M1 Accords + M4 Correspondances + M3 Missions (SERVER COMPLETE, CLIENT PARTIAL)
 
-### Server
-- [ ] `modules/accords/` — CRUD, statut transitions, reference generation (ACC-2026-XXXX)
-- [ ] `modules/accordsOrganisations/` — many-to-many link management
-- [ ] Accord renewal flow — create new version linked to parent via `parent_id`
-- [ ] Expiry alerts cron — email 30/60/90 days before `date_expiration` (configurable)
-- [ ] `modules/courriers/` — CRUD, reference generation (CORR-2026-XXXX), reply chain
-- [ ] Deadline tracker for courriers with `reponse_requise: 'oui'`
-- [ ] `modules/missions/` — CRUD, participants management
-- [ ] `modules/recommandations/` — CRUD per mission, deadline alerts (if date_limite set)
+### Server ✅ ALL DONE
+- [x] `modules/accords/` — CRUD, statut transitions, reference generation (ACC-2026-XXXX), renewals
+- [x] `modules/accordsOrganisations/` — many-to-many link management
+- [x] Accord renewal flow — create new version linked to parent via `parent_id`
+- [x] Expiry alerts cron — email 30/60/90 days before `date_expiration` (daily 08h00)
+- [x] `modules/courriers/` — CRUD, reference generation (CORR-2026-XXXX), reply chain, documentId
+- [x] Deadline tracker for courriers with `reponse_requise: 'oui'` (`getSansReponse`)
+- [x] `modules/missions/` — CRUD, participants management, recommendations CRUD
+- [x] Recommandations alerts — email if responsableId + dateLimite defined
 - [ ] PDF/DOCX export (Puppeteer for PDF, ExcelJS for Excel) — accords, courriers, mission reports
 
 ### Client
-- [ ] `AccordsPage.tsx` — accord list, fiche detail, partner tags, version history
-- [ ] `CourriersPage.tsx` — inbox/outbox tabs, reply thread view, deadline flags (red if overdue)
-- [ ] `MissionsPage.tsx` — mission list, planning view, report upload or form, recommendations list
+- [x] `AccordsPage.tsx` — two-column inbox, filters, expiry badges, detail view ✅
+- [x] `CourriersPage.tsx` — inbox/outbox, reply thread, deadline flags, doc + accord links ✅
+- [ ] `MissionsPage.tsx` — mission list, detail panel, recommendations list ← NEXT
+- [ ] `MissionFormPage.tsx` — create/edit, participants, rapport linked to M8
 
 ---
 

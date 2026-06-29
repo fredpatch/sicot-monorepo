@@ -97,7 +97,7 @@ export default function Layout({ userRole, userNom, userPrenom }: LayoutProps) {
     <div className="flex h-screen bg-anac-gray overflow-hidden">
       {/* ── Sidebar ──────────────────────────────────────────────────── */}
       <motion.aside
-        animate={{ width: sidebarOuverte ? 224 : 45 }}
+        animate={{ width: sidebarOuverte ? 174 : 45 }}
         transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         className="flex flex-col bg-anac-navy overflow-hidden flex-shrink-0"
       >

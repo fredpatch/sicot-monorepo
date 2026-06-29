@@ -3,16 +3,16 @@
   "client": "ANAC Gabon",
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
-  "lastUpdated": "2026-06-28",
-  "lastCommit": "9249c49",
+  "lastUpdated": "2026-06-29",
+  "lastCommit": "c8b6578",
   "currentSprint": 3,
-  "currentSprintFocus": "M1 Accords + M4 Courriers + M3 Missions",
-  "status": "Sprint 2 DONE. Both client pages + server organisations module complete. UI/UX hardened. Sprint 3 next.",
+  "currentSprintFocus": "M3 Missions client (MissionsPage + MissionFormPage) — server complete",
+  "status": "Sprint 3 IN PROGRESS. Server: accords/courriers/missions modules live. Client: Accords ✅ Courriers ✅ Missions pending.",
 
   "activeSession": {
-    "task": "UI/UX hardening complete. Partenaires server module + bootstrap routes added. Sprint 2 closed.",
-    "startedAt": "2026-06-28",
-    "nextAction": "Scaffold modules/accords/ (M1) — CRUD service + controller + route"
+    "task": "Sprint 3 server (M1+M4+M3) done. Accords+Courriers client done. MissionsPage+MissionFormPage remaining.",
+    "startedAt": "2026-06-29",
+    "nextAction": "Build MissionsPage.tsx — list + detail panel + recommendations. Then MissionFormPage."
   },
 
   "index": [
@@ -37,8 +37,8 @@
     {
       "path": "active-session/current-task.md",
       "type": "session",
-      "tags": ["current", "sprint2", "documents", "partenaires"],
-      "summary": "Sprint 1 done. Sprint 2 scope: M8 + M2. Progress tracker and definition of done."
+      "tags": ["current", "sprint3", "accords", "courriers", "missions"],
+      "summary": "Sprint 3 in progress. Server M1+M4+M3 done. Accords+Courriers client done. MissionsPage pending."
     },
     {
       "path": "active-session/blockers.md",
@@ -49,8 +49,8 @@
     {
       "path": "active-session/next-actions.md",
       "type": "session",
-      "tags": ["actions", "immediate", "sprint2", "documents", "organisations"],
-      "summary": "Prioritized: mount document route → scaffold modules/documents/ → multer middleware → M2 organisations"
+      "tags": ["actions", "immediate", "sprint3", "missions", "pdf-export"],
+      "summary": "Prioritized: MissionsPage.tsx → MissionFormPage.tsx → PDF/DOCX export → Sprint 4 prep"
     },
     {
       "path": "active-session/context.md",
@@ -125,6 +125,12 @@
       "summary": "10 gotchas with exact symptoms and fixes: transition in Variants, Tailwind v4 config, shadcn CLI, CORS wildcard, discriminatedUnion casting, ignoreDeprecations, multer limits, Drizzle where(), PG enums, premier_login role"
     },
     {
+      "path": "sessions/2026-06-29.md",
+      "type": "session-log",
+      "tags": ["2026-06-29", "sprint3", "accords", "courriers", "missions", "alertes", "morgan"],
+      "summary": "Session: Sprint 3 server M1+M4+M3 complete (accords/courriers/missions modules + alertes cron). Client Accords+Courriers done. Missions client pending."
+    },
+    {
       "path": "sessions/2026-06-28.md",
       "type": "session-log",
       "tags": ["2026-06-28", "exploration-cache", "sprint2", "ui-ux", "partenaires", "bootstrap"],
@@ -149,8 +155,8 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap"],
-    "pendingRoutes": ["/api/accords", "/api/courriers", "/api/missions", "/api/traductions", "/api/demandes", "/api/glossaire", "/api/dashboard"]
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions"],
+    "pendingRoutes": ["/api/traductions", "/api/demandes", "/api/glossaire", "/api/dashboard"]
   },
 
   "blockers": [

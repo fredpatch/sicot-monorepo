@@ -7,7 +7,12 @@ import { extraireTexte } from '@/utils/ocr';
 import { calculerMD5 } from '@/utils/hash';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { DOSSIERS } from './documents.constants';
-import { assurerDossiers, toDocumentView, genererNomFichier, classerAutomatiquement } from './documents.helpers';
+import {
+  assurerDossiers,
+  toDocumentView,
+  genererNomFichier,
+  classerAutomatiquement,
+} from './documents.helpers';
 import type {
   DocumentCategorie,
   DocumentFilters,
@@ -147,7 +152,11 @@ export async function getDocument(id: number): Promise<DocumentView> {
 }
 
 // ── Corriger le statut OCR manuellement ──────────────────────────────────
-export async function corrigerOCR(id: number, texteCorrige: string, userId: number): Promise<DocumentView> {
+export async function corrigerOCR(
+  id: number,
+  texteCorrige: string,
+  userId: number
+): Promise<DocumentView> {
   const [existant] = await db.select().from(documents).where(eq(documents.id, id));
 
   if (!existant) throw new Error('DOCUMENT_INTROUVABLE');
@@ -218,4 +227,13 @@ export async function nouvellVersionDocument(
     .returning();
 
   return toDocumentView(updated);
+}
+
+// ── Récupérer le chemin d'un document pour téléchargement ───────────────
+export async function getCheminDocument(
+  id: number
+): Promise<{ chemin: string; nomOriginal: string; mimeType: string }> {
+  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+  if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+  return { chemin: doc.chemin, nomOriginal: doc.nomOriginal, mimeType: doc.mimeType };
 }

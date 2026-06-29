@@ -37,4 +37,7 @@ router.post(
 router.patch('/:id/ocr', requireRole('traducteur'), documentsController.corrigerOCR);
 router.patch('/:id/categorie', requireRole('traducteur'), documentsController.mettreAJourCategorie);
 
+// ── Téléchargement ───────────────────────────────────────────────────────
+router.get('/:id/telecharger', documentsController.telecharger);
+
 export default router;

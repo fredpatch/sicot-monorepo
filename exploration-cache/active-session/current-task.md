@@ -1,76 +1,64 @@
 # 🎯 Current Task
 
-**Session date**: 2026-06-28
-**Status**: ✅ Sprint 2 — COMPLETE
+**Session date**: 2026-06-29
+**Status**: 🔄 Sprint 3 — IN PROGRESS
 
-## What Just Finished
+## ✅ Done: Sprint 3 Server — M1 Accords + M4 Courriers + M3 Missions
 
-- ✅ exploration-cache initialized and pushed (`43a858d`)
-- ✅ OCR microservice built (`packages/ocr-service/main.py`) — Flask + Waitress, port 5001
-- ✅ `packages/server/src/utils/ocr.ts` — TypeScript HTTP client for OCR service
-- ✅ `server/index.ts` updated — OCR health check at startup
-- ✅ `packages/server/package.json` — added `axios`, `form-data`, `@types/form-data`
-- ✅ OCR tested on real ANAC documents — Tesseract 5, FR+EN validated
-- ✅ LibreTranslate FR↔EN tested — quality acceptable for V1, apostrophe cleanup implemented
+### M1 Accords (server)
+- ✅ `modules/accords/services/accords.service.ts` — lister, getAccord, creerAccord, mettreAJour, renouveler, getAccordsExpirantDans
+- ✅ `modules/accords/controllers/accords.controller.ts` — lister, expirantBientot, getById, creer, mettreAJour, renouveler
+- ✅ `modules/accords/routes/accords.route.ts` — /expirant, CRUD, /:id/renouveler
+- ✅ `jobs/alertes.ts` — cron 08h00 quotidien, alertes 30/60/90j accords expirants, email admins
+- ✅ Route mounted: `app.use('/api/accords', accordsRoutes)`
 
-## ✅ Done: Module Documents server (M8)
+### M4 Courriers (server)
+- ✅ `modules/courriers/services/courriers.service.ts` — lister, getCourrier, creerCourrier, mettreAJour, getSansReponse, getFilCorrespondance + documentId
+- ✅ `modules/courriers/controllers/courriers.controller.ts` — lister, sansReponse, getById, getFilCorrespondance, creer, mettreAJour
+- ✅ `modules/courriers/routes/courriers.route.ts` — /sans-reponse, CRUD, /:id/fil
+- ✅ Schema: `documentId` column added to courriers table
+- ✅ Route mounted: `app.use('/api/courriers', courriersRoutes)`
 
-- ✅ `middleware/upload.ts` — multer memoryStorage, 50MB, MIME filter, `handleMulterError`
-- ✅ `modules/document/services/documents.types.ts` — all interfaces + `DocumentCategorie`
-- ✅ `modules/document/services/documents.constants.ts` — `UPLOAD_DIR`, `DOSSIERS`, `MOTS_CLES_CATEGORIES`
-- ✅ `modules/document/services/documents.helpers.ts` — `assurerDossiers`, `toDocumentView`, `genererNomFichier`, `classerAutomatiquement`
-- ✅ `modules/document/services/documents.service.ts` — all service functions
-- ✅ `modules/document/controllers/documents.errors.ts` — `handleDocumentsError`
-- ✅ `modules/document/controllers/documents.controller.ts` — all handlers
-- ✅ `modules/document/routes/documents.route.ts` — full router wired
-- ✅ Route mounted in `index.ts` (`app.use('/api/documents', documentsRoutes)`)
-- ✅ `@/` path alias — tsconfig + all server imports migrated (30 files), `tsc-alias` for prod build
+### M3 Missions (server)
+- ✅ `modules/missions/services/missions.service.ts` — lister, getMission, creerMission, mettreAJour, ajouterRecommandation, mettreAJourRecommandation, getRecommandationsEnAttente
+- ✅ `modules/missions/controllers/missions.controller.ts` — lister, recommandationsEnAttente, getById, creer, mettreAJour, listerRecommandations, ajouterRecommandation, mettreAJourRecommandation
+- ✅ `modules/missions/routes/missions.route.ts` — /recommandations/en-attente, CRUD, /:id/recommandations, /recommandations/:recId
+- ✅ Route mounted: `app.use('/api/missions', missionsRoutes)`
 
-## ✅ Done: UI/UX Hardening (commit 9249c49)
+### Server infra
+- ✅ `morgan` HTTP logging middleware added (dev: 'dev', prod: 'combined')
+- ✅ `demarrerJobsAlertes()` called at startup
+- ✅ Auth rate limiter temporarily commented out for dev
 
-- ✅ `components/ui/dialog.tsx` — shadcn Dialog on `@radix-ui/react-dialog` (animated overlay/content)
-- ✅ `components/ui/select.tsx` — shadcn Select on `@radix-ui/react-select` (matches Input height/border)
-- ✅ `components/layouts/Layout.tsx` — Lucide icons, `motion.aside` sidebar, shadcn Buttons, avatar initials
-- ✅ `pages/login/components/FormField.tsx` — `required` badge prop + i18n
-- ✅ `i18n/index.ts` — added `bootstrap.*` namespace + `common.required`
-- ✅ `pages/BootstrapPage.tsx` — full redesign matching LoginPage (RHF + zod, framer-motion, i18n)
-- ✅ `pages/DocumentsPage.tsx` — shadcn Select/Dialog/Button/Input, RHF for OCR modal
-- ✅ `pages/PartenairesPage.tsx` — shadcn Dialog + RHF+zod for org/contact forms, Lucide icons
-- ✅ `lib/documents.api.ts` + `lib/organisations.api.ts` — client API modules
-- ✅ Radix packages installed: `@radix-ui/react-dialog`, `@radix-ui/react-select`, `@radix-ui/react-scroll-area`
+## ✅ Done: Sprint 3 Client — M1 Accords + M4 Courriers
 
-## ✅ Done: Module Organisations server (M2)
+- ✅ `lib/accords.api.ts` — lister, getById, expirantBientot, creer, mettreAJour, renouveler
+- ✅ `lib/courriers.api.ts` — lister, getById, getFilCorrespondance, sansReponse, creer, mettreAJour
+- ✅ `lib/missions.api.ts` — lister, getById, recommandationsEnAttente, creer, mettreAJour, listerRecommandations, ajouterRecommandation, mettreAJourRecommandation
+- ✅ `pages/AccordsPage.tsx` — layout inbox deux colonnes, liste filtrée, badges statut/expiration
+- ✅ `pages/accords/components/AccordDetail.tsx` — vue détail, partenaires, accord parent, renouvellements
+- ✅ `pages/accords/components/AccordFormPage.tsx` — création/édition, upload doc, sélecteur partenaires
+- ✅ `pages/CourriersPage.tsx` — layout inbox deux colonnes, filtres direction/statut, badges urgence
+- ✅ `pages/courriers/components/CourrierDetail.tsx` — détail, fil correspondance, accord lié
+- ✅ `pages/courriers/components/CourrierFormPage.tsx` — création/édition/réponse, document joint
+- ✅ `App.tsx` — /accords, /accords/:id, /accords/new, /accords/:id/edit, /courriers, /courriers/:id, /courriers/new, /courriers/:id/edit
 
-- ✅ `modules/partenaires/services/organisations.service.ts`
-- ✅ `modules/partenaires/controllers/organisations.controller.ts`
-- ✅ `modules/partenaires/routes/organisations.route.ts`
+## 🔄 Remaining: Sprint 3 Client — M3 Missions
 
-## ✅ Done: Bootstrap server routes
-
-- ✅ `start/services/bootstrap.service.ts`
-- ✅ `start/controllers/bootstrap.controller.ts`
-- ✅ `start/routes/bootstrap.route.ts`
-
-## 🚀 Next: Sprint 3 — Accords + Courriers + Missions (M1 + M4 + M3)
-
-- [ ] Scaffold `modules/accords/` — CRUD + PDF generation
-- [ ] Scaffold `modules/courriers/` — CRUD + attachments
-- [ ] Scaffold `modules/missions/` — CRUD + participants
-- [ ] Wire all 3 routes in `index.ts`
-- [ ] Client pages: `AccordsPage.tsx`, `CourriersPage.tsx`, `MissionsPage.tsx`
+- [ ] `pages/MissionsPage.tsx` — liste missions, vue détail inline, liste recommandations
+- [ ] `pages/MissionFormPage.tsx` — création/édition, participants ANAC, rapport lié à M8
 
 ## Progress Tracker
 
 ```
-OCR microservice  ██████████ 100% ✅
-Documents server  ██████████ 100% ✅
-Organisations     ██████████ 100% ✅
-Bootstrap routes  ██████████ 100% ✅
-Documents client  ██████████ 100% ✅
-Partenaires client██████████ 100% ✅
-UI/UX hardening   ██████████ 100% ✅
-─────────────────────────────────────
-Accords (M1)      ░░░░░░░░░░   0% ← START HERE
-Courriers (M4)    ░░░░░░░░░░   0%
-Missions (M3)     ░░░░░░░░░░   0%
+Accords server (M1)   ██████████ 100% ✅
+Courriers server (M4) ██████████ 100% ✅
+Missions server (M3)  ██████████ 100% ✅
+Alertes cron          ██████████ 100% ✅
+─────────────────────────────────────────
+Accords client        ██████████ 100% ✅
+Courriers client      ██████████ 100% ✅
+Missions client       ░░░░░░░░░░   0% ← START HERE
+─────────────────────────────────────────
+PDF/DOCX export       ░░░░░░░░░░   0% (Sprint 3 optional)
 ```

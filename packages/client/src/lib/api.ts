@@ -4,3 +4,6 @@ export { usersApi } from './users.api';
 export { auditApi } from './audit.api';
 export { documentsApi } from './documents.api';
 export { organisationsApi } from './organisations.api';
+export { accordsApi } from './accords.api';
+export { courriersApi } from './courriers.api';
+export { missionsApi } from './missions.api';

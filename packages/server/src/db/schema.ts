@@ -254,6 +254,7 @@ export const courriers = pgTable(
     reponseAId: integer('reponse_a_id'),
     accordId: integer('accord_id').references(() => accords.id),
     missionId: integer('mission_id'),
+    documentId: integer('document_id').references(() => documents.id),
     createdPar: integer('cree_par').references(() => users.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),

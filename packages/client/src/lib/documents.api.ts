@@ -38,5 +38,7 @@ export const documentsApi = {
   mettreAJourCategorie: (id: number, categorie: string) =>
     api.patch(`/documents/${id}/categorie`, { categorie }),
 
+  getUrlTelechargement: (id: number) => `/api/documents/${id}/telecharger`,
+
   verifierDoublon: (hash: string) => api.get('/documents/doublon', { params: { hash } }),
 };

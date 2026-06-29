@@ -52,7 +52,7 @@
 - [x] ~~`src/components/Layout.tsx`~~ - sidebar rétractable, header, toggle FR/EN, filtrage nav par rôle (juin 2026)
 - [x] ~~`src/App.tsx`~~ - AuthContext, ProtectedRoute, AdminRoute, vérification session au démarrage (juin 2026)
 
-## Sprint 2 – Documentaire & Partenaires (M8 + M2) | 2 semaines
+## Sprint 2 – Documentaire & Partenaires (M8 + M2) | ✅ COMPLÉTÉ
 
 - [x] ~~**Module upload fichiers**~~ - PDF, Word, Doc, Txt, Excel, images — Multer memoryStorage, stockage structuré /sicot/documents/ par catégorie (juin 2026)
 - [ ] **Dossier surveillé /temp/** - Détection auto nouveaux fichiers, import sans action utilisateur
@@ -68,15 +68,6 @@
 - [x] ~~**Tableau partenaires**~~ - Filtres pays/région/type, métadonnées pays+régions disponibles (juin 2026)
 - [ ] **Recherche full-text dans documents archivés** - PostgreSQL FTS
 
-### Décisions techniques Sprint 2
-
-- Microservice Python séparé exposé en HTTP local (port 5001) — appelé par Express via axios+form-data
-- Formats supportés : .pdf, .docx, .doc, .txt, .xlsx, .xls, .jpg, .png, .tiff
-- PDF natif → pdfplumber ; PDF scanné → pdf2image + Tesseract ; DOCX → python-docx ; DOC → LibreOffice headless
-- Nettoyage post-OCR : suppression espaces parasites autour apostrophes (identifié lors test LibreTranslate)
-- Conversion toujours côté serveur — l'utilisateur uploade le fichier original, pas d'action manuelle requise
-- Multer memoryStorage — fichier en Buffer, sauvegarde disque après OCR dans le bon dossier catégorie
-
 ### Fichiers complétés Sprint 2
 
 **Microservice OCR**
@@ -88,16 +79,17 @@
 
 - [x] ~~`src/utils/ocr.ts`~~ - Client axios vers microservice OCR, gestion erreurs ECONNREFUSED/timeout (juin 2026)
 - [x] ~~`src/utils/hash.ts`~~ - calculerMD5, hashesIdentiques (juin 2026)
-- [x] ~~`src/services/documents.service.ts`~~ - upload, lister, getById, corrigerOCR, mettreAJourCategorie, nouvellVersion, verifierDoublon (juin 2026)
-- [x] ~~`src/controllers/documents.controller.ts`~~ - upload, lister, getById, corrigerOCR, mettreAJourCategorie, nouvelleVersion, verifierDoublon (juin 2026)
-- [x] ~~`src/routes/documents.ts`~~ - Multer config, /upload, /:id, /:id/ocr, /:id/categorie, /:id/nouvelle-version, /doublon (juin 2026)
+- [x] ~~`src/services/documents.service.ts`~~ - upload, lister, getById, corrigerOCR, mettreAJourCategorie, nouvellVersion, verifierDoublon, getCheminDocument (juin 2026)
+- [x] ~~`src/controllers/documents.controller.ts`~~ - upload, lister, getById, corrigerOCR, mettreAJourCategorie, nouvelleVersion, verifierDoublon, telecharger (juin 2026)
+- [x] ~~`src/routes/documents.ts`~~ - Multer config, /upload, /:id/telecharger, /:id, /:id/ocr, /:id/categorie, /:id/nouvelle-version, /doublon (juin 2026)
 - [x] ~~`src/services/organisations.service.ts`~~ - CRUD organisations+contacts, definirPrincipal, getPays, getRegions (juin 2026)
 - [x] ~~`src/controllers/organisations.controller.ts`~~ - CRUD complet, listerContacts, creerContact, definirPrincipal, meta pays/regions (juin 2026)
 - [x] ~~`src/routes/organisations.ts`~~ - /meta/pays, /meta/regions, CRUD, /:id/contacts, /contacts/:contactId (juin 2026)
 
 **Client React Sprint 2**
 
-- [x] ~~`src/lib/api.ts`~~ - endpoints documents + organisations ajoutés, timeout 120s upload (juin 2026)
+- [x] ~~`src/lib/documents.api.ts`~~ - lister, getById, upload, nouvelleVersion, corrigerOCR, mettreAJourCategorie, verifierDoublon, getUrlTelechargement (juin 2026)
+- [x] ~~`src/lib/organisations.api.ts`~~ - lister, getById, creer, mettreAJour, getPays, getRegions, listerContacts, creerContact, mettreAJourContact, definirContactPrincipal (juin 2026)
 - [x] ~~`src/pages/DocumentsPage.tsx`~~ - liste filtrable, upload multi-format, badge OCR, modal correction, pagination (juin 2026)
 - [x] ~~`src/pages/PartenairesPage.tsx`~~ - tableau organisations, filtres pays/région/type, modal contacts, formulaires (juin 2026)
 
@@ -107,23 +99,60 @@
 - [x] ~~`src/controllers/bootstrap.controller.ts`~~ - status, init (juin 2026)
 - [x] ~~`src/routes/bootstrap.ts`~~ - GET /status, POST /init, routes publiques (juin 2026)
 - [x] ~~`src/pages/BootstrapPage.tsx`~~ - formulaire Super Admin, indicateur force mot de passe, redirection login (juin 2026)
-- [x] ~~`src/App.tsx`~~ - vérification bootstrap au démarrage, BootstrapRoute, écran chargement initial (juin 2026)
-- [x] ~~`src/pages/LoginPage.tsx`~~ - setUser après connexion réussie, redirection dashboard corrigée (juin 2026)
 
-## Sprint 3 – Accords, Correspondances & Missions (M1 + M4 + M3) | 2 semaines
+## Sprint 3 – Accords, Correspondances & Missions (M1 + M4 + M3) | ✅ SERVEUR COMPLÉTÉ — CLIENT EN COURS
 
-- [ ] **Fiche Accord (M1)** - Champs complets, statuts (Actif/Expiré/Suspendu/En renouvellement), référence auto ACC-2026-XXXX
-- [ ] **Relation many-to-many accords-partenaires**
-- [ ] **Gestion versions accord** - Renouvellement → nouvelle version liée à l'accord parent
-- [ ] **Alertes échéances accord** - Email + app à 30/60/90j avant expiration (cron, délais configurables)
-- [ ] **Fiche Courrier (M4)** - Entrant/Sortant, référence auto CORR-2026-XXXX, pièces jointes multiples
-- [ ] **Fil de correspondance** - Lien réponse à un courrier entrant, rattachement accord/mission optionnel
-- [ ] **Suivi réponse courrier** - Date limite, statut (Oui/Non/Pour information)
-- [ ] **Fiche Mission (M3)** - Titre, destination, dates, participants ANAC depuis annuaire interne
-- [ ] **Double option rapport de mission** - Upload PDF/Word OU formulaire intégré, version active = plus récent
-- [ ] **Liste recommandations** - Texte + responsable optionnel + date limite + statut (En attente/En cours/Réalisée)
-- [ ] **Alertes recommandations** - Uniquement si date limite définie
+- [x] ~~**Fiche Accord (M1)**~~ - Champs complets, statuts, référence auto ACC-YYYY-XXXX, many-to-many partenaires (juin 2026)
+- [x] ~~**Relation many-to-many accords-partenaires**~~ - accordsOrganisations, mise à jour complète (juin 2026)
+- [x] ~~**Gestion versions accord**~~ - renouvelerAccord, parentId, accord parent → en_renouvellement (juin 2026)
+- [x] ~~**Alertes échéances accord**~~ - Cron 08h00 quotidien, alertes 30/60/90j, email admins (juin 2026)
+- [x] ~~**Fiche Courrier (M4)**~~ - Entrant/Sortant, référence auto CORR-YYYY-XXXX, fil correspondance, documentId (juin 2026)
+- [x] ~~**Fil de correspondance**~~ - reponseAId, courrier parent → repondu automatiquement (juin 2026)
+- [x] ~~**Suivi réponse courrier**~~ - Date limite, statut oui/non/pour_information, sansReponse filter (juin 2026)
+- [x] ~~**Fiche Mission (M3)**~~ - Titre, destination, pays, dates, participants ANAC (juin 2026)
+- [x] ~~**Double option rapport de mission**~~ - rapportDocumentId lié à M8, upload via route documents (juin 2026)
+- [x] ~~**Liste recommandations**~~ - Texte + responsable + date limite + statut En attente/En cours/Réalisée (juin 2026)
+- [x] ~~**Alertes recommandations**~~ - Email envoyé uniquement si responsableId ET dateLimite définis (juin 2026)
 - [ ] **Export PDF/DOCX** - Accords, courriers, rapports de mission (templates aux couleurs ANAC)
+
+### Fichiers complétés Sprint 3
+
+**Serveur**
+
+- [x] ~~`src/services/accords.service.ts`~~ - lister, getAccord, creerAccord, mettreAJour, renouveler, getAccordsExpirantDans (juin 2026)
+- [x] ~~`src/controllers/accords.controller.ts`~~ - lister, expirantBientot, getById, creer, mettreAJour, renouveler (juin 2026)
+- [x] ~~`src/routes/accords.ts`~~ - /expirant, CRUD, /:id/renouveler (juin 2026)
+- [x] ~~`src/jobs/alertes.ts`~~ - cron 08h00 quotidien, alertes 30/60/90j accords expirants (juin 2026)
+- [x] ~~`src/services/courriers.service.ts`~~ - lister, getCourrier, creerCourrier, mettreAJour, getSansReponse, getFilCorrespondance + documentId (juin 2026)
+- [x] ~~`src/controllers/courriers.controller.ts`~~ - lister, sansReponse, getById, getFilCorrespondance, creer, mettreAJour + documentId (juin 2026)
+- [x] ~~`src/routes/courriers.ts`~~ - /sans-reponse, CRUD, /:id/fil (juin 2026)
+- [x] ~~`src/services/missions.service.ts`~~ - lister, getMission, creerMission, mettreAJour, ajouterRecommandation, mettreAJourRecommandation, getRecommandationsEnAttente (juin 2026)
+- [x] ~~`src/controllers/missions.controller.ts`~~ - lister, recommandationsEnAttente, getById, creer, mettreAJour, listerRecommandations, ajouterRecommandation, mettreAJourRecommandation (juin 2026)
+- [x] ~~`src/routes/missions.ts`~~ - /recommandations/en-attente, CRUD, /:id/recommandations, /recommandations/:recId (juin 2026)
+
+**Migration BDD**
+
+- [x] ~~`ALTER TABLE courriers ADD COLUMN document_id`~~ - Champ documentId ajouté + référence documents (juin 2026)
+
+**Client React Sprint 3**
+
+- [x] ~~`src/lib/accords.api.ts`~~ - lister, getById, expirantBientot, creer, mettreAJour, renouveler (juin 2026)
+- [x] ~~`src/lib/courriers.api.ts`~~ - lister, getById, getFilCorrespondance, sansReponse, creer, mettreAJour (juin 2026)
+- [x] ~~`src/lib/missions.api.ts`~~ - lister, getById, recommandationsEnAttente, creer, mettreAJour, listerRecommandations, ajouterRecommandation, mettreAJourRecommandation (juin 2026)
+- [x] ~~`src/lib/api.ts`~~ - accords, courriers, missions ajoutés aux exports (juin 2026)
+- [x] ~~`src/pages/AccordsPage.tsx`~~ - layout inbox deux colonnes, liste filtrée, badges statut/expiration, mobile-first (juin 2026)
+- [x] ~~`src/pages/AccordDetail.tsx`~~ - vue détail lecture seule, partenaires, document lié + consultation, accord parent, renouvellements, alertes expiration (juin 2026)
+- [x] ~~`src/pages/AccordFormPage.tsx`~~ - création/édition, upload document intégré + lier existant (Option C), sélecteur partenaires checkboxes, renouvellement inline (juin 2026)
+- [x] ~~`src/pages/CourriersPage.tsx`~~ - layout inbox deux colonnes, filtres direction/statut, badges urgence, mobile masque liste (juin 2026)
+- [x] ~~`src/pages/CourrierDetail.tsx`~~ - détail complet, fil correspondance, courrier parent, accord lié navigable, document joint + consultation, archivage rapide (juin 2026)
+- [x] ~~`src/pages/CourrierFormPage.tsx`~~ - création/édition/réponse, pré-remplissage RE:, upload document + lier existant, rattachement accord, champs figés en édition (juin 2026)
+- [ ] `src/pages/MissionsPage.tsx` — liste, vue détail, recommandations
+- [ ] `src/pages/MissionFormPage.tsx` — création/édition, participants, rapport
+
+**Routes App.tsx ajoutées**
+
+- [x] ~~`/accords`, `/accords/:id`, `/accords/new`, `/accords/:id/edit`~~ (juin 2026)
+- [x] ~~`/courriers`, `/courriers/:id`, `/courriers/new`, `/courriers/:id/edit`~~ (juin 2026)
 
 ## Sprint 4 – Traduction IA, Glossaire & Demandes (M6 + M7 + M5) | 3 semaines
 
@@ -193,3 +222,6 @@
 - [x] ~~**Sprint 2 M8+M2 complété**~~ - OCR microservice Python, Documents, Organisations+Contacts, pages React (juin 2026)
 - [x] ~~**Bootstrap admin opérationnel**~~ - Premier démarrage sans API Personnel ANAC, Super Admin créable via formulaire (juin 2026)
 - [x] ~~**Flux connexion complet**~~ - Bootstrap → Login → Dashboard, AuthContext mis à jour, redirections fonctionnelles (juin 2026)
+- [x] ~~**Route téléchargement documents**~~ - GET /api/documents/:id/telecharger, stream fichier, Content-Disposition inline (juin 2026)
+- [x] ~~**Module M1 Accords complet**~~ - Serveur + client, layout inbox, vue détail, formulaire création/édition/renouvellement, document lié Option C (juin 2026)
+- [x] ~~**Module M4 Courriers complet**~~ - Serveur + client, layout inbox, vue détail, fil correspondance, réponse pré-remplie, document joint, accord lié navigable (juin 2026)
