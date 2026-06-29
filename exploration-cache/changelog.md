@@ -1,6 +1,6 @@
 # 📝 SICOT – Changelog
 
-## [uncommitted] — 2026-06-29 — feat(sprint3): M1 Accords + M4 Courriers + M3 Missions server + client (partial)
+## [1ec9cca] — 2026-06-29 — feat(sprint3): M1 Accords + M4 Courriers + M3 Missions server + client (partial)
 
 ### Added — Server
 - `packages/server/src/modules/accords/` — CRUD service + controller + route (lister, creer, mettreAJour, renouveler, getAccordsExpirantDans)
@@ -164,7 +164,7 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
-| 2026-06-29 | (pending) | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |
+| 2026-06-29 | 1ec9cca | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |
 | 2026-06-28 | 9249c49 | UI/UX hardening — Dialog/Select, RHF modals, partenaires + bootstrap modules |
 | 2026-06-28 | 41d3cde | Cache manifest update |
 | 2026-06-28 | 14dd4da | Documents server module + @/ path alias |
