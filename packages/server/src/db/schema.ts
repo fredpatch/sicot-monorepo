@@ -102,7 +102,53 @@ export const demandeStatutEnum = pgEnum('demande_statut', [
   'archivee',
 ]);
 
+export const parametreTypeEnum = pgEnum('parametre_type', ['entier', 'booleen', 'texte']);
+
 export const demandePrioriteEnum = pgEnum('demande_priorite', ['normale', 'urgente']);
+
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'accord_echeance',
+  'courrier_relance',
+  'recommandation_rappel',
+]);
+
+export const notificationStatutEnum = pgEnum('notification_statut', ['envoyee', 'echec']);
+
+// ── M10 – Notifications ───────────────────────────────────────────────────
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: serial('id').primaryKey(),
+    type: notificationTypeEnum('type').notNull(),
+    entiteId: integer('entite_id').notNull(),
+    destinataireEmail: varchar('destinataire_email', { length: 255 }).notNull(),
+    destinataireNom: varchar('destinataire_nom', { length: 200 }),
+    message: text('message').notNull(),
+    declenchePar: integer('declenche_par')
+      .notNull()
+      .references(() => users.id),
+    statut: notificationStatutEnum('statut').notNull().default('envoyee'),
+    erreur: text('erreur'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    index('notifications_entite_idx').on(t.type, t.entiteId),
+    index('notifications_created_at_idx').on(t.createdAt),
+  ]
+);
+
+// ── M10 – Paramètres de configuration ─────────────────────────────────────
+export const parametres = pgTable('parametres', {
+  id: serial('id').primaryKey(),
+  cle: varchar('cle', { length: 100 }).notNull().unique(),
+  valeur: text('valeur').notNull(),
+  type: parametreTypeEnum('type').notNull(),
+  module: varchar('module', { length: 20 }).notNull(), // M1, M3, M4, NOTIF...
+  description: text('description'),
+  modifiePar: integer('modifie_par').references(() => users.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
 
 // ── M10 – Utilisateurs ─────────────────────────────────────────────────────
 export const users = pgTable(

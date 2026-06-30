@@ -7,15 +7,18 @@ import {
   Pencil,
   RefreshCw,
   FileText,
-  Link2,
+  Send,
   ExternalLink,
   Building2,
   Calendar,
 } from 'lucide-react';
 
+import ModalRelance from '@/components/ModalRelance';
+
 import { Button } from '@/components/ui/button';
 import { accordsApi, type AccordStatut } from '@/lib/accords.api';
 import { documentsApi } from '@/lib/documents.api';
+import { useState } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface OrganisationResume {
@@ -23,6 +26,12 @@ interface OrganisationResume {
   nom: string;
   pays: string;
   type: string;
+  contactPrincipal?: {
+    nom: string;
+    prenom: string;
+    email?: string;
+    telephone?: string;
+  };
 }
 
 interface Accord {
@@ -83,6 +92,8 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const [modalRelance, setModalRelance] = useState(false);
+
   // ── Requête accord ────────────────────────────────────────────────────
   const { data: accord, isLoading } = useQuery({
     queryKey: ['accord', accordId],
@@ -123,6 +134,15 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
     },
     enabled: !!accord,
   });
+
+  // Construire les destinataires suggérés à partir des partenaires + DG
+  const destinatairesSuggeres = (accord?.partenaires ?? [])
+    .filter((p) => p.contactPrincipal?.email)
+    .map((p) => ({
+      label: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom} — ${p.nom}`,
+      email: p.contactPrincipal!.email!,
+      nom: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom}`,
+    }));
 
   // ── Chargement ────────────────────────────────────────────────────────
   if (isLoading) {
@@ -236,9 +256,19 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
               <div className="w-8 h-8 rounded-full bg-anac-sky/10 flex items-center justify-center shrink-0">
                 <Building2 size={14} className="text-anac-sky" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-anac-navy">{p.nom}</p>
                 <p className="text-xs text-anac-muted">{p.pays}</p>
+                {p.contactPrincipal ? (
+                  <p className="text-[11px] text-anac-muted mt-0.5">
+                    Contact : {p.contactPrincipal.prenom} {p.contactPrincipal.nom}
+                    {p.contactPrincipal.email && ` · ${p.contactPrincipal.email}`}
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-amber-600 mt-0.5">
+                    ⚠ Aucun contact principal défini
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -324,10 +354,38 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
       )}
 
       {/* ── Métadonnées ────────────────────────────────────────────────── */}
-      <div className="text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
-        <p>Créé le {formaterDate(accord.createdAt)}</p>
-        <p>Modifié le {formaterDate(accord.updatedAt)}</p>
+      <div className="flex justify-between text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
+        <span className="flex flex-col gap-2">
+          <p>Créé le {formaterDate(accord.createdAt)}</p>
+          <p>Modifié le {formaterDate(accord.updatedAt)}</p>
+        </span>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setModalRelance(true)}
+          className="gap-1.5"
+        >
+          <Send size={13} /> Relancer
+        </Button>
       </div>
+
+      {accord && (
+        <ModalRelance
+          open={modalRelance}
+          onClose={() => setModalRelance(false)}
+          type="accord_echeance"
+          entiteId={accord.id}
+          objetParDefaut={`Rappel - Accord ${accord.reference} (${accord.titre})`}
+          messageParDefaut={
+            `L'accord "${accord.titre}" (réf. ${accord.reference}) ` +
+            (accord.dateExpiration
+              ? `arrive à échéance le ${new Date(accord.dateExpiration).toLocaleDateString('fr-FR')}.`
+              : `nécessite votre attention.`) +
+            `\n\nMerci de bien vouloir vous positionner sur la suite à donner (renouvellement, suspension, ou clôture).`
+          }
+          destinatairesSuggeres={destinatairesSuggeres}
+        />
+      )}
     </div>
   );
 }

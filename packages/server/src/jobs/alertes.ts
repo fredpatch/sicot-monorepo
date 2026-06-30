@@ -5,6 +5,7 @@ import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
+import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
 
 // ── Envoyer les alertes échéances accords ─────────────────────────────────
 async function envoyerAlertesAccords(jours: number): Promise<void> {
@@ -55,11 +56,19 @@ export function demarrerJobsAlertes(): void {
   cron.schedule('0 8 * * *', async () => {
     console.log('⏰ Vérification échéances accords...');
 
-    // Alertes à 30, 60 et 90 jours
-    await envoyerAlertesAccords(30);
-    await envoyerAlertesAccords(60);
-    await envoyerAlertesAccords(90);
+    // Seuil principal lu depuis la table parametres — fallback 90j si absent
+    // Les paliers intermédiaires restent calculés en proportion du seuil configuré
+    const seuilPrincipal = await getValeurEntier('accord_alerte_jours', 90);
+
+    // Génère les 3 paliers : 1/3, 2/3, et seuil complet du paramètre configuré
+    // ex: seuil=90 → 30, 60, 90 (comportement identique à l'historique par défaut)
+    const palier1 = Math.round(seuilPrincipal / 3);
+    const palier2 = Math.round((seuilPrincipal / 3) * 2);
+
+    await envoyerAlertesAccords(palier1);
+    await envoyerAlertesAccords(palier2);
+    await envoyerAlertesAccords(seuilPrincipal);
   });
 
-  console.log('📅 Alertes échéances planifiées à 08h00 quotidiennement');
+  console.log('📅 Alertes échéances planifiées à 08h00 quotidiennement (seuils dynamiques)');
 }

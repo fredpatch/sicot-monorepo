@@ -1,5 +1,38 @@
 # 📝 SICOT – Changelog
 
+## [PENDING] — 2026-06-30 — feat(sprint5): Dashboard M9 + AdminParametresPage + Notifications + ModalRelance + refinements
+
+### Added — Sprint 5 Client
+- `packages/client/src/pages/DashboardPage.tsx` — 8 KPI blocs, 3 Chart.js charts (bar/doughnut/h-bar), alertes critiques panel, recommandations panel, activité récente feed
+- `packages/client/src/lib/dashboard.api.ts` — GET /dashboard client
+- `packages/client/src/pages/AdminParametresPage.tsx` — settings CRUD grouped by module, change history panel
+- `packages/client/src/lib/parametres.api.ts` — lister, getByModule, mettreAJour, getHistorique
+- `packages/client/src/lib/notifications.api.ts` — envoyer, historiqueEntite, recentes
+- `packages/client/src/components/ModalRelance.tsx` — reusable relance email modal
+
+### Added — Sprint 5 Server
+- `packages/server/src/modules/dasboard/` — service + controller + route (note: typo in folder "dasboard")
+- `packages/server/src/modules/parametres/` — service + controller + route
+- `packages/server/src/modules/notifications/` — service + controller + route
+
+### Changed
+- `packages/client/src/App.tsx` — /dashboard → DashboardPage, /admin/* → AdminParametresPage
+- `packages/client/src/lib/api.ts` — dashboardApi, parametresApi, notificationsApi barrel exports
+- `packages/client/package.json` — chart.js ^4.5.1 added
+- `packages/client/src/pages/accords/components/AccordDetail.tsx` — enhanced detail view
+- `packages/client/src/pages/courriers/components/CourrierDetail.tsx` — relance workflow with ModalRelance
+- `packages/client/src/pages/missions/components/MissionDetails.tsx` — enhanced recommendations section
+- `packages/server/src/index.ts` — /api/dashboard, /api/parametres, /api/notifications mounted
+- `packages/server/src/db/schema.ts` — parametres + notifications tables added
+- `packages/server/src/utils/email.ts` — sendRelanceEmail + sendNotificationEmail added
+- `packages/server/src/jobs/alertes.ts` — notifications integration
+- `packages/server/src/modules/accords/services/accords.service.ts` — dashboard aggregation queries
+- `packages/server/src/modules/courriers/services/courriers.service.ts` — getSansReponse refinements
+- `packages/server/src/modules/missions/services/missions.service.ts` — getRecommandationsEnAttente additions
+- `docs/TASKS.md` — Sprint 5 progress updated
+
+---
+
 ## [9e67bee] — 2026-06-29 — feat(sprint4): M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage
 
 ### Added — Sprint 4 Client (Traductions + Demandes)
@@ -220,6 +253,7 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
+| 2026-06-30 | PENDING | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications + ModalRelance |
 | 2026-06-29 | 9e67bee | Sprint 4 — M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage |
 | 2026-06-29 | f292f88 | Sprint 3 Missions client + Sprint 4 M6+M7 server + translate-service + GlossairePage |
 | 2026-06-29 | 1ec9cca | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |

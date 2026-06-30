@@ -1,5 +1,5 @@
 import { db } from '@/db/index.js';
-import { accords, accordsOrganisations, organisations } from '@/db/schema';
+import { accords, accordsOrganisations, contacts, organisations } from '@/db/schema';
 import { eq, ilike, and, or, desc, lte, gte } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 
@@ -41,6 +41,12 @@ export interface OrganisationResume {
   nom: string;
   pays: string;
   type: string;
+  contactPrincipal?: {
+    nom: string;
+    prenom: string;
+    email?: string;
+    telephone?: string;
+  };
 }
 
 export interface AccordView {
@@ -97,9 +103,9 @@ function toAccordView(
   };
 }
 
-// Récupérer les partenaires d'un accord
+// Récupérer les partenaires d'un accord — avec leur contact principal
 async function getPartenairesAccord(accordId: number): Promise<OrganisationResume[]> {
-  const rows = await db
+  const orgs = await db
     .select({
       id: organisations.id,
       nom: organisations.nom,
@@ -110,7 +116,40 @@ async function getPartenairesAccord(accordId: number): Promise<OrganisationResum
     .innerJoin(organisations, eq(accordsOrganisations.organisationId, organisations.id))
     .where(eq(accordsOrganisations.accordId, accordId));
 
-  return rows;
+  // Récupérer le contact principal de chaque organisation en parallèle
+  const orgsAvecContact = await Promise.all(
+    orgs.map(async (org) => {
+      const [contactPrincipal] = await db
+        .select({
+          nom: contacts.nom,
+          prenom: contacts.prenom,
+          email: contacts.email,
+          telephone: contacts.telephone,
+        })
+        .from(contacts)
+        .where(
+          and(
+            eq(contacts.organisationId, org.id),
+            eq(contacts.principal, true),
+            eq(contacts.actif, true)
+          )
+        );
+
+      return {
+        ...org,
+        contactPrincipal: contactPrincipal
+          ? {
+              nom: contactPrincipal.nom,
+              prenom: contactPrincipal.prenom,
+              email: contactPrincipal.email ?? undefined,
+              telephone: contactPrincipal.telephone ?? undefined,
+            }
+          : undefined,
+      };
+    })
+  );
+
+  return orgsAvecContact;
 }
 
 // ── SERVICE : Lister les accords ──────────────────────────────────────────

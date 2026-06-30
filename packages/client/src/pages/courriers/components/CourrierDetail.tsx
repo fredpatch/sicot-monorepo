@@ -9,11 +9,13 @@ import {
   Pencil,
   Reply,
   Archive,
-  Paperclip,
+  Send,
   Link2,
   FileText,
   ExternalLink,
 } from 'lucide-react';
+
+import ModalRelance from '@/components/ModalRelance';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,12 +25,19 @@ import {
 } from '@/lib/courriers.api';
 import { accordsApi, documentsApi } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface OrganisationResume {
   id: number;
   nom: string;
   pays: string;
+  contactPrincipal?: {
+    nom: string;
+    prenom: string;
+    email?: string;
+    telephone?: string;
+  };
 }
 
 interface Courrier {
@@ -61,7 +70,7 @@ interface CourrierDetailProps {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function formaterDate(iso?: string) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: 'long',
@@ -123,6 +132,8 @@ export default function CourrierDetail({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const [modalRelance, setModalRelance] = useState(false);
+
   // ── Requête courrier principal ────────────────────────────────────────
   const { data: courrier, isLoading } = useQuery({
     queryKey: ['courrier', courrierId],
@@ -172,6 +183,46 @@ export default function CourrierDetail({
     enabled: !!courrier?.accordId,
   });
 
+  // Construire les destinataires - expéditeur ou destinataire du courrier selon direction
+  const destinatairesSuggeres = (() => {
+    if (!courrier) return [];
+
+    const liste: { label: string; email: string; nom: string }[] = [];
+
+    // Pour un courrier entrant en attente, on relance l'organisation expéditrice
+    // (via son contact principal si disponible)
+    const orgConcernee =
+      courrier?.direction === 'entrant' ? courrier?.expediteur : courrier?.destinataire;
+
+    const destinatairesSuggeres = orgConcernee?.contactPrincipal?.email
+      ? [
+          {
+            label: `${orgConcernee.contactPrincipal.prenom} ${orgConcernee.contactPrincipal.nom} — ${orgConcernee.nom}`,
+            email: orgConcernee.contactPrincipal.email,
+            nom: `${orgConcernee.contactPrincipal.prenom} ${orgConcernee.contactPrincipal.nom}`,
+          },
+        ]
+      : [];
+
+    // Note : l'email du contact n'est pas encore inclus dans CourrierView
+    // (voir note ci-dessous pour l'enrichissement serveur)
+    if (orgConcernee && 'contactPrincipal' in orgConcernee) {
+      const org = orgConcernee as unknown as {
+        nom: string;
+        contactPrincipal?: { prenom: string; nom: string; email?: string };
+      };
+      if (org.contactPrincipal?.email) {
+        liste.push({
+          label: `${org.contactPrincipal.prenom} ${org.contactPrincipal.nom} - ${org.nom}`,
+          email: org.contactPrincipal.email,
+          nom: `${org.contactPrincipal.prenom} ${org.contactPrincipal.nom}`,
+        });
+      }
+    }
+
+    return liste;
+  })();
+
   // ── Mutation archiver ─────────────────────────────────────────────────
   const archiverMutation = useMutation({
     mutationFn: () => courriersApi.mettreAJour(courrierId, { suiviStatut: 'archive' }),
@@ -203,7 +254,7 @@ export default function CourrierDetail({
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* ── Barre d'actions ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-anac-border bg-white shrink-0">
-        {/* Retour — visible sur mobile seulement */}
+        {/* Retour - visible sur mobile seulement */}
         <Button variant="secondary" size="sm" onClick={onRetour} className="gap-1.5 md:hidden">
           <ArrowLeft size={13} /> Retour
         </Button>
@@ -258,7 +309,7 @@ export default function CourrierDetail({
           {/* ── Alerte date limite dépassée ────────────────────────────── */}
           {dateLimitDepassee && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm font-medium">
-              ⚠ Date limite de réponse dépassée — {formaterDate(courrier.dateLimiteReponse)}
+              ⚠ Date limite de réponse dépassée - {formaterDate(courrier.dateLimiteReponse)}
             </div>
           )}
 
@@ -275,7 +326,7 @@ export default function CourrierDetail({
                     <span className="text-anac-muted text-xs">· {courrier.expediteur.pays}</span>
                   </span>
                 ) : (
-                  '—'
+                  '-'
                 )
               }
             />
@@ -288,7 +339,7 @@ export default function CourrierDetail({
                     <span className="text-anac-muted text-xs">· {courrier.destinataire.pays}</span>
                   </span>
                 ) : (
-                  '—'
+                  '-'
                 )
               }
             />
@@ -418,12 +469,40 @@ export default function CourrierDetail({
           )}
 
           {/* ── Métadonnées ────────────────────────────────────────────── */}
-          <div className="text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
-            <p>Créé le {formaterDate(courrier.createdAt)}</p>
-            <p>Modifié le {formaterDate(courrier.updatedAt)}</p>
+          <div className="flex justify-between text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
+            <span className="flex flex-col gap-0.5">
+              <p>Créé le {formaterDate(courrier.createdAt)}</p>
+              <p>Modifié le {formaterDate(courrier.updatedAt)}</p>
+            </span>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setModalRelance(true)}
+              className="gap-1.5"
+            >
+              <Send size={13} /> Relancer
+            </Button>
           </div>
         </div>
       </div>
+
+      {courrier && (
+        <ModalRelance
+          open={modalRelance}
+          onClose={() => setModalRelance(false)}
+          type="courrier_relance"
+          entiteId={courrier.id}
+          objetParDefaut={`Relance - Courrier ${courrier.reference}`}
+          messageParDefaut={
+            `Le courrier "${courrier.objet}" (réf. ${courrier.reference}), reçu le ` +
+            `${new Date(courrier.dateReception).toLocaleDateString('fr-FR')}, ` +
+            `est toujours en attente de réponse.` +
+            `\n\nPourriez-vous nous indiquer où en est le traitement de ce dossier ?`
+          }
+          destinatairesSuggeres={destinatairesSuggeres}
+        />
+      )}
     </div>
   );
 }

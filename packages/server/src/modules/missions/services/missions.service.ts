@@ -60,6 +60,7 @@ export interface ParticipantResume {
   matricule: string;
   nom: string;
   prenom: string;
+  email?: string; // ← ajouter
 }
 
 export interface RecommandationView {
@@ -124,6 +125,7 @@ async function getRecommandationsMission(missionId: number): Promise<Recommandat
             matricule: users.matricule,
             nom: users.nom,
             prenom: users.prenom,
+            email: users.email, // ← ajouter
           })
           .from(users)
           .where(eq(users.id, rec.responsableId));

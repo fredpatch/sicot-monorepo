@@ -17,7 +17,10 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  Send,
 } from 'lucide-react';
+
+import ModalRelance from '@/components/ModalRelance';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +42,7 @@ interface ParticipantResume {
   matricule: string;
   nom: string;
   prenom: string;
+  email?: string; // ← ajouter
 }
 
 interface RecommandationView {
@@ -149,6 +153,10 @@ function BadgeRec({ statut }: { statut: RecommandationStatut }) {
 export default function MissionDetail({ missionId, onRetour, onModifier }: MissionDetailProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  const [recommandationRelance, setRecommandationRelance] = useState<RecommandationView | null>(
+    null
+  );
 
   const [ajouterRec, setAjouterRec] = useState(false);
 
@@ -521,25 +529,38 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
                           {rec.texte}
                         </p>
 
-                        {/* Changement de statut rapide */}
-                        <Select
-                          value={rec.statut}
-                          onValueChange={(v) =>
-                            changerStatutRecMutation.mutate({
-                              recId: rec.id,
-                              statut: v as RecommandationStatut,
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-7 text-xs w-32 shrink-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="en_attente">En attente</SelectItem>
-                            <SelectItem value="en_cours">En cours</SelectItem>
-                            <SelectItem value="realisee">Réalisée</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Changement de statut rapide */}
+                          <Select
+                            value={rec.statut}
+                            onValueChange={(v) =>
+                              changerStatutRecMutation.mutate({
+                                recId: rec.id,
+                                statut: v as RecommandationStatut,
+                              })
+                            }
+                          >
+                            <SelectTrigger className="h-7 text-xs w-32 shrink-0">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="en_attente">En attente</SelectItem>
+                              <SelectItem value="en_cours">En cours</SelectItem>
+                              <SelectItem value="realisee">Réalisée</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {rec.statut !== 'realisee' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setRecommandationRelance(rec)}
+                              className="h-7 px-2 gap-1 text-xs shrink-0"
+                            >
+                              <Send size={11} /> Relancer
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-4 flex-wrap">
@@ -575,6 +596,35 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
           </div>
         </div>
       </div>
+
+      {recommandationRelance && (
+        <ModalRelance
+          open={!!recommandationRelance}
+          onClose={() => setRecommandationRelance(null)}
+          type="recommandation_rappel"
+          entiteId={recommandationRelance.id}
+          objetParDefaut={`Rappel — Recommandation mission "${mission?.titre}"`}
+          messageParDefaut={
+            `La recommandation suivante nécessite votre attention :` +
+            `\n\n"${recommandationRelance.texte}"` +
+            (recommandationRelance.dateLimite
+              ? `\n\nDate limite : ${new Date(recommandationRelance.dateLimite).toLocaleDateString('fr-FR')}`
+              : '') +
+            `\n\nMerci de nous tenir informés de l'avancement.`
+          }
+          destinatairesSuggeres={
+            recommandationRelance.responsable?.email
+              ? [
+                  {
+                    label: `${recommandationRelance.responsable.prenom} ${recommandationRelance.responsable.nom}`,
+                    email: recommandationRelance.responsable.email,
+                    nom: `${recommandationRelance.responsable.prenom} ${recommandationRelance.responsable.nom}`,
+                  },
+                ]
+              : []
+          }
+        />
+      )}
     </div>
   );
 }

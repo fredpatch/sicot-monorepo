@@ -168,3 +168,28 @@ export async function sendRecommandationEmail(params: {
     `,
   });
 }
+
+// ── Email générique de relance manuelle CCIT ──────────────────────────────
+export async function sendNotificationManuelle(params: {
+  to: string;
+  nomDestinataire?: string;
+  objet: string;
+  message: string;
+}): Promise<void> {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: params.to,
+    subject: params.objet,
+    html: `
+      <div style="font-family: Candara, sans-serif; color: #1B2A5E;">
+        <p>${params.nomDestinataire ? `Bonjour ${params.nomDestinataire},` : 'Bonjour,'}</p>
+        <div style="white-space: pre-wrap; margin: 16px 0; padding: 16px; background: #f5f5f0; border-left: 3px solid #1B2A5E;">
+          ${params.message}
+        </div>
+        <p style="font-size: 12px; color: #888;">
+          Message envoyé depuis SICOT — Cellule de Coopération Internationale et de Traduction, ANAC Gabon.
+        </p>
+      </div>
+    `,
+  });
+}

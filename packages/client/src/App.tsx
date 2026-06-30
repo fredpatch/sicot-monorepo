@@ -17,6 +17,8 @@ import GlossairePage from './pages/GlossairePage';
 import TraductionsPage from './pages/TraductionsPage';
 import TraductionEditeur from './pages/traductions/components/TraductionEditeur';
 import DemandesPage from './pages/DemandesPage';
+import DashboardPage from './pages/DashboardPage';
+import AdminParametresPage from './pages/AdminParametresPage';
 
 function ComingSoon({ module }: { module: string }) {
   return (
@@ -159,7 +161,7 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<ComingSoon module="Tableau de bord" />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/accords" element={<AccordsPage />} />
           <Route path="/accords/:id" element={<AccordsPage />} />
           <Route path="/accords/new" element={<AccordFormPage />} />
@@ -183,7 +185,7 @@ export default function App() {
             path="/admin/*"
             element={
               <AdminRoute>
-                <ComingSoon module="Administration" />
+                <AdminParametresPage />
               </AdminRoute>
             }
           />

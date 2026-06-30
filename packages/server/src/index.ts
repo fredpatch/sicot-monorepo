@@ -20,6 +20,9 @@ import missionsRoutes from './modules/missions/routes/missions.route';
 import glossaireRoutes from './modules/glossaire/routes/glossaire.route';
 import traductionsRoutes from './modules/traduction/routes/traduction.route';
 import demandesRoutes from './modules/demandes/routes/demandes.route';
+import dashboardRoutes from './modules/dasboard/routes/dashboard.route';
+import parametresRoutes from './modules/parametres/routes/parametres.route';
+import notificationsRoutes from './modules/notifications/routes/notifications.route.js';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
@@ -89,9 +92,9 @@ app.use('/api/missions', missionsRoutes);
 app.use('/api/glossaire', glossaireRoutes);
 app.use('/api/traductions', traductionsRoutes);
 app.use('/api/demandes', demandesRoutes);
-
-// À brancher au fil des sprints :
-// app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/parametres', parametresRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
