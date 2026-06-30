@@ -10,3 +10,6 @@ export { missionsApi } from './missions.api';
 export { glossaireApi } from './glossaire.api';
 export { traductionsApi } from './traductions.api';
 export { demandesApi } from './demandes.api';
+export { dashboardApi } from './dashboard.api';
+export { parametresApi } from './parametres.api';
+export { notificationsApi } from './notifications.api';

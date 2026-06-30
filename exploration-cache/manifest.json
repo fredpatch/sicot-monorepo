@@ -3,16 +3,16 @@
   "client": "ANAC Gabon",
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
-  "lastUpdated": "2026-06-29",
+  "lastUpdated": "2026-06-30",
   "lastCommit": "9e67bee",
-  "currentSprint": 4,
-  "currentSprintFocus": "Sprint 4 COMPLETE — M5 Demandes + M6 Traduction + M7 Glossaire all done server + client. Next: Sprint 5 Dashboard.",
-  "status": "Sprint 3 COMPLETE ✅. Sprint 4 COMPLETE ✅. All server routes live. All client pages done (Accords/Courriers/Missions/Glossaire/Traductions/Demandes). Uncommitted changes pending push.",
+  "currentSprint": 5,
+  "currentSprintFocus": "Sprint 5 IN PROGRESS — Dashboard M9 + AdminParametresPage + Notifications module all built (uncommitted). Next: commit+push, then rapport mensuel cron.",
+  "status": "Sprint 4 COMPLETE ✅. Sprint 5 PARTIAL ✅ — Dashboard (M9) done + Parametres + Notifications modules built. Uncommitted changes ready to push.",
 
   "activeSession": {
-    "task": "Sprint 4 fully done: M5 Demandes + M6 Traduction + M7 Glossaire server+client all complete. TraductionsPage, TraductionEditeur, DemandesPage done. /api/demandes mounted.",
-    "startedAt": "2026-06-29",
-    "nextAction": "Sprint 5: Dashboard (M9) — 5 blocs KPI + rapport mensuel cron."
+    "task": "Sprint 5: DashboardPage (8 KPI + 3 charts + alertes), AdminParametresPage, Notifications module, ModalRelance. Server modules dasboard/parametres/notifications all wired. chart.js added.",
+    "startedAt": "2026-06-30",
+    "nextAction": "Rapport mensuel cron (jobs/rapport.ts) — 1er du mois, PDF+Excel, archive in documents table."
   },
 
   "index": [
@@ -125,6 +125,12 @@
       "summary": "10 gotchas with exact symptoms and fixes: transition in Variants, Tailwind v4 config, shadcn CLI, CORS wildcard, discriminatedUnion casting, ignoreDeprecations, multer limits, Drizzle where(), PG enums, premier_login role"
     },
     {
+      "path": "sessions/2026-06-30.md",
+      "type": "session-log",
+      "tags": ["2026-06-30", "sprint5", "dashboard", "parametres", "notifications", "chart.js", "admin"],
+      "summary": "Session: Sprint 5 — DashboardPage M9 (8 KPI + 3 charts + alertes), AdminParametresPage, Notifications module, ModalRelance. All uncommitted."
+    },
+    {
       "path": "sessions/2026-06-29.md",
       "type": "session-log",
       "tags": ["2026-06-29", "sprint3", "sprint4", "missions", "glossaire", "traductions", "translate-service"],
@@ -155,8 +161,8 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes"],
-    "pendingRoutes": ["/api/dashboard"]
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications"],
+    "pendingRoutes": ["/api/rapport-mensuel"]
   },
 
   "blockers": [

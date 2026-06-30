@@ -1,5 +1,5 @@
 import { db } from '@/db/index';
-import { courriers, organisations, accords, missions } from '@/db/schema';
+import { courriers, organisations, accords, missions, contacts } from '@/db/schema';
 import { eq, ilike, and, or, desc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 
@@ -48,6 +48,12 @@ export interface OrganisationResume {
   id: number;
   nom: string;
   pays: string;
+  contactPrincipal?: {
+    nom: string;
+    prenom: string;
+    email?: string;
+    telephone?: string;
+  };
 }
 
 export interface CourrierView {
@@ -88,24 +94,14 @@ async function genererReference(): Promise<string> {
 }
 
 async function toCourrierView(courrier: typeof courriers.$inferSelect): Promise<CourrierView> {
-  // Récupérer expéditeur si défini
   let expediteur: OrganisationResume | undefined;
   if (courrier.expediteurOrganisationId) {
-    const [org] = await db
-      .select({ id: organisations.id, nom: organisations.nom, pays: organisations.pays })
-      .from(organisations)
-      .where(eq(organisations.id, courrier.expediteurOrganisationId));
-    expediteur = org;
+    expediteur = await getOrganisationAvecContact(courrier.expediteurOrganisationId);
   }
 
-  // Récupérer destinataire si défini
   let destinataire: OrganisationResume | undefined;
   if (courrier.destinataireOrganisationId) {
-    const [org] = await db
-      .select({ id: organisations.id, nom: organisations.nom, pays: organisations.pays })
-      .from(organisations)
-      .where(eq(organisations.id, courrier.destinataireOrganisationId));
-    destinataire = org;
+    destinataire = await getOrganisationAvecContact(courrier.destinataireOrganisationId);
   }
 
   return {
@@ -333,4 +329,41 @@ export async function getFilCorrespondance(courrierId: number): Promise<Courrier
     .orderBy(courriers.createdAt);
 
   return Promise.all(rows.map(toCourrierView));
+}
+
+async function getOrganisationAvecContact(orgId: number): Promise<OrganisationResume> {
+  const [org] = await db
+    .select({ id: organisations.id, nom: organisations.nom, pays: organisations.pays })
+    .from(organisations)
+    .where(eq(organisations.id, orgId));
+
+  const [contactPrincipal] = await db
+    .select({
+      nom: contacts.nom,
+      prenom: contacts.prenom,
+      email: contacts.email,
+      telephone: contacts.telephone,
+    })
+    .from(contacts)
+    .where(
+      and(
+        eq(contacts.organisationId, orgId),
+        eq(contacts.principal, true),
+        eq(contacts.actif, true)
+      )
+    );
+
+  return {
+    id: org.id,
+    nom: org.nom,
+    pays: org.pays,
+    contactPrincipal: contactPrincipal
+      ? {
+          nom: contactPrincipal.nom,
+          prenom: contactPrincipal.prenom,
+          email: contactPrincipal.email ?? undefined,
+          telephone: contactPrincipal.telephone ?? undefined,
+        }
+      : undefined,
+  };
 }

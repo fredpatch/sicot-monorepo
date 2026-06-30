@@ -3,7 +3,7 @@
 This folder is the living knowledge base for the SICOT project. Update it as the project evolves.
 
 **Project**: Système Intégré de Coopération Internationale et de Traduction — ANAC Gabon
-**Last updated**: 2026-06-29 | **Sprint**: 3 (in progress — server complete, client Accords+Courriers done, Missions pending)
+**Last updated**: 2026-06-30 | **Sprint**: 5 (in progress — Dashboard M9 + Parametres + Notifications built, uncommitted)
 
 ---
 
@@ -54,8 +54,9 @@ This folder is the living knowledge base for the SICOT project. Update it as the
 
 | File | What Happened |
 |------|--------------|
-| [`sessions/2026-06-29.md`](sessions/2026-06-29.md) | Sprint 3 server M1+M4+M3 complete; client Accords+Courriers done; Missions pending |
-| [`sessions/2026-06-28.md`](sessions/2026-06-28.md) | exploration-cache initialized, Sprint 1 reviewed |
+| [`sessions/2026-06-30.md`](sessions/2026-06-30.md) | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications built (uncommitted) |
+| [`sessions/2026-06-29.md`](sessions/2026-06-29.md) | Sprint 3+4 complete — Missions/Glossaire/Traductions/Demandes client all done |
+| [`sessions/2026-06-28.md`](sessions/2026-06-28.md) | exploration-cache initialized, Sprint 2 closed |
 | [`sessions/2026-06-27.md`](sessions/2026-06-27.md) | Login redesign, lib split, shadcn components, commit d51eee7 |
 
 ---

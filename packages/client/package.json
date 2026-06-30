@@ -16,6 +16,7 @@
     "@sicot/shared": "*",
     "@tanstack/react-query": "^5.36.2",
     "axios": "^1.7.2",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.0",
