@@ -4,7 +4,7 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-30",
-  "lastCommit": "f9b14f8",
+  "lastCommit": "ccbd3f2",
   "currentSprint": 5,
   "currentSprintFocus": "Sprint 5 IN PROGRESS — Wave 2: Jobs module (REGISTRE_JOBS 6 jobs) + major refinements across Dashboard/Accords/Courriers/Missions/Partenaires pages + server services. Uncommitted.",
   "status": "Sprint 4 COMPLETE ✅. Sprint 5 PARTIAL ✅ — Dashboard+Parametres+Notifications (f9b14f8) + Jobs module + major refinements pending commit.",
