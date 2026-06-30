@@ -1,6 +1,6 @@
 import { db } from '@/db/index.js';
 import { accords, accordsOrganisations, contacts, organisations } from '@/db/schema';
-import { eq, ilike, and, or, desc, lte, gte } from 'drizzle-orm';
+import { eq, ilike, and, or, desc, lte, gte, inArray } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -180,6 +180,24 @@ export async function listerAccords(filters: AccordFilters): Promise<{
     conditions.push(lte(accords.dateExpiration, filters.expirantAvant));
   }
 
+  // ── Filtre par partenaire — via la table de jointure ──────────────────
+  let accordIdsFiltres: number[] | undefined;
+  if (filters.partenairesId) {
+    const liaisons = await db
+      .select({ accordId: accordsOrganisations.accordId })
+      .from(accordsOrganisations)
+      .where(eq(accordsOrganisations.organisationId, filters.partenairesId));
+
+    accordIdsFiltres = liaisons.map((l) => l.accordId);
+
+    // Aucun accord pour ce partenaire — retourner vide directement
+    if (accordIdsFiltres.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    conditions.push(inArray(accords.id, accordIdsFiltres));
+  }
+
   const rows = await db
     .select()
     .from(accords)
@@ -188,7 +206,6 @@ export async function listerAccords(filters: AccordFilters): Promise<{
     .limit(pageSize)
     .offset(offset);
 
-  // Récupérer les partenaires pour chaque accord
   const data = await Promise.all(
     rows.map(async (accord) => {
       const partenaires = await getPartenairesAccord(accord.id);

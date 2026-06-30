@@ -114,6 +114,12 @@ export const notificationTypeEnum = pgEnum('notification_type', [
 
 export const notificationStatutEnum = pgEnum('notification_statut', ['envoyee', 'echec']);
 
+export const logistiqueStatutEnum = pgEnum('logistique_statut', [
+  'a_planifier',
+  'en_cours',
+  'confirme',
+]);
+
 // ── M10 – Notifications ───────────────────────────────────────────────────
 export const notifications = pgTable(
   'notifications',
@@ -325,6 +331,10 @@ export const missions = pgTable('missions', {
   createdPar: integer('cree_par').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  confirmationLogistique: logistiqueStatutEnum('confirmation_logistique')
+    .notNull()
+    .default('a_planifier'),
+  contactSurPlaceId: integer('contact_sur_place_id').references(() => contacts.id),
 });
 
 // ── M3 – Participants a une mission ─────────────────────────────────────

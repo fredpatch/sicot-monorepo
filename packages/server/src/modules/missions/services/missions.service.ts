@@ -1,5 +1,12 @@
 import { db } from '@/db/index';
-import { missions, missionParticipants, recommandations, users } from '@/db/schema';
+import {
+  missions,
+  missionParticipants,
+  recommandations,
+  users,
+  contacts,
+  organisations,
+} from '@/db/schema';
 import { eq, ilike, and, or, desc, isNotNull } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { sendRecommandationEmail } from '@/utils/email';
@@ -7,6 +14,18 @@ import { sendRecommandationEmail } from '@/utils/email';
 // ── Types ──────────────────────────────────────────────────────────────────
 export type MissionStatut = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
 export type RecommandationStatut = 'en_attente' | 'en_cours' | 'realisee';
+export type LogistiqueStatut = 'a_planifier' | 'en_cours' | 'confirme';
+
+// Type contact sur place
+export interface ContactResume {
+  id: number;
+  nom: string;
+  prenom: string;
+  email?: string;
+  telephone?: string;
+  poste?: string;
+  organisationNom?: string;
+}
 
 export interface CreateMissionParams {
   titre: string;
@@ -15,6 +34,7 @@ export interface CreateMissionParams {
   dateDebut: Date;
   dateFin: Date;
   participantsIds: number[];
+  contactSurPlaceId?: number;
   createdByUserId: number;
 }
 
@@ -26,6 +46,8 @@ export interface UpdateMissionParams {
   dateFin?: Date;
   statut?: MissionStatut;
   participantsIds?: number[];
+  confirmationLogistique?: LogistiqueStatut;
+  contactSurPlaceId?: number;
   rapportDocumentId?: number;
   updatedByUserId: number;
 }
@@ -85,6 +107,8 @@ export interface MissionView {
   statut: MissionStatut;
   participants: ParticipantResume[];
   recommandations?: RecommandationView[];
+  confirmationLogistique: LogistiqueStatut;
+  contactSurPlace?: ContactResume;
   rapportDocumentId?: number;
   createdPar?: number;
   createdAt: Date;
@@ -150,7 +174,8 @@ async function getRecommandationsMission(missionId: number): Promise<Recommandat
 function toMissionView(
   mission: typeof missions.$inferSelect,
   participants: ParticipantResume[],
-  recommandationsList?: RecommandationView[]
+  recommandationsList?: RecommandationView[],
+  contactSurPlace?: ContactResume
 ): MissionView {
   return {
     id: mission.id,
@@ -163,9 +188,42 @@ function toMissionView(
     participants,
     recommandations: recommandationsList,
     rapportDocumentId: mission.rapportDocumentId ?? undefined,
+    confirmationLogistique: mission.confirmationLogistique as LogistiqueStatut,
+    contactSurPlace,
     createdPar: mission.createdPar ?? undefined,
     createdAt: mission.createdAt,
     updatedAt: mission.updatedAt,
+  };
+}
+
+// ── SERVICE : Récupérer un contact sur place ───────────────────────────────
+async function getContactSurPlace(contactId?: number): Promise<ContactResume | undefined> {
+  if (!contactId) return undefined;
+
+  const [contact] = await db
+    .select({
+      id: contacts.id,
+      nom: contacts.nom,
+      prenom: contacts.prenom,
+      email: contacts.email,
+      telephone: contacts.telephone,
+      poste: contacts.poste,
+      organisationNom: organisations.nom,
+    })
+    .from(contacts)
+    .innerJoin(organisations, eq(contacts.organisationId, organisations.id))
+    .where(eq(contacts.id, contactId));
+
+  if (!contact) return undefined;
+
+  return {
+    id: contact.id,
+    nom: contact.nom,
+    prenom: contact.prenom,
+    email: contact.email ?? undefined,
+    telephone: contact.telephone ?? undefined,
+    poste: contact.poste ?? undefined,
+    organisationNom: contact.organisationNom,
   };
 }
 
@@ -208,7 +266,8 @@ export async function listerMissions(filters: MissionFilters): Promise<{
   const data = await Promise.all(
     rows.map(async (mission) => {
       const participants = await getParticipantsMission(mission.id);
-      return toMissionView(mission, participants);
+      const contactSurPlace = await getContactSurPlace(mission.contactSurPlaceId ?? undefined);
+      return toMissionView(mission, participants, undefined, contactSurPlace);
     })
   );
 
@@ -225,8 +284,9 @@ export async function getMission(id: number): Promise<MissionView> {
 
   const participants = await getParticipantsMission(id);
   const recommandationsList = await getRecommandationsMission(id);
+  const contactSurPlace = await getContactSurPlace(mission.contactSurPlaceId ?? undefined);
 
-  return toMissionView(mission, participants, recommandationsList);
+  return toMissionView(mission, participants, recommandationsList, contactSurPlace);
 }
 
 // ── SERVICE : Créer une mission ───────────────────────────────────────────
@@ -235,10 +295,18 @@ export async function creerMission(params: CreateMissionParams): Promise<Mission
     throw new Error('DATES_INVALIDES');
   }
 
-  // Vérifier que les participants existent
   for (const userId of params.participantsIds) {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) throw new Error(`PARTICIPANT_INTROUVABLE:${userId}`);
+  }
+
+  // Vérifier que le contact existe si fourni
+  if (params.contactSurPlaceId) {
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, params.contactSurPlaceId));
+    if (!contact) throw new Error('CONTACT_INTROUVABLE');
   }
 
   const [mission] = await db
@@ -250,11 +318,11 @@ export async function creerMission(params: CreateMissionParams): Promise<Mission
       dateDebut: params.dateDebut,
       dateFin: params.dateFin,
       statut: 'planifiee',
+      contactSurPlaceId: params.contactSurPlaceId,
       createdPar: params.createdByUserId,
     })
     .returning();
 
-  // Ajouter les participants
   if (params.participantsIds.length > 0) {
     await db.insert(missionParticipants).values(
       params.participantsIds.map((userId) => ({
@@ -277,7 +345,8 @@ export async function creerMission(params: CreateMissionParams): Promise<Mission
   });
 
   const participants = await getParticipantsMission(mission.id);
-  return toMissionView(mission, participants, []);
+  const contactSurPlace = await getContactSurPlace(params.contactSurPlaceId);
+  return toMissionView(mission, participants, [], contactSurPlace);
 }
 
 // ── SERVICE : Mettre à jour une mission ───────────────────────────────────
@@ -289,9 +358,16 @@ export async function mettreAJourMission(
 
   if (!existante) throw new Error('MISSION_INTROUVABLE');
 
-  // Une mission annulée ne peut pas être modifiée
   if (existante.statut === 'annulee') {
     throw new Error('MISSION_ANNULEE');
+  }
+
+  if (params.contactSurPlaceId !== undefined) {
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, params.contactSurPlaceId));
+    if (!contact) throw new Error('CONTACT_INTROUVABLE');
   }
 
   const updates: Partial<typeof missions.$inferInsert> = {};
@@ -304,6 +380,12 @@ export async function mettreAJourMission(
   if (params.rapportDocumentId !== undefined) {
     updates.rapportDocumentId = params.rapportDocumentId;
   }
+  if (params.confirmationLogistique !== undefined) {
+    updates.confirmationLogistique = params.confirmationLogistique;
+  }
+  if (params.contactSurPlaceId !== undefined) {
+    updates.contactSurPlaceId = params.contactSurPlaceId;
+  }
 
   const [updated] = await db
     .update(missions)
@@ -311,10 +393,8 @@ export async function mettreAJourMission(
     .where(eq(missions.id, id))
     .returning();
 
-  // Mettre à jour les participants si fournis
   if (params.participantsIds && params.participantsIds.length > 0) {
     await db.delete(missionParticipants).where(eq(missionParticipants.missionId, id));
-
     await db.insert(missionParticipants).values(
       params.participantsIds.map((userId) => ({
         missionId: id,
@@ -333,7 +413,8 @@ export async function mettreAJourMission(
 
   const participants = await getParticipantsMission(id);
   const recommandationsList = await getRecommandationsMission(id);
-  return toMissionView(updated, participants, recommandationsList);
+  const contactSurPlace = await getContactSurPlace(updated.contactSurPlaceId ?? undefined);
+  return toMissionView(updated, participants, recommandationsList, contactSurPlace);
 }
 
 // ── SERVICE : Ajouter une recommandation ──────────────────────────────────

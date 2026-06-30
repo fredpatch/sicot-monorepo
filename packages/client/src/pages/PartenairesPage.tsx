@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { organisationsApi } from '@/lib/organisations.api';
+import { useNavigate } from 'react-router-dom';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Contact {
@@ -136,9 +137,7 @@ function FormulaireOrganisation({ initial, onSubmit, onCancel, chargement }: For
             aria-invalid={!!errors.nom}
             className={errors.nom ? 'border-anac-danger' : ''}
           />
-          {errors.nom && (
-            <p className="text-[11px] text-anac-danger">{errors.nom.message}</p>
-          )}
+          {errors.nom && <p className="text-[11px] text-anac-danger">{errors.nom.message}</p>}
         </div>
 
         {/* Type */}
@@ -162,9 +161,7 @@ function FormulaireOrganisation({ initial, onSubmit, onCancel, chargement }: For
               </Select>
             )}
           />
-          {errors.type && (
-            <p className="text-[11px] text-anac-danger">{errors.type.message}</p>
-          )}
+          {errors.type && <p className="text-[11px] text-anac-danger">{errors.type.message}</p>}
         </div>
 
         {/* Pays */}
@@ -176,19 +173,13 @@ function FormulaireOrganisation({ initial, onSubmit, onCancel, chargement }: For
             aria-invalid={!!errors.pays}
             className={errors.pays ? 'border-anac-danger' : ''}
           />
-          {errors.pays && (
-            <p className="text-[11px] text-anac-danger">{errors.pays.message}</p>
-          )}
+          {errors.pays && <p className="text-[11px] text-anac-danger">{errors.pays.message}</p>}
         </div>
 
         {/* Région */}
         <div className="space-y-1.5">
           <Label htmlFor="org-region">Région</Label>
-          <Input
-            id="org-region"
-            {...register('region')}
-            placeholder="Ex: Afrique Centrale"
-          />
+          <Input id="org-region" {...register('region')} placeholder="Ex: Afrique Centrale" />
         </div>
       </div>
 
@@ -259,9 +250,7 @@ function FormulaireContact({ onSubmit, onCancel, chargement }: FormulaireContact
             aria-invalid={!!errors.nom}
             className={errors.nom ? 'border-anac-danger' : ''}
           />
-          {errors.nom && (
-            <p className="text-[11px] text-anac-danger">{errors.nom.message}</p>
-          )}
+          {errors.nom && <p className="text-[11px] text-anac-danger">{errors.nom.message}</p>}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="c-prenom">Prénom *</Label>
@@ -271,9 +260,7 @@ function FormulaireContact({ onSubmit, onCancel, chargement }: FormulaireContact
             aria-invalid={!!errors.prenom}
             className={errors.prenom ? 'border-anac-danger' : ''}
           />
-          {errors.prenom && (
-            <p className="text-[11px] text-anac-danger">{errors.prenom.message}</p>
-          )}
+          {errors.prenom && <p className="text-[11px] text-anac-danger">{errors.prenom.message}</p>}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="c-email">Email</Label>
@@ -285,9 +272,7 @@ function FormulaireContact({ onSubmit, onCancel, chargement }: FormulaireContact
             aria-invalid={!!errors.email}
             className={errors.email ? 'border-anac-danger' : ''}
           />
-          {errors.email && (
-            <p className="text-[11px] text-anac-danger">{errors.email.message}</p>
-          )}
+          {errors.email && <p className="text-[11px] text-anac-danger">{errors.email.message}</p>}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="c-tel">Téléphone</Label>
@@ -338,6 +323,7 @@ function FormulaireContact({ onSubmit, onCancel, chargement }: FormulaireContact
 export default function PartenairesPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // ── Filtres ───────────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
@@ -474,14 +460,20 @@ export default function PartenairesPage() {
           type="text"
           placeholder={t('common.search') + '...'}
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="w-52"
         />
 
         {/* Filtre type */}
         <Select
           value={type}
-          onValueChange={(v) => { setType(v as OrganisationType); setPage(1); }}
+          onValueChange={(v) => {
+            setType(v as OrganisationType);
+            setPage(1);
+          }}
         >
           <SelectTrigger className="w-52">
             <SelectValue />
@@ -496,27 +488,43 @@ export default function PartenairesPage() {
         </Select>
 
         {/* Filtre pays */}
-        <Select value={pays || '__all__'} onValueChange={(v) => { setPays(v === '__all__' ? '' : v); setPage(1); }}>
+        <Select
+          value={pays || '__all__'}
+          onValueChange={(v) => {
+            setPays(v === '__all__' ? '' : v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-44">
             <SelectValue placeholder="Tous les pays" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Tous les pays</SelectItem>
             {paysDisponibles?.map((p) => (
-              <SelectItem key={p} value={p}>{p}</SelectItem>
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         {/* Filtre région */}
-        <Select value={region || '__all__'} onValueChange={(v) => { setRegion(v === '__all__' ? '' : v); setPage(1); }}>
+        <Select
+          value={region || '__all__'}
+          onValueChange={(v) => {
+            setRegion(v === '__all__' ? '' : v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-44">
             <SelectValue placeholder="Toutes les régions" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Toutes les régions</SelectItem>
             {regionsDisponibles?.map((r) => (
-              <SelectItem key={r} value={r}>{r}</SelectItem>
+              <SelectItem key={r} value={r}>
+                {r}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -525,7 +533,13 @@ export default function PartenairesPage() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => { setSearch(''); setType('tous'); setPays(''); setRegion(''); setPage(1); }}
+            onClick={() => {
+              setSearch('');
+              setType('tous');
+              setPays('');
+              setRegion('');
+              setPage(1);
+            }}
           >
             Réinitialiser
           </Button>
@@ -568,21 +582,27 @@ export default function PartenairesPage() {
                       <div className="text-anac-muted text-xs truncate max-w-xs">{org.notes}</div>
                     )}
                   </td>
-                  <td className="px-4 py-3"><BadgeType type={org.type} /></td>
+                  <td className="px-4 py-3">
+                    <BadgeType type={org.type} />
+                  </td>
                   <td className="px-4 py-3 text-anac-text">{org.pays}</td>
                   <td className="px-4 py-3 text-anac-muted">{org.region ?? '—'}</td>
                   <td className="px-4 py-3">
-                    {org.actif
-                      ? <span className="badge-actif">{t('common.active')}</span>
-                      : <span className="badge-expire">{t('common.inactive')}</span>
-                    }
+                    {org.actif ? (
+                      <span className="badge-actif">{t('common.active')}</span>
+                    ) : (
+                      <span className="badge-expire">{t('common.inactive')}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Button
                         variant="link"
                         size="sm"
-                        onClick={() => { setOrgSelectionnee(org); setModalOrg('modifier'); }}
+                        onClick={() => {
+                          setOrgSelectionnee(org);
+                          setModalOrg('modifier');
+                        }}
                         className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
                       >
                         {t('common.edit')}
@@ -595,6 +615,14 @@ export default function PartenairesPage() {
                         className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
                       >
                         Contacts
+                      </Button>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={() => navigate(`/accords?partenaireId=${org.id}`)}
+                        className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
+                      >
+                        Accords
                       </Button>
                     </div>
                   </td>
@@ -612,10 +640,22 @@ export default function PartenairesPage() {
             {t('common.page')} {page} {t('common.of')} {totalPages}
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="gap-1.5">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="gap-1.5"
+            >
               <ChevronLeft size={13} /> Précédent
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="gap-1.5">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="gap-1.5"
+            >
               Suivant <ChevronRight size={13} />
             </Button>
           </div>
@@ -626,13 +666,18 @@ export default function PartenairesPage() {
       <Dialog
         open={!!modalOrg}
         onOpenChange={(open) => {
-          if (!open) { setModalOrg(null); setOrgSelectionnee(null); }
+          if (!open) {
+            setModalOrg(null);
+            setOrgSelectionnee(null);
+          }
         }}
       >
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>
-              {modalOrg === 'creer' ? 'Nouvelle organisation' : `Modifier — ${orgSelectionnee?.nom}`}
+              {modalOrg === 'creer'
+                ? 'Nouvelle organisation'
+                : `Modifier — ${orgSelectionnee?.nom}`}
             </DialogTitle>
             <DialogDescription>
               {modalOrg === 'creer'
@@ -651,7 +696,10 @@ export default function PartenairesPage() {
                   modifierOrgMutation.mutate({ id: orgSelectionnee.id, data });
                 }
               }}
-              onCancel={() => { setModalOrg(null); setOrgSelectionnee(null); }}
+              onCancel={() => {
+                setModalOrg(null);
+                setOrgSelectionnee(null);
+              }}
               chargement={creerOrgMutation.isPending || modifierOrgMutation.isPending}
             />
           </DialogBody>
@@ -662,7 +710,10 @@ export default function PartenairesPage() {
       <Dialog
         open={!!voirContacts}
         onOpenChange={(open) => {
-          if (!open) { setVoirContacts(null); setModalContact(false); }
+          if (!open) {
+            setVoirContacts(null);
+            setModalContact(false);
+          }
         }}
       >
         <DialogContent className="max-w-2xl">
@@ -693,15 +744,22 @@ export default function PartenairesPage() {
                             <span className="font-medium text-anac-navy">
                               {contact.prenom} {contact.nom}
                             </span>
-                            {contact.principal && <span className="badge-info text-xs">Principal</span>}
-                            {!contact.actif && <span className="badge-expire text-xs">Inactif</span>}
+                            {contact.principal && (
+                              <span className="badge-info text-xs">Principal</span>
+                            )}
+                            {!contact.actif && (
+                              <span className="badge-expire text-xs">Inactif</span>
+                            )}
                           </div>
                           {contact.poste && (
                             <p className="text-anac-muted text-xs">{contact.poste}</p>
                           )}
                           <div className="flex gap-4 mt-1.5 text-xs text-anac-muted">
                             {contact.email && (
-                              <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:text-anac-navy transition-colors">
+                              <a
+                                href={`mailto:${contact.email}`}
+                                className="flex items-center gap-1 hover:text-anac-navy transition-colors"
+                              >
                                 <Mail size={11} /> {contact.email}
                               </a>
                             )}
@@ -726,7 +784,11 @@ export default function PartenairesPage() {
                     ))}
                   </div>
                 )}
-                <Button variant="secondary" className="w-full gap-2" onClick={() => setModalContact(true)}>
+                <Button
+                  variant="secondary"
+                  className="w-full gap-2"
+                  onClick={() => setModalContact(true)}
+                >
                   <Plus size={13} /> Ajouter un contact
                 </Button>
               </>

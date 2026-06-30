@@ -35,6 +35,8 @@ interface OrganisationResume {
   pays: string;
 }
 
+type CourrierCriticite = 'normal' | 'a_surveiller' | 'critique';
+
 interface Courrier {
   id: number;
   reference: string;
@@ -50,6 +52,9 @@ interface Courrier {
   accordId?: number;
   missionId?: number;
   createdAt: string;
+
+  criticite?: CourrierCriticite;
+  joursAttente?: number;
 }
 
 // ── Badges ─────────────────────────────────────────────────────────────────
@@ -71,9 +76,11 @@ function BadgeDirection({ direction }: { direction: CourrierDirection }) {
 function BadgeSuivi({
   statut,
   reponseRequise,
+  criticite,
 }: {
   statut: CourrierSuiviStatut;
   reponseRequise: string;
+  criticite?: CourrierCriticite;
 }) {
   if (statut === 'archive') {
     return <span className="badge-expire">Archivé</span>;
@@ -81,7 +88,22 @@ function BadgeSuivi({
   if (statut === 'repondu') {
     return <span className="badge-actif">Répondu</span>;
   }
-  // en_attente
+
+  // en_attente — utiliser la criticité si calculée
+  if (criticite === 'critique') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-white bg-red-600 rounded px-1.5 py-0.5">
+        <AlertCircle size={10} /> Critique
+      </span>
+    );
+  }
+  if (criticite === 'a_surveiller') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
+        <AlertCircle size={10} /> À surveiller
+      </span>
+    );
+  }
   if (reponseRequise === 'oui') {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-700 bg-red-50 rounded px-1.5 py-0.5">
@@ -293,15 +315,21 @@ export default function CourriersPage() {
                     <BadgeSuivi
                       statut={courrier.suiviStatut}
                       reponseRequise={courrier.reponseRequise}
+                      criticite={courrier.criticite}
                     />
                   </div>
 
                   {/* Indicateur date limite dépassée */}
-                  {courrier.dateLimiteReponse &&
-                    courrier.suiviStatut === 'en_attente' &&
-                    new Date(courrier.dateLimiteReponse) < new Date() && (
-                      <div className="text-[11px] text-red-600 font-medium mt-1">
-                        ⚠ Date limite dépassée
+                  {courrier.criticite &&
+                    courrier.criticite !== 'normal' &&
+                    courrier.joursAttente !== undefined && (
+                      <div
+                        className={`text-[11px] font-medium mt-1 ${
+                          courrier.criticite === 'critique' ? 'text-red-600' : 'text-amber-600'
+                        }`}
+                      >
+                        {courrier.criticite === 'critique' ? '⚠⚠' : '⚠'} En attente depuis{' '}
+                        {courrier.joursAttente} jours
                       </div>
                     )}
                 </button>

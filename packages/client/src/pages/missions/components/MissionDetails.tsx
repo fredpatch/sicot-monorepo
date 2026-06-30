@@ -70,6 +70,17 @@ interface Mission {
   rapportDocumentId?: number;
   createdAt: string;
   updatedAt: string;
+
+  confirmationLogistique: 'a_planifier' | 'en_cours' | 'confirme';
+  contactSurPlace?: {
+    id: number;
+    nom: string;
+    prenom: string;
+    email?: string;
+    telephone?: string;
+    poste?: string;
+    organisationNom?: string;
+  };
 }
 
 interface User {
@@ -96,7 +107,7 @@ type RecFormData = z.infer<typeof recSchema>;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function formaterDate(iso?: string) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: 'long',
@@ -111,6 +122,17 @@ function LigneInfo({ label, valeur }: { label: string; valeur: React.ReactNode }
       <span className="text-sm text-anac-navy">{valeur}</span>
     </div>
   );
+}
+
+// ─ Badge logistique ─────────────────────────────────────────────────────
+function BadgeLogistique({ statut }: { statut: 'a_planifier' | 'en_cours' | 'confirme' }) {
+  const config = {
+    a_planifier: { label: 'Logistique à planifier', classe: 'badge-expire' },
+    en_cours: { label: 'Logistique en cours', classe: 'badge-warning' },
+    confirme: { label: 'Logistique confirmée', classe: 'badge-actif' },
+  };
+  const { label, classe } = config[statut];
+  return <span className={classe}>{label}</span>;
 }
 
 // ── Badge statut mission ───────────────────────────────────────────────────
@@ -270,7 +292,12 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
         <div className="max-w-2xl mx-auto px-6 py-6 space-y-6">
           {/* ── En-tête ──────────────────────────────────────────────── */}
           <div className="space-y-2">
-            <BadgeStatut statut={mission.statut} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <BadgeStatut statut={mission.statut} />
+              {mission.statut !== 'terminee' && mission.statut !== 'annulee' && (
+                <BadgeLogistique statut={mission.confirmationLogistique} />
+              )}
+            </div>
             <h2 className="text-lg font-bold text-anac-navy leading-snug">{mission.titre}</h2>
             <div className="flex items-center gap-1.5 text-anac-muted text-sm">
               <MapPin size={13} />
@@ -281,9 +308,18 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
           {/* ── Alerte rapport manquant ───────────────────────────────── */}
           {mission.statut === 'terminee' && !mission.rapportDocumentId && (
             <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-3 text-sm font-medium">
-              ⚠ Mission terminée — aucun rapport de mission déposé.
+              ⚠ Mission terminée - aucun rapport de mission déposé.
             </div>
           )}
+
+          {/* ── Alerte logistique non confirmée ────────────────────────── */}
+          {mission.confirmationLogistique !== 'confirme' &&
+            mission.statut === 'planifiee' &&
+            new Date(mission.dateDebut) < new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) && (
+              <div className="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3 text-sm font-semibold">
+                ⚠ Départ dans moins de 14 jours - logistique non confirmée (billet/financement).
+              </div>
+            )}
 
           {/* ── Informations générales ────────────────────────────────── */}
           <div className="card p-5 space-y-3">
@@ -338,6 +374,45 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
               </div>
             )}
           </div>
+
+          {/* ── Contact sur place ───────────────────────────────────────── */}
+          {mission.contactSurPlace && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide">
+                Contact sur place
+              </p>
+              <div className="card p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-anac-navy">
+                    {mission.contactSurPlace.prenom} {mission.contactSurPlace.nom}
+                  </p>
+                  {mission.contactSurPlace.organisationNom && (
+                    <p className="text-xs text-anac-muted">
+                      {mission.contactSurPlace.organisationNom}
+                    </p>
+                  )}
+                  {mission.contactSurPlace.poste && (
+                    <p className="text-xs text-anac-muted">{mission.contactSurPlace.poste}</p>
+                  )}
+                  <div className="flex gap-3 mt-1">
+                    {mission.contactSurPlace.email && (
+                      <a
+                        href={`mailto:${mission.contactSurPlace.email}`}
+                        className="text-xs text-anac-sky hover:text-anac-navy"
+                      >
+                        {mission.contactSurPlace.email}
+                      </a>
+                    )}
+                    {mission.contactSurPlace.telephone && (
+                      <span className="text-xs text-anac-muted">
+                        {mission.contactSurPlace.telephone}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ── Rapport de mission ────────────────────────────────────── */}
           <div className="space-y-2">
@@ -439,10 +514,10 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
                         }
                       >
                         <SelectTrigger className="text-sm">
-                          <SelectValue placeholder="— Aucun —" />
+                          <SelectValue placeholder="- Aucun -" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">— Aucun —</SelectItem>
+                          <SelectItem value="__none__">- Aucun -</SelectItem>
                           {agents.map((u) => (
                             <SelectItem key={u.id} value={u.id.toString()}>
                               {u.prenom} {u.nom}
@@ -603,7 +678,7 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
           onClose={() => setRecommandationRelance(null)}
           type="recommandation_rappel"
           entiteId={recommandationRelance.id}
-          objetParDefaut={`Rappel — Recommandation mission "${mission?.titre}"`}
+          objetParDefaut={`Rappel - Recommandation mission "${mission?.titre}"`}
           messageParDefaut={
             `La recommandation suivante nécessite votre attention :` +
             `\n\n"${recommandationRelance.texte}"` +

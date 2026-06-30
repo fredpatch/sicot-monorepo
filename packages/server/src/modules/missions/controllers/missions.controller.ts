@@ -13,6 +13,7 @@ function handleMissionsError(res: Response, error: unknown): void {
       status: 400,
       message: 'La date de début doit être antérieure à la date de fin.',
     },
+    CONTACT_INTROUVABLE: { status: 404, message: 'Contact introuvable.' },
   };
 
   // Gérer le cas PARTICIPANT_INTROUVABLE:ID
@@ -84,7 +85,8 @@ export async function getById(req: Request, res: Response): Promise<void> {
 // ── POST /api/missions ────────────────────────────────────────────────────
 export async function creer(req: Request, res: Response): Promise<void> {
   try {
-    const { titre, destination, pays, dateDebut, dateFin, participantsIds } = req.body;
+    const { titre, destination, pays, dateDebut, dateFin, participantsIds, contactSurPlaceId } =
+      req.body;
 
     if (!titre || !destination || !pays || !dateDebut || !dateFin) {
       res.status(400).json({
@@ -94,9 +96,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
     }
 
     if (participantsIds && !Array.isArray(participantsIds)) {
-      res.status(400).json({
-        message: 'participantsIds doit être un tableau.',
-      });
+      res.status(400).json({ message: 'participantsIds doit être un tableau.' });
       return;
     }
 
@@ -107,6 +107,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
       dateDebut: new Date(dateDebut),
       dateFin: new Date(dateFin),
       participantsIds: participantsIds ? participantsIds.map(Number) : [],
+      contactSurPlaceId: contactSurPlaceId ? parseInt(contactSurPlaceId) : undefined,
       createdByUserId: req.user!.userId,
     });
 
@@ -134,6 +135,8 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       statut,
       participantsIds,
       rapportDocumentId,
+      confirmationLogistique,
+      contactSurPlaceId,
     } = req.body;
 
     if (
@@ -144,16 +147,23 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       !dateFin &&
       !statut &&
       !participantsIds &&
-      !rapportDocumentId
+      !rapportDocumentId &&
+      !confirmationLogistique &&
+      contactSurPlaceId === undefined
     ) {
       res.status(400).json({ message: 'Aucun champ à modifier.' });
       return;
     }
 
-    // Valider le statut si fourni
     const statutsValides = ['planifiee', 'en_cours', 'terminee', 'annulee'];
     if (statut && !statutsValides.includes(statut)) {
       res.status(400).json({ message: 'Statut invalide.' });
+      return;
+    }
+
+    const logistiqueValides = ['a_planifier', 'en_cours', 'confirme'];
+    if (confirmationLogistique && !logistiqueValides.includes(confirmationLogistique)) {
+      res.status(400).json({ message: 'Statut logistique invalide.' });
       return;
     }
 
@@ -166,6 +176,8 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       statut,
       participantsIds: participantsIds ? participantsIds.map(Number) : undefined,
       rapportDocumentId: rapportDocumentId ? parseInt(rapportDocumentId) : undefined,
+      confirmationLogistique,
+      contactSurPlaceId: contactSurPlaceId !== undefined ? parseInt(contactSurPlaceId) : undefined,
       updatedByUserId: req.user!.userId,
     });
 

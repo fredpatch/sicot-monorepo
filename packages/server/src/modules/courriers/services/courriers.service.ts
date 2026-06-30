@@ -2,11 +2,13 @@ import { db } from '@/db/index';
 import { courriers, organisations, accords, missions, contacts } from '@/db/schema';
 import { eq, ilike, and, or, desc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { getValeurEntier } from '@/modules/parametres/services/parametres.service';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 export type CourrierDirection = 'entrant' | 'sortant';
 export type CourrierReponseStatut = 'oui' | 'non' | 'pour_information';
 export type CourrierSuiviStatut = 'en_attente' | 'repondu' | 'archive';
+export type CourrierCriticite = 'normal' | 'a_surveiller' | 'critique';
 
 export interface CreateCourrierParams {
   direction: CourrierDirection;
@@ -75,9 +77,35 @@ export interface CourrierView {
   createdPar?: number;
   createdAt: Date;
   updatedAt: Date;
+  criticite?: CourrierCriticite; // calculé uniquement si en_attente + reponseRequise=oui
+  joursAttente?: number;
 }
 
 // ── Utilitaires ────────────────────────────────────────────────────────────
+
+// Fonction utilitaire de calcul
+async function calculerCriticite(
+  courrier: typeof courriers.$inferSelect,
+  seuils: { surveiller: number; critique: number }
+): Promise<{ criticite?: CourrierCriticite; joursAttente?: number }> {
+  if (
+    courrier.direction !== 'entrant' ||
+    courrier.reponseRequise !== 'oui' ||
+    courrier.suiviStatut !== 'en_attente'
+  ) {
+    return {};
+  }
+
+  const joursAttente = Math.floor(
+    (Date.now() - new Date(courrier.dateReception).getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  let criticite: CourrierCriticite = 'normal';
+  if (joursAttente >= seuils.critique) criticite = 'critique';
+  else if (joursAttente >= seuils.surveiller) criticite = 'a_surveiller';
+
+  return { criticite, joursAttente };
+}
 
 // Générer la référence automatique CORR-YYYY-XXXX
 async function genererReference(): Promise<string> {
@@ -93,7 +121,10 @@ async function genererReference(): Promise<string> {
   return `${prefix}${numero}`;
 }
 
-async function toCourrierView(courrier: typeof courriers.$inferSelect): Promise<CourrierView> {
+async function toCourrierView(
+  courrier: typeof courriers.$inferSelect,
+  seuils: { surveiller: number; critique: number }
+): Promise<CourrierView> {
   let expediteur: OrganisationResume | undefined;
   if (courrier.expediteurOrganisationId) {
     expediteur = await getOrganisationAvecContact(courrier.expediteurOrganisationId);
@@ -104,6 +135,7 @@ async function toCourrierView(courrier: typeof courriers.$inferSelect): Promise<
     destinataire = await getOrganisationAvecContact(courrier.destinataireOrganisationId);
   }
 
+  const { criticite, joursAttente } = await calculerCriticite(courrier, seuils);
   return {
     id: courrier.id,
     reference: courrier.reference,
@@ -123,6 +155,8 @@ async function toCourrierView(courrier: typeof courriers.$inferSelect): Promise<
     createdPar: courrier.createdPar ?? undefined,
     createdAt: courrier.createdAt,
     updatedAt: courrier.updatedAt,
+    criticite,
+    joursAttente,
   };
 }
 
@@ -186,7 +220,13 @@ export async function listerCourriers(filters: CourrierFilters): Promise<{
     .limit(pageSize)
     .offset(offset);
 
-  const data = await Promise.all(rows.map(toCourrierView));
+  // Charger les seuils une seule fois pour tout le batch
+  const seuils = {
+    surveiller: await getValeurEntier('courrier_alerte_jours', 60),
+    critique: await getValeurEntier('courrier_alerte_critique_jours', 90),
+  };
+
+  const data = await Promise.all(rows.map((c) => toCourrierView(c, seuils)));
 
   const total = await db.$count(courriers, conditions.length > 0 ? and(...conditions) : undefined);
 
@@ -196,10 +236,14 @@ export async function listerCourriers(filters: CourrierFilters): Promise<{
 // ── SERVICE : Récupérer un courrier par ID ────────────────────────────────
 export async function getCourrier(id: number): Promise<CourrierView> {
   const [courrier] = await db.select().from(courriers).where(eq(courriers.id, id));
-
   if (!courrier) throw new Error('COURRIER_INTROUVABLE');
 
-  return toCourrierView(courrier);
+  const seuils = {
+    surveiller: await getValeurEntier('courrier_alerte_jours', 60),
+    critique: await getValeurEntier('courrier_alerte_critique_jours', 90),
+  };
+
+  return toCourrierView(courrier, seuils);
 }
 
 // ── SERVICE : Créer un courrier ───────────────────────────────────────────
@@ -264,7 +308,12 @@ export async function creerCourrier(params: CreateCourrierParams): Promise<Courr
     },
   });
 
-  return toCourrierView(courrier);
+  const seuils = {
+    surveiller: await getValeurEntier('courrier_alerte_jours', 60),
+    critique: await getValeurEntier('courrier_alerte_critique_jours', 90),
+  };
+
+  return toCourrierView(courrier, seuils);
 }
 
 // ── SERVICE : Mettre à jour un courrier ───────────────────────────────────
@@ -298,7 +347,12 @@ export async function mettreAJourCourrier(
     details: updates,
   });
 
-  return toCourrierView(updated);
+  const seuils = {
+    surveiller: await getValeurEntier('courrier_alerte_jours', 60),
+    critique: await getValeurEntier('courrier_alerte_critique_jours', 90),
+  };
+
+  return toCourrierView(updated, seuils);
 }
 
 // ── SERVICE : Courriers sans réponse ──────────────────────────────────────
@@ -316,7 +370,12 @@ export async function getCouriersSansReponse(): Promise<CourrierView[]> {
     )
     .orderBy(courriers.dateReception);
 
-  return Promise.all(rows.map(toCourrierView));
+  const seuils = {
+    surveiller: await getValeurEntier('courrier_alerte_jours', 60),
+    critique: await getValeurEntier('courrier_alerte_critique_jours', 90),
+  };
+
+  return Promise.all(rows.map((c) => toCourrierView(c, seuils)));
 }
 
 // ── SERVICE : Fil de correspondance ───────────────────────────────────────
@@ -328,7 +387,12 @@ export async function getFilCorrespondance(courrierId: number): Promise<Courrier
     .where(eq(courriers.reponseAId, courrierId))
     .orderBy(courriers.createdAt);
 
-  return Promise.all(rows.map(toCourrierView));
+  const seuils = {
+    surveiller: await getValeurEntier('courrier_alerte_jours', 60),
+    critique: await getValeurEntier('courrier_alerte_critique_jours', 90),
+  };
+
+  return Promise.all(rows.map((c) => toCourrierView(c, seuils)));
 }
 
 async function getOrganisationAvecContact(orgId: number): Promise<OrganisationResume> {

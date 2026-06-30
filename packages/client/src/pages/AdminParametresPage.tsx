@@ -2,12 +2,25 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Save, Settings2, Info, History } from 'lucide-react';
+import {
+  Loader2,
+  Save,
+  Settings2,
+  Info,
+  History,
+  CheckCircle2,
+  XCircle,
+  Play,
+  Loader2Icon,
+  Zap,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parametresApi, type ParametreType } from '@/lib/parametres.api';
+import { jobsApi } from '@/lib/api';
+import { useAuth } from '@/App';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Parametre {
@@ -20,6 +33,22 @@ interface Parametre {
   modifiePar?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+interface JobDisponible {
+  cle: string;
+  label: string;
+  description: string;
+  roleMinimum: 'admin' | 'super_admin';
+  module: string;
+}
+
+interface JobResultat {
+  cle: string;
+  succes: boolean;
+  resume: string;
+  erreur?: string;
+  dureeMs: number;
 }
 
 // ── Labels modules ─────────────────────────────────────────────────────────
@@ -128,9 +157,21 @@ function LigneParametre({
 export default function AdminParametresPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [cleEnCours, setCleEnCours] = useState<string | null>(null);
   const [succesCle, setSuccesCle] = useState<string | null>(null);
+  const [resultatsJobs, setResultatsJobs] = useState<Record<string, JobResultat>>({});
+  const [jobEnCours, setJobEnCours] = useState<string | null>(null);
+
+  // Requête liste jobs
+  const { data: jobsDisponibles } = useQuery({
+    queryKey: ['jobs-disponibles'],
+    queryFn: async () => {
+      const res = await jobsApi.lister();
+      return res.data as JobDisponible[];
+    },
+  });
 
   // ── Requête liste paramètres ──────────────────────────────────────────
   const { data, isLoading } = useQuery({
@@ -158,6 +199,30 @@ export default function AdminParametresPage() {
       );
     },
     onSettled: () => setCleEnCours(null),
+  });
+
+  // Mutation exécution
+  const executerJobMutation = useMutation({
+    mutationFn: (cle: string) => jobsApi.executer(cle),
+    onMutate: (cle) => setJobEnCours(cle),
+    onSuccess: (res, cle) => {
+      setResultatsJobs((prev) => ({ ...prev, [cle]: res.data as JobResultat }));
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError: (err: unknown, cle) => {
+      const data = (err as { response?: { data?: JobResultat } })?.response?.data;
+      setResultatsJobs((prev) => ({
+        ...prev,
+        [cle]: data ?? {
+          cle,
+          succes: false,
+          resume: 'Erreur',
+          erreur: 'Erreur inconnue',
+          dureeMs: 0,
+        },
+      }));
+    },
+    onSettled: () => setJobEnCours(null),
   });
 
   function handleSave(cle: string, valeur: string) {
@@ -232,6 +297,74 @@ export default function AdminParametresPage() {
           </div>
         ))
       )}
+
+      <div className="space-y-2 pt-4 border-t border-anac-border">
+        <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide px-1 flex items-center gap-1.5">
+          <Zap size={12} />
+          Jobs manuels - environnement de développement
+        </p>
+        <p className="text-xs text-anac-muted px-1 mb-2">
+          Déclenche immédiatement un job normalement programmé en cron, utile en dev quand le
+          serveur redémarre fréquemment.
+        </p>
+
+        <div className="card p-0 overflow-hidden divide-y divide-anac-border/60">
+          {(jobsDisponibles ?? []).map((job) => {
+            const resultat = resultatsJobs[job.cle];
+            return (
+              <div key={job.cle} className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-anac-navy">{job.label}</p>
+                    <p className="text-xs text-anac-muted mt-0.5">{job.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => executerJobMutation.mutate(job.cle)}
+                    disabled={
+                      jobEnCours === job.cle ||
+                      (job.roleMinimum === 'super_admin' && user?.role !== 'super_admin')
+                    }
+                    className="gap-1.5 shrink-0"
+                  >
+                    {job.roleMinimum === 'super_admin' && user?.role !== 'super_admin' ? (
+                      <span className="text-xs text-anac-muted">Super Admin requis</span>
+                    ) : jobEnCours === job.cle ? (
+                      <>
+                        <Loader2Icon size={12} className="animate-spin" /> Exécution...
+                      </>
+                    ) : (
+                      <>
+                        <Play size={12} /> Lancer
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {resultat && (
+                  <div
+                    className={`mt-2.5 text-xs rounded-lg px-3 py-2 flex items-start gap-2 ${
+                      resultat.succes ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                    }`}
+                  >
+                    {resultat.succes ? (
+                      <CheckCircle2 size={13} className="shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle size={13} className="shrink-0 mt-0.5" />
+                    )}
+                    <span>
+                      {resultat.resume}
+                      {resultat.erreur && ` — ${resultat.erreur}`}
+                      <span className="text-anac-muted ml-1.5">({resultat.dureeMs}ms)</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

@@ -23,6 +23,7 @@ import demandesRoutes from './modules/demandes/routes/demandes.route';
 import dashboardRoutes from './modules/dasboard/routes/dashboard.route';
 import parametresRoutes from './modules/parametres/routes/parametres.route';
 import notificationsRoutes from './modules/notifications/routes/notifications.route.js';
+import jobsRoutes from './modules/jobs/routes/jobs.route.js';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email.js';
@@ -95,6 +96,7 @@ app.use('/api/demandes', demandesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/parametres', parametresRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

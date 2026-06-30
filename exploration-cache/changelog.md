@@ -1,5 +1,40 @@
 # 📝 SICOT – Changelog
 
+## [PENDING] — 2026-06-30 — feat(sprint5): Jobs module (REGISTRE_JOBS) + major page + service refinements
+
+### Added — Jobs module (M10 admin)
+- `packages/server/src/jobs/registre.ts` — REGISTRE_JOBS registry: accords_expiration, accords_alertes, courriers_criticite, recommandations_retard, backup_bdd (super_admin), backup_nas (super_admin)
+- `packages/server/src/modules/jobs/services/jobs.service.ts`
+- `packages/server/src/modules/jobs/controllers/jobs.controller.ts`
+- `packages/server/src/modules/jobs/routes/jobs.route.ts`
+- `packages/client/src/lib/jobs.api.ts` — lister, executer (60s timeout)
+
+### Changed — server
+- `packages/server/src/index.ts` — /api/jobs mounted
+- `packages/server/src/jobs/alertes.ts` — mettreAJourAccordsExpires + envoyerAlertesAccords exported for manual trigger
+- `packages/server/src/jobs/backup.ts` — declencherSauvegardeManuelle + effectuerSauvegarde + BACKUP_NAS_DIR exported
+- `packages/server/src/db/schema.ts` — additions
+- `packages/server/src/modules/accords/services/accords.service.ts` — refinements
+- `packages/server/src/modules/courriers/services/courriers.service.ts` — major additions
+- `packages/server/src/modules/missions/services/missions.service.ts` — major additions
+- `packages/server/src/modules/missions/controllers/missions.controller.ts` — additions
+- `packages/server/src/modules/dasboard/services/dashboard.service.ts` — major enhancements
+
+### Changed — client
+- `packages/client/src/lib/api.ts` — jobsApi barrel export
+- `packages/client/src/lib/missions.api.ts` — minor update
+- `packages/client/src/pages/AdminParametresPage.tsx` — Jobs panel added (trigger + live result)
+- `packages/client/src/pages/DashboardPage.tsx` — major enhancements
+- `packages/client/src/pages/AccordsPage.tsx` — enhancements
+- `packages/client/src/pages/CourriersPage.tsx` — enhancements
+- `packages/client/src/pages/PartenairesPage.tsx` — enhancements
+- `packages/client/src/pages/missions/components/MissionDetails.tsx` — enhanced recommendations
+- `packages/client/src/pages/missions/components/MissionFormPage.tsx` — enhancements
+- `packages/client/src/pages/courriers/components/CourrierDetail.tsx` — refinements
+- `docs/TASKS.md` — Sprint 5 progress updated
+
+---
+
 ## [f9b14f8] — 2026-06-30 — feat(sprint5): Dashboard M9 + AdminParametresPage + Notifications + ModalRelance + refinements
 
 ### Added — Sprint 5 Client
@@ -253,7 +288,8 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
-| 2026-06-30 | f9b14f8 | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications + ModalRelance |
+| 2026-06-30 | PENDING | Sprint 5 Wave 2 — Jobs module (REGISTRE_JOBS) + major page + service refinements |
+| 2026-06-30 | f9b14f8 | Sprint 5 Wave 1 — Dashboard M9 + AdminParametresPage + Notifications + ModalRelance |
 | 2026-06-29 | 9e67bee | Sprint 4 — M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage |
 | 2026-06-29 | f292f88 | Sprint 3 Missions client + Sprint 4 M6+M7 server + translate-service + GlossairePage |
 | 2026-06-29 | 1ec9cca | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |

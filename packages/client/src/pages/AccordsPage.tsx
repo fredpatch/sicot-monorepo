@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Plus, ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { accordsApi, type AccordStatut } from '@/lib/accords.api';
 import AccordDetail from './accords/components/AccordDetail';
+import { organisationsApi } from '@/lib/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface OrganisationResume {
@@ -59,6 +60,7 @@ const STATUTS: { value: string; label: string }[] = [
 // ── Composant principal ────────────────────────────────────────────────────
 export default function AccordsPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const accordIdSelectionne = id ? parseInt(id) : null;
@@ -66,23 +68,42 @@ export default function AccordsPage() {
   // ── Filtres ───────────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
   const [statut, setStatut] = useState('');
+  const [partenaireId, setPartenaireId] = useState<number | undefined>(() => {
+    const param = searchParams.get('partenaireId');
+    return param ? parseInt(param) : undefined;
+  });
   const [page, setPage] = useState(1);
 
   // ── Requête ───────────────────────────────────────────────────────────
   const { data, isLoading } = useQuery({
-    queryKey: ['accords', search, statut, page],
+    queryKey: ['accords', search, statut, partenaireId, page],
     queryFn: async () => {
       const res = await accordsApi.lister({
         search: search || undefined,
         statut: statut ? (statut as AccordStatut) : undefined,
+        partenairesId: partenaireId,
         page,
         pageSize: 20,
       });
       return res.data as { data: Accord[]; total: number };
     },
   });
-
   const totalPages = data ? Math.ceil(data.total / 20) : 0;
+
+  const { data: orgsData } = useQuery({
+    queryKey: ['organisations-filtre-accords'],
+    queryFn: async () => {
+      const res = await organisationsApi.lister({ actif: true, pageSize: 200 });
+      return res.data as { data: { id: number; nom: string; pays: string }[] };
+    },
+  });
+
+  const organisations = orgsData?.data ?? [];
+
+  useEffect(() => {
+    const param = searchParams.get('partenaireId');
+    setPartenaireId(param ? parseInt(param) : undefined);
+  }, [searchParams]);
 
   // ── Rendu ─────────────────────────────────────────────────────────────
   return (
@@ -107,6 +128,28 @@ export default function AccordsPage() {
               <Plus size={12} /> Nouveau
             </Button>
           </div>
+
+          {partenaireId && (
+            <div className="flex items-center gap-2 bg-anac-sky/8 border border-anac-sky/20 rounded-lg px-3 py-2 text-xs text-anac-navy">
+              <span>
+                Filtré sur :{' '}
+                <strong>
+                  {organisations.find((o) => o.id === partenaireId)?.nom ??
+                    `Partenaire #${partenaireId}`}
+                </strong>
+              </span>
+              <button
+                onClick={() => {
+                  setPartenaireId(undefined);
+                  navigate('/accords');
+                }}
+                className="ml-auto text-anac-sky hover:text-anac-navy"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <Input
             placeholder="Rechercher..."
             value={search}
@@ -116,29 +159,54 @@ export default function AccordsPage() {
             }}
             className="h-8 text-sm"
           />
-          <Select
-            value={statut || '__all__'}
-            onValueChange={(v) => {
-              setStatut(v === '__all__' ? '' : v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUTS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {(search || statut) && (
+
+          <div className="flex items-center gap-2">
+            <Select
+              value={statut || '__all__'}
+              onValueChange={(v) => {
+                setStatut(v === '__all__' ? '' : v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUTS.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={partenaireId?.toString() ?? '__all__'}
+              onValueChange={(v) => {
+                setPartenaireId(v === '__all__' ? undefined : parseInt(v));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Filtrer par partenaire" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Tous les partenaires</SelectItem>
+                {organisations.map((org) => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    {org.nom} <span className="text-anac-muted">· {org.pays}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(search || statut || partenaireId) && (
             <button
               onClick={() => {
                 setSearch('');
                 setStatut('');
+                setPartenaireId(undefined);
                 setPage(1);
               }}
               className="text-xs text-anac-sky hover:text-anac-navy transition-colors"
