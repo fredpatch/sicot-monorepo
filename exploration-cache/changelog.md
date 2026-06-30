@@ -1,6 +1,6 @@
 # 📝 SICOT – Changelog
 
-## [PENDING] — 2026-06-30 — feat(sprint5): Jobs module (REGISTRE_JOBS) + major page + service refinements
+## [ccbd3f2] — 2026-06-30 — feat(sprint5): Jobs module (REGISTRE_JOBS) + major page + service refinements
 
 ### Added — Jobs module (M10 admin)
 - `packages/server/src/jobs/registre.ts` — REGISTRE_JOBS registry: accords_expiration, accords_alertes, courriers_criticite, recommandations_retard, backup_bdd (super_admin), backup_nas (super_admin)
@@ -288,7 +288,7 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
-| 2026-06-30 | PENDING | Sprint 5 Wave 2 — Jobs module (REGISTRE_JOBS) + major page + service refinements |
+| 2026-06-30 | ccbd3f2 | Sprint 5 Wave 2 — Jobs module (REGISTRE_JOBS) + major page + service refinements |
 | 2026-06-30 | f9b14f8 | Sprint 5 Wave 1 — Dashboard M9 + AdminParametresPage + Notifications + ModalRelance |
 | 2026-06-29 | 9e67bee | Sprint 4 — M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage |
 | 2026-06-29 | f292f88 | Sprint 3 Missions client + Sprint 4 M6+M7 server + translate-service + GlossairePage |
