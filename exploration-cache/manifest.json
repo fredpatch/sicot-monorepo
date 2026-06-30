@@ -4,7 +4,7 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-06-30",
-  "lastCommit": "9e67bee",
+  "lastCommit": "f9b14f8",
   "currentSprint": 5,
   "currentSprintFocus": "Sprint 5 IN PROGRESS — Dashboard M9 + AdminParametresPage + Notifications module all built (uncommitted). Next: commit+push, then rapport mensuel cron.",
   "status": "Sprint 4 COMPLETE ✅. Sprint 5 PARTIAL ✅ — Dashboard (M9) done + Parametres + Notifications modules built. Uncommitted changes ready to push.",
