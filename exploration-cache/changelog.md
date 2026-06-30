@@ -1,6 +1,6 @@
 # 📝 SICOT – Changelog
 
-## [PENDING] — 2026-06-30 — feat(sprint5): Dashboard M9 + AdminParametresPage + Notifications + ModalRelance + refinements
+## [f9b14f8] — 2026-06-30 — feat(sprint5): Dashboard M9 + AdminParametresPage + Notifications + ModalRelance + refinements
 
 ### Added — Sprint 5 Client
 - `packages/client/src/pages/DashboardPage.tsx` — 8 KPI blocs, 3 Chart.js charts (bar/doughnut/h-bar), alertes critiques panel, recommandations panel, activité récente feed
@@ -253,7 +253,7 @@
 
 | Date | Commit | Description |
 |------|--------|-------------|
-| 2026-06-30 | PENDING | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications + ModalRelance |
+| 2026-06-30 | f9b14f8 | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications + ModalRelance |
 | 2026-06-29 | 9e67bee | Sprint 4 — M5 Demandes server+client + TraductionsPage + TraductionEditeur + DemandesPage |
 | 2026-06-29 | f292f88 | Sprint 3 Missions client + Sprint 4 M6+M7 server + translate-service + GlossairePage |
 | 2026-06-29 | 1ec9cca | Sprint 3 — M1 Accords + M4 Courriers + M3 Missions server; client Accords+Courriers |
