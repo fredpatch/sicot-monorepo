@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { db } from '@/db/index.js';
 import {
   accords,
@@ -8,21 +9,38 @@ import {
   traductions,
   demandesTraduction,
   glossaire,
+  notifications,
+  users,
 } from '@/db/schema';
-import { eq, and, lte, gte, isNull, desc, sql } from 'drizzle-orm';
+import { getValeurEntier } from '@/modules/parametres/services/parametres.service';
+import { eq, and, lte, gte, isNull, desc, sql, inArray } from 'drizzle-orm';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 export interface DashboardData {
   // KPI cards
   kpi: {
-    accordsActifs: number;
-    couriersSansReponse: number;
-    missionsEnCours: number;
+    accordsActifs: {
+      total: number;
+      enAlerte: number; // nombre dans la fenêtre d'alerte configurée
+      critique: boolean; // au moins un accord expire sous 30j
+    };
+    couriersSansReponse: {
+      total: number;
+      aSurveiller: number;
+      critique: number;
+    };
+    missionsEnCours: {
+      total: number;
+      logistiqueNonConfirmee: number; // départ proche + logistique pas confirmée
+    };
     traductionsEnAttente: number;
     documentsArchives: number;
     termesGlossaire: number;
     demandesOuvertes: number;
-    recommandationsEnAttente: number;
+    recommandationsEnAttente: {
+      total: number;
+      depassees: number;
+    };
   };
 
   // Accords expirant sous 90j
@@ -79,6 +97,18 @@ export interface DashboardData {
     label: string;
     date: Date;
   }[];
+
+  // Notifications récentes — traçabilité des relances CCIT
+  notificationsRecentes: {
+    id: number;
+    type: string;
+    entiteId: number;
+    destinataireEmail: string;
+    destinataireNom?: string;
+    declencheParNom?: string;
+    statut: string;
+    createdAt: Date;
+  }[];
 }
 
 // ── SERVICE : Données dashboard ────────────────────────────────────────────
@@ -86,34 +116,134 @@ export async function getDashboardData(): Promise<DashboardData> {
   const maintenant = new Date();
   const dans90jours = new Date();
   dans90jours.setDate(dans90jours.getDate() + 90);
+  const dans30jours = new Date();
+  dans30jours.setDate(dans30jours.getDate() + 30);
+  const dans14jours = new Date();
+  dans14jours.setDate(dans14jours.getDate() + 14);
 
-  // ── KPI en parallèle ─────────────────────────────────────────────────
-  const [
-    accordsActifsRows,
-    couriersSansReponseRows,
-    missionsEnCoursRows,
-    traductionsEnAttenteRows,
-    documentsArchivesRows,
-    termesGlossaireRows,
-    demandesOuvertesRows,
-    recommandationsEnAttenteRows,
-  ] = await Promise.all([
-    db.$count(accords, eq(accords.statut, 'actif')),
-    db.$count(
-      courriers,
+  // Charger les seuils une fois
+  const seuilCourrierSurveiller = await getValeurEntier('courrier_alerte_jours', 60);
+  const seuilCourrierCritique = await getValeurEntier('courrier_alerte_critique_jours', 90);
+
+  // ── Accords actifs + criticité ────────────────────────────────────────
+  const accordsActifsTotal = await db.$count(accords, eq(accords.statut, 'actif'));
+
+  const accordsEnAlerteRows = await db
+    .select({ id: accords.id, dateExpiration: accords.dateExpiration })
+    .from(accords)
+    .where(
+      and(
+        eq(accords.statut, 'actif'),
+        gte(accords.dateExpiration, maintenant),
+        lte(accords.dateExpiration, dans90jours)
+      )
+    );
+
+  const accordsCritique = accordsEnAlerteRows.some(
+    (a) => a.dateExpiration && new Date(a.dateExpiration) <= dans30jours
+  );
+
+  // ── Courriers sans réponse + paliers ──────────────────────────────────
+  const courriersSansReponseRows = await db
+    .select({ id: courriers.id, dateReception: courriers.dateReception })
+    .from(courriers)
+    .where(
       and(
         eq(courriers.direction, 'entrant'),
         eq(courriers.reponseRequise, 'oui'),
         eq(courriers.suiviStatut, 'en_attente')
       )
-    ),
-    db.$count(missions, eq(missions.statut, 'en_cours')),
-    db.$count(traductions, and(eq(traductions.statut, 'a_reviser'), isNull(traductions.deletedAt))),
-    db.$count(documents, isNull(documents.deletedAt)),
-    db.$count(glossaire, eq(glossaire.actif, true)),
-    db.$count(demandesTraduction, and(eq(demandesTraduction.statut, 'soumise'))),
-    db.$count(recommandations, and(eq(recommandations.statut, 'en_attente'))),
-  ]);
+    );
+
+  let courriersASurveiller = 0;
+  let courriersCritiques = 0;
+  for (const c of courriersSansReponseRows) {
+    const jours = Math.floor(
+      (maintenant.getTime() - new Date(c.dateReception).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (jours >= seuilCourrierCritique) courriersCritiques++;
+    else if (jours >= seuilCourrierSurveiller) courriersASurveiller++;
+  }
+
+  // ── Missions en cours + logistique non confirmée ──────────────────────
+  const missionsEnCoursTotal = await db.$count(missions, eq(missions.statut, 'en_cours'));
+
+  const missionsAVenirRows = await db
+    .select({
+      id: missions.id,
+      dateDebut: missions.dateDebut,
+      confirmationLogistique: missions.confirmationLogistique,
+      statut: missions.statut,
+    })
+    .from(missions)
+    .where(eq(missions.statut, 'planifiee'));
+
+  const missionsLogistiqueNonConfirmee = missionsAVenirRows.filter(
+    (m) =>
+      m.confirmationLogistique !== 'confirme' &&
+      new Date(m.dateDebut) <= dans14jours &&
+      new Date(m.dateDebut) >= maintenant
+  ).length;
+
+  // ── Traductions, documents, glossaire, demandes — inchangés ───────────
+  const traductionsEnAttenteRows = await db.$count(
+    traductions,
+    and(eq(traductions.statut, 'a_reviser'), isNull(traductions.deletedAt))
+  );
+  const documentsArchivesRows = await db.$count(documents, isNull(documents.deletedAt));
+  const termesGlossaireRows = await db.$count(glossaire, eq(glossaire.actif, true));
+  const demandesOuvertesRows = await db.$count(
+    demandesTraduction,
+    eq(demandesTraduction.statut, 'soumise')
+  );
+
+  // ── Recommandations en attente + dépassées ────────────────────────────
+  const recommandationsRows = await db
+    .select({ id: recommandations.id, dateLimite: recommandations.dateLimite })
+    .from(recommandations)
+    .where(eq(recommandations.statut, 'en_attente'));
+
+  const recommandationsDepassees = recommandationsRows.filter(
+    (r) => r.dateLimite && new Date(r.dateLimite) < maintenant
+  ).length;
+
+  const notificationsRecentesRows = await db
+    .select({
+      id: notifications.id,
+      type: notifications.type,
+      entiteId: notifications.entiteId,
+      destinataireEmail: notifications.destinataireEmail,
+      destinataireNom: notifications.destinataireNom,
+      declenchePar: notifications.declenchePar,
+      statut: notifications.statut,
+      createdAt: notifications.createdAt,
+    })
+    .from(notifications)
+    .orderBy(desc(notifications.createdAt))
+    .limit(6);
+
+  // Charger les noms des déclencheurs (CCIT/admin) en une passe
+  const declencheurIds = [...new Set(notificationsRecentesRows.map((n) => n.declenchePar))];
+  const declencheurs =
+    declencheurIds.length > 0
+      ? await db
+          .select({ id: users.id, nom: users.nom, prenom: users.prenom })
+          .from(users)
+          .where(inArray(users.id, declencheurIds))
+      : [];
+
+  const declencheurMap = new Map(declencheurs.map((d) => [d.id, `${d.prenom} ${d.nom}`]));
+
+  const notificationsRecentes = notificationsRecentesRows.map((n) => ({
+    id: n.id,
+    type: n.type,
+    entiteId: n.entiteId,
+    destinataireEmail: n.destinataireEmail,
+    destinataireNom: n.destinataireNom ?? undefined,
+    declencheParNom: declencheurMap.get(n.declenchePar),
+    statut: n.statut,
+    createdAt: n.createdAt,
+  }));
 
   // ── Accords expirant sous 90j ─────────────────────────────────────────
   const accordsExpirantRows = await db
@@ -159,7 +289,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         eq(courriers.suiviStatut, 'en_attente')
       )
     )
-    .orderBy(courriers.dateReception)
+    .orderBy(courriers.dateReception) // les plus anciens (donc les plus critiques) en premier
     .limit(5);
 
   const couriersSansReponse = courriersRows.map((c) => ({
@@ -290,18 +420,33 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   return {
     kpi: {
-      accordsActifs: accordsActifsRows,
-      couriersSansReponse: couriersSansReponseRows,
-      missionsEnCours: missionsEnCoursRows,
+      accordsActifs: {
+        total: accordsActifsTotal,
+        enAlerte: accordsEnAlerteRows.length,
+        critique: accordsCritique,
+      },
+      couriersSansReponse: {
+        total: courriersSansReponseRows.length,
+        aSurveiller: courriersASurveiller,
+        critique: courriersCritiques,
+      },
+      missionsEnCours: {
+        total: missionsEnCoursTotal,
+        logistiqueNonConfirmee: missionsLogistiqueNonConfirmee,
+      },
       traductionsEnAttente: traductionsEnAttenteRows,
       documentsArchives: documentsArchivesRows,
       termesGlossaire: termesGlossaireRows,
       demandesOuvertes: demandesOuvertesRows,
-      recommandationsEnAttente: recommandationsEnAttenteRows,
+      recommandationsEnAttente: {
+        total: recommandationsRows.length,
+        depassees: recommandationsDepassees,
+      },
     },
     accordsExpirant,
     couriersSansReponse,
     recommandationsEnAttente,
+    notificationsRecentes,
     traductionsParMois: (
       traductionsParMois.rows as { mois: string; total: string; approuvees: string }[]
     ).map((r) => ({

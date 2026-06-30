@@ -2,21 +2,28 @@ import cron from 'node-cron';
 import { getAccordsExpirantDans } from '@/modules/accords/services/accords.service.js';
 import { sendAccordEcheanceEmail } from '../utils/email.js';
 import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { accords, users } from '../db/schema.js';
+import { and, eq, lte } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
 
 // ── Envoyer les alertes échéances accords ─────────────────────────────────
-async function envoyerAlertesAccords(jours: number): Promise<void> {
+export async function envoyerAlertesAccords(jours: number): Promise<{
+  accordsNotifies: number;
+  emailsEnvoyes: number;
+  emailsEchecs: number;
+}> {
   const accordsExpirants = await getAccordsExpirantDans(jours);
 
-  if (accordsExpirants.length === 0) return;
+  if (accordsExpirants.length === 0) {
+    return { accordsNotifies: 0, emailsEnvoyes: 0, emailsEchecs: 0 };
+  }
 
-  // Récupérer tous les admins pour les notifier
   const admins = await db.select().from(users).where(eq(users.actif, true));
-
   const destinataires = admins.filter((u) => ['admin', 'super_admin'].includes(u.role));
+
+  let emailsEnvoyes = 0;
+  let emailsEchecs = 0;
 
   for (const accord of accordsExpirants) {
     if (!accord.dateExpiration) continue;
@@ -32,7 +39,9 @@ async function envoyerAlertesAccords(jours: number): Promise<void> {
           dateExpiration: accord.dateExpiration,
           joursRestants: jours,
         });
+        emailsEnvoyes++;
       } catch (error) {
+        emailsEchecs++;
         console.error(
           `[alertes] Échec envoi email accord ${accord.reference} à ${admin.email}:`,
           error
@@ -49,6 +58,50 @@ async function envoyerAlertesAccords(jours: number): Promise<void> {
   }
 
   console.log(`📧 Alertes ${jours}j envoyées pour ${accordsExpirants.length} accord(s)`);
+
+  return {
+    accordsNotifies: accordsExpirants.length,
+    emailsEnvoyes,
+    emailsEchecs,
+  };
+}
+
+// ── Repasser les accords expirés en statut "expire" ───────────────────────
+export async function mettreAJourAccordsExpires(): Promise<{
+  nombreMisAJour: number;
+  references: string[];
+}> {
+  const maintenant = new Date();
+
+  const accordsAExpirer = await db
+    .select({ id: accords.id, reference: accords.reference })
+    .from(accords)
+    .where(and(eq(accords.statut, 'actif'), lte(accords.dateExpiration, maintenant)));
+
+  if (accordsAExpirer.length === 0) {
+    return { nombreMisAJour: 0, references: [] };
+  }
+
+  for (const accord of accordsAExpirer) {
+    await db
+      .update(accords)
+      .set({ statut: 'expire', updatedAt: new Date() })
+      .where(eq(accords.id, accord.id));
+
+    await logAudit({
+      action: 'ACCORD_EXPIRE_AUTO',
+      module: 'M1',
+      entiteId: accord.id,
+      details: { reference: accord.reference },
+    });
+  }
+
+  console.log(`⚠️ ${accordsAExpirer.length} accord(s) repassé(s) en statut "expire"`);
+
+  return {
+    nombreMisAJour: accordsAExpirer.length,
+    references: accordsAExpirer.map((a) => a.reference),
+  };
 }
 
 // ── Cron : tous les jours à 08h00 ────────────────────────────────────────
@@ -56,12 +109,9 @@ export function demarrerJobsAlertes(): void {
   cron.schedule('0 8 * * *', async () => {
     console.log('⏰ Vérification échéances accords...');
 
-    // Seuil principal lu depuis la table parametres — fallback 90j si absent
-    // Les paliers intermédiaires restent calculés en proportion du seuil configuré
-    const seuilPrincipal = await getValeurEntier('accord_alerte_jours', 90);
+    await mettreAJourAccordsExpires();
 
-    // Génère les 3 paliers : 1/3, 2/3, et seuil complet du paramètre configuré
-    // ex: seuil=90 → 30, 60, 90 (comportement identique à l'historique par défaut)
+    const seuilPrincipal = await getValeurEntier('accord_alerte_jours', 90);
     const palier1 = Math.round(seuilPrincipal / 3);
     const palier2 = Math.round((seuilPrincipal / 3) * 2);
 

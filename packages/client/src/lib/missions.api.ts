@@ -2,6 +2,7 @@ import api from './axios';
 
 export type MissionStatut = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
 export type RecommandationStatut = 'en_attente' | 'en_cours' | 'realisee';
+export type LogistiqueStatut = 'a_planifier' | 'en_cours' | 'confirme';
 
 export const missionsApi = {
   // ── Lecture ──────────────────────────────────────────────────────────────
@@ -26,9 +27,10 @@ export const missionsApi = {
     titre: string;
     destination: string;
     pays: string;
-    dateDebut: string; // ISO date string
+    dateDebut: string;
     dateFin: string;
     participantsIds?: number[];
+    contactSurPlaceId?: number;
   }) => api.post('/missions', data),
 
   // ── Modification ─────────────────────────────────────────────────────────
@@ -44,6 +46,8 @@ export const missionsApi = {
       statut?: MissionStatut;
       participantsIds?: number[];
       rapportDocumentId?: number;
+      confirmationLogistique?: LogistiqueStatut;
+      contactSurPlaceId?: number;
     }
   ) => api.patch(`/missions/${id}`, data),
 

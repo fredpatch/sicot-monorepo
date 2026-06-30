@@ -58,6 +58,9 @@ interface Courrier {
   documentId?: number;
   createdAt: string;
   updatedAt: string;
+
+  criticite?: 'normal' | 'a_surveiller' | 'critique';
+  joursAttente?: number;
 }
 
 // ── Props ──────────────────────────────────────────────────────────────────
@@ -197,7 +200,7 @@ export default function CourrierDetail({
     const destinatairesSuggeres = orgConcernee?.contactPrincipal?.email
       ? [
           {
-            label: `${orgConcernee.contactPrincipal.prenom} ${orgConcernee.contactPrincipal.nom} — ${orgConcernee.nom}`,
+            label: `${orgConcernee.contactPrincipal.prenom} ${orgConcernee.contactPrincipal.nom} - ${orgConcernee.nom}`,
             email: orgConcernee.contactPrincipal.email,
             nom: `${orgConcernee.contactPrincipal.prenom} ${orgConcernee.contactPrincipal.nom}`,
           },
@@ -305,6 +308,18 @@ export default function CourrierDetail({
 
             <p className="font-mono text-xs text-anac-muted">{courrier.reference}</p>
           </div>
+
+          {courrier.criticite === 'critique' && (
+            <div className="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3 text-sm font-semibold flex items-center gap-2">
+              🔴 Courrier critique - en attente depuis {courrier.joursAttente} jours sans réponse.
+            </div>
+          )}
+
+          {courrier.criticite === 'a_surveiller' && (
+            <div className="bg-amber-50 border border-amber-300 text-amber-800 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2">
+              🟡 À surveiller - en attente depuis {courrier.joursAttente} jours.
+            </div>
+          )}
 
           {/* ── Alerte date limite dépassée ────────────────────────────── */}
           {dateLimitDepassee && (

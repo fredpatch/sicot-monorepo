@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Loader2,
   ArrowRight,
+  Send,
 } from 'lucide-react';
 
 import { dashboardApi } from '@/lib/dashboard.api';
@@ -21,14 +22,28 @@ import { dashboardApi } from '@/lib/dashboard.api';
 // ── Types ──────────────────────────────────────────────────────────────────
 interface DashboardData {
   kpi: {
-    accordsActifs: number;
-    couriersSansReponse: number;
-    missionsEnCours: number;
+    accordsActifs: {
+      total: number;
+      enAlerte: number;
+      critique: boolean;
+    };
+    couriersSansReponse: {
+      total: number;
+      aSurveiller: number;
+      critique: number;
+    };
+    missionsEnCours: {
+      total: number;
+      logistiqueNonConfirmee: number;
+    };
     traductionsEnAttente: number;
     documentsArchives: number;
     termesGlossaire: number;
     demandesOuvertes: number;
-    recommandationsEnAttente: number;
+    recommandationsEnAttente: {
+      total: number;
+      depassees: number;
+    };
   };
   accordsExpirant: {
     id: number;
@@ -61,6 +76,16 @@ interface DashboardData {
     label: string;
     date: string;
   }[];
+  notificationsRecentes: {
+    id: number;
+    type: string;
+    entiteId: number;
+    destinataireEmail: string;
+    destinataireNom?: string;
+    declencheParNom?: string;
+    statut: string;
+    createdAt: string;
+  }[];
 }
 
 // ── KPI Card ───────────────────────────────────────────────────────────────
@@ -69,32 +94,55 @@ function KpiCard({
   value,
   icone,
   couleur,
-  alerte,
+  niveau,
+  sousLigne,
   onClick,
 }: {
   label: string;
   value: number;
   icone: React.ReactNode;
   couleur: string;
-  alerte?: boolean;
+  niveau?: 'normal' | 'alerte' | 'critique';
+  sousLigne?: string;
   onClick?: () => void;
 }) {
+  const bordure =
+    niveau === 'critique'
+      ? 'border-red-300 bg-red-50/50'
+      : niveau === 'alerte'
+        ? 'border-amber-200 bg-amber-50/30'
+        : '';
+
   return (
     <button
       onClick={onClick}
-      className={`card p-5 text-left w-full transition-all hover:shadow-sm ${
-        alerte && value > 0 ? 'border-red-200 bg-red-50/40' : ''
-      } ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`card p-5 text-left w-full transition-all hover:shadow-sm ${bordure} ${
+        onClick ? 'cursor-pointer' : 'cursor-default'
+      }`}
     >
       <div className="flex items-start justify-between">
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${couleur}`}>
           {icone}
         </div>
-        {alerte && value > 0 && <AlertCircle size={14} className="text-red-500" />}
+        {niveau === 'critique' && <AlertCircle size={14} className="text-red-500" />}
+        {niveau === 'alerte' && <AlertCircle size={14} className="text-amber-500" />}
       </div>
       <div className="mt-3">
         <p className="text-2xl font-bold text-anac-navy">{value}</p>
         <p className="text-xs text-anac-muted mt-0.5">{label}</p>
+        {sousLigne && (
+          <p
+            className={`text-[11px] mt-1 font-medium ${
+              niveau === 'critique'
+                ? 'text-red-600'
+                : niveau === 'alerte'
+                  ? 'text-amber-600'
+                  : 'text-anac-muted'
+            }`}
+          >
+            {sousLigne}
+          </p>
+        )}
       </div>
     </button>
   );
@@ -107,6 +155,16 @@ function BadgeType({ type }: { type: string }) {
     courrier: { label: 'Courrier', classe: 'badge-info' },
     mission: { label: 'Mission', classe: 'badge-warning' },
     traduction: { label: 'Traduction', classe: 'badge-expire' },
+  };
+  const { label, classe } = config[type] ?? { label: type, classe: 'badge-info' };
+  return <span className={`${classe} text-[10px]`}>{label}</span>;
+}
+
+function BadgeNotificationType({ type }: { type: string }) {
+  const config: Record<string, { label: string; classe: string }> = {
+    accord_echeance: { label: 'Accord', classe: 'badge-actif' },
+    courrier_relance: { label: 'Courrier', classe: 'badge-info' },
+    recommandation_rappel: { label: 'Recommandation', classe: 'badge-warning' },
   };
   const { label, classe } = config[type] ?? { label: type, classe: 'badge-info' };
   return <span className={`${classe} text-[10px]`}>{label}</span>;
@@ -354,6 +412,8 @@ export default function DashboardPage() {
     refetchInterval: 5 * 60 * 1000, // Rafraîchir toutes les 5 minutes
   });
 
+  console.log('Dashboard data:', data);
+
   function formaterDate(iso: string) {
     return new Date(iso).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -394,34 +454,71 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard
           label="Accords actifs"
-          value={data.kpi.accordsActifs}
+          value={data.kpi.accordsActifs.total}
           icone={<Globe size={16} className="text-blue-600" />}
           couleur="bg-blue-50"
+          niveau={
+            data.kpi.accordsActifs.critique
+              ? 'critique'
+              : data.kpi.accordsActifs.enAlerte > 0
+                ? 'alerte'
+                : 'normal'
+          }
+          sousLigne={
+            data.kpi.accordsActifs.enAlerte > 0
+              ? `${data.kpi.accordsActifs.enAlerte} expire${data.kpi.accordsActifs.enAlerte > 1 ? 'nt' : ''} bientôt`
+              : undefined
+          }
           onClick={() => navigate('/accords')}
         />
+
         <KpiCard
           label="Courriers sans réponse"
-          value={data.kpi.couriersSansReponse}
+          value={data.kpi.couriersSansReponse.total}
           icone={<Mail size={16} className="text-red-600" />}
           couleur="bg-red-50"
-          alerte
+          niveau={
+            data.kpi.couriersSansReponse.critique > 0
+              ? 'critique'
+              : data.kpi.couriersSansReponse.aSurveiller > 0
+                ? 'alerte'
+                : data.kpi.couriersSansReponse.total > 0
+                  ? 'alerte'
+                  : 'normal'
+          }
+          sousLigne={
+            data.kpi.couriersSansReponse.critique > 0
+              ? `${data.kpi.couriersSansReponse.critique} critique${data.kpi.couriersSansReponse.critique > 1 ? 's' : ''} (90j+)`
+              : data.kpi.couriersSansReponse.aSurveiller > 0
+                ? `${data.kpi.couriersSansReponse.aSurveiller} à surveiller`
+                : undefined
+          }
           onClick={() => navigate('/courriers')}
         />
+
         <KpiCard
           label="Missions en cours"
-          value={data.kpi.missionsEnCours}
+          value={data.kpi.missionsEnCours.total}
           icone={<TrendingUp size={16} className="text-amber-600" />}
           couleur="bg-amber-50"
+          niveau={data.kpi.missionsEnCours.logistiqueNonConfirmee > 0 ? 'critique' : 'normal'}
+          sousLigne={
+            data.kpi.missionsEnCours.logistiqueNonConfirmee > 0
+              ? `${data.kpi.missionsEnCours.logistiqueNonConfirmee} départ${data.kpi.missionsEnCours.logistiqueNonConfirmee > 1 ? 's' : ''} sous 14j sans logistique`
+              : undefined
+          }
           onClick={() => navigate('/missions')}
         />
+
         <KpiCard
           label="Traductions à réviser"
           value={data.kpi.traductionsEnAttente}
           icone={<Languages size={16} className="text-violet-600" />}
           couleur="bg-violet-50"
-          alerte
+          niveau={data.kpi.traductionsEnAttente > 0 ? 'alerte' : 'normal'}
           onClick={() => navigate('/traductions')}
         />
+
         <KpiCard
           label="Documents archivés"
           value={data.kpi.documentsArchives}
@@ -429,6 +526,7 @@ export default function DashboardPage() {
           couleur="bg-teal-50"
           onClick={() => navigate('/documents')}
         />
+
         <KpiCard
           label="Termes glossaire"
           value={data.kpi.termesGlossaire}
@@ -436,19 +534,27 @@ export default function DashboardPage() {
           couleur="bg-green-50"
           onClick={() => navigate('/glossaire')}
         />
+
         <KpiCard
           label="Demandes ouvertes"
           value={data.kpi.demandesOuvertes}
           icone={<Clock size={16} className="text-orange-600" />}
           couleur="bg-orange-50"
-          alerte
+          niveau={data.kpi.demandesOuvertes > 0 ? 'alerte' : 'normal'}
           onClick={() => navigate('/demandes')}
         />
+
         <KpiCard
           label="Recommandations en attente"
-          value={data.kpi.recommandationsEnAttente}
+          value={data.kpi.recommandationsEnAttente.total}
           icone={<CheckCircle2 size={16} className="text-pink-600" />}
           couleur="bg-pink-50"
+          niveau={data.kpi.recommandationsEnAttente.depassees > 0 ? 'critique' : 'normal'}
+          sousLigne={
+            data.kpi.recommandationsEnAttente.depassees > 0
+              ? `${data.kpi.recommandationsEnAttente.depassees} dépassée${data.kpi.recommandationsEnAttente.depassees > 1 ? 's' : ''}`
+              : undefined
+          }
           onClick={() => navigate('/missions')}
         />
       </div>
@@ -639,25 +745,82 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Activité récente ──────────────────────────────────────────── */}
-      <div className="card p-5">
-        <h3 className="text-sm font-semibold text-anac-navy mb-3">Activité récente</h3>
-        {data.activiteRecente.length === 0 ? (
-          <p className="text-sm text-anac-muted text-center py-6">Aucune activité récente.</p>
-        ) : (
-          <div className="space-y-0 divide-y divide-anac-border/50">
-            {data.activiteRecente.map((a, i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5">
-                <BadgeType type={a.type} />
-                <span className="font-mono text-[11px] text-anac-muted shrink-0">
-                  {a.reference}
-                </span>
-                <span className="text-xs text-anac-navy truncate flex-1">{a.label}</span>
-                <span className="text-[11px] text-anac-muted shrink-0">{formaterDate(a.date)}</span>
-              </div>
-            ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ── Notifications envoyées récemment ───────────────────────────── */}
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-anac-navy flex items-center gap-2">
+              <Send size={14} className="text-anac-sky" />
+              Notifications envoyées récemment
+            </h3>
           </div>
-        )}
+
+          {data.notificationsRecentes.length === 0 ? (
+            <p className="text-sm text-anac-muted text-center py-6">
+              Aucune relance envoyée pour le moment.
+            </p>
+          ) : (
+            <div className="space-y-0 divide-y divide-anac-border/50">
+              {data.notificationsRecentes.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => {
+                    const route =
+                      n.type === 'accord_echeance'
+                        ? `/accords/${n.entiteId}`
+                        : n.type === 'courrier_relance'
+                          ? `/courriers/${n.entiteId}`
+                          : n.type === 'recommandation_rappel'
+                            ? `/missions`
+                            : '/dashboard';
+                    navigate(route);
+                  }}
+                  className="w-full text-left flex items-center gap-3 py-2.5 hover:bg-anac-gray/30 transition-colors rounded px-1 -mx-1"
+                >
+                  <BadgeNotificationType type={n.type} />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-anac-navy truncate">
+                      {n.destinataireNom ?? n.destinataireEmail}
+                    </p>
+                    <p className="text-[11px] text-anac-muted">par {n.declencheParNom ?? 'CCIT'}</p>
+                  </div>
+
+                  {n.statut === 'echec' && (
+                    <span className="text-[10px] text-red-600 font-medium shrink-0">échec</span>
+                  )}
+
+                  <span className="text-[11px] text-anac-muted shrink-0">
+                    {new Date(n.createdAt).toLocaleDateString('fr-FR')}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Activité récente ──────────────────────────────────────────── */}
+        <div className="card p-5">
+          <h3 className="text-sm font-semibold text-anac-navy mb-3">Activité récente</h3>
+          {data.activiteRecente.length === 0 ? (
+            <p className="text-sm text-anac-muted text-center py-6">Aucune activité récente.</p>
+          ) : (
+            <div className="space-y-0 divide-y divide-anac-border/50">
+              {data.activiteRecente.map((a, i) => (
+                <div key={i} className="flex items-center gap-3 py-2.5">
+                  <BadgeType type={a.type} />
+                  <span className="font-mono text-[11px] text-anac-muted shrink-0">
+                    {a.reference}
+                  </span>
+                  <span className="text-xs text-anac-navy truncate flex-1">{a.label}</span>
+                  <span className="text-[11px] text-anac-muted shrink-0">
+                    {formaterDate(a.date)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

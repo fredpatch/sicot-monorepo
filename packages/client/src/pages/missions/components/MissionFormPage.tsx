@@ -21,6 +21,7 @@ import {
 import { missionsApi, type MissionStatut } from '@/lib/missions.api';
 import { documentsApi } from '@/lib/documents.api';
 import { usersApi } from '@/lib/users.api';
+import { organisationsApi } from '@/lib/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface User {
@@ -41,6 +42,8 @@ const missionSchema = z
     statut: z.enum(['planifiee', 'en_cours', 'terminee', 'annulee']).optional(),
     participantsIds: z.array(z.number()).optional(),
     rapportDocumentId: z.number().optional(),
+    confirmationLogistique: z.enum(['a_planifier', 'en_cours', 'confirme']).optional(),
+    contactSurPlaceId: z.number().optional(),
   })
   .refine((data) => !data.dateDebut || !data.dateFin || data.dateDebut <= data.dateFin, {
     message: 'La date de fin doit être après la date de début',
@@ -140,6 +143,32 @@ export default function MissionFormPage() {
 
   const agents = usersData?.data ?? [];
 
+  // ── Charger contacts disponibles ─────────────────────────────────────
+  const { data: contactsData } = useQuery({
+    queryKey: ['contacts-tous'],
+    queryFn: async () => {
+      // Si organisationsApi n'a pas de méthode "tous les contacts", on peut
+      // soit créer cette route, soit charger par organisation sélectionnée.
+      // Solution simple : charger les organisations puis leurs contacts en parallèle.
+      const orgsRes = await organisationsApi.lister({ actif: true, pageSize: 200 });
+      const orgs = orgsRes.data.data as { id: number; nom: string }[];
+
+      const contactsParOrg = await Promise.all(
+        orgs.map(async (org) => {
+          const res = await organisationsApi.listerContacts(org.id);
+          return (res.data as { id: number; nom: string; prenom: string; actif: boolean }[])
+            .filter((c) => c.actif)
+            .map((c) => ({ ...c, organisationNom: org.nom }));
+        })
+      );
+
+      return contactsParOrg.flat();
+    },
+    enabled: isEdit, // chargé seulement en édition pour éviter coût inutile à la création
+  });
+
+  const contactsDisponibles = contactsData ?? [];
+
   // ── Formulaire ────────────────────────────────────────────────────────
   const {
     register,
@@ -175,6 +204,8 @@ export default function MissionFormPage() {
         statut: mission.statut,
         participantsIds: mission.participants?.map((p: { id: number }) => p.id) ?? [],
         rapportDocumentId: mission.rapportDocumentId,
+        confirmationLogistique: mission.confirmationLogistique,
+        contactSurPlaceId: mission.contactSurPlace?.id,
       });
 
       // Charger le nom du rapport si existant
@@ -235,6 +266,8 @@ export default function MissionFormPage() {
         statut: data.statut,
         participantsIds: data.participantsIds,
         rapportDocumentId: data.rapportDocumentId,
+        confirmationLogistique: data.confirmationLogistique,
+        contactSurPlaceId: data.contactSurPlaceId,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['missions'] });
@@ -384,6 +417,67 @@ export default function MissionFormPage() {
               )}
             />
           </div>
+        )}
+
+        {/* ── Logistique et contact sur place ───────────────────────────── */}
+        {isEdit && (
+          <>
+            <div className="space-y-1.5">
+              <Label>Confirmation logistique</Label>
+              <Controller
+                name="confirmationLogistique"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value ?? 'a_planifier'} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="a_planifier">
+                        À planifier (billet/financement non confirmés)
+                      </SelectItem>
+                      <SelectItem value="en_cours">En cours de confirmation</SelectItem>
+                      <SelectItem value="confirme">Confirmée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>
+                Contact sur place <span className="text-anac-muted font-normal">(optionnel)</span>
+              </Label>
+              <Controller
+                name="contactSurPlaceId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value?.toString() ?? '__none__'}
+                    onValueChange={(v) =>
+                      field.onChange(v === '__none__' ? undefined : parseInt(v))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="— Aucun contact lié —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Aucun contact lié —</SelectItem>
+                      {contactsDisponibles.map((c) => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.prenom} {c.nom} — {c.organisationNom}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <p className="text-[11px] text-anac-muted">
+                Permet à la CCIT de contacter l&apos;organisation d&apos;accueil si besoin (accueil
+                aéroport, logistique sur place).
+              </p>
+            </div>
+          </>
         )}
 
         {/* Participants */}

@@ -8,8 +8,9 @@ import { logAudit } from '@/modules/auth/services/auth.service';
 const execAsync = promisify(exec);
 
 // ── Configuration ─────────────────────────────────────────────────────────
-const BACKUP_LOCAL_DIR = process.env.BACKUP_LOCAL_DIR ?? '/sicot/backups/local';
-const BACKUP_NAS_DIR = process.env.BACKUP_NAS_DIR ?? '/mnt/nas/sicot/backups';
+const PG_DUMP_BIN = process.env.PG_DUMP_PATH ?? 'pg_dump';
+export const BACKUP_LOCAL_DIR = process.env.BACKUP_LOCAL_DIR ?? '/sicot/backups/local';
+export const BACKUP_NAS_DIR = process.env.BACKUP_NAS_DIR ?? '/mnt/nas/sicot/backups';
 const LOCAL_RETENTION_DAYS = 30;
 const NAS_RETENTION_MONTHS = 12;
 
@@ -24,12 +25,12 @@ function formatDate(date: Date): string {
   return date.toISOString().replace(/[:.]/g, '-').slice(0, 19);
 }
 
-// Supprimer les fichiers plus vieux que N jours
-function supprimerAnciensBackups(dir: string, retentionDays: number): void {
-  if (!fs.existsSync(dir)) return;
+export function supprimerAnciensBackups(dir: string, retentionDays: number): number {
+  if (!fs.existsSync(dir)) return 0;
 
   const now = Date.now();
   const files = fs.readdirSync(dir);
+  let supprimes = 0;
 
   files.forEach((file) => {
     const filePath = path.join(dir, file);
@@ -38,30 +39,38 @@ function supprimerAnciensBackups(dir: string, retentionDays: number): void {
 
     if (ageEnJours > retentionDays) {
       fs.unlinkSync(filePath);
+      supprimes++;
       console.log(`🗑️  Backup supprimé (rétention) : ${file}`);
     }
   });
+
+  return supprimes;
 }
 
 // ── Fonction principale de sauvegarde ────────────────────────────────────
-async function effectuerSauvegarde(
+export async function effectuerSauvegarde(
   destination: string,
   type: 'quotidien' | 'hebdomadaire'
-): Promise<void> {
+): Promise<{
+  succes: boolean;
+  nomFichier?: string;
+  tailleMo?: number;
+  erreur?: string;
+}> {
   ensureDir(destination);
 
   const timestamp = formatDate(new Date());
   const filename = `sicot_backup_${type}_${timestamp}.sql`;
   const filepath = path.join(destination, filename);
 
-  // pg_dump utilise les variables d'environnement PostgreSQL standard
   const databaseUrl = process.env.DATABASE_URL!;
-  const command = `pg_dump "${databaseUrl}" --no-password --format=plain --file="${filepath}"`;
+  const command = `"${PG_DUMP_BIN}" "${databaseUrl}" --no-password --format=plain --file="${filepath}"`;
+  // const command = `pg_dump "${databaseUrl}" --no-password --format=plain --file="${filepath}"`;
 
   try {
     await execAsync(command);
     const stats = fs.statSync(filepath);
-    const tailleMo = (stats.size / (1024 * 1024)).toFixed(2);
+    const tailleMo = parseFloat((stats.size / (1024 * 1024)).toFixed(2));
 
     console.log(`✅ Sauvegarde ${type} réussie : ${filename} (${tailleMo} Mo)`);
 
@@ -70,19 +79,23 @@ async function effectuerSauvegarde(
       module: 'M10',
       details: { fichier: filename, tailleMo, destination },
     });
+
+    return { succes: true, nomFichier: filename, tailleMo };
   } catch (error) {
+    const erreur = error instanceof Error ? error.message : String(error);
     console.error(`❌ Échec sauvegarde ${type} :`, error);
 
     await logAudit({
       action: `SAUVEGARDE_${type.toUpperCase()}_ECHEC`,
       module: 'M10',
-      details: { erreur: String(error) },
+      details: { erreur },
     });
+
+    return { succes: false, erreur };
   }
 }
 
 // ── Cron 1 : Sauvegarde quotidienne locale ────────────────────────────────
-// Tous les jours à 02h00 du matin
 function demarrerSauvegardeQuotidienne(): void {
   cron.schedule('0 2 * * *', async () => {
     console.log('⏰ Démarrage sauvegarde quotidienne...');
@@ -94,7 +107,6 @@ function demarrerSauvegardeQuotidienne(): void {
 }
 
 // ── Cron 2 : Sauvegarde hebdomadaire NAS ─────────────────────────────────
-// Tous les dimanches à 03h00 du matin
 function demarrerSauvegardeHebdomadaire(): void {
   cron.schedule('0 3 * * 0', async () => {
     console.log('⏰ Démarrage sauvegarde hebdomadaire NAS...');
@@ -112,7 +124,12 @@ export function demarrerJobsSauvegarde(): void {
 }
 
 // ── Sauvegarde manuelle déclenchable depuis l'interface admin ─────────────
-export async function declencherSauvegardeManuelle(): Promise<void> {
+export async function declencherSauvegardeManuelle(): Promise<{
+  succes: boolean;
+  nomFichier?: string;
+  tailleMo?: number;
+  erreur?: string;
+}> {
   console.log('⏰ Sauvegarde manuelle déclenchée...');
-  await effectuerSauvegarde(BACKUP_LOCAL_DIR, 'quotidien');
+  return effectuerSauvegarde(BACKUP_LOCAL_DIR, 'quotidien');
 }

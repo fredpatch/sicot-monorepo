@@ -13,3 +13,4 @@ export { demandesApi } from './demandes.api';
 export { dashboardApi } from './dashboard.api';
 export { parametresApi } from './parametres.api';
 export { notificationsApi } from './notifications.api';
+export { jobsApi } from './jobs.api';

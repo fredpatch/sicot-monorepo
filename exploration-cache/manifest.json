@@ -6,13 +6,13 @@
   "lastUpdated": "2026-06-30",
   "lastCommit": "f9b14f8",
   "currentSprint": 5,
-  "currentSprintFocus": "Sprint 5 IN PROGRESS — Dashboard M9 + AdminParametresPage + Notifications module all built (uncommitted). Next: commit+push, then rapport mensuel cron.",
-  "status": "Sprint 4 COMPLETE ✅. Sprint 5 PARTIAL ✅ — Dashboard (M9) done + Parametres + Notifications modules built. Uncommitted changes ready to push.",
+  "currentSprintFocus": "Sprint 5 IN PROGRESS — Wave 2: Jobs module (REGISTRE_JOBS 6 jobs) + major refinements across Dashboard/Accords/Courriers/Missions/Partenaires pages + server services. Uncommitted.",
+  "status": "Sprint 4 COMPLETE ✅. Sprint 5 PARTIAL ✅ — Dashboard+Parametres+Notifications (f9b14f8) + Jobs module + major refinements pending commit.",
 
   "activeSession": {
-    "task": "Sprint 5: DashboardPage (8 KPI + 3 charts + alertes), AdminParametresPage, Notifications module, ModalRelance. Server modules dasboard/parametres/notifications all wired. chart.js added.",
+    "task": "Sprint 5 Wave 2: REGISTRE_JOBS (6 admin jobs), modules/jobs/, jobs.api.ts, alertes/backup refactored for manual triggers. AdminParametresPage jobs panel. DashboardPage+AccordsPage+CourriersPage+PartenairesPage+MissionDetails+MissionFormPage refinements. Server: dashboard.service, missions.service, courriers.service major enhancements.",
     "startedAt": "2026-06-30",
-    "nextAction": "Rapport mensuel cron (jobs/rapport.ts) — 1er du mois, PDF+Excel, archive in documents table."
+    "nextAction": "Rapport mensuel cron (jobs/rapport.ts) — 1er du mois, PDF+Excel, archive in documents; add as 7th REGISTRE_JOBS entry."
   },
 
   "index": [
@@ -161,7 +161,7 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications"],
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications", "/api/jobs"],
     "pendingRoutes": ["/api/rapport-mensuel"]
   },
 
