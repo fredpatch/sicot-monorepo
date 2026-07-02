@@ -1,46 +1,42 @@
 # 🎯 Current Task
 
-**Session date**: 2026-06-30
-**Status**: 🔄 Sprint 5 — IN PROGRESS (Wave 2 uncommitted)
+**Session date**: 2026-07-02
+**Status**: ✅ Server refactor pass COMPLETE (committed dd2809d) — Sprint 5 feature work already complete (ccbd3f2)
 
-## ✅ Done: Sprint 5 Wave 1 (committed f9b14f8)
+## ✅ Done: Server-wide refactor (committed dd2809d)
 
-- Dashboard (M9) — DashboardPage + dashboard.api.ts + server modules/dasboard/ ✅
-- AdminParametresPage — settings CRUD by module ✅
-- Notifications module server + client ✅
-- Parametres module server + client ✅
-- ModalRelance.tsx ✅
-- chart.js + DB schema (parametres/notifications tables) ✅
+Mechanical split of every `modules/*/services/*.service.ts` into `.types.ts` +
+`.helpers.ts` + a slim `.service.ts`, smallest file → largest:
+parametres, audit, notifications, users, auth, glossaire, demandes,
+organisations, traduction, accords, courriers, dashboard, missions.
 
----
+Controller error handling for 8 controllers (glossaire, parametres,
+organisations, courriers, traduction, demandes, accords, missions) migrated
+from inline `errorMap` closures to the shared `createErrorHandler` factory in
+`utils/error.ts`. The factory gained an optional `prefixHandlers` param to
+support dynamic error codes (`PARTICIPANT_INTROUVABLE:${id}`,
+`ORGANISATION_INTROUVABLE:${id}`).
 
-## ✅ Done: Sprint 5 Wave 2 (uncommitted)
+Duplication removed along the way:
+- `audit.service.ts` — row→view mapping duplicated twice → single `toAuditLogView`
+- `courriers.service.ts` — seuils reloaded 5x → single `chargerSeuils()`
+- `dashboard.service.ts` — one 350-line function → 13 named per-section query
+  functions in `dashboard.helpers.ts`, plus 3x inline day-diff calc → `getDaysDiff`
+- `missions.service.ts` — RecommandationView shaping duplicated 3x → single
+  `toRecommandationView`
 
-### Jobs module (M10 admin — manual triggers)
-- ✅ `jobs/registre.ts` — REGISTRE_JOBS with 6 jobs: accords_expiration, accords_alertes, courriers_criticite, recommandations_retard, backup_bdd (super_admin), backup_nas (super_admin)
-- ✅ `modules/jobs/services/jobs.service.ts`
-- ✅ `modules/jobs/controllers/jobs.controller.ts`
-- ✅ `modules/jobs/routes/jobs.route.ts`
-- ✅ `lib/jobs.api.ts` — lister + executer (60s timeout)
-- ✅ `index.ts` — /api/jobs mounted
-- ✅ `api.ts` — jobsApi barrel export
-- ✅ `jobs/alertes.ts` — mettreAJourAccordsExpires + envoyerAlertesAccords exported for manual trigger
-- ✅ `jobs/backup.ts` — declencherSauvegardeManuelle + effectuerSauvegarde + BACKUP_NAS_DIR exported
-- ✅ `AdminParametresPage.tsx` — Jobs panel added (trigger jobs with live result display)
+`auth.service.ts`'s `logAudit` was deliberately **not** relocated — it's
+imported repo-wide (missions, accords, courriers, documents, etc.) and moving
+it would require a full import sweep.
 
-### Major page refinements
-- ✅ `DashboardPage.tsx` — major enhancements
-- ✅ `AccordsPage.tsx` — enhancements
-- ✅ `CourriersPage.tsx` — enhancements
-- ✅ `PartenairesPage.tsx` — enhancements
-- ✅ `MissionDetails.tsx` — enhanced recommendations section
-- ✅ `MissionFormPage.tsx` — enhancements
-- ✅ `CourrierDetail.tsx` — refinements
-- ✅ Server: missions.service + missions.controller + courriers.service + dashboard.service + accords.service + db/schema — all enhanced
+Verified after every file: `tsc --noEmit` against a clean-main baseline
+(`ignoreDeprecations` patched locally for the check only) showed zero new
+type errors — same pre-existing 3 `@sicot/shared` resolution errors both
+before and after.
 
 ---
 
-## 🔄 Remaining: Sprint 5
+## 🔄 Remaining: Sprint 5 (unaffected by the refactor)
 
 - [ ] **Rapport mensuel automatique** — `jobs/rapport.ts`, cron 1er du mois 06h00, PDF+Excel, archive in documents table; wire as 7th job in REGISTRE_JOBS
 - [ ] Re-enable auth rate limiter (commented out in index.ts)
@@ -53,6 +49,7 @@ Dashboard (M9)             ██████████ 100% ✅
 Jobs admin triggers        ██████████ 100% ✅
 Admin Parametres           ██████████ 100% ✅
 Notifications              ██████████ 100% ✅
+Server services refactor   ██████████ 100% ✅
 ─────────────────────────────────────────────
 Rapport mensuel cron       ░░░░░░░░░░   0% ← NEXT
 PDF/DOCX export            ░░░░░░░░░░   0% (optional)
