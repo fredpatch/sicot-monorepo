@@ -3,7 +3,7 @@
 This folder is the living knowledge base for the SICOT project. Update it as the project evolves.
 
 **Project**: Système Intégré de Coopération Internationale et de Traduction — ANAC Gabon
-**Last updated**: 2026-07-02 | **Sprint**: 5 complete (ccbd3f2) — server refactor pass complete (dd2809d)
+**Last updated**: 2026-07-02 | **Sprint**: 8 complete (7a1de70) — Sprint 9 (Portail Documentaire Externe) next
 
 ---
 
@@ -54,7 +54,7 @@ This folder is the living knowledge base for the SICOT project. Update it as the
 
 | File | What Happened |
 |------|--------------|
-| [`sessions/2026-07-02.md`](sessions/2026-07-02.md) | Server-wide refactor — 13 module services split into types/helpers/service, 8 controllers moved to shared error handler, duplication cleanups. Committed dd2809d. |
+| [`sessions/2026-07-02.md`](sessions/2026-07-02.md) | Server-wide refactor (dd2809d) + Sprint 8 completion: HistoriqueNotifications component, AccordDetail bulk-notify, dashboard accords-expirés block (7a1de70). |
 | [`sessions/2026-06-30.md`](sessions/2026-06-30.md) | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications built (uncommitted) |
 | [`sessions/2026-06-29.md`](sessions/2026-06-29.md) | Sprint 3+4 complete — Missions/Glossaire/Traductions/Demandes client all done |
 | [`sessions/2026-06-28.md`](sessions/2026-06-28.md) | exploration-cache initialized, Sprint 2 closed |

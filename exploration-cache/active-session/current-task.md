@@ -1,56 +1,64 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-02
-**Status**: ✅ Server refactor pass COMPLETE (committed dd2809d) — Sprint 5 feature work already complete (ccbd3f2)
+**Status**: ✅ Sprint 8 COMPLETE (committed 7a1de70) — server refactor pass also complete (dd2809d)
 
-## ✅ Done: Server-wide refactor (committed dd2809d)
+## ✅ Done: Sprint 8 — Centre de Notifications & Rappels CCIT (committed 7a1de70)
 
-Mechanical split of every `modules/*/services/*.service.ts` into `.types.ts` +
-`.helpers.ts` + a slim `.service.ts`, smallest file → largest:
-parametres, audit, notifications, users, auth, glossaire, demandes,
-organisations, traduction, accords, courriers, dashboard, missions.
+Full sprint now closed. Final pieces landed this session:
+- `HistoriqueNotifications.tsx` — reusable passive notification-history
+  component, wired onto `AccordDetail`, `CourrierDetail`, and per-recommandation
+  on `MissionDetail`
+- `AccordDetail` "Notifier tous" — bulk relance across every partner org with
+  an email contact, envoyés/ignorés summary
+- Dashboard "Accords expirés — action requise" block — separate from the
+  existing "expiring soon" block, surfaces already-`expire` accords with
+  `joursDepuisExpiration`; new `getAccordsExpirant()` in
+  `dashboard.helpers.ts`, `accordsActifs.expiresNonTraites` KPI
 
-Controller error handling for 8 controllers (glossaire, parametres,
-organisations, courriers, traduction, demandes, accords, missions) migrated
-from inline `errorMap` closures to the shared `createErrorHandler` factory in
-`utils/error.ts`. The factory gained an optional `prefixHandlers` param to
-support dynamic error codes (`PARTICIPANT_INTROUVABLE:${id}`,
-`ORGANISATION_INTROUVABLE:${id}`).
+Everything else in Sprint 8 (parametres table, notifications table +
+service, ModalRelance, criticité courriers 3 paliers, jobs registry, KPI
+enrichis, filtre accords par partenaire, confirmationLogistique /
+contactSurPlaceId sur missions) was already done in prior sessions — see
+`docs/TASKS.md` Sprint 8 section for the full file-by-file list.
 
-Duplication removed along the way:
-- `audit.service.ts` — row→view mapping duplicated twice → single `toAuditLogView`
-- `courriers.service.ts` — seuils reloaded 5x → single `chargerSeuils()`
-- `dashboard.service.ts` — one 350-line function → 13 named per-section query
-  functions in `dashboard.helpers.ts`, plus 3x inline day-diff calc → `getDaysDiff`
-- `missions.service.ts` — RecommandationView shaping duplicated 3x → single
-  `toRecommandationView`
+## ✅ Done: Server-wide refactor (committed dd2809d, same day, earlier)
 
-`auth.service.ts`'s `logAudit` was deliberately **not** relocated — it's
-imported repo-wide (missions, accords, courriers, documents, etc.) and moving
-it would require a full import sweep.
-
-Verified after every file: `tsc --noEmit` against a clean-main baseline
-(`ignoreDeprecations` patched locally for the check only) showed zero new
-type errors — same pre-existing 3 `@sicot/shared` resolution errors both
-before and after.
+All 13 `modules/*/services/*.service.ts` split into `.types.ts` +
+`.helpers.ts` + slim `.service.ts`; 8 controllers migrated from inline
+`errorMap` to the shared `createErrorHandler` factory (which gained
+`prefixHandlers` support). Pure refactor, zero behavior change, verified
+with `tsc --noEmit` after every file. See `sessions/2026-07-02.md` for detail.
 
 ---
 
-## 🔄 Remaining: Sprint 5 (unaffected by the refactor)
+## 🔄 Next: Sprint 9 — Portail Documentaire Externe (M8-bis)
 
-- [ ] **Rapport mensuel automatique** — `jobs/rapport.ts`, cron 1er du mois 06h00, PDF+Excel, archive in documents table; wire as 7th job in REGISTRE_JOBS
+Not yet started, not scoped in detail beyond the `docs/TASKS.md` Sprint 9
+outline. External-facing document portal with admin-curated visibility for
+target consultation (per `docs/note.md` — original CCIT brief).
+
+## Leftover items (not blocking, tracked in docs/TASKS.md)
+
+- [ ] **Rapport mensuel automatique** — `jobs/rapport.ts`, cron 1er du mois 06h00, PDF+Excel, archive in documents table; wire as 7th job in REGISTRE_JOBS (Sprint 5 item)
+- [ ] **Seed parametres via migration Drizzle** — currently manual SQL only, risk of missing seed in production (Sprint 8 item)
+- [ ] `pg_dump` on SERV-APPI (Linux production) — validate PATH availability
 - [ ] Re-enable auth rate limiter (commented out in index.ts)
-- [ ] Export PDF/DOCX (optional Sprint 5)
+- [ ] Export PDF/DOCX (optional)
 
 ## Progress Tracker
 
 ```
-Dashboard (M9)             ██████████ 100% ✅
-Jobs admin triggers        ██████████ 100% ✅
-Admin Parametres           ██████████ 100% ✅
-Notifications              ██████████ 100% ✅
-Server services refactor   ██████████ 100% ✅
-─────────────────────────────────────────────
-Rapport mensuel cron       ░░░░░░░░░░   0% ← NEXT
-PDF/DOCX export            ░░░░░░░░░░   0% (optional)
+Sprint 1  Administration & Auth              ██████████ 100% ✅
+Sprint 2  Documentaire & Partenaires          ██████████ 100% ✅
+Sprint 3  Accords/Correspondances/Missions    ██████████ 100% ✅
+Sprint 4  Traduction IA/Glossaire/Demandes    ██████████ 100% ✅
+Sprint 5  Dashboard & Statistiques (V1)       ██████████ 100% ✅
+Sprint 8  Notifications & Rappels CCIT        ██████████ 100% ✅
+Server services refactor                      ██████████ 100% ✅
+──────────────────────────────────────────────────────────────
+Sprint 9  Portail Documentaire Externe        ░░░░░░░░░░   0% ← NEXT
+Sprint 10 Paramètres Système Élargis          ░░░░░░░░░░   0%
+Sprint 6  Tests, Recette & Corrections        ░░░░░░░░░░   0% (postponed)
+Sprint 7  Déploiement Production & Formation  ░░░░░░░░░░   0% (postponed)
 ```

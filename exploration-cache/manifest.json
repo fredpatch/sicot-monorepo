@@ -4,15 +4,15 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-07-02",
-  "lastCommit": "dd2809d",
-  "currentSprint": 5,
-  "currentSprintFocus": "Sprint 5 feature work COMPLETE and committed (ccbd3f2). Interim refactor sprint: server module services split into .types.ts/.helpers.ts/.service.ts across all 13 modules, controller error handling centralized into utils/error.ts.",
-  "status": "Sprint 4 COMPLETE ✅. Sprint 5 COMPLETE ✅ (ccbd3f2). Server refactor pass COMPLETE ✅ (dd2809d) — no feature/behavior changes.",
+  "lastCommit": "7a1de70",
+  "currentSprint": 9,
+  "currentSprintFocus": "Sprint 8 (Centre de Notifications & Rappels CCIT) COMPLETE (7a1de70). Sprint 9 (Portail Documentaire Externe, nouveau module M8-bis) — À FAIRE, not started. Sprints 6/7 (Tests/Recette, Déploiement) postponed after 8/9/10 per docs/TASKS.md.",
+  "status": "Sprints 1–5 + 8 COMPLETE ✅ (7a1de70). Server refactor pass COMPLETE ✅ (dd2809d) — no feature/behavior changes. Sprint 9 next.",
 
   "activeSession": {
-    "task": "Server-wide refactor: all 13 modules/*/services/*.service.ts split into types/helpers/service; 8 controllers migrated from inline errorMap to shared createErrorHandler (utils/error.ts), which gained prefixHandlers support for dynamic codes (e.g. PARTICIPANT_INTROUVABLE:ID). Duplication removed: audit toAuditLogView, courriers chargerSeuils (was reloaded 5x), dashboard monolithic function split into named per-section queries + getDaysDiff, missions toRecommandationView (was duplicated 3x). auth.service.ts logAudit left at its original export path (imported repo-wide).",
+    "task": "Sprint 8 wrap-up: new HistoriqueNotifications.tsx reusable component (passive notification history) wired onto AccordDetail/CourrierDetail/MissionDetail; AccordDetail 'Notifier tous' bulk-notify across partners; dashboard 'Accords expirés — action requise' block + accordsActifs.expiresNonTraites KPI (server: getAccordsExpirant in dashboard.helpers.ts, accordsExpires in DashboardData). docs/TASKS.md Sprint 8 marked COMPLETE with full file-by-file changelog.",
     "startedAt": "2026-07-02",
-    "nextAction": "Rapport mensuel cron (jobs/rapport.ts) — 1er du mois, PDF+Excel, archive in documents; add as 7th REGISTRE_JOBS entry. (Sprint 5 remaining item, unaffected by the refactor.)"
+    "nextAction": "Sprint 9 — Portail Documentaire Externe (M8-bis): external-facing document portal with admin-curated visibility. Not yet scoped in detail; see docs/TASKS.md Sprint 9 section. Also open: Sprint 5 leftover 'Rapport mensuel cron' (jobs/rapport.ts, 7th REGISTRE_JOBS entry) and Sprint 8 leftover 'seed parametres via Drizzle migration'."
   },
 
   "index": [
@@ -127,8 +127,8 @@
     {
       "path": "sessions/2026-07-02.md",
       "type": "session-log",
-      "tags": ["2026-07-02", "refactor", "services", "error-handling", "dd2809d"],
-      "summary": "Session: server-wide refactor — all 13 module services split into types/helpers/service, 8 controllers migrated to shared createErrorHandler, several duplication cleanups. Committed dd2809d, no behavior change."
+      "tags": ["2026-07-02", "refactor", "services", "error-handling", "sprint8", "dashboard", "notifications", "dd2809d", "7a1de70"],
+      "summary": "Session: server-wide refactor (dd2809d, no behavior change) + Sprint 8 completion — HistoriqueNotifications component, AccordDetail bulk-notify, dashboard accords-expirés block (7a1de70)."
     },
     {
       "path": "sessions/2026-06-30.md",
