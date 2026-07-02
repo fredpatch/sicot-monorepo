@@ -1,5 +1,14 @@
 # 📝 SICOT – Changelog
 
+## [47ffd94] — 2026-07-02 — docs(tasks): plan Sprint 11 — Module Analytics & Rapports (M11)
+
+### Added — planning only, no code
+- `docs/TASKS.md` — new Sprint 11 section: `analytics.service.ts`/`.controller.ts`/`.route.ts` scoped (GET /api/analytics/{module}, /global), per-module analytics breakdown for M1/M4/M3/M6/M5/M8/M7, client `AnalyticsPage.tsx` + `analytics.api.ts` + period selector + CSV/Excel export, and a `rapports.service.ts` layer on top (PDF/Excel generation, monthly cron, on-demand, ANAC-branded template, history)
+- Positions M11 as strategic/trend reporting, explicitly distinct from the M9 dashboard's day-to-day action focus
+- Supersedes the Sprint 5 standalone "rapport mensuel" backlog item — that work now belongs inside Sprint 11's `rapports.service.ts`
+
+---
+
 ## [7a1de70] — 2026-07-02 — feat(sprint8): Accords expirés dashboard block + HistoriqueNotifications component
 
 ### Added

@@ -4,15 +4,15 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-07-02",
-  "lastCommit": "7a1de70",
+  "lastCommit": "47ffd94",
   "currentSprint": 9,
-  "currentSprintFocus": "Sprint 8 (Centre de Notifications & Rappels CCIT) COMPLETE (7a1de70). Sprint 9 (Portail Documentaire Externe, nouveau module M8-bis) — À FAIRE, not started. Sprints 6/7 (Tests/Recette, Déploiement) postponed after 8/9/10 per docs/TASKS.md.",
-  "status": "Sprints 1–5 + 8 COMPLETE ✅ (7a1de70). Server refactor pass COMPLETE ✅ (dd2809d) — no feature/behavior changes. Sprint 9 next.",
+  "currentSprintFocus": "Sprint 8 (Centre de Notifications & Rappels CCIT) COMPLETE (7a1de70). Sprint 9 (Portail Documentaire Externe, M8-bis) and Sprint 11 (Analytics & Rapports, M11) both planned/backlogged but not started. Sprints 6/7 (Tests/Recette, Déploiement) postponed until after 8/9/10.",
+  "status": "Sprints 1–5 + 8 COMPLETE ✅ (7a1de70). Server refactor pass COMPLETE ✅ (dd2809d). Sprint 11 planned (47ffd94) — no code yet. Sprint 9 next to build.",
 
   "activeSession": {
-    "task": "Sprint 8 wrap-up: new HistoriqueNotifications.tsx reusable component (passive notification history) wired onto AccordDetail/CourrierDetail/MissionDetail; AccordDetail 'Notifier tous' bulk-notify across partners; dashboard 'Accords expirés — action requise' block + accordsActifs.expiresNonTraites KPI (server: getAccordsExpirant in dashboard.helpers.ts, accordsExpires in DashboardData). docs/TASKS.md Sprint 8 marked COMPLETE with full file-by-file changelog.",
+    "task": "Sprint 8 wrap-up: new HistoriqueNotifications.tsx reusable component (passive notification history) wired onto AccordDetail/CourrierDetail/MissionDetail; AccordDetail 'Notifier tous' bulk-notify across partners; dashboard 'Accords expirés — action requise' block + accordsActifs.expiresNonTraites KPI (server: getAccordsExpirant in dashboard.helpers.ts, accordsExpires in DashboardData). docs/TASKS.md Sprint 8 marked COMPLETE with full file-by-file changelog. Then: Sprint 11 (M11 Analytics & Rapports) planned in docs/TASKS.md — strategic per-module aggregates distinct from the M9 operational dashboard, plus a rapports layer (PDF/Excel, monthly cron, on-demand) built on top. Planning only, no code.",
     "startedAt": "2026-07-02",
-    "nextAction": "Sprint 9 — Portail Documentaire Externe (M8-bis): external-facing document portal with admin-curated visibility. Not yet scoped in detail; see docs/TASKS.md Sprint 9 section. Also open: Sprint 5 leftover 'Rapport mensuel cron' (jobs/rapport.ts, 7th REGISTRE_JOBS entry) and Sprint 8 leftover 'seed parametres via Drizzle migration'."
+    "nextAction": "Sprint 9 — Portail Documentaire Externe (M8-bis): external-facing document portal with admin-curated visibility. Not yet scoped in detail; see docs/TASKS.md Sprint 9 section. Sprint 11 (M11 Analytics) is scoped but unbuilt — see docs/TASKS.md Sprint 11 section for the full analytics.service.ts / AnalyticsPage.tsx / rapports.service.ts breakdown. Also open: Sprint 5 leftover 'Rapport mensuel cron' (jobs/rapport.ts) — note this now folds into Sprint 11's 'rapport mensuel automatique' item, so build it there rather than as a standalone Sprint 5 job. Sprint 8 leftover 'seed parametres via Drizzle migration'."
   },
 
   "index": [
