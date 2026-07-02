@@ -1,156 +1,23 @@
 import { db } from '@/db/index.js';
-import { accords, accordsOrganisations, contacts, organisations } from '@/db/schema';
+import { accords, accordsOrganisations, organisations } from '@/db/schema';
 import { eq, ilike, and, or, desc, lte, gte, inArray } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { genererReference, toAccordView, getPartenairesAccord } from './accords.helpers';
+import type {
+  CreateAccordParams,
+  UpdateAccordParams,
+  AccordFilters,
+  AccordView,
+} from './accords.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type AccordStatut = 'actif' | 'expire' | 'suspendu' | 'en_renouvellement';
-
-export interface CreateAccordParams {
-  titre: string;
-  dateSignature: Date;
-  dateExpiration?: Date;
-  partenairesIds: number[];
-  documentId?: number;
-  notes?: string;
-  createdByUserId: number;
-}
-
-export interface UpdateAccordParams {
-  titre?: string;
-  statut?: AccordStatut;
-  dateSignature?: Date;
-  dateExpiration?: Date;
-  partenairesIds?: number[];
-  documentId?: number;
-  notes?: string;
-  updatedByUserId: number;
-}
-
-export interface AccordFilters {
-  search?: string;
-  statut?: AccordStatut;
-  partenairesId?: number;
-  expirantAvant?: Date;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface OrganisationResume {
-  id: number;
-  nom: string;
-  pays: string;
-  type: string;
-  contactPrincipal?: {
-    nom: string;
-    prenom: string;
-    email?: string;
-    telephone?: string;
-  };
-}
-
-export interface AccordView {
-  id: number;
-  reference: string;
-  titre: string;
-  statut: AccordStatut;
-  dateSignature: Date;
-  dateExpiration?: Date;
-  parentId?: number;
-  documentId?: number;
-  notes?: string;
-  partenaires: OrganisationResume[];
-  createdPar?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// ── Utilitaires ────────────────────────────────────────────────────────────
-
-// Générer la référence automatique ACC-YYYY-XXXX
-async function genererReference(): Promise<string> {
-  const annee = new Date().getFullYear();
-  const prefix = `ACC-${annee}-`;
-
-  // Compter les accords de l'année courante
-  const rows = await db
-    .select({ reference: accords.reference })
-    .from(accords)
-    .where(ilike(accords.reference, `${prefix}%`));
-
-  const numero = (rows.length + 1).toString().padStart(4, '0');
-  return `${prefix}${numero}`;
-}
-
-function toAccordView(
-  accord: typeof accords.$inferSelect,
-  partenaires: OrganisationResume[]
-): AccordView {
-  return {
-    id: accord.id,
-    reference: accord.reference,
-    titre: accord.titre,
-    statut: accord.statut as AccordStatut,
-    dateSignature: accord.dateSignature,
-    dateExpiration: accord.dateExpiration ?? undefined,
-    parentId: accord.parentId ?? undefined,
-    documentId: accord.documentId ?? undefined,
-    notes: accord.notes ?? undefined,
-    partenaires,
-    createdPar: accord.createdPar ?? undefined,
-    createdAt: accord.createdAt,
-    updatedAt: accord.updatedAt,
-  };
-}
-
-// Récupérer les partenaires d'un accord — avec leur contact principal
-async function getPartenairesAccord(accordId: number): Promise<OrganisationResume[]> {
-  const orgs = await db
-    .select({
-      id: organisations.id,
-      nom: organisations.nom,
-      pays: organisations.pays,
-      type: organisations.type,
-    })
-    .from(accordsOrganisations)
-    .innerJoin(organisations, eq(accordsOrganisations.organisationId, organisations.id))
-    .where(eq(accordsOrganisations.accordId, accordId));
-
-  // Récupérer le contact principal de chaque organisation en parallèle
-  const orgsAvecContact = await Promise.all(
-    orgs.map(async (org) => {
-      const [contactPrincipal] = await db
-        .select({
-          nom: contacts.nom,
-          prenom: contacts.prenom,
-          email: contacts.email,
-          telephone: contacts.telephone,
-        })
-        .from(contacts)
-        .where(
-          and(
-            eq(contacts.organisationId, org.id),
-            eq(contacts.principal, true),
-            eq(contacts.actif, true)
-          )
-        );
-
-      return {
-        ...org,
-        contactPrincipal: contactPrincipal
-          ? {
-              nom: contactPrincipal.nom,
-              prenom: contactPrincipal.prenom,
-              email: contactPrincipal.email ?? undefined,
-              telephone: contactPrincipal.telephone ?? undefined,
-            }
-          : undefined,
-      };
-    })
-  );
-
-  return orgsAvecContact;
-}
+export type {
+  AccordStatut,
+  CreateAccordParams,
+  UpdateAccordParams,
+  AccordFilters,
+  OrganisationResume,
+  AccordView,
+} from './accords.types';
 
 // ── SERVICE : Lister les accords ──────────────────────────────────────────
 export async function listerAccords(filters: AccordFilters): Promise<{

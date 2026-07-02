@@ -1,38 +1,7 @@
 import { Request, Response } from 'express';
 import * as traductionService from '../services/traduction.service.js';
 import { TraductionDirection } from '@/utils/traduction.js';
-
-function handleTraductionError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    TRADUCTION_INTROUVABLE: { status: 404, message: 'Traduction introuvable.' },
-    TEXTE_FINAL_REQUIS: { status: 400, message: 'Un texte final est requis avant approbation.' },
-    APPROBATION_REQUISE: {
-      status: 400,
-      message: 'La traduction doit être approuvée avant archivage.',
-    },
-    TRADUCTION_APPROUVEE_NON_SUPPRIMABLE: {
-      status: 400,
-      message: 'Une traduction approuvée ne peut pas être supprimée.',
-    },
-    TRADUCTION_ARCHIVEE_NON_SUPPRIMABLE: {
-      status: 400,
-      message: 'Une traduction archivée ne peut pas être supprimée.',
-    },
-    TRADUCTION_DEJA_SUPPRIMEE: { status: 400, message: 'Cette traduction est déjà supprimée.' },
-    TRADUCTION_NON_SUPPRIMEE: { status: 400, message: "Cette traduction n'est pas supprimée." },
-  };
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[traduction.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleTraductionError } from '@/utils/error.js';
 
 // ── GET /api/traductions ──────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

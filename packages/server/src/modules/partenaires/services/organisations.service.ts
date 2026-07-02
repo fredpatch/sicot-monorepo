@@ -2,119 +2,28 @@ import { db } from '@/db/index';
 import { organisations, contacts } from '@/db/schema';
 import { eq, ilike, and, or, desc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { toOrganisationView, toContactView } from './organisations.helpers';
+import type {
+  OrganisationType,
+  CreateOrganisationParams,
+  UpdateOrganisationParams,
+  OrganisationFilters,
+  CreateContactParams,
+  UpdateContactParams,
+  OrganisationView,
+  ContactView,
+} from './organisations.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type OrganisationType = 'anac_etrangere' | 'organisation_internationale' | 'autre';
-
-export interface CreateOrganisationParams {
-  nom: string;
-  pays: string;
-  region?: string;
-  type: OrganisationType;
-  notes?: string;
-  createdByUserId: number;
-}
-
-export interface UpdateOrganisationParams {
-  nom?: string;
-  pays?: string;
-  region?: string;
-  type?: OrganisationType;
-  actif?: boolean;
-  notes?: string;
-  updatedByUserId: number;
-}
-
-export interface OrganisationFilters {
-  search?: string;
-  pays?: string;
-  region?: string;
-  type?: OrganisationType;
-  actif?: boolean;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface CreateContactParams {
-  organisationId: number;
-  nom: string;
-  prenom: string;
-  email?: string;
-  telephone?: string;
-  poste?: string;
-  principal?: boolean;
-  createdByUserId: number;
-}
-
-export interface UpdateContactParams {
-  nom?: string;
-  prenom?: string;
-  email?: string;
-  telephone?: string;
-  poste?: string;
-  actif?: boolean;
-  updatedByUserId: number;
-}
-
-export interface OrganisationView {
-  id: number;
-  nom: string;
-  pays: string;
-  region?: string;
-  type: OrganisationType;
-  actif: boolean;
-  notes?: string;
-  contacts?: ContactView[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ContactView {
-  id: number;
-  organisationId: number;
-  nom: string;
-  prenom: string;
-  email?: string;
-  telephone?: string;
-  poste?: string;
-  principal: boolean;
-  actif: boolean;
-  createdAt: Date;
-}
-
-// ── Convertisseurs ─────────────────────────────────────────────────────────
-function toOrganisationView(
-  org: typeof organisations.$inferSelect,
-  contactsList?: ContactView[]
-): OrganisationView {
-  return {
-    id: org.id,
-    nom: org.nom,
-    pays: org.pays,
-    region: org.region ?? undefined,
-    type: org.type as OrganisationType,
-    actif: org.actif,
-    notes: org.notes ?? undefined,
-    contacts: contactsList,
-    createdAt: org.createdAt,
-    updatedAt: org.updatedAt,
-  };
-}
-
-function toContactView(contact: typeof contacts.$inferSelect): ContactView {
-  return {
-    id: contact.id,
-    organisationId: contact.organisationId,
-    nom: contact.nom,
-    prenom: contact.prenom,
-    email: contact.email ?? undefined,
-    telephone: contact.telephone ?? undefined,
-    poste: contact.poste ?? undefined,
-    principal: contact.principal,
-    actif: contact.actif,
-    createdAt: contact.createdAt,
-  };
-}
+export type {
+  OrganisationType,
+  CreateOrganisationParams,
+  UpdateOrganisationParams,
+  OrganisationFilters,
+  CreateContactParams,
+  UpdateContactParams,
+  OrganisationView,
+  ContactView,
+} from './organisations.types';
 
 // ── SERVICE : Lister les organisations ────────────────────────────────────
 export async function listerOrganisations(

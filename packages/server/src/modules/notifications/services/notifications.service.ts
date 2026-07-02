@@ -1,56 +1,17 @@
 import { db } from '@/db/index.js';
 import { notifications } from '@/db/schema';
-import { eq, and, desc, gte } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { sendNotificationManuelle } from '@/utils/email.js';
+import { toNotificationView, verifierDejaNotifieAujourdhui } from './notifications.helpers';
+import type { NotificationType, NotificationStatut, NotificationView, EnvoyerNotificationParams } from './notifications.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type NotificationType = 'accord_echeance' | 'courrier_relance' | 'recommandation_rappel';
-export type NotificationStatut = 'envoyee' | 'echec';
-
-export interface NotificationView {
-  id: number;
-  type: NotificationType;
-  entiteId: number;
-  destinataireEmail: string;
-  destinataireNom?: string;
-  message: string;
-  declenchePar: number;
-  declencheParNom?: string;
-  statut: NotificationStatut;
-  erreur?: string;
-  createdAt: Date;
-}
-
-export interface EnvoyerNotificationParams {
-  type: NotificationType;
-  entiteId: number;
-  destinataireEmail: string;
-  destinataireNom?: string;
-  objet: string;
-  message: string;
-  userId: number;
-}
-
-// ── Utilitaire ─────────────────────────────────────────────────────────────
-function toNotificationView(
-  n: typeof notifications.$inferSelect,
-  declencheParNom?: string
-): NotificationView {
-  return {
-    id: n.id,
-    type: n.type as NotificationType,
-    entiteId: n.entiteId,
-    destinataireEmail: n.destinataireEmail,
-    destinataireNom: n.destinataireNom ?? undefined,
-    message: n.message,
-    declenchePar: n.declenchePar,
-    declencheParNom,
-    statut: n.statut as NotificationStatut,
-    erreur: n.erreur ?? undefined,
-    createdAt: n.createdAt,
-  };
-}
+export type {
+  NotificationType,
+  NotificationStatut,
+  NotificationView,
+  EnvoyerNotificationParams,
+} from './notifications.types';
 
 // ── SERVICE : Envoyer une notification ciblée ─────────────────────────────
 export async function envoyerNotificationCiblee(
@@ -111,28 +72,6 @@ export async function envoyerNotificationCiblee(
   }
 
   return toNotificationView(notif);
-}
-
-// ── Vérifier si déjà notifié aujourd'hui sur cette entité ────────────────
-async function verifierDejaNotifieAujourdhui(
-  type: NotificationType,
-  entiteId: number
-): Promise<boolean> {
-  const debutJournee = new Date();
-  debutJournee.setHours(0, 0, 0, 0);
-
-  const rows = await db
-    .select()
-    .from(notifications)
-    .where(
-      and(
-        eq(notifications.type, type),
-        eq(notifications.entiteId, entiteId),
-        gte(notifications.createdAt, debutJournee)
-      )
-    );
-
-  return rows.length > 0;
 }
 
 // ── SERVICE : Historique des notifications pour une entité ───────────────

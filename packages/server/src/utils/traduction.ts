@@ -1,27 +1,16 @@
 import axios from 'axios';
+import type {
+  TraductionDirection,
+  ResultatTraduction,
+  SegmentTraduit,
+} from './traduction.types';
+
+export type { TraductionDirection, MoteurTraduction, ResultatTraduction, SegmentTraduit } from './traduction.types';
 
 // ── Configuration ──────────────────────────────────────────────────────────
 // Appelle notre microservice translate-service (port 5002)
 // qui lui-même appelle LibreTranslate (port 5000) avec nettoyage et fallback
 const TRANSLATE_SERVICE_URL = process.env.TRANSLATE_SERVICE_URL ?? 'http://localhost:5002';
-
-// ── Types ──────────────────────────────────────────────────────────────────
-export type TraductionDirection = 'fr_en' | 'en_fr';
-
-export type MoteurTraduction = 'libretranslate' | 'deepl' | 'manuel';
-
-export interface ResultatTraduction {
-  texteTraduit: string;
-  moteur: 'libretranslate' | 'deepl' | 'manuel';
-  succes: boolean;
-  erreur?: string;
-}
-
-export interface SegmentTraduit {
-  original: string;
-  traduit: string;
-  alternatives?: string[];
-}
 
 // ── Convertir direction SICOT → codes langue ──────────────────────────────
 function toLangCodes(direction: TraductionDirection): {

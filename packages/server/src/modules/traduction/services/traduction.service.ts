@@ -1,65 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { db } from '@/db/index.js';
-import { traductions, documents, glossaire, demandesTraduction } from '@/db/schema';
+import { traductions, glossaire, demandesTraduction } from '@/db/schema';
 import { eq, and, ilike, or, desc, isNull } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import {
   traduireTexte,
-  traduireSegment,
   verifierLibreTranslate,
   type TraductionDirection,
   type MoteurTraduction,
 } from '@/utils/traduction.js';
+import { toTraductionView, enrichirGlossaireDepuisCorrection } from './traduction.helpers';
+import type {
+  TraductionStatut,
+  TraductionView,
+  LancerTraductionParams,
+  SauvegarderCorrectionParams,
+} from './traduction.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type TraductionStatut =
-  'a_reviser' | 'en_relecture' | 'approuvee' | 'archivee' | 'manuelle_requise';
-
-export interface TraductionView {
-  id: number;
-  documentId?: number;
-  texteOriginal?: string;
-  texteIA?: string;
-  texteFinal?: string;
-  direction: TraductionDirection;
-  statut: TraductionStatut;
-  moteurUtilise: string;
-  traducteurId?: number;
-  relecteurId?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface LancerTraductionParams {
-  documentId?: number;
-  texteOriginal: string;
-  direction: TraductionDirection;
-  userId: number;
-}
-
-export interface SauvegarderCorrectionParams {
-  id: number;
-  texteFinal: string;
-  userId: number;
-}
-
-// ── Utilitaire ─────────────────────────────────────────────────────────────
-function toTraductionView(t: typeof traductions.$inferSelect): TraductionView {
-  return {
-    id: t.id,
-    documentId: t.documentId ?? undefined,
-    texteOriginal: t.texteOriginal ?? undefined,
-    texteIA: t.texteIA ?? undefined,
-    texteFinal: t.texteFinal ?? undefined,
-    direction: t.direction as TraductionDirection,
-    statut: t.statut as TraductionStatut,
-    moteurUtilise: t.moteurUtilise,
-    traducteurId: t.traducteurId ?? undefined,
-    relecteurId: t.relecteurId ?? undefined,
-    createdAt: t.createdAt,
-    updatedAt: t.updatedAt,
-  };
-}
+export type {
+  TraductionStatut,
+  TraductionView,
+  LancerTraductionParams,
+  SauvegarderCorrectionParams,
+} from './traduction.types';
 
 // ── SERVICE : Lancer une traduction ───────────────────────────────────────
 export async function lancerTraduction(params: LancerTraductionParams): Promise<TraductionView> {
@@ -303,50 +265,6 @@ export async function verifierMoteur(): Promise<{
   erreur?: string;
 }> {
   return verifierLibreTranslate();
-}
-
-// ── Enrichissement glossaire depuis delta corrections ─────────────────────
-async function enrichirGlossaireDepuisCorrection(params: {
-  texteOriginal: string;
-  texteIA: string;
-  texteCorrige: string;
-  direction: TraductionDirection;
-  userId: number;
-}): Promise<void> {
-  try {
-    const segmentsIA = params.texteIA.split(/\n{2,}/);
-    const segmentsCorrige = params.texteCorrige.split(/\n{2,}/);
-    const segmentsOrig = params.texteOriginal.split(/\n{2,}/);
-
-    for (let i = 0; i < Math.min(segmentsIA.length, segmentsCorrige.length); i++) {
-      const ia = segmentsIA[i]?.trim() ?? '';
-      const corrige = segmentsCorrige[i]?.trim() ?? '';
-      const orig = segmentsOrig[i]?.trim() ?? '';
-
-      if (ia !== corrige && orig.length > 0 && orig.length < 100) {
-        const termeFr = params.direction === 'fr_en' ? orig : corrige;
-        const termeEn = params.direction === 'fr_en' ? corrige : orig;
-
-        const [existant] = await db
-          .select()
-          .from(glossaire)
-          .where(and(ilike(glossaire.termeFr, termeFr), ilike(glossaire.termeEn, termeEn)));
-
-        if (!existant && termeFr.length > 2 && termeEn.length > 2) {
-          await db.insert(glossaire).values({
-            termeFr,
-            termeEn,
-            domaine: 'Traduction automatique',
-            contexte: 'Ajouté automatiquement depuis delta corrections M6',
-            actif: true,
-            createdPar: params.userId,
-          });
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('[traduction] Enrichissement glossaire échoué:', error);
-  }
 }
 
 // ── Soft delete traduction ────────────────────────────────────────────────

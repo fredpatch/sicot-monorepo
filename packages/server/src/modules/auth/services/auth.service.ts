@@ -2,36 +2,18 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/db/index.js';
 import { users, auditLogs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { signAccessToken, signRefreshToken, verifyRefreshToken, TokenPayload } from '@/utils/jwt';
+import { signAccessToken, verifyRefreshToken } from '@/utils/jwt';
 import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendOTPEmail } from '@/utils/email.js';
+import { SALT_ROUNDS } from './auth.constants';
+import { handleEchecConnexion, resetTentatives, buildTokens, buildUserPublic } from './auth.helpers';
+import type { AuthTokens, UserPublic, LoginResult } from './auth.types';
 
-const SALT_ROUNDS = 10;
-const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS ?? '5');
-const BLOCAGE_MINUTES = 30;
-
-// ── Types retournés par le service ────────────────────────────────────────
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface UserPublic {
-  id: number;
-  matricule: string;
-  nom: string;
-  prenom: string;
-  role: string;
-}
-
-export interface LoginResult {
-  premiereConnexion: boolean;
-  tokens?: AuthTokens;
-  user?: UserPublic;
-  message: string;
-}
+export type { AuthTokens, UserPublic, LoginResult } from './auth.types';
 
 // ── Utilitaire audit ──────────────────────────────────────────────────────
+// Importé dans de nombreux modules (missions, accords, courriers, documents,
+// etc.) — ne pas relocaliser sans un balayage complet des imports.
 export async function logAudit(params: {
   userId?: number;
   action: string;
@@ -48,58 +30,6 @@ export async function logAudit(params: {
     details: params.details,
     ip: params.ip,
   });
-}
-
-// ── Incrémenter les tentatives échouées ───────────────────────────────────
-async function handleEchecConnexion(userId: number, tentativesActuelles: number): Promise<void> {
-  const tentatives = tentativesActuelles + 1;
-  const updates: Record<string, unknown> = { tentativesEchouees: tentatives };
-
-  if (tentatives >= MAX_LOGIN_ATTEMPTS) {
-    const blocageDate = new Date();
-    blocageDate.setMinutes(blocageDate.getMinutes() + BLOCAGE_MINUTES);
-    updates.bloqueJusquA = blocageDate;
-  }
-
-  await db.update(users).set(updates).where(eq(users.id, userId));
-}
-
-// ── Réinitialiser les tentatives après succès ─────────────────────────────
-async function resetTentatives(userId: number): Promise<void> {
-  await db
-    .update(users)
-    .set({ tentativesEchouees: 0, bloqueJusquA: null })
-    .where(eq(users.id, userId));
-}
-
-// ── Construire les tokens depuis un utilisateur ───────────────────────────
-function buildTokens(user: { id: number; matricule: string; role: string }): AuthTokens {
-  const payload: TokenPayload = {
-    userId: user.id,
-    matricule: user.matricule,
-    role: user.role,
-  };
-  return {
-    accessToken: signAccessToken(payload),
-    refreshToken: signRefreshToken(payload),
-  };
-}
-
-// ── Construire la vue publique d'un utilisateur ───────────────────────────
-function buildUserPublic(user: {
-  id: number;
-  matricule: string;
-  nom: string;
-  prenom: string;
-  role: string;
-}): UserPublic {
-  return {
-    id: user.id,
-    matricule: user.matricule,
-    nom: user.nom,
-    prenom: user.prenom,
-    role: user.role,
-  };
 }
 
 // ── SERVICE : Connexion ───────────────────────────────────────────────────
