@@ -26,6 +26,7 @@ interface DashboardData {
       total: number;
       enAlerte: number;
       critique: boolean;
+      expiresNonTraites: number; // accords expirés non traités
     };
     couriersSansReponse: {
       total: number;
@@ -53,6 +54,17 @@ interface DashboardData {
     dateExpiration: string;
     joursRestants: number;
   }[];
+
+  // Accords expirés
+  accordsExpires: {
+    id: number;
+    reference: string;
+    titre: string;
+    statut: string;
+    dateExpiration: Date;
+    joursDepuisExpiration: number;
+  }[];
+
   couriersSansReponse: {
     id: number;
     reference: string;
@@ -462,12 +474,18 @@ export default function DashboardPage() {
               ? 'critique'
               : data.kpi.accordsActifs.enAlerte > 0
                 ? 'alerte'
-                : 'normal'
+                : data.kpi.accordsActifs.expiresNonTraites > 0
+                  ? 'alerte'
+                  : 'normal'
           }
           sousLigne={
-            data.kpi.accordsActifs.enAlerte > 0
-              ? `${data.kpi.accordsActifs.enAlerte} expire${data.kpi.accordsActifs.enAlerte > 1 ? 'nt' : ''} bientôt`
-              : undefined
+            data.kpi.accordsActifs.critique
+              ? `⚠ Expiration imminente + ${data.kpi.accordsActifs.expiresNonTraites > 0 ? `${data.kpi.accordsActifs.expiresNonTraites} expiré(s)` : ''}`
+              : data.kpi.accordsActifs.expiresNonTraites > 0
+                ? `${data.kpi.accordsActifs.expiresNonTraites} accord(s) expiré(s) - à traiter`
+                : data.kpi.accordsActifs.enAlerte > 0
+                  ? `${data.kpi.accordsActifs.enAlerte} expire(nt) bientôt`
+                  : undefined
           }
           onClick={() => navigate('/accords')}
         />
@@ -560,7 +578,9 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Alertes critiques ─────────────────────────────────────────── */}
-      {(data.accordsExpirant.length > 0 || data.couriersSansReponse.length > 0) && (
+      {(data.accordsExpirant.length > 0 ||
+        data.couriersSansReponse.length > 0 ||
+        data.accordsExpires.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Accords expirant */}
           {data.accordsExpirant.length > 0 && (
@@ -641,6 +661,51 @@ export default function DashboardPage() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* ── Accords expirés non traités ───────────────────────────── */}
+          {data.accordsExpires.length > 0 && (
+            <div className="card p-5 border-red-200 bg-red-50/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-anac-navy flex items-center gap-2">
+                  <AlertCircle size={14} className="text-red-500" />
+                  Accords expirés - action requise
+                </h3>
+                <button
+                  onClick={() => navigate('/accords?statut=expire')}
+                  className="text-xs text-anac-sky hover:text-anac-navy flex items-center gap-1"
+                >
+                  Voir tout <ArrowRight size={11} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {data.accordsExpires.map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate(`/accords/${a.id}`)}
+                    className="w-full text-left flex items-center justify-between py-2 border-b border-red-100 last:border-0 hover:opacity-80"
+                  >
+                    <div>
+                      <p className="text-xs font-medium text-anac-navy truncate max-w-[260px]">
+                        {a.titre}
+                      </p>
+                      <p className="text-[11px] font-mono text-anac-muted">{a.reference}</p>
+                    </div>
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="text-xs font-semibold text-red-600">
+                        Expiré depuis {a.joursDepuisExpiration}j
+                      </p>
+                      <p className="text-[11px] text-anac-muted">
+                        {new Date(a.dateExpiration).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-anac-muted mt-3">
+                Ces accords nécessitent une décision : renouvellement, suspension ou clôture.
+              </p>
             </div>
           )}
         </div>

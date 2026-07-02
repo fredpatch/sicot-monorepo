@@ -12,6 +12,7 @@ import {
   getDemandesParStatutChart,
   getDocumentsParCategorieChart,
   getActiviteRecenteList,
+  getAccordsExpirant,
 } from './dashboard.helpers';
 import type { DashboardData } from './dashboard.types';
 
@@ -28,6 +29,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   dans14jours.setDate(dans14jours.getDate() + 14);
 
   const accordsKpi = await getAccordsKpi(maintenant, dans90jours, dans30jours);
+  const { accordsExpires, nonTraites } = await getAccordsExpirant(maintenant);
   const courriersKpi = await getCourriersKpi(maintenant);
   const missionsKpi = await getMissionsKpi(maintenant, dans14jours);
   const comptesSimples = await getComptesSimples();
@@ -47,6 +49,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         total: accordsKpi.total,
         enAlerte: accordsKpi.enAlerteRows.length,
         critique: accordsKpi.critique,
+        expiresNonTraites: nonTraites,
       },
       couriersSansReponse: {
         total: courriersKpi.rows.length,
@@ -67,6 +70,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       },
     },
     accordsExpirant,
+    accordsExpires,
     couriersSansReponse,
     recommandationsEnAttente,
     notificationsRecentes,

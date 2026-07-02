@@ -26,6 +26,7 @@ import {
 import { accordsApi, documentsApi } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import HistoriqueNotifications from '@/pages/HistoriqueNotifications';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface OrganisationResume {
@@ -482,6 +483,9 @@ export default function CourrierDetail({
               </div>
             </div>
           )}
+
+          {/* ── Historique notifications ───────────────────────────── */}
+          <HistoriqueNotifications type="courrier_relance" entiteId={courrierId} />
 
           {/* ── Métadonnées ────────────────────────────────────────────── */}
           <div className="flex justify-between text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
