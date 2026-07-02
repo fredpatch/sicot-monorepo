@@ -1,23 +1,6 @@
 import { Request, Response } from 'express';
 import * as glossaireService from '../services/glossaire.service.js';
-
-// ── Gestion erreurs ────────────────────────────────────────────────────────
-function handleGlossaireError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    TERME_INTROUVABLE: { status: 404, message: 'Terme introuvable.' },
-  };
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[glossaire.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleGlossaireError } from '@/utils/error.js';
 
 // ── GET /api/glossaire ────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

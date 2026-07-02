@@ -1,64 +1,13 @@
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq, ilike, or, desc } from 'drizzle-orm';
-import { UserRole } from '@sicot/shared';
 import { generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendOTPEmail } from '@/utils/email';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { toUserView } from './users.helpers';
+import type { CreateUserParams, UpdateUserParams, UserFilters, UserView } from './users.types';
 
-// ── Types ─────────────────────────────────────────────────────────────────
-export interface CreateUserParams {
-  matricule: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  role: UserRole;
-  createdByUserId: number;
-}
-
-export interface UpdateUserParams {
-  role?: UserRole;
-  actif?: boolean;
-  updatedByUserId: number;
-}
-
-export interface UserFilters {
-  search?: string; // recherche sur matricule, nom, prénom
-  role?: UserRole;
-  actif?: boolean;
-  page?: number;
-  pageSize?: number;
-}
-
-// ── Vue publique d'un utilisateur ─────────────────────────────────────────
-// On n'expose jamais motDePasseHash, otpHash, etc.
-export interface UserView {
-  id: number;
-  matricule: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  role: UserRole;
-  actif: boolean;
-  premiereConnexion: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-function toUserView(user: typeof users.$inferSelect): UserView {
-  return {
-    id: user.id,
-    matricule: user.matricule,
-    nom: user.nom,
-    prenom: user.prenom,
-    email: user.email,
-    role: user.role,
-    actif: user.actif,
-    premiereConnexion: user.premiereConnexion,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
-}
+export type { CreateUserParams, UpdateUserParams, UserFilters, UserView } from './users.types';
 
 // ── SERVICE : Lister les utilisateurs ────────────────────────────────────
 export async function listerUtilisateurs(filters: UserFilters): Promise<{

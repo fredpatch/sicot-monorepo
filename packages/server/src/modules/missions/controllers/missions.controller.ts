@@ -1,40 +1,6 @@
 import { Request, Response } from 'express';
 import * as missionsService from '../services/missions.service.js';
-
-// ── Traduction des codes d'erreur ─────────────────────────────────────────
-function handleMissionsError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    MISSION_INTROUVABLE: { status: 404, message: 'Mission introuvable.' },
-    MISSION_ANNULEE: { status: 400, message: 'Une mission annulée ne peut pas être modifiée.' },
-    RECOMMANDATION_INTROUVABLE: { status: 404, message: 'Recommandation introuvable.' },
-    DATES_INVALIDES: {
-      status: 400,
-      message: 'La date de début doit être antérieure à la date de fin.',
-    },
-    CONTACT_INTROUVABLE: { status: 404, message: 'Contact introuvable.' },
-  };
-
-  // Gérer le cas PARTICIPANT_INTROUVABLE:ID
-  if (message.startsWith('PARTICIPANT_INTROUVABLE:')) {
-    const id = message.split(':')[1];
-    res.status(404).json({
-      message: `Participant introuvable (ID: ${id}).`,
-      code: 'PARTICIPANT_INTROUVABLE',
-    });
-    return;
-  }
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[missions.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleMissionsError } from '@/utils/error.js';
 
 // ── GET /api/missions ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

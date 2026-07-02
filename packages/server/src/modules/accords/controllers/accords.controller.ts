@@ -1,35 +1,6 @@
 import { Request, Response } from 'express';
 import * as accordsService from '../services/accords.service.js';
-
-// ── Traduction des codes d'erreur ─────────────────────────────────────────
-function handleAccordsError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    ACCORD_INTROUVABLE: { status: 404, message: 'Accord introuvable.' },
-    PARTENAIRES_REQUIS: { status: 400, message: 'Au moins un partenaire est requis.' },
-    ORGANISATION_INTROUVABLE: { status: 404, message: 'Organisation partenaire introuvable.' },
-  };
-
-  // Gérer le cas ORGANISATION_INTROUVABLE:ID
-  if (message.startsWith('ORGANISATION_INTROUVABLE:')) {
-    const id = message.split(':')[1];
-    res.status(404).json({
-      message: `Organisation partenaire introuvable (ID: ${id}).`,
-      code: 'ORGANISATION_INTROUVABLE',
-    });
-    return;
-  }
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[accords.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleAccordsError } from '@/utils/error.js';
 
 // ── GET /api/accords ──────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

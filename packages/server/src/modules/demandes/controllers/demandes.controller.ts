@@ -1,39 +1,6 @@
 import { Request, Response } from 'express';
 import * as demandesService from '../services/demandes.service.js';
-
-function handleDemandesError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    DEMANDE_INTROUVABLE: { status: 404, message: 'Demande introuvable.' },
-    DEMANDE_NON_DISPONIBLE: { status: 400, message: "Cette demande n'est plus disponible." },
-    DEMANDE_VERROUILEE: { status: 409, message: 'Cette demande a déjà été prise en charge.' },
-    DEMANDE_NON_AUTORISEE: {
-      status: 403,
-      message: "Vous n'êtes pas autorisé à effectuer cette action.",
-    },
-    DEMANDE_DEJA_PRISE: { status: 400, message: 'Cette demande est déjà en cours de traitement.' },
-    DEMANDE_STATUT_INVALIDE: {
-      status: 400,
-      message: 'Statut de la demande incompatible avec cette action.',
-    },
-    CONTENU_REQUIS: { status: 400, message: 'Un document ou un texte libre est requis.' },
-    DOCUMENT_INTROUVABLE: { status: 404, message: 'Document introuvable.' },
-    DOCUMENT_SANS_TEXTE_OCR: {
-      status: 400,
-      message: "Le document n'a pas de texte extrait (OCR requis).",
-    },
-  };
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[demandes.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleDemandesError } from '@/utils/error.js';
 
 // ── GET /api/demandes ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

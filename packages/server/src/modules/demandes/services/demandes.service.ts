@@ -1,103 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { db } from '@/db/index.js';
-import { demandesTraduction, traductions, documents, users } from '@/db/schema';
-import { eq, and, desc, isNull, isNotNull } from 'drizzle-orm';
+import { demandesTraduction, documents } from '@/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { lancerTraduction } from '../../traduction/services/traduction.service';
 import type { TraductionDirection } from '@/utils/traduction.js';
+import { toDemandeView, getTexteDocument } from './demandes.helpers';
+import type {
+  DemandeStatut,
+  DemandePriorite,
+  DemandeView,
+  CreerDemandeParams,
+  DemandeFilters,
+} from './demandes.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type DemandeStatut = 'soumise' | 'en_cours' | 'en_relecture' | 'validee' | 'archivee';
-
-export type DemandePriorite = 'normale' | 'urgente';
-
-export interface DemandeView {
-  id: number;
-  demandeurId: number;
-  demandeurNom?: string;
-  traducteurId?: number;
-  traducteurNom?: string;
-  documentId?: number;
-  documentNom?: string;
-  texteLibre?: string;
-  direction: TraductionDirection;
-  prioriteDemandee: DemandePriorite;
-  prioriteValidee?: DemandePriorite;
-  statut: DemandeStatut;
-  traductionId?: number;
-  verrou: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreerDemandeParams {
-  demandeurId: number;
-  documentId?: number;
-  texteLibre?: string;
-  direction: TraductionDirection;
-  priorite: DemandePriorite;
-}
-
-export interface DemandeFilters {
-  statut?: DemandeStatut;
-  priorite?: DemandePriorite;
-  demandeurId?: number;
-  traducteurId?: number;
-  page?: number;
-  pageSize?: number;
-}
-
-// ── Utilitaire ─────────────────────────────────────────────────────────────
-async function toDemandeView(d: typeof demandesTraduction.$inferSelect): Promise<DemandeView> {
-  // Charger demandeur
-  let demandeurNom: string | undefined;
-  if (d.demandeurId) {
-    const [u] = await db
-      .select({ nom: users.nom, prenom: users.prenom })
-      .from(users)
-      .where(eq(users.id, d.demandeurId));
-    if (u) demandeurNom = `${u.prenom} ${u.nom}`;
-  }
-
-  // Charger traducteur
-  let traducteurNom: string | undefined;
-  if (d.traducteurId) {
-    const [u] = await db
-      .select({ nom: users.nom, prenom: users.prenom })
-      .from(users)
-      .where(eq(users.id, d.traducteurId));
-    if (u) traducteurNom = `${u.prenom} ${u.nom}`;
-  }
-
-  // Charger nom document
-  let documentNom: string | undefined;
-  if (d.documentId) {
-    const [doc] = await db
-      .select({ nomOriginal: documents.nomOriginal })
-      .from(documents)
-      .where(eq(documents.id, d.documentId));
-    if (doc) documentNom = doc.nomOriginal;
-  }
-
-  return {
-    id: d.id,
-    demandeurId: d.demandeurId,
-    demandeurNom,
-    traducteurId: d.traducteurId ?? undefined,
-    traducteurNom,
-    documentId: d.documentId ?? undefined,
-    documentNom,
-    texteLibre: d.texteLibre ?? undefined,
-    direction: d.direction as TraductionDirection,
-    prioriteDemandee: d.prioriteDemandee as DemandePriorite,
-    prioriteValidee: d.prioriteValidee as DemandePriorite | undefined,
-    statut: d.statut as DemandeStatut,
-    traductionId: d.traductionId ?? undefined,
-    verrou: d.verrou,
-    createdAt: d.createdAt,
-    updatedAt: d.updatedAt,
-  };
-}
+export type {
+  DemandeStatut,
+  DemandePriorite,
+  DemandeView,
+  CreerDemandeParams,
+  DemandeFilters,
+} from './demandes.types';
 
 // ── SERVICE : Créer une demande ───────────────────────────────────────────
 export async function creerDemande(params: CreerDemandeParams): Promise<DemandeView> {
@@ -364,15 +286,4 @@ export async function archiverDemande(id: number, userId: number): Promise<Deman
   });
 
   return toDemandeView(updated);
-}
-
-// ── Utilitaire interne : récupérer le texte d'un document ────────────────
-async function getTexteDocument(documentId: number): Promise<string> {
-  const [doc] = await db
-    .select({ texteExtrait: documents.texteExtrait })
-    .from(documents)
-    .where(eq(documents.id, documentId));
-
-  if (!doc?.texteExtrait) throw new Error('DOCUMENT_SANS_TEXTE_OCR');
-  return doc.texteExtrait;
 }

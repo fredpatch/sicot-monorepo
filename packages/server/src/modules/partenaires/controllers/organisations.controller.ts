@@ -1,25 +1,6 @@
 import { Request, Response } from 'express';
 import * as organisationsService from '../services/organisations.service.js';
-
-// ── Traduction des codes d'erreur ─────────────────────────────────────────
-function handleOrganisationsError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    ORGANISATION_INTROUVABLE: { status: 404, message: 'Organisation introuvable.' },
-    ORGANISATION_EXISTANTE: { status: 409, message: 'Une organisation avec ce nom existe déjà.' },
-    CONTACT_INTROUVABLE: { status: 404, message: 'Contact introuvable.' },
-  };
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[organisations.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleOrganisationsError } from '@/utils/error.js';
 
 // ── GET /api/organisations ────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

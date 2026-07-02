@@ -1,32 +1,10 @@
 import { db } from '@/db';
 import { auditLogs, users } from '@/db/schema';
 import { eq, gte, lte, ilike, and, desc } from 'drizzle-orm';
+import { toAuditLogView } from './audit.helpers';
+import type { AuditFilters, AuditLogView } from './audit.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export interface AuditFilters {
-  userId?: number;
-  module?: string;
-  action?: string;
-  dateDebut?: Date;
-  dateFin?: Date;
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface AuditLogView {
-  id: number;
-  userId?: number;
-  userMatricule?: string;
-  userNom?: string;
-  userPrenom?: string;
-  action: string;
-  module: string;
-  entiteId?: number;
-  details?: Record<string, unknown>;
-  ip?: string;
-  createdAt: Date;
-}
+export type { AuditFilters, AuditLogView } from './audit.types';
 
 // ── SERVICE : Lister les entrées du journal ────────────────────────────────
 export async function listerAuditLogs(filters: AuditFilters): Promise<{
@@ -77,19 +55,7 @@ export async function listerAuditLogs(filters: AuditFilters): Promise<{
     .limit(pageSize)
     .offset(offset);
 
-  const data: AuditLogView[] = rows.map(({ log, user }) => ({
-    id: log.id,
-    userId: log.userId ?? undefined,
-    userMatricule: user?.matricule,
-    userNom: user?.nom,
-    userPrenom: user?.prenom,
-    action: log.action,
-    module: log.module,
-    entiteId: log.entiteId ?? undefined,
-    details: log.details as Record<string, unknown> | undefined,
-    ip: log.ip ?? undefined,
-    createdAt: log.createdAt,
-  }));
+  const data: AuditLogView[] = rows.map(toAuditLogView);
 
   // Compte total pour la pagination
   const total = await db.$count(auditLogs, conditions.length > 0 ? and(...conditions) : undefined);
@@ -114,19 +80,7 @@ export async function getAuditLog(id: number): Promise<AuditLogView> {
 
   if (!row) throw new Error('AUDIT_LOG_INTROUVABLE');
 
-  return {
-    id: row.log.id,
-    userId: row.log.userId ?? undefined,
-    userMatricule: row.user?.matricule,
-    userNom: row.user?.nom,
-    userPrenom: row.user?.prenom,
-    action: row.log.action,
-    module: row.log.module,
-    entiteId: row.log.entiteId ?? undefined,
-    details: row.log.details as Record<string, unknown> | undefined,
-    ip: row.log.ip ?? undefined,
-    createdAt: row.log.createdAt,
-  };
+  return toAuditLogView(row);
 }
 
 // ── SERVICE : Liste des modules distincts ──────────────────────────────────

@@ -1,231 +1,45 @@
 import { db } from '@/db/index';
-import {
-  missions,
-  missionParticipants,
-  recommandations,
-  users,
-  contacts,
-  organisations,
-} from '@/db/schema';
+import { missions, missionParticipants, recommandations, users, contacts } from '@/db/schema';
 import { eq, ilike, and, or, desc, isNotNull } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { sendRecommandationEmail } from '@/utils/email';
+import {
+  getParticipantsMission,
+  getRecommandationsMission,
+  toMissionView,
+  toRecommandationView,
+  getContactSurPlace,
+  getResponsableSansEmail,
+} from './missions.helpers';
+import type {
+  MissionStatut,
+  RecommandationStatut,
+  LogistiqueStatut,
+  ContactResume,
+  CreateMissionParams,
+  UpdateMissionParams,
+  CreateRecommandationParams,
+  UpdateRecommandationParams,
+  MissionFilters,
+  ParticipantResume,
+  RecommandationView,
+  MissionView,
+} from './missions.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type MissionStatut = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
-export type RecommandationStatut = 'en_attente' | 'en_cours' | 'realisee';
-export type LogistiqueStatut = 'a_planifier' | 'en_cours' | 'confirme';
-
-// Type contact sur place
-export interface ContactResume {
-  id: number;
-  nom: string;
-  prenom: string;
-  email?: string;
-  telephone?: string;
-  poste?: string;
-  organisationNom?: string;
-}
-
-export interface CreateMissionParams {
-  titre: string;
-  destination: string;
-  pays: string;
-  dateDebut: Date;
-  dateFin: Date;
-  participantsIds: number[];
-  contactSurPlaceId?: number;
-  createdByUserId: number;
-}
-
-export interface UpdateMissionParams {
-  titre?: string;
-  destination?: string;
-  pays?: string;
-  dateDebut?: Date;
-  dateFin?: Date;
-  statut?: MissionStatut;
-  participantsIds?: number[];
-  confirmationLogistique?: LogistiqueStatut;
-  contactSurPlaceId?: number;
-  rapportDocumentId?: number;
-  updatedByUserId: number;
-}
-
-export interface CreateRecommandationParams {
-  missionId: number;
-  texte: string;
-  responsableId?: number;
-  dateLimite?: Date;
-  createdByUserId: number;
-}
-
-export interface UpdateRecommandationParams {
-  texte?: string;
-  responsableId?: number;
-  dateLimite?: Date;
-  statut?: RecommandationStatut;
-  updatedByUserId: number;
-}
-
-export interface MissionFilters {
-  search?: string;
-  statut?: MissionStatut;
-  pays?: string;
-  participantId?: number;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface ParticipantResume {
-  id: number;
-  matricule: string;
-  nom: string;
-  prenom: string;
-  email?: string; // ← ajouter
-}
-
-export interface RecommandationView {
-  id: number;
-  missionId: number;
-  texte: string;
-  responsableId?: number;
-  responsable?: ParticipantResume;
-  dateLimite?: Date;
-  statut: RecommandationStatut;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface MissionView {
-  id: number;
-  titre: string;
-  destination: string;
-  pays: string;
-  dateDebut: Date;
-  dateFin: Date;
-  statut: MissionStatut;
-  participants: ParticipantResume[];
-  recommandations?: RecommandationView[];
-  confirmationLogistique: LogistiqueStatut;
-  contactSurPlace?: ContactResume;
-  rapportDocumentId?: number;
-  createdPar?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// ── Utilitaires ────────────────────────────────────────────────────────────
-async function getParticipantsMission(missionId: number): Promise<ParticipantResume[]> {
-  const rows = await db
-    .select({
-      id: users.id,
-      matricule: users.matricule,
-      nom: users.nom,
-      prenom: users.prenom,
-    })
-    .from(missionParticipants)
-    .innerJoin(users, eq(missionParticipants.userId, users.id))
-    .where(eq(missionParticipants.missionId, missionId));
-
-  return rows;
-}
-
-async function getRecommandationsMission(missionId: number): Promise<RecommandationView[]> {
-  const rows = await db
-    .select()
-    .from(recommandations)
-    .where(eq(recommandations.missionId, missionId))
-    .orderBy(recommandations.createdAt);
-
-  return Promise.all(
-    rows.map(async (rec) => {
-      let responsable: ParticipantResume | undefined;
-
-      if (rec.responsableId) {
-        const [user] = await db
-          .select({
-            id: users.id,
-            matricule: users.matricule,
-            nom: users.nom,
-            prenom: users.prenom,
-            email: users.email, // ← ajouter
-          })
-          .from(users)
-          .where(eq(users.id, rec.responsableId));
-        responsable = user;
-      }
-
-      return {
-        id: rec.id,
-        missionId: rec.missionId,
-        texte: rec.texte,
-        responsableId: rec.responsableId ?? undefined,
-        responsable,
-        dateLimite: rec.dateLimite ?? undefined,
-        statut: rec.statut as RecommandationStatut,
-        createdAt: rec.createdAt,
-        updatedAt: rec.updatedAt,
-      };
-    })
-  );
-}
-
-function toMissionView(
-  mission: typeof missions.$inferSelect,
-  participants: ParticipantResume[],
-  recommandationsList?: RecommandationView[],
-  contactSurPlace?: ContactResume
-): MissionView {
-  return {
-    id: mission.id,
-    titre: mission.titre,
-    destination: mission.destination,
-    pays: mission.pays,
-    dateDebut: mission.dateDebut,
-    dateFin: mission.dateFin,
-    statut: mission.statut as MissionStatut,
-    participants,
-    recommandations: recommandationsList,
-    rapportDocumentId: mission.rapportDocumentId ?? undefined,
-    confirmationLogistique: mission.confirmationLogistique as LogistiqueStatut,
-    contactSurPlace,
-    createdPar: mission.createdPar ?? undefined,
-    createdAt: mission.createdAt,
-    updatedAt: mission.updatedAt,
-  };
-}
-
-// ── SERVICE : Récupérer un contact sur place ───────────────────────────────
-async function getContactSurPlace(contactId?: number): Promise<ContactResume | undefined> {
-  if (!contactId) return undefined;
-
-  const [contact] = await db
-    .select({
-      id: contacts.id,
-      nom: contacts.nom,
-      prenom: contacts.prenom,
-      email: contacts.email,
-      telephone: contacts.telephone,
-      poste: contacts.poste,
-      organisationNom: organisations.nom,
-    })
-    .from(contacts)
-    .innerJoin(organisations, eq(contacts.organisationId, organisations.id))
-    .where(eq(contacts.id, contactId));
-
-  if (!contact) return undefined;
-
-  return {
-    id: contact.id,
-    nom: contact.nom,
-    prenom: contact.prenom,
-    email: contact.email ?? undefined,
-    telephone: contact.telephone ?? undefined,
-    poste: contact.poste ?? undefined,
-    organisationNom: contact.organisationNom,
-  };
-}
+export type {
+  MissionStatut,
+  RecommandationStatut,
+  LogistiqueStatut,
+  ContactResume,
+  CreateMissionParams,
+  UpdateMissionParams,
+  CreateRecommandationParams,
+  UpdateRecommandationParams,
+  MissionFilters,
+  ParticipantResume,
+  RecommandationView,
+  MissionView,
+} from './missions.types';
 
 // ── SERVICE : Lister les missions ─────────────────────────────────────────
 export async function listerMissions(filters: MissionFilters): Promise<{
@@ -463,16 +277,7 @@ export async function ajouterRecommandation(
     details: { missionId: params.missionId },
   });
 
-  return {
-    id: rec.id,
-    missionId: rec.missionId,
-    texte: rec.texte,
-    responsableId: rec.responsableId ?? undefined,
-    dateLimite: rec.dateLimite ?? undefined,
-    statut: rec.statut as RecommandationStatut,
-    createdAt: rec.createdAt,
-    updatedAt: rec.updatedAt,
-  };
+  return toRecommandationView(rec);
 }
 
 // ── SERVICE : Mettre à jour une recommandation ────────────────────────────
@@ -504,16 +309,7 @@ export async function mettreAJourRecommandation(
     details: updates,
   });
 
-  return {
-    id: updated.id,
-    missionId: updated.missionId,
-    texte: updated.texte,
-    responsableId: updated.responsableId ?? undefined,
-    dateLimite: updated.dateLimite ?? undefined,
-    statut: updated.statut as RecommandationStatut,
-    createdAt: updated.createdAt,
-    updatedAt: updated.updatedAt,
-  };
+  return toRecommandationView(updated);
 }
 
 // ── SERVICE : Recommandations en attente ──────────────────────────────────
@@ -527,31 +323,10 @@ export async function getRecommandationsEnAttente(): Promise<RecommandationView[
 
   return Promise.all(
     rows.map(async (rec) => {
-      let responsable: ParticipantResume | undefined;
-      if (rec.responsableId) {
-        const [user] = await db
-          .select({
-            id: users.id,
-            matricule: users.matricule,
-            nom: users.nom,
-            prenom: users.prenom,
-          })
-          .from(users)
-          .where(eq(users.id, rec.responsableId));
-        responsable = user;
-      }
-
-      return {
-        id: rec.id,
-        missionId: rec.missionId,
-        texte: rec.texte,
-        responsableId: rec.responsableId ?? undefined,
-        responsable,
-        dateLimite: rec.dateLimite ?? undefined,
-        statut: rec.statut as RecommandationStatut,
-        createdAt: rec.createdAt,
-        updatedAt: rec.updatedAt,
-      };
+      const responsable = rec.responsableId
+        ? await getResponsableSansEmail(rec.responsableId)
+        : undefined;
+      return toRecommandationView(rec, responsable);
     })
   );
 }

@@ -1,26 +1,6 @@
 import { Request, Response } from 'express';
 import * as courriersService from '../services/courriers.service';
-
-// ── Traduction des codes d'erreur ─────────────────────────────────────────
-function handleCourriersError(res: Response, error: unknown): void {
-  const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
-
-  const errorMap: Record<string, { status: number; message: string }> = {
-    COURRIER_INTROUVABLE: { status: 404, message: 'Courrier introuvable.' },
-    COURRIER_PARENT_INTROUVABLE: { status: 404, message: 'Courrier parent introuvable.' },
-    ACCORD_INTROUVABLE: { status: 404, message: 'Accord introuvable.' },
-    MISSION_INTROUVABLE: { status: 404, message: 'Mission introuvable.' },
-  };
-
-  const mapped = errorMap[message];
-  if (mapped) {
-    res.status(mapped.status).json({ message: mapped.message, code: message });
-    return;
-  }
-
-  console.error('[courriers.controller]', error);
-  res.status(500).json({ message: 'Erreur interne du serveur.' });
-}
+import { handleCourriersError } from '@/utils/error.js';
 
 // ── GET /api/courriers ────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {

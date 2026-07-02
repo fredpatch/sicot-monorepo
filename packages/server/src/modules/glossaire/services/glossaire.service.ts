@@ -2,69 +2,22 @@ import { db } from '@/db/index.js';
 import { glossaire, glossaireHistorique, users } from '@/db/schema';
 import { eq, ilike, and, or, desc, asc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { toTermeView } from './glossaire.helpers';
+import type {
+  CreateTermeParams,
+  UpdateTermeParams,
+  GlossaireFilters,
+  HistoriqueEntry,
+  TermeView,
+} from './glossaire.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export interface CreateTermeParams {
-  termeFr: string;
-  termeEn: string;
-  domaine?: string;
-  contexte?: string;
-  createdByUserId: number;
-}
-
-export interface UpdateTermeParams {
-  termeFr?: string;
-  termeEn?: string;
-  domaine?: string;
-  contexte?: string;
-  actif?: boolean;
-  updatedByUserId: number;
-}
-
-export interface GlossaireFilters {
-  search?: string;
-  domaine?: string;
-  actif?: boolean;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface HistoriqueEntry {
-  id: number;
-  ancienTermeFr?: string;
-  ancienTermeEn?: string;
-  modifiePar?: number;
-  modifieParNom?: string;
-  createdAt: Date;
-}
-
-export interface TermeView {
-  id: number;
-  termeFr: string;
-  termeEn: string;
-  domaine?: string;
-  contexte?: string;
-  actif: boolean;
-  createdPar?: number;
-  createdAt: Date;
-  updatedAt: Date;
-  historique?: HistoriqueEntry[];
-}
-
-// ── Utilitaire ─────────────────────────────────────────────────────────────
-function toTermeView(terme: typeof glossaire.$inferSelect): TermeView {
-  return {
-    id: terme.id,
-    termeFr: terme.termeFr,
-    termeEn: terme.termeEn,
-    domaine: terme.domaine ?? undefined,
-    contexte: terme.contexte ?? undefined,
-    actif: terme.actif,
-    createdPar: terme.createdPar ?? undefined,
-    createdAt: terme.createdAt,
-    updatedAt: terme.updatedAt,
-  };
-}
+export type {
+  CreateTermeParams,
+  UpdateTermeParams,
+  GlossaireFilters,
+  HistoriqueEntry,
+  TermeView,
+} from './glossaire.types';
 
 // ── SERVICE : Lister les termes ────────────────────────────────────────────
 export async function listerTermes(filters: GlossaireFilters): Promise<{

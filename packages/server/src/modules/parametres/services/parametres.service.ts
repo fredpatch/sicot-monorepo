@@ -2,47 +2,10 @@ import { db } from '@/db/index.js';
 import { parametres } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
+import { toParametreView, validerValeur } from './parametres.helpers';
+import type { ParametreType, ParametreView } from './parametres.types';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-export type ParametreType = 'entier' | 'booleen' | 'texte';
-
-export interface ParametreView {
-  id: number;
-  cle: string;
-  valeur: string;
-  type: ParametreType;
-  module: string;
-  description?: string;
-  modifiePar?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// ── Utilitaire ─────────────────────────────────────────────────────────────
-function toParametreView(p: typeof parametres.$inferSelect): ParametreView {
-  return {
-    id: p.id,
-    cle: p.cle,
-    valeur: p.valeur,
-    type: p.type as ParametreType,
-    module: p.module,
-    description: p.description ?? undefined,
-    modifiePar: p.modifiePar ?? undefined,
-    createdAt: p.createdAt,
-    updatedAt: p.updatedAt,
-  };
-}
-
-// ── Validation de la valeur selon son type ────────────────────────────────
-function validerValeur(valeur: string, type: ParametreType): void {
-  if (type === 'entier' && !/^\d+$/.test(valeur)) {
-    throw new Error('VALEUR_INVALIDE_ENTIER');
-  }
-  if (type === 'booleen' && !['true', 'false'].includes(valeur)) {
-    throw new Error('VALEUR_INVALIDE_BOOLEEN');
-  }
-  // texte : pas de contrainte particulière
-}
+export type { ParametreType, ParametreView } from './parametres.types';
 
 // ── SERVICE : Lister tous les paramètres ──────────────────────────────────
 export async function listerParametres(module?: string): Promise<ParametreView[]> {
