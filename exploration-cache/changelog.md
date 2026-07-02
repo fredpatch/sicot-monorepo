@@ -1,5 +1,25 @@
 # 📝 SICOT – Changelog
 
+## [dd2809d] — 2026-07-02 — refactor(server): split module services into types/helpers, centralize error handlers
+
+### Changed — all 13 server modules (mechanical split, no behavior change)
+- `packages/server/src/modules/{parametres,audit,notifications,users,auth,glossaire,demandes,partenaires,traduction,accords,courriers,dasboard,missions}/services/*.service.ts` — split into `.types.ts` + `.helpers.ts` + slim `.service.ts`
+- `packages/server/src/utils/error.ts` — `createErrorHandler` factory gained optional `prefixHandlers` for dynamic error codes; now hosts handlers for glossaire, parametres, organisations, courriers, traduction, demandes, accords, missions (in addition to pre-existing auth/users/audit)
+- 8 controllers (`glossaire`, `parametres`, `organisations`, `courriers`, `traduction`, `demandes`, `accords`, `missions`) — inline `errorMap` closures removed, now import shared handlers from `utils/error.ts`
+
+### De-duplicated
+- `audit.service.ts` — row→view mapping (2x) → `toAuditLogView`
+- `courriers.service.ts` — seuils reloaded 5x → `chargerSeuils()`
+- `dashboard.service.ts` — monolithic ~350-line `getDashboardData` → 13 named per-section query functions in `dashboard.helpers.ts`; day-diff calc (3x) → `getDaysDiff`
+- `missions.service.ts` — RecommandationView shaping (3x) → `toRecommandationView`
+
+### Notes
+- `auth.service.ts`'s `logAudit` intentionally left at its original export path — imported repo-wide
+- `packages/server/src/utils/{email.ts,error.ts,traduction.ts}` also had a prior-session split (email templates → `email.templates.ts`, traduction types → `traduction.types.ts`) folded into this commit
+- Verified with `tsc --noEmit` after every file — zero new type errors vs. clean-main baseline
+
+---
+
 ## [ccbd3f2] — 2026-06-30 — feat(sprint5): Jobs module (REGISTRE_JOBS) + major page + service refinements
 
 ### Added — Jobs module (M10 admin)
