@@ -35,6 +35,7 @@ import {
 import { missionsApi, type MissionStatut, type RecommandationStatut } from '@/lib/missions.api';
 import { documentsApi } from '@/lib/documents.api';
 import { usersApi } from '@/lib/users.api';
+import HistoriqueNotifications from '@/pages/HistoriqueNotifications';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface ParticipantResume {
@@ -637,6 +638,9 @@ export default function MissionDetail({ missionId, onRetour, onModifier }: Missi
                           )}
                         </div>
                       </div>
+
+                      {/* ── Historique notifications ───────────────────────────── */}
+                      <HistoriqueNotifications type="recommandation_rappel" entiteId={rec.id} />
 
                       <div className="flex items-center gap-4 flex-wrap">
                         <BadgeRec statut={rec.statut} />

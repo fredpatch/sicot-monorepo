@@ -271,94 +271,95 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Remise manuels utilisateurs et guide administrateur**
 - [ ] **Plan de maintenance évolutive et corrective** - Documenté par le Service Informatique
 
-## Sprint 8 – Centre de Notifications & Rappels CCIT (transverse M1+M3+M4+M9) | 🔶 EN COURS
+## Sprint 8 – Centre de Notifications & Rappels CCIT (transverse M1+M3+M4+M9) | ✅ COMPLÉTÉ
 
 ### Principe directeur — validé avec CCIT (juin 2026)
 
 **Toutes les alertes système (cron, seuils dépassés) sont envoyées à la CCIT en premier — jamais directement à l'agent, au demandeur, ou à la DG.** C'est la CCIT qui juge de la pertinence et de l'opportunité d'une relance. Une fois informée, la CCIT peut déclencher manuellement, depuis l'interface, une notification ciblée vers la personne ou le service concerné (email avec message contextualisé). Aucun envoi automatique vers un tiers externe à la CCIT.
 
-- [x] ~~**Table `parametres` (Administration)**~~ - Stockage clé-valeur générique (cle/valeur/type/module), enum entier/booleen/texte, seed 4 valeurs par défaut (juin 2026)
-- [x] ~~**Refactor cron alertes.ts**~~ - Lecture de `accord_alerte_jours` depuis parametres (défaut 90j), paliers 1/3-2/3-complet calculés dynamiquement, zéro régression sur comportement 30/60/90j existant (juin 2026)
-- [x] ~~**Table `notifications`**~~ - Historique complet : type, entiteId, destinataireEmail/Nom, message, declenchePar, statut envoyee/echec, erreur (juin 2026)
-- [x] ~~**Service `notifications.service.ts`**~~ - envoyerNotificationCiblee, verifierDejaNotifieAujourdhui (non bloquant), getHistoriqueEntite, getNotificationsRecentes (juin 2026)
-- [x] ~~**Bouton "Relancer" sur AccordDetail**~~ - ModalRelance branchée, destinataires suggérés = contacts principaux des partenaires (juin 2026)
-- [x] ~~**Bouton "Relancer" sur CourrierDetail**~~ - ModalRelance branchée, destinataire = contact principal expéditeur/destinataire selon direction, message pré-rempli avec contexte (juin 2026)
-- [x] ~~**Bouton "Relancer responsable" sur recommandation (MissionDetail)**~~ - ModalRelance par recommandation, fallback saisie libre si responsable sans email (juin 2026)
-- [x] ~~**Indicateur visuel de criticité Courriers — 3 paliers**~~ - normal / à surveiller / critique, seuils lus depuis parametres, badge couleur cohérent sur CourriersPage, CourrierDetail et dashboard (juin 2026)
-- [x] ~~**Bloc dashboard "Notifications envoyées récemment"**~~ - Traçabilité visible pour CCIT — qui a été relancé, quand, par qui, navigation directe vers l'entité (juin 2026)
-- [x] ~~**KPI dashboard enrichis avec criticité réelle**~~ - Accords/Courriers/Missions/Recommandations portent leur propre niveau d'alerte (normal/alerte/critique) avec sous-ligne contextuelle, plus de compteurs neutres (juin 2026)
-- [x] ~~**Filtre "Accords par partenaire" sur AccordsPage**~~ - Filtre back-end `partenairesId` branché, sélecteur organisation côté UI (juin 2026)
-- [x] ~~**Navigation croisée M2→M1**~~ - Bouton "Accords" sur PartenairesPage, lecture du param URL `partenaireId`, indicateur de filtre actif avec possibilité de réinitialiser (juin 2026)
-- [x] ~~**Champ `confirmationLogistique` sur Mission**~~ - Enum a_planifier/en_cours/confirme, badge sur MissionDetail, alerte si départ sous 14j sans confirmation (juin 2026)
-- [x] ~~**Champ `contactSurPlaceId` sur Mission**~~ - Lien optionnel vers un contact M2, affiché sur MissionDetail avec email/téléphone, sélectionnable dans MissionFormPage (juin 2026)
-- [x] ~~**AdminParametresPage.tsx**~~ - Interface CRUD groupée par module, validation par type, modification réservée super_admin (lecture admin) (juin 2026)
-- [x] ~~**Registre de jobs manuels (`src/jobs/registre.ts`)**~~ - Pattern extensible pour piloter les crons depuis l'UI, prêt à recevoir le futur job M9 rapport mensuel (juin 2026)
-- [x] ~~**Jobs manuels — accords**~~ - Mise à jour statuts expirés, alertes échéances, retours structurés (nombre traité, références, emails envoyés/échecs) (juin 2026)
-- [x] ~~**Jobs manuels — sauvegardes**~~ - Backup local + backup NAS déclenchables séparément, retour structuré (nom fichier, taille Mo) (juin 2026)
-- [x] ~~**Jobs manuels — courriers et recommandations**~~ - Vérification criticité courriers (3 paliers) et recommandations en retard, déclenchables à la demande (juin 2026)
-- [x] ~~**Permissions différenciées sur jobs**~~ - `roleMinimum` par job : admin pour vérifications courantes, super_admin pour sauvegardes (locale/NAS), bouton désactivé côté UI si rôle insuffisant (juin 2026)
-- [ ] **Bloc historique notifications par entité visible directement sur Accord/Courrier/MissionDetail** - Actuellement uniquement visible dans la ModalRelance au moment de l'ouvrir, pas en lecture passive sur la fiche
+- [x] ~~**Table `parametres` (Administration)**~~ - Stockage clé-valeur générique (cle/valeur/type/module), enum entier/booleen/texte, seed 4 valeurs par défaut (juillet 2026)
+- [x] ~~**Refactor cron alertes.ts**~~ - Lecture de `accord_alerte_jours` depuis parametres (défaut 90j), paliers 1/3-2/3-complet calculés dynamiquement (juillet 2026)
+- [x] ~~**Job `mettreAJourAccordsExpires`**~~ - Cron 08h00 + déclenchement manuel, corrige les accords dont dateExpiration est dépassée mais statut resté "actif" (juillet 2026)
+- [x] ~~**Table `notifications`**~~ - Historique complet : type, entiteId, destinataireEmail/Nom, message, declenchePar, statut envoyee/echec, erreur (juillet 2026)
+- [x] ~~**Service `notifications.service.ts`**~~ - envoyerNotificationCiblee, verifierDejaNotifieAujourdhui (non bloquant), getHistoriqueEntite, getNotificationsRecentes (juillet 2026)
+- [x] ~~**`ModalRelance.tsx` composant réutilisable**~~ - Sélecteur destinataire suggéré/libre, historique compact, avertissement double-envoi jour même (juillet 2026)
+- [x] ~~**Bouton "Relancer" sur AccordDetail**~~ - ModalRelance branchée, destinataires suggérés = contacts principaux des partenaires, bouton "Notifier tous" si plusieurs partenaires avec email (juillet 2026)
+- [x] ~~**Bouton "Relancer" sur CourrierDetail**~~ - ModalRelance branchée, destinataire = contact principal expéditeur/destinataire selon direction, message pré-rempli avec contexte (juillet 2026)
+- [x] ~~**Bouton "Relancer responsable" sur recommandation (MissionDetail)**~~ - ModalRelance par recommandation, fallback saisie libre si responsable sans email (juillet 2026)
+- [x] ~~**`HistoriqueNotifications.tsx` composant réutilisable**~~ - Affiché en lecture passive sur AccordDetail, CourrierDetail, et par recommandation sur MissionDetail (juillet 2026)
+- [x] ~~**Indicateur visuel de criticité Courriers — 3 paliers**~~ - normal / à surveiller / critique, seuils lus depuis parametres, badge couleur sur CourriersPage, CourrierDetail et dashboard (juillet 2026)
+- [x] ~~**Bloc dashboard "Notifications envoyées récemment"**~~ - Traçabilité visible pour CCIT, navigation directe vers l'entité (juillet 2026)
+- [x] ~~**Bloc dashboard "Accords expirés — action requise"**~~ - Liste des accords expiré(s) avec jours depuis expiration, lien direct vers la fiche, message d'invite à décider (juillet 2026)
+- [x] ~~**KPI dashboard enrichis avec criticité réelle**~~ - Accords/Courriers/Missions/Recommandations portent leur propre niveau d'alerte avec sous-ligne contextuelle, compteur accords expirés inclus dans KPI accords (juillet 2026)
+- [x] ~~**Filtre "Accords par partenaire" sur AccordsPage**~~ - Filtre back-end `partenairesId` branché, sélecteur organisation côté UI (juillet 2026)
+- [x] ~~**Navigation croisée M2→M1**~~ - Bouton "Accords" sur PartenairesPage, lecture param URL `partenaireId`, indicateur de filtre actif (juillet 2026)
+- [x] ~~**Champ `confirmationLogistique` sur Mission**~~ - Enum a_planifier/en_cours/confirme, badge sur MissionDetail, alerte si départ sous 14j sans confirmation (juillet 2026)
+- [x] ~~**Champ `contactSurPlaceId` sur Mission**~~ - Lien optionnel vers un contact M2, affiché sur MissionDetail avec email/téléphone, sélectionnable dans MissionFormPage (juillet 2026)
+- [x] ~~**AdminParametresPage.tsx**~~ - Interface CRUD groupée par module, validation par type, modification réservée super_admin (juillet 2026)
+- [x] ~~**Registre de jobs manuels (`src/jobs/registre.ts`)**~~ - Pattern extensible avec roleMinimum par job, 6 jobs enregistrés : accords x2 (expiration + alertes), courriers criticité, recommandations retard, backup local, backup NAS (juillet 2026)
+- [x] ~~**Permissions différenciées sur jobs**~~ - admin pour vérifications courantes, super_admin pour sauvegardes, bouton désactivé côté UI si rôle insuffisant (juillet 2026)
 
 ### Edge cases couverts
 
-- [x] ~~Notification déclenchée deux fois le même jour~~ - Avertissement non bloquant affiché dans ModalRelance via historique du jour (juin 2026)
-- [x] ~~Contact destinataire sans email renseigné~~ - Fallback automatique sur "Saisir un email" si aucun contact principal avec email trouvé (juin 2026)
-- [x] ~~Recommandation sans responsable assigné~~ - destinatairesSuggeres vide → bascule sur saisie libre, CCIT peut relancer qui elle juge pertinent (juin 2026)
-- [x] ~~Accord déjà expiré mais statut BDD resté "actif"~~ - Job `accords_expiration` corrige automatiquement (cron 08h00 ou déclenchement manuel), source de vérité unique sur le statut (juin 2026)
-- [x] ~~Jobs cron non fiables en environnement dev (redémarrages fréquents)~~ - Registre de jobs manuels avec déclenchement à la demande depuis l'UI admin (juin 2026)
-- [x] ~~Seed table parametres non exécuté → fallback codé en dur silencieux~~ - Identifié et corrigé manuellement ; à surveiller en migration production (juin 2026)
-- [ ] Accord avec plusieurs partenaires → notification doit lister tous les partenaires concernés, pas juste le premier (actuellement : un seul destinataire par envoi, à itérer)
-- [ ] pg_dump introuvable en PATH Windows dev → documenté (PG_DUMP_PATH dans .env), à valider que ça ne pose pas le même souci sur SERV-APPI (Linux) en production
+- [x] ~~Notification déclenchée deux fois le même jour~~ - Avertissement non bloquant dans ModalRelance (juillet 2026)
+- [x] ~~Contact destinataire sans email renseigné~~ - Fallback automatique sur saisie libre (juillet 2026)
+- [x] ~~Recommandation sans responsable assigné~~ - Bascule sur saisie libre, CCIT choisit le destinataire (juillet 2026)
+- [x] ~~Accord avec plusieurs partenaires — notification unique~~ - Bouton "Notifier tous" envoie en séquence à chaque contact principal, rapport envoyes/ignores détaillé (juillet 2026)
+- [x] ~~Accord expiré mais statut BDD resté "actif"~~ - Job `accords_expiration` corrige (cron 08h00 ou manuel), bloc dashboard dédié "Accords expirés — action requise" (juillet 2026)
+- [x] ~~Jobs cron non fiables en environnement dev~~ - Registre de jobs manuels pilotable depuis l'UI admin (juillet 2026)
+- [x] ~~Seed table parametres non exécuté~~ - Identifié et corrigé ; à surveiller en migration production (juillet 2026)
+- [x] ~~pg_dump introuvable en PATH Windows dev~~ - Documenté : PG_DUMP_PATH + BACKUP_LOCAL_DIR dans .env (juillet 2026)
+- [ ] pg_dump sur SERV-APPI (Linux production) — à valider que pg_dump est accessible en PATH sur l'environnement de production
 
 ### Fichiers complétés Sprint 8
 
 **Serveur**
 
-- [x] ~~`src/services/parametres.service.ts`~~ - listerParametres, getParametre, getValeurEntier, getValeurBooleen, mettreAJourParametre, creerParametre, validation par type (juin 2026)
-- [x] ~~`src/controllers/parametres.controller.ts`~~ - lister, getByCle, mettreAJour (juin 2026)
-- [x] ~~`src/routes/parametres.ts`~~ - GET / (admin), GET /:cle (admin), PATCH /:cle (super_admin uniquement) (juin 2026)
-- [x] ~~`src/jobs/alertes.ts`~~ - mettreAJourAccordsExpires et envoyerAlertesAccords refactorés avec retours structurés (nombreMisAJour, références, accordsNotifies, emailsEnvoyes/Echecs) (juin 2026)
-- [x] ~~`src/jobs/backup.ts`~~ - effectuerSauvegarde et declencherSauvegardeManuelle avec retours structurés (succes, nomFichier, tailleMo, erreur), BACKUP_LOCAL_DIR/BACKUP_NAS_DIR exportés (juin 2026)
-- [x] ~~`src/jobs/registre.ts`~~ - REGISTRE_JOBS extensible avec roleMinimum par job, 7 jobs enregistrés (accords x2, courriers, recommandations, backup x2 local/NAS) (juin 2026)
-- [x] ~~`src/services/jobs.service.ts`~~ - listerJobs, executerJobManuel avec vérification roleMinimum et logAudit succès/échec (juin 2026)
-- [x] ~~`src/controllers/jobs.controller.ts`~~ - lister, executer avec gestion erreur ROLE_INSUFFISANT (403) (juin 2026)
-- [x] ~~`src/routes/jobs.ts`~~ - GET / (admin), POST /:cle/executer (admin, contrôle fin par job dans le service) (juin 2026)
-- [x] ~~`src/services/notifications.service.ts`~~ - envoyerNotificationCiblee, verifierDejaNotifieAujourdhui, getHistoriqueEntite, getNotificationsRecentes (juin 2026)
-- [x] ~~`src/controllers/notifications.controller.ts`~~ - envoyer, historiqueEntite, recentes (juin 2026)
-- [x] ~~`src/routes/notifications.ts`~~ - POST /envoyer (admin), GET /historique/:type/:entiteId, GET /recentes (admin) (juin 2026)
-- [x] ~~`src/utils/email.ts`~~ - sendNotificationManuelle ajoutée, template HTML générique relance CCIT (juin 2026)
-- [x] ~~`src/services/accords.service.ts`~~ - getPartenairesAccord enrichi avec contactPrincipal (email/téléphone), filtre partenairesId branché dans listerAccords (juin 2026)
-- [x] ~~`src/services/courriers.service.ts`~~ - getOrganisationAvecContact, toCourrierView async avec calcul criticite/joursAttente via seuils parametres (juin 2026)
-- [x] ~~`src/services/missions.service.ts`~~ - ParticipantResume enrichi avec email, contactSurPlaceId/confirmationLogistique dans Create/UpdateMissionParams et MissionView, ContactResume + getContactSurPlace (juin 2026)
-- [x] ~~`src/services/dashboard.service.ts`~~ - KPI enrichis (objets avec total/enAlerte/critique au lieu de nombres simples), nettoyage du bloc Promise.all mort code, notificationsRecentes intégré (juin 2026)
+- [x] ~~`src/services/parametres.service.ts`~~ - listerParametres, getParametre, getValeurEntier, getValeurBooleen, mettreAJourParametre, creerParametre (juillet 2026)
+- [x] ~~`src/controllers/parametres.controller.ts`~~ - lister, getByCle, mettreAJour (juillet 2026)
+- [x] ~~`src/routes/parametres.ts`~~ - GET / (admin), GET /:cle (admin), PATCH /:cle (super_admin) (juillet 2026)
+- [x] ~~`src/jobs/alertes.ts`~~ - mettreAJourAccordsExpires et envoyerAlertesAccords avec retours structurés exportés (juillet 2026)
+- [x] ~~`src/jobs/backup.ts`~~ - effectuerSauvegarde avec retour structuré, BACKUP_LOCAL_DIR/BACKUP_NAS_DIR exportés, declencherSauvegardeManuelle (juillet 2026)
+- [x] ~~`src/jobs/registre.ts`~~ - REGISTRE_JOBS extensible avec roleMinimum par job, 6 jobs enregistrés (juillet 2026)
+- [x] ~~`src/services/jobs.service.ts`~~ - listerJobs (expose roleMinimum), executerJobManuel avec vérification roleMinimum et logAudit (juillet 2026)
+- [x] ~~`src/controllers/jobs.controller.ts`~~ - lister, executer avec gestion ROLE_INSUFFISANT (403) (juillet 2026)
+- [x] ~~`src/routes/jobs.ts`~~ - GET / (admin), POST /:cle/executer (admin, contrôle fin par job dans service) (juillet 2026)
+- [x] ~~`src/services/notifications.service.ts`~~ - envoyerNotificationCiblee, verifierDejaNotifieAujourdhui, getHistoriqueEntite, getNotificationsRecentes (juillet 2026)
+- [x] ~~`src/controllers/notifications.controller.ts`~~ - envoyer, historiqueEntite, recentes (juillet 2026)
+- [x] ~~`src/routes/notifications.ts`~~ - POST /envoyer (admin), GET /historique/:type/:entiteId (agent), GET /recentes (admin) (juillet 2026)
+- [x] ~~`src/utils/email.ts`~~ - sendNotificationManuelle ajoutée, template HTML générique relance CCIT (juillet 2026)
+- [x] ~~`src/services/accords.service.ts`~~ - getPartenairesAccord enrichi avec contactPrincipal, filtre partenairesId branché dans listerAccords (juillet 2026)
+- [x] ~~`src/services/courriers.service.ts`~~ - getOrganisationAvecContact, calcul criticite/joursAttente via seuils parametres (juillet 2026)
+- [x] ~~`src/services/missions.service.ts`~~ - ParticipantResume enrichi avec email, contactSurPlaceId/confirmationLogistique, ContactResume + getContactSurPlace (juillet 2026)
+- [x] ~~`src/services/dashboard.service.ts`~~ - KPI enrichis avec criticité, accordsExpires bloc dédié, notificationsRecentes, nettoyage dead code (juillet 2026)
 
 **Migration BDD**
 
-- [x] ~~`CREATE TABLE parametres`~~ - + enum parametre_type, seed 4 valeurs (accord_alerte_jours, courrier_alerte_jours, courrier_alerte_critique_jours, recommandation_alerte_jours) (juin 2026)
-- [x] ~~`CREATE TABLE notifications`~~ - + enums notification_type, notification_statut, index composé (type, entiteId) (juin 2026)
-- [x] ~~`ALTER TABLE missions ADD COLUMN confirmation_logistique`~~ - + enum logistique_statut (a_planifier/en_cours/confirme) (juin 2026)
-- [x] ~~`ALTER TABLE missions ADD COLUMN contact_sur_place_id`~~ - référence contacts(id) (juin 2026)
+- [x] ~~`CREATE TABLE parametres`~~ - enum parametre_type, seed 4 valeurs (juillet 2026)
+- [x] ~~`CREATE TABLE notifications`~~ - enums notification_type/statut, index composé (juillet 2026)
+- [x] ~~`ALTER TABLE missions ADD COLUMN confirmation_logistique`~~ - enum logistique_statut (juillet 2026)
+- [x] ~~`ALTER TABLE missions ADD COLUMN contact_sur_place_id`~~ - référence contacts(id) (juillet 2026)
 
 **Client React Sprint 8**
 
-- [x] ~~`src/lib/parametres.api.ts`~~ - lister, getByCle, mettreAJour (juin 2026)
-- [x] ~~`src/lib/notifications.api.ts`~~ - envoyer, historiqueEntite, recentes (juin 2026)
-- [x] ~~`src/lib/jobs.api.ts`~~ - lister, executer (timeout 60s) (juin 2026)
-- [x] ~~`src/pages/AdminParametresPage.tsx`~~ - groupement par module, édition inline, validation client par type, indicateur succès, section jobs manuels avec résultats détaillés et permissions par rôle (juin 2026)
-- [x] ~~`src/components/ModalRelance.tsx`~~ - composant réutilisable, sélecteur destinataire suggéré/libre, historique compact, avertissement double-envoi jour même (juin 2026)
-- [x] ~~`src/pages/AccordsPage.tsx`~~ - sélecteur filtre partenaire, lecture param URL partenaireId, indicateur filtre actif (juin 2026)
-- [x] ~~`src/pages/AccordDetail.tsx`~~ - bouton Relancer, affichage contact principal par partenaire avec alerte si absent (juin 2026)
-- [x] ~~`src/pages/PartenairesPage.tsx`~~ - bouton "Accords" navigant vers /accords?partenaireId=X (juin 2026)
-- [x] ~~`src/pages/CourriersPage.tsx`~~ - badge criticité 3 paliers (normal/à surveiller/critique), affichage jours d'attente réel (juin 2026)
-- [x] ~~`src/pages/CourrierDetail.tsx`~~ - bouton Relancer, bloc alerte criticité contextuel, destinataire auto selon direction entrant/sortant (juin 2026)
-- [x] ~~`src/pages/MissionsPage.tsx`~~ - (pas de changement direct, hérite des données enrichies via API) (juin 2026)
-- [x] ~~`src/pages/MissionDetail.tsx`~~ - bouton Relancer par recommandation, badge logistique, alerte départ proche sans confirmation, bloc contact sur place (juin 2026)
-- [x] ~~`src/pages/MissionFormPage.tsx`~~ - champs confirmationLogistique et contactSurPlaceId en mode édition, chargement contacts cross-organisations (juin 2026)
-- [x] ~~`src/pages/DashboardPage.tsx`~~ - KpiCard refactoré avec niveau (normal/alerte/critique) et sous-ligne contextuelle, bloc Notifications envoyées récemment (juin 2026)
+- [x] ~~`src/lib/parametres.api.ts`~~ - lister, getByCle, mettreAJour (juillet 2026)
+- [x] ~~`src/lib/notifications.api.ts`~~ - envoyer, historiqueEntite, recentes (juillet 2026)
+- [x] ~~`src/lib/jobs.api.ts`~~ - lister, executer (timeout 60s) (juillet 2026)
+- [x] ~~`src/pages/AdminParametresPage.tsx`~~ - groupement par module, édition inline, section jobs manuels avec résultats détaillés et permissions par rôle (juillet 2026)
+- [x] ~~`src/components/ModalRelance.tsx`~~ - composant réutilisable, sélecteur destinataire suggéré/libre, historique compact, avertissement double-envoi (juillet 2026)
+- [x] ~~`src/components/HistoriqueNotifications.tsx`~~ - composant réutilisable, lecture passive, branchée sur AccordDetail/CourrierDetail/MissionDetail (juillet 2026)
+- [x] ~~`src/pages/AccordsPage.tsx`~~ - sélecteur filtre partenaire, lecture param URL partenaireId, indicateur filtre actif (juillet 2026)
+- [x] ~~`src/pages/AccordDetail.tsx`~~ - bouton Relancer + Notifier tous, affichage contact principal par partenaire, HistoriqueNotifications (juillet 2026)
+- [x] ~~`src/pages/PartenairesPage.tsx`~~ - bouton "Accords" navigant vers /accords?partenaireId=X (juillet 2026)
+- [x] ~~`src/pages/CourriersPage.tsx`~~ - badge criticité 3 paliers, affichage jours d'attente réel (juillet 2026)
+- [x] ~~`src/pages/CourrierDetail.tsx`~~ - bouton Relancer, bloc alerte criticité contextuel, HistoriqueNotifications (juillet 2026)
+- [x] ~~`src/pages/MissionDetail.tsx`~~ - bouton Relancer par recommandation, badge logistique, alerte départ proche, contact sur place, HistoriqueNotifications par recommandation (juillet 2026)
+- [x] ~~`src/pages/MissionFormPage.tsx`~~ - champs confirmationLogistique et contactSurPlaceId en édition (juillet 2026)
+- [x] ~~`src/pages/DashboardPage.tsx`~~ - KpiCard avec niveau/sous-ligne, bloc accords expirés, bloc notifications récentes (juillet 2026)
 
 **Routes App.tsx**
 
-- [x] ~~`/admin/parametres`~~ - protégé AdminRoute (juin 2026)
+- [x] ~~`/admin/parametres`~~ - protégé AdminRoute (juillet 2026)
 
 ## Sprint 9 – Portail Documentaire Externe (nouveau module M8-bis) | ⬜ À FAIRE
 
@@ -380,6 +381,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Rétention sauvegardes configurable** - Actuellement en dur dans `backup.ts` (30j local / 12 mois NAS), devrait être `backup_retention_locale_jours` / `backup_retention_nas_mois`
 - [ ] **Taille max upload et formats acceptés configurables** - Actuellement en dur dans la config Multer, devrait être pilotable sans redéploiement
 - [ ] **Job manuel rapport mensuel** - Une fois M9 rapport mensuel implémenté, l'enregistrer dans `registre.ts` (déjà prévu en commentaire)
+- [ ] **Seed parametres intégré à la migration Drizzle** - Eviter le souci de seed manquant en production (actuellement SQL manuel uniquement)
 
 ## Waiting On
 
@@ -407,3 +409,4 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [x] ~~**Soft delete M6 Traductions**~~ - deleted_at, bloqué si approuvée/archivée, reset demande M5 (juin 2026)
 - [x] ~~**Sprint 5 M9 Dashboard V1 complété**~~ - 8 KPI, 3 graphiques Chart.js, alertes accords/courriers, recommandations, activité récente (juin 2026)
 - [x] ~~**Revue terrain CCIT post-Sprint 5**~~ - Gaps identifiés sur rappels ciblés, suivi logistique missions, contact partenaire, portail externe — Sprints 8/9/10 planifiés (juin 2026)
+- [x] ~~**Sprint 8 Centre Notifications & Rappels CCIT complété**~~ - Table parametres + notifications, ModalRelance + HistoriqueNotifications réutilisables, boutons Relancer sur Accord/Courrier/Mission, 6 jobs manuels, KPI dashboard enrichis, bloc accords expirés, criticité courriers 3 paliers (juillet 2026)

@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { accordsApi, type AccordStatut } from '@/lib/accords.api';
 import { documentsApi } from '@/lib/documents.api';
 import { useState } from 'react';
+import { notificationsApi } from '@/lib/notifications.api';
+import HistoriqueNotifications from '@/pages/HistoriqueNotifications';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface OrganisationResume {
@@ -94,6 +96,14 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
 
   const [modalRelance, setModalRelance] = useState(false);
 
+  // State pour le statut de l'envoi groupé
+  const [envoiGroupe, setEnvoiGroupe] = useState(false);
+  const [resultatGroupe, setResultatGroupe] = useState<{
+    envoyes: number;
+    ignores: number;
+    ignoredRaisons: string[];
+  } | null>(null);
+
   // ── Requête accord ────────────────────────────────────────────────────
   const { data: accord, isLoading } = useQuery({
     queryKey: ['accord', accordId],
@@ -143,6 +153,65 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
       email: p.contactPrincipal!.email!,
       nom: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom}`,
     }));
+
+  // Mutation envoi groupé
+  const notifierTousMutation = useMutation({
+    mutationFn: async () => {
+      const partenairesAvecContact = accord!.partenaires.filter((p) => p.contactPrincipal?.email);
+
+      if (partenairesAvecContact.length === 0) {
+        throw new Error('Aucun partenaire avec contact principal email disponible.');
+      }
+
+      let envoyes = 0;
+      const ignores: string[] = [];
+
+      for (const p of partenairesAvecContact) {
+        try {
+          await notificationsApi.envoyer({
+            type: 'accord_echeance',
+            entiteId: accord!.id,
+            destinataireEmail: p.contactPrincipal!.email!,
+            destinataireNom: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom}`,
+            objet: `Rappel — Accord ${accord!.reference} (${accord!.titre})`,
+            message:
+              `L'accord "${accord!.titre}" (réf. ${accord!.reference}) ` +
+              (accord!.dateExpiration
+                ? `arrive à échéance le ${new Date(accord!.dateExpiration).toLocaleDateString('fr-FR')}.`
+                : `nécessite votre attention.`) +
+              `\n\nNous vous remercions de bien vouloir vous positionner sur la suite à donner.`,
+          });
+          envoyes++;
+        } catch {
+          ignores.push(p.nom);
+        }
+      }
+
+      // Partenaires sans contact email — signaler
+      const sansContact = accord!.partenaires
+        .filter((p) => !p.contactPrincipal?.email)
+        .map((p) => p.nom);
+
+      return {
+        envoyes,
+        ignores: ignores.length + sansContact.length,
+        ignoredRaisons: [
+          ...ignores.map((n) => `${n} (échec envoi)`),
+          ...sansContact.map((n) => `${n} (pas de contact email)`),
+        ],
+      };
+    },
+    onSuccess: (resultat) => {
+      setResultatGroupe(resultat);
+      queryClient.invalidateQueries({
+        queryKey: ['notifications-historique', 'accord_echeance', accordId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError: (err: unknown) => {
+      // setErreur((err as Error)?.message ?? "Erreur lors de l'envoi groupé.");
+    },
+  });
 
   // ── Chargement ────────────────────────────────────────────────────────
   if (isLoading) {
@@ -353,6 +422,9 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
         </div>
       )}
 
+      {/* ── Historique notifications ─────────────────────────────────── */}
+      <HistoriqueNotifications type="accord_echeance" entiteId={accordId} />
+
       {/* ── Métadonnées ────────────────────────────────────────────────── */}
       <div className="flex justify-between text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
         <span className="flex flex-col gap-2">
@@ -367,7 +439,60 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
         >
           <Send size={13} /> Relancer
         </Button>
+
+        {/* Bouton notifier tous - visible si au moins 2 partenaires avec email */}
+        {(accord?.partenaires.filter((p) => p.contactPrincipal?.email).length ?? 0) > 1 && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setResultatGroupe(null);
+              notifierTousMutation.mutate();
+            }}
+            disabled={notifierTousMutation.isPending || envoiGroupe}
+            className="gap-1.5"
+          >
+            {notifierTousMutation.isPending ? (
+              <>
+                <Loader2 size={13} className="animate-spin" /> Envoi...
+              </>
+            ) : (
+              <>
+                <Send size={13} /> Notifier tous (
+                {accord.partenaires.filter((p) => p.contactPrincipal?.email).length})
+              </>
+            )}
+          </Button>
+        )}
       </div>
+
+      {resultatGroupe && (
+        <div
+          className={`mx-6 mt-2 rounded-lg px-4 py-3 text-sm ${
+            resultatGroupe.envoyes > 0
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+          }`}
+        >
+          <p className="font-medium">
+            {resultatGroupe.envoyes} notification(s) envoyée(s)
+            {resultatGroupe.ignores > 0 && `, ${resultatGroupe.ignores} ignorée(s)`}.
+          </p>
+          {resultatGroupe.ignoredRaisons.length > 0 && (
+            <ul className="mt-1 text-xs space-y-0.5">
+              {resultatGroupe.ignoredRaisons.map((r, i) => (
+                <li key={i}>· {r}</li>
+              ))}
+            </ul>
+          )}
+          <button
+            onClick={() => setResultatGroupe(null)}
+            className="text-xs underline mt-1 opacity-70 hover:opacity-100"
+          >
+            Fermer
+          </button>
+        </div>
+      )}
 
       {accord && (
         <ModalRelance

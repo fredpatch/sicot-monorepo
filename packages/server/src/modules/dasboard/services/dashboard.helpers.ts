@@ -40,7 +40,43 @@ export async function getAccordsKpi(maintenant: Date, dans90jours: Date, dans30j
     (a) => a.dateExpiration && new Date(a.dateExpiration) <= dans30jours
   );
 
-  return { total: accordsActifsTotal, enAlerteRows: accordsEnAlerteRows, critique: accordsCritique };
+  return {
+    total: accordsActifsTotal,
+    enAlerteRows: accordsEnAlerteRows,
+    critique: accordsCritique,
+  };
+}
+
+// Accords expirer
+export async function getAccordsExpirant(maintenant: Date) {
+  const accordsExpiresNonTraites = await db.$count(accords, eq(accords.statut, 'expire'));
+
+  const accordsExpiresRows = await db
+    .select({
+      id: accords.id,
+      reference: accords.reference,
+      titre: accords.titre,
+      statut: accords.statut,
+      dateExpiration: accords.dateExpiration,
+    })
+    .from(accords)
+    .where(eq(accords.statut, 'expire'))
+    .orderBy(desc(accords.dateExpiration))
+    .limit(5);
+
+  const accordsExpires = accordsExpiresRows.map((a) => ({
+    ...a,
+    dateExpiration: a.dateExpiration!,
+    joursDepuisExpiration: Math.floor(
+      (maintenant.getTime() - new Date(a.dateExpiration!).getTime()) / (1000 * 60 * 60 * 24)
+    ),
+  }));
+
+  return {
+    nonTraites: accordsExpiresNonTraites,
+    expireRows: accordsExpiresRows,
+    accordsExpires: accordsExpires,
+  };
 }
 
 // ── Courriers sans réponse + paliers ──────────────────────────────────────

@@ -5,6 +5,7 @@ export interface DashboardData {
       total: number;
       enAlerte: number; // nombre dans la fenêtre d'alerte configurée
       critique: boolean; // au moins un accord expire sous 30j
+      expiresNonTraites: number; // accords expirés non traités
     };
     couriersSansReponse: {
       total: number;
@@ -33,6 +34,16 @@ export interface DashboardData {
     statut: string;
     dateExpiration: Date;
     joursRestants: number;
+  }[];
+
+  // Accords expirés
+  accordsExpires: {
+    id: number;
+    reference: string;
+    titre: string;
+    statut: string;
+    dateExpiration: Date;
+    joursDepuisExpiration: number;
   }[];
 
   // Courriers sans réponse
