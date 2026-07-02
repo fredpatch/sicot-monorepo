@@ -1,5 +1,23 @@
 # 📝 SICOT – Changelog
 
+## [7a1de70] — 2026-07-02 — feat(sprint8): Accords expirés dashboard block + HistoriqueNotifications component
+
+### Added
+- `packages/client/src/pages/HistoriqueNotifications.tsx` — reusable passive notification-history component, wired onto `AccordDetail`, `CourrierDetail`, and per-recommandation on `MissionDetail`
+- Dashboard "Accords expirés — action requise" block — lists accords with `statut=expire`, sorted by days-since-expiration, links to `/accords/:id`
+- `packages/server/src/modules/dasboard/services/dashboard.helpers.ts` — `getAccordsExpirant(maintenant)` (nonTraites count + top-5 list)
+- `packages/server/src/modules/dasboard/services/dashboard.types.ts` — `DashboardData.accordsExpires`, `kpi.accordsActifs.expiresNonTraites`
+
+### Changed
+- `packages/client/src/pages/accords/components/AccordDetail.tsx` — "Notifier tous" bulk-notify button (sequential send to every partner with an email, reports envoyés/ignorés), `HistoriqueNotifications` block
+- `packages/client/src/pages/DashboardPage.tsx` — `accordsActifs` KPI card escalates its `sousLigne` message when `expiresNonTraites > 0`
+- `packages/server/src/modules/dasboard/services/dashboard.service.ts` — wires `getAccordsExpirant` into `getDashboardData`
+- `docs/TASKS.md` — Sprint 8 (Centre de Notifications & Rappels CCIT) marked ✅ COMPLÉTÉ with full file-by-file changelog; new Sprint 10 backlog item (seed parametres via Drizzle migration)
+
+This is Sprint 8's closing commit — see `sessions/2026-07-02.md` for the full picture (this commit completed the sprint that `ccbd3f2`/`f9b14f8` had been building toward).
+
+---
+
 ## [dd2809d] — 2026-07-02 — refactor(server): split module services into types/helpers, centralize error handlers
 
 ### Changed — all 13 server modules (mechanical split, no behavior change)

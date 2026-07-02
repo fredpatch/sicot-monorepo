@@ -383,6 +383,92 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Job manuel rapport mensuel** - Une fois M9 rapport mensuel implémenté, l'enregistrer dans `registre.ts` (déjà prévu en commentaire)
 - [ ] **Seed parametres intégré à la migration Drizzle** - Eviter le souci de seed manquant en production (actuellement SQL manuel uniquement)
 
+## Sprint 11 – Module Analytics & Rapports (M11) | ⬜ À FAIRE
+
+### Positionnement — distinction claire avec le Dashboard M9
+
+Le dashboard M9 est un outil d'**action rapide** (que dois-je faire aujourd'hui ?).
+Le module M11 est un outil de **pilotage stratégique** (comment l'activité évolue-t-elle, quelles tendances, quels volumes ?).
+Les rapports générés par M11 puisent dans les agrégats analytics — analytics = couche de calcul, rapport = couche de présentation.
+
+### Serveur
+
+- [ ] **`analytics.service.ts`** - Agrégats par module et par période (filtre dateDebut/dateFin), requêtes SQL optimisées, cache courte durée pour éviter surcharge BDD
+- [ ] **`analytics.controller.ts`** - Endpoints par module + endpoint global
+- [ ] **`analytics.route.ts`** - GET /api/analytics/accords, /courriers, /missions, /traductions, /demandes, /documents, /glossaire, /global — rôle traducteur minimum
+
+### Périmètre analytics par module
+
+**M1 Accords**
+
+- [ ] Durée moyenne des accords par type de partenaire
+- [ ] Taux de renouvellement vs clôture
+- [ ] Répartition géographique des partenaires actifs (pays/région)
+- [ ] Évolution du nombre d'accords signés par année/mois
+
+**M4 Courriers**
+
+- [ ] Volume entrant vs sortant par mois
+- [ ] Temps moyen de réponse (dateReception → statut repondu)
+- [ ] Taux de réponse (répondus vs archivés sans réponse)
+- [ ] Répartition par organisation expéditrice (top 5)
+- [ ] Évolution de la criticité dans le temps (normal/à surveiller/critique)
+
+**M3 Missions**
+
+- [ ] Nombre de missions par destination/pays
+- [ ] Taux de recommandations réalisées vs en attente vs dépassées
+- [ ] Délai moyen entre fin de mission et dépôt du rapport
+- [ ] Agents les plus mobilisés (top participants)
+
+**M6 Traduction**
+
+- [ ] Volume traduit par mois (nombre de traductions, segments)
+- [ ] Taux de correction IA — ratio texteIA modifié vs validé tel quel (indicateur qualité LibreTranslate)
+- [ ] Temps moyen de traitement (création → approbation)
+- [ ] Répartition FR→EN vs EN→FR
+- [ ] Termes ajoutés au glossaire via delta corrections M6
+
+**M5 Demandes**
+
+- [ ] Délai moyen de prise en charge (soumise → en_cours)
+- [ ] Taux d'urgence validée vs demandée (demandeur propose urgente, admin valide normale)
+- [ ] Volume par demandeur/service
+- [ ] Taux de complétion (validées vs archivées vs en cours)
+
+**M8 Documents**
+
+- [ ] Volume archivé par catégorie et par mois
+- [ ] Taux de succès OCR (traite vs echec vs a_retraiter)
+- [ ] Évolution du stock documentaire total dans le temps
+
+**M7 Glossaire**
+
+- [ ] Croissance du glossaire dans le temps (termes ajoutés par mois)
+- [ ] Répartition termes ajoutés manuellement vs automatiquement (delta corrections M6)
+- [ ] Répartition par domaine
+
+### Client React
+
+- [ ] **`analytics.api.ts`** - Endpoints par module avec paramètres dateDebut/dateFin/module
+- [ ] **`AnalyticsPage.tsx`** - Navigation par onglet (un onglet par module + vue globale), graphiques Chart.js (lignes temporelles, barres groupées, camemberts, tableaux de données)
+- [ ] **Sélecteur de période global** - Filtres prédéfinis (7j, 30j, 90j, 6 mois, 1 an, personnalisé)
+- [ ] **Export CSV/Excel par section** - Données brutes téléchargeables pour chaque bloc analytics, prérequis pour les rapports
+- [ ] **Vue globale cross-modules** - Synthèse activité totale sur la période sélectionnée
+
+### Rapports (dépend des analytics)
+
+- [ ] **`rapports.service.ts`** - Génération PDF + Excel depuis les agrégats analytics, templates aux couleurs ANAC
+- [ ] **Rapport mensuel automatique** - Cron 1er du mois → PDF + Excel → archivé dans M8, job manuel dans le registre
+- [ ] **Rapport à la demande** - Sélection période + modules inclus + format (PDF ou Excel)
+- [ ] **Historique des rapports générés** - Liste consultable dans AnalyticsPage, lien vers le document dans M8
+- [ ] **Template PDF ANAC** - Logo, couleurs institutionnelles (#1B2A5E), mise en page professionnelle, sections par module
+
+### Routes App.tsx
+
+- [ ] `/analytics` - accessible à tous les rôles connectés (lecture)
+- [ ] `/analytics/:module` - vue détaillée par module
+
 ## Waiting On
 
 - [ ] **Glossaire CCIT existant** - Attente fichier CSV/Excel de la Cellule CCIT pour seed initial M7
@@ -410,3 +496,4 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [x] ~~**Sprint 5 M9 Dashboard V1 complété**~~ - 8 KPI, 3 graphiques Chart.js, alertes accords/courriers, recommandations, activité récente (juin 2026)
 - [x] ~~**Revue terrain CCIT post-Sprint 5**~~ - Gaps identifiés sur rappels ciblés, suivi logistique missions, contact partenaire, portail externe — Sprints 8/9/10 planifiés (juin 2026)
 - [x] ~~**Sprint 8 Centre Notifications & Rappels CCIT complété**~~ - Table parametres + notifications, ModalRelance + HistoriqueNotifications réutilisables, boutons Relancer sur Accord/Courrier/Mission, 6 jobs manuels, KPI dashboard enrichis, bloc accords expirés, criticité courriers 3 paliers (juillet 2026)
+- [x] ~~**M11 Analytics planifié**~~ - Périmètre défini post-Sprint 8 : analytics stratégique distinct du dashboard opérationnel M9, 7 modules couverts, rapports PDF/Excel en couche présentation sur les agrégats analytics (juillet 2026)
