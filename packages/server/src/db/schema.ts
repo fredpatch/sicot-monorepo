@@ -12,6 +12,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import { date } from 'drizzle-orm/pg-core';
 
 // ── Enums ──────────────────────────────────────────────────────────────────
 export const userRoleEnum = pgEnum('user_role', [
@@ -460,6 +461,20 @@ export const portailTokens = pgTable(
     index('portail_tokens_email_idx').on(t.email),
   ]
 );
+
+// ── M4/M11 – Historique quotidien de criticité des courriers ──────────────
+// Une ligne par jour : la criticité n'étant jamais persistée sur le courrier
+// lui-même (calculée à la volée depuis parametres), ceci est le seul moyen
+// d'observer une évolution dans le temps. S'accumule à partir du déploiement.
+export const courriersCriticiteSnapshots = pgTable('courriers_criticite_snapshots', {
+  id: serial('id').primaryKey(),
+  date: date('date').notNull().unique(),
+  normal: integer('normal').notNull(),
+  aSurveiller: integer('a_surveiller').notNull(),
+  critique: integer('critique').notNull(),
+  totalEnAttente: integer('total_en_attente').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
 
 // ── Relations ──────────────────────────────────────────────────────────────
 export const usersRelations = relations(users, ({ many }) => ({
