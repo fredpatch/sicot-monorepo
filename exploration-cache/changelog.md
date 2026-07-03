@@ -1,5 +1,40 @@
 # 📝 SICOT – Changelog
 
+## [47ef8b8] — 2026-07-03 — feat(sprint9): Portail Documentaire Externe (M8-bis)
+
+### Added
+- `packages/server/src/modules/portal/` — new module: `portal.service.ts`
+  (list/get exposed documents, generate+email download token, redeem token,
+  admin visibility toggle, download stats), `portal.controller.ts`,
+  `portal.route.ts`. Public routes (browse, consult, request token,
+  download) require no auth by design; `PATCH .../visibilite` requires
+  admin role.
+- `documents.visibilitePortail` (bool, default false),
+  `documents.portailTokenDureeJours` (int, nullable) columns
+- New `portailTokens` table (token UUID, email, expiresAt, utiliseLe,
+  ipUtilisateur)
+- `packages/client/src/pages/PortalPage.tsx` (489 lines) — public portal UI,
+  routed at `/portal`
+- `packages/client/src/lib/portal.api.ts` — client API wrapper
+
+### Changed
+- `DocumentsPage.tsx` — "Portail Externe" column + expose/retire dialog
+  (token duration selector)
+- `documents.types.ts` / `documents.helpers.ts` — `DocumentView` carries
+  the two new portal fields
+- `Layout.tsx` — new nav item (`/portal`, all roles)
+- `App.tsx` — new `/portal` route
+- `index.ts` — mounted `/api/portal`; dropped stray `.js` import extensions
+- `i18n/index.ts` — `nav.portail` key + drive-by formatting pass
+- `docs/TASKS.md` — Sprint 9 detailed
+
+### ⚠️ Known issue
+`DocumentsPage.tsx`'s "Exposé" link uses `href="/portail"` (French) but the
+actual route is `/portal` (English, matches server mount) — will 404,
+unfixed as of this commit. See `sessions/2026-07-03.md`.
+
+---
+
 ## [47ffd94] — 2026-07-02 — docs(tasks): plan Sprint 11 — Module Analytics & Rapports (M11)
 
 ### Added — planning only, no code
