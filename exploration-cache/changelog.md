@@ -1,5 +1,67 @@
 # 📝 SICOT – Changelog
 
+## [6aaa354] — 2026-07-03 — feat(sprint10): Paramètres Système Élargis (M10)
+
+### Added
+- `parametres` table gains 6 rows (seeded idempotently, see below):
+  `otp_expiration_minutes`, `lockout_max_tentatives`,
+  `lockout_duree_minutes`, `backup_retention_locale_jours`,
+  `backup_retention_nas_jours`, `deepl_fallback_actif`
+- `packages/server/src/start/services/parameters-seed.service.ts` —
+  `seedParametresDefaut()`, `onConflictDoNothing` on `parametres.cle`,
+  called once from `index.ts` at server startup
+- `packages/client/src/pages/AuditPage.tsx` (386 lines) — Journal d'audit
+  consultation UI (filters Module/Action/Date, paginated table, JSON
+  detail modal), replaces the `/audit` `ComingSoon` placeholder
+- `packages/server/src/utils/pdf.ts` — generic Puppeteer HTML→PDF
+  generator (first use of `puppeteer` in the project; reusable for future
+  Accords/Courriers/Missions exports)
+- `packages/server/src/modules/audit/services/audit.export.service.ts` —
+  `genererPDFAudit()` / `genererExcelAudit()` / `resumerFiltres()` (first
+  use of `exceljs`)
+- `audit.controller.ts` — `exporterPDF`/`exporterExcel` handlers, audited
+  as `AUDIT_EXPORT_PDF`/`AUDIT_EXPORT_EXCEL`; `audit.route.ts` —
+  `GET /export/pdf`, `GET /export/excel`
+- `audit.service.ts` — `listerAuditLogsExport()` (unpaginated, capped at
+  10,000 rows, `tronque` flag on overflow), shared `construireConditions()`
+- `packages/client/src/lib/audit.api.ts` — `getUrlExportPDF()` /
+  `getUrlExportExcel()` (return URL strings for direct-navigation download)
+- `packages/translate-service/.env.example`, `pyrightconfig.json` — env
+  var reference + Pylance venv resolution for the microservice
+
+### Changed
+- `otp.ts` — `otpExpiresAt()` now takes `minutes` as a parameter instead of
+  reading `OTP_EXPIRY_MINUTES` env var
+- `auth.constants.ts` — `MAX_LOGIN_ATTEMPTS`/`BLOCAGE_MINUTES` removed;
+  `auth.helpers.ts`'s `handleEchecConnexion` resolves both from
+  `parametres` via `getValeurEntier`
+- `backup.ts` — `LOCAL_RETENTION_DAYS`/`NAS_RETENTION_MONTHS` constants
+  removed, both cron jobs now resolve retention from `parametres` (NAS
+  retention now expressed in days, not months)
+- `utils/traduction.ts` — `traduireSegment`/`traduireTexte` resolve
+  `deepl_fallback_actif` per-request via `getValeurBooleen` and pass
+  `deepl_actif` to translate-service; `verifierLibreTranslate()` now also
+  returns `deeplConfigure`; batch-translate timeout raised 2min → 4min40
+- `packages/translate-service/main.py` — `load_dotenv()` added,
+  `resoudre_deepl_actif()` resolves the per-request toggle (falls back to
+  `DEEPL_ENABLED` env var if omitted); `requirements.txt` gains
+  `python-dotenv`; venv was missing flask/waitress/langdetect/requests
+  entirely — installed
+- `AdminParametresPage.tsx` — reorganized into a per-module grid,
+  human-readable labels via `PARAMETRE_LABELS`, correct unit per key
+- `packages/server/.env.example` — removed `MAX_LOGIN_ATTEMPTS` /
+  `OTP_EXPIRY_MINUTES` (now DB-backed)
+- `index.css` — hex colors lowercased, quote style normalized (no visual
+  change)
+
+### Deferred
+- Taille max upload / formats acceptés configurables — current 50 Mo
+  hardcoded limit judged sufficient; would need a middleware factory
+
+See `sessions/2026-07-03.md` Sprint 10 section for full detail.
+
+---
+
 ## [47ef8b8] — 2026-07-03 — feat(sprint9): Portail Documentaire Externe (M8-bis)
 
 ### Added
