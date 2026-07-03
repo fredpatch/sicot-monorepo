@@ -1,7 +1,7 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-03
-**Status**: ✅ Sprint 9 (Portail Documentaire Externe) shipped & pushed (47ef8b8). ✅ Sprint 10 (Paramètres Système Élargis) built, pending commit at cache-write time.
+**Status**: ✅ Sprint 9 (Portail Documentaire Externe) shipped (47ef8b8). ✅ Sprint 10 (Paramètres Système Élargis) shipped (6aaa354). Neither manually verified end-to-end yet.
 
 ## ✅ Done: Sprint 10 — Paramètres Système Élargis (M10)
 
