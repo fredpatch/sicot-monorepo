@@ -25,6 +25,8 @@ export interface DocumentView {
   parentId?: number;
   uploadePar: number;
   createdAt: Date;
+  visibilitePortail: boolean;
+  portailTokenDureeJours?: number;
 }
 
 export interface DocumentFilters {

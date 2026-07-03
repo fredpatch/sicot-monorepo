@@ -16,7 +16,8 @@ const fr = {
     glossaire: 'Glossaire',
     documents: 'Documents',
     administration: 'Administration',
-    audit: 'Journal d\'audit',
+    audit: "Journal d'audit",
+    portail: 'Portail externe',
   },
   // Auth
   auth: {
@@ -33,14 +34,16 @@ const fr = {
   // Bootstrap
   bootstrap: {
     bannerTitle: 'Initialisation du système',
-    bannerDescription: "Aucun administrateur n'existe encore. Créez le compte Super Admin pour démarrer SICOT.",
+    bannerDescription:
+      "Aucun administrateur n'existe encore. Créez le compte Super Admin pour démarrer SICOT.",
     prenom: 'Prénom',
     nom: 'Nom',
     email: 'Email',
     submit: 'Initialiser SICOT',
     submitting: 'Initialisation en cours…',
     successTitle: 'Système initialisé',
-    successDescription: 'Le compte Super Admin a été créé. Vous allez être redirigé vers la connexion…',
+    successDescription:
+      'Le compte Super Admin a été créé. Vous allez être redirigé vers la connexion…',
     successTitulaire: 'Titulaire',
     successCta: 'Aller à la connexion',
   },
@@ -122,14 +125,16 @@ const en = {
   },
   bootstrap: {
     bannerTitle: 'System Initialization',
-    bannerDescription: 'No administrator exists yet. Create the Super Admin account to start SICOT.',
+    bannerDescription:
+      'No administrator exists yet. Create the Super Admin account to start SICOT.',
     prenom: 'First Name',
     nom: 'Last Name',
     email: 'Email',
     submit: 'Initialize SICOT',
     submitting: 'Initializing…',
     successTitle: 'System initialized',
-    successDescription: 'The Super Admin account has been created. You will be redirected to login…',
+    successDescription:
+      'The Super Admin account has been created. You will be redirected to login…',
     successTitulaire: 'Account holder',
     successCta: 'Go to login',
   },

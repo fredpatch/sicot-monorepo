@@ -19,6 +19,7 @@ import {
   LogOut,
   Loader2,
   ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -56,6 +57,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: ClipboardList,
     roles: ['admin', 'super_admin'],
   },
+  { to: '/portal', labelKey: 'nav.portail', icon: ExternalLink },
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────

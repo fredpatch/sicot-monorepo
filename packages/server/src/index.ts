@@ -22,11 +22,12 @@ import traductionsRoutes from './modules/traduction/routes/traduction.route';
 import demandesRoutes from './modules/demandes/routes/demandes.route';
 import dashboardRoutes from './modules/dasboard/routes/dashboard.route';
 import parametresRoutes from './modules/parametres/routes/parametres.route';
-import notificationsRoutes from './modules/notifications/routes/notifications.route.js';
-import jobsRoutes from './modules/jobs/routes/jobs.route.js';
+import notificationsRoutes from './modules/notifications/routes/notifications.route';
+import jobsRoutes from './modules/jobs/routes/jobs.route';
+import portalRoutes from './modules/portal/routes/portal.route';
 
 // Utilitaires
-import { verifyEmailConnection } from './utils/email.js';
+import { verifyEmailConnection } from './utils/email';
 import { demarrerJobsSauvegarde } from './jobs/backup';
 import { verifierServiceOCR } from './utils/ocr';
 import { demarrerJobsAlertes } from './jobs/alertes';
@@ -97,6 +98,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/parametres', parametresRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/jobs', jobsRoutes);
+app.use('/api/portal', portalRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

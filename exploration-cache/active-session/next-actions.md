@@ -1,18 +1,26 @@
 # ⚡ Next Actions
 
-Last updated: 2026-07-02
+Last updated: 2026-07-03
 
 ## 🔥 Immediate (start here next session)
 
-1. **Sprint 9 — Portail Documentaire Externe (M8-bis)**
-   - Not yet scoped in detail — read `docs/TASKS.md` Sprint 9 section first
-   - External-facing document portal, admin-curated visibility for target consultation (per `docs/note.md`)
+1. **Finish Sprint 9 — Portail Documentaire Externe**
+   - Fix `href="/portail"` → `/portail` should be `/portal` in
+     `DocumentsPage.tsx` (route mismatch, will 404 today)
+   - Run `tsc --noEmit` in both `packages/client` and `packages/server`
+   - Manually test the full flow: admin exposes a document → visit
+     `/portal` → search/browse → consult inline → request download via
+     email → receive email → redeem token link → confirm file downloads
+   - Generate a Drizzle migration for the `portailTokens` table and the two
+     new `documents` columns (schema.ts was hand-edited, no migration yet)
+   - Commit + push
 
-2. **Rapport mensuel automatique** (Sprint 5 leftover)
-   - `jobs/rapport.ts` — cron 1er du mois 06h00, PDF + Excel export, archive in documents table
-   - Extend documents service: `genererRapport(mois, annee)` — query accords/courriers/missions/traductions for the month
-   - Add as 7th job in `REGISTRE_JOBS` with key `rapport_mensuel` (admin role) — allows manual trigger from AdminParametresPage
-   - Email report link to admins + super_admin
+2. **Sprint 11 — Module Analytics & Rapports (M11)**
+   - Scoped in `docs/TASKS.md` Sprint 11 section but unbuilt: per-module
+     analytics aggregates (M1/M3/M4/M5/M6/M7/M8) + global cross-module view
+     + period filters + CSV/Excel export, plus `rapports` layer (PDF/Excel
+     generation, monthly cron, on-demand, history)
+   - Folds in the Sprint 5 "rapport mensuel" leftover — build it here
 
 3. **Seed parametres via migration Drizzle** (Sprint 8 leftover)
    - Currently manual SQL only — risk of missing seed on a fresh production DB
@@ -30,19 +38,20 @@ Last updated: 2026-07-02
 
 6. **Sprint 10 — Paramètres Système Élargis**
 
-7. **Sprint 6 — Tests & Recette** (postponed until after 8/9/10 — 8 done, 9/10 remain)
+7. **Sprint 6 — Tests & Recette** (postponed until after 9/10)
 
-8. **Sprint 7 — Déploiement SERV-APPI** (postponed until after 8/9/10)
+8. **Sprint 7 — Déploiement SERV-APPI** (postponed until after 9/10)
 
-## 📋 Definition of "Sprint 8 Done" — ✅ all complete
+## 📋 Definition of "Sprint 9 Done"
 
-- [x] `parametres` + `notifications` tables, services, routes ✅
-- [x] `ModalRelance.tsx` + `HistoriqueNotifications.tsx` reusable components ✅
-- [x] Bouton "Relancer" on Accord/Courrier/Mission-recommandation ✅
-- [x] "Notifier tous" bulk relance on AccordDetail ✅
-- [x] Criticité courriers 3 paliers (normal/à surveiller/critique) ✅
-- [x] Dashboard: KPI enrichis + "accords expirant" + "accords expirés" blocks + notifications récentes ✅
-- [x] Filtre accords par partenaire + navigation croisée M2→M1 ✅
-- [x] `confirmationLogistique` + `contactSurPlaceId` sur missions ✅
-- [x] `AdminParametresPage.tsx` + REGISTRE_JOBS (6 jobs, roleMinimum) ✅
-- [x] Committed and pushed to `origin/main` ✅ (7a1de70)
+- [x] Server `modules/portal` — service/controller/route (public browse,
+      consult, token, download; admin visibility toggle) ✅
+- [x] Schema: `documents.visibilitePortail` + `portailTokenDureeJours`,
+      `portailTokens` table ✅
+- [x] Client `PortalPage.tsx` + `portal.api.ts`, routed at `/portal` ✅
+- [x] `DocumentsPage.tsx` visibility toggle UI ✅
+- [ ] Fix `/portail` vs `/portal` route bug
+- [ ] `tsc --noEmit` verification both packages
+- [ ] Manual end-to-end test of portal flow
+- [ ] Drizzle migration generated + applied
+- [ ] Committed and pushed to `origin/main`

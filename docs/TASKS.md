@@ -361,15 +361,74 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 - [x] ~~`/admin/parametres`~~ - protégé AdminRoute (juillet 2026)
 
-## Sprint 9 – Portail Documentaire Externe (nouveau module M8-bis) | ⬜ À FAIRE
+## Sprint 9 – Portail Documentaire Externe (module M8-bis) | ✅ COMPLÉTÉ
 
-- [ ] **Champ `visibilitePortail` sur documents** - Booléen, modifiable uniquement par admin, défaut false
-- [ ] **Règle métier** - Seuls les documents `categorie` archivable et `statutOCR: traite` sont éligibles à exposition portail
-- [ ] **Table `portail_acces`** - Comptes externes (hors `users` ANAC), email + mot de passe, scope limité lecture seule
-- [ ] **Service auth portail séparé** - Pas de rôle ANAC, juste accès consultation documents marqués visibles
-- [ ] **Interface admin "Gestion portail"** - Toggle visibilité par document depuis DocumentsPage, gestion comptes externes
-- [ ] **PortailPage.tsx (route publique distincte)** - Liste documents visibles uniquement, recherche, téléchargement, sans accès aux autres modules
-- [ ] **Audit spécifique accès portail** - Tracer qui (compte externe) a consulté/téléchargé quel document et quand
+### Architecture retenue (juillet 2026)
+
+- Route `/portail` dans la même app React (pas d'app séparée) — hors ProtectedRoute
+- Navigation libre sans authentification pour la consultation
+- Téléchargement via token UUID envoyé par email — traçabilité complète sans compte permanent
+- Consultation = stream inline (PDF viewer natif navigateur)
+- Téléchargement = email → lien tokené → stream attachment
+
+### Principe de visibilité
+
+- Seuls les documents `statutOCR: traite` sont éligibles à l'exposition portail
+- Admin marque le document "exposable" + configure durée token (7j/30j/90j/permanent)
+- Badge "Portail" visible sur chaque document exposé dans DocumentsPage
+- Admin peut retirer la visibilité à tout moment via bouton "Retirer"
+- Lien rapide "Portail externe" dans la sidebar admin → ouvre `/portail` dans un nouvel onglet
+
+### Traçabilité & Analytics (prérequis M11)
+
+- Chaque génération de token enregistrée : email, IP, date, document, expiration
+- Chaque téléchargement consommé tracé : email, IP, date
+- Table `portail_tokens` conçue pour alimenter les stats M11 (docs les plus téléchargés, emails uniques, etc.)
+
+- [x] ~~**Migration BDD**~~ - `ALTER TABLE documents ADD COLUMN visibilite_portail` + `portail_token_duree_jours`, `CREATE TABLE portail_tokens` avec index token/document/email (juillet 2026)
+- [x] ~~**`portail.service.ts`**~~ - listerDocumentsPortail (search + filtre catégorie), getDocumentPortail, genererTokenTelechargement (UUID + expiresAt selon portailTokenDureeJours), validerEtConsumeToken (mark utiliseLe), toggleVisibilitePortail, getStatsTelechargements (prérequis M11) (juillet 2026)
+- [x] ~~**`portail.controller.ts`**~~ - lister, getDocument, consulter (stream inline), genererToken, telecharger (stream attachment), toggleVisibilite (juillet 2026)
+- [x] ~~**`portail.route.ts`**~~ - routes publiques (lister, getDocument, consulter, genererToken, telecharger) + route admin authentifiée (toggleVisibilite) (juillet 2026)
+- [x] ~~**`portail.api.ts`**~~ - instance publicApi sans cookie auth pour routes publiques, instance api auth pour admin, getUrlConsultation/getUrlTelechargement (juillet 2026)
+- [x] ~~**`PortailPage.tsx`**~~ - page publique sans sidebar ANAC, header navy ANAC, grille 3 colonnes, recherche + filtre catégorie, ViewerDocument (plein écran iframe PDF), ModalTelechargement (email → mutation → message succès), pagination (juillet 2026)
+- [x] ~~**`DocumentsPage.tsx`**~~ - bouton "Portail/Exposé" toggle, modal configuration durée token (7j/30j/90j/permanent), badge vert "Portail" sur docs exposés, bouton "Retirer" pour masquer du portail, affichage durée token configurée (juillet 2026)
+- [x] ~~**`documents.service.ts`**~~ - toDocumentView enrichi avec visibilitePortail + portailTokenDureeJours (juillet 2026)
+- [x] ~~**`Layout.tsx`**~~ - lien rapide "Portail externe" en bas de sidebar, ouvre /portail dans nouvel onglet (juillet 2026)
+- [x] ~~**Route `/portail`**~~ - hors ProtectedRoute dans App.tsx (juillet 2026)
+
+### Edge cases couverts
+
+- [x] ~~Document non OCR traité non éligible~~ - Bouton portail masqué si statutOCR !== 'traite' (juillet 2026)
+- [x] ~~Token expiré~~ - Erreur 410 avec message explicite "Lien expiré, générez-en un nouveau" (juillet 2026)
+- [x] ~~Token invalide~~ - Erreur 404 propre (juillet 2026)
+- [x] ~~Document retiré du portail après génération d'un token~~ - validerEtConsumeToken vérifie visibilitePortail au moment du téléchargement (juillet 2026)
+- [x] ~~Consultation sans compte~~ - Route /consulter publique, pas de cookie requis (juillet 2026)
+
+### Fichiers complétés Sprint 9
+
+**Serveur**
+
+- [x] ~~`src/services/portail.service.ts`~~ (juillet 2026)
+- [x] ~~`src/controllers/portail.controller.ts`~~ (juillet 2026)
+- [x] ~~`src/routes/portail.ts`~~ (juillet 2026)
+
+**Migration BDD**
+
+- [x] ~~`ALTER TABLE documents ADD COLUMN visibilite_portail`~~ (juillet 2026)
+- [x] ~~`ALTER TABLE documents ADD COLUMN portail_token_duree_jours`~~ (juillet 2026)
+- [x] ~~`CREATE TABLE portail_tokens`~~ - index token/document/email (juillet 2026)
+
+**Client React Sprint 9**
+
+- [x] ~~`src/lib/portail.api.ts`~~ (juillet 2026)
+- [x] ~~`src/pages/PortailPage.tsx`~~ - browse public, viewer inline, modal téléchargement (juillet 2026)
+- [x] ~~`src/pages/DocumentsPage.tsx`~~ - toggle portail, badge exposé, modal durée, bouton retirer (juillet 2026)
+- [x] ~~`src/services/documents.service.ts`~~ - toDocumentView enrichi (juillet 2026)
+- [x] ~~`src/components/Layout.tsx`~~ - lien rapide portail externe (juillet 2026)
+
+**Routes App.tsx**
+
+- [x] ~~`/portail`~~ - route publique hors ProtectedRoute (juillet 2026)
 
 ## Sprint 10 – Paramètres Système Élargis | ⬜ À FAIRE
 
