@@ -1,9 +1,9 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-04
-**Status**: 🔄 Sprint 11 (Analytics & Rapports) — analytics half BUILT, uncommitted. Rapports half not started.
+**Status**: ✅ Sprint 11 (Analytics & Rapports) — analytics half BUILT and committed (f3547d4). Rapports half not started.
 
-## 🔄 In progress: Sprint 11 — Module Analytics & Rapports (M11)
+## ✅ Done (analytics half only): Sprint 11 — Module Analytics & Rapports (M11)
 
 Full detail in `sessions/2026-07-04.md`. Summary:
 
