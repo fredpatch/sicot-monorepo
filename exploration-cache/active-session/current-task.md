@@ -1,9 +1,9 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-03
-**Status**: 🔄 Sprint 9 — Portail Documentaire Externe (M8-bis) BUILT, uncommitted
+**Status**: ✅ Sprint 9 — Portail Documentaire Externe (M8-bis) BUILT and committed (47ef8b8)
 
-## 🔄 In progress: Sprint 9 — Portail Documentaire Externe (M8-bis)
+## ✅ Done (functionally): Sprint 9 — Portail Documentaire Externe (M8-bis)
 
 External-facing document portal with admin-curated visibility, per
 `docs/note.md` original CCIT brief. This session's work (see
@@ -21,9 +21,10 @@ External-facing document portal with admin-curated visibility, per
 `href="/portail"` but the actual route (App.tsx + server mount) is
 `/portal` — will 404, needs a one-line fix before commit.
 
-**Not yet done this session**: `tsc --noEmit` verification, manual
-end-to-end test of the portal flow, Drizzle migration file for the schema
-changes (schema.ts was hand-edited), commit.
+**Not yet done**: `tsc --noEmit` verification, manual end-to-end test of the
+portal flow, Drizzle migration file for the schema changes (schema.ts was
+hand-edited). Code is committed (47ef8b8) despite these gaps — fix and
+follow up with a corrective commit next session.
 
 ---
 
