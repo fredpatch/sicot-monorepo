@@ -3,16 +3,16 @@
   "client": "ANAC Gabon",
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
-  "lastUpdated": "2026-07-02",
-  "lastCommit": "47ffd94",
+  "lastUpdated": "2026-07-03",
+  "lastCommit": "b28dce6",
   "currentSprint": 9,
-  "currentSprintFocus": "Sprint 8 (Centre de Notifications & Rappels CCIT) COMPLETE (7a1de70). Sprint 9 (Portail Documentaire Externe, M8-bis) and Sprint 11 (Analytics & Rapports, M11) both planned/backlogged but not started. Sprints 6/7 (Tests/Recette, Déploiement) postponed until after 8/9/10.",
-  "status": "Sprints 1–5 + 8 COMPLETE ✅ (7a1de70). Server refactor pass COMPLETE ✅ (dd2809d). Sprint 11 planned (47ffd94) — no code yet. Sprint 9 next to build.",
+  "currentSprintFocus": "Sprint 9 (Portail Documentaire Externe, M8-bis) IN PROGRESS — server module + client page built, uncommitted. Sprint 11 (Analytics & Rapports, M11) planned/backlogged, not started. Sprints 6/7 (Tests/Recette, Déploiement) postponed until after 9/10.",
+  "status": "Sprints 1–5 + 8 COMPLETE ✅ (7a1de70). Server refactor pass COMPLETE ✅ (dd2809d). Sprint 11 planned (47ffd94) — no code yet. Sprint 9 (Portail Documentaire Externe) built this session — server module/portal + client PortalPage + DocumentsPage visibility toggle — pending commit.",
 
   "activeSession": {
-    "task": "Sprint 8 wrap-up: new HistoriqueNotifications.tsx reusable component (passive notification history) wired onto AccordDetail/CourrierDetail/MissionDetail; AccordDetail 'Notifier tous' bulk-notify across partners; dashboard 'Accords expirés — action requise' block + accordsActifs.expiresNonTraites KPI (server: getAccordsExpirant in dashboard.helpers.ts, accordsExpires in DashboardData). docs/TASKS.md Sprint 8 marked COMPLETE with full file-by-file changelog. Then: Sprint 11 (M11 Analytics & Rapports) planned in docs/TASKS.md — strategic per-module aggregates distinct from the M9 operational dashboard, plus a rapports layer (PDF/Excel, monthly cron, on-demand) built on top. Planning only, no code.",
-    "startedAt": "2026-07-02",
-    "nextAction": "Sprint 9 — Portail Documentaire Externe (M8-bis): external-facing document portal with admin-curated visibility. Not yet scoped in detail; see docs/TASKS.md Sprint 9 section. Sprint 11 (M11 Analytics) is scoped but unbuilt — see docs/TASKS.md Sprint 11 section for the full analytics.service.ts / AnalyticsPage.tsx / rapports.service.ts breakdown. Also open: Sprint 5 leftover 'Rapport mensuel cron' (jobs/rapport.ts) — note this now folds into Sprint 11's 'rapport mensuel automatique' item, so build it there rather than as a standalone Sprint 5 job. Sprint 8 leftover 'seed parametres via Drizzle migration'."
+    "task": "Sprint 9 — Portail Documentaire Externe (M8-bis): new server module `modules/portal` (service/controller/route) exposing a public, unauthenticated document portal — browse (`GET /api/portal/documents`), metadata (`GET /api/portal/documents/:id`), inline view (`GET /api/portal/documents/:id/consulter`), email-gated download-link generation (`POST /api/portal/documents/:id/token`) sending a UUID token via email, token redemption (`GET /api/portal/telecharger/:token`), and admin-only visibility toggle (`PATCH /api/portal/documents/:id/visibilite`, requires admin role). Schema: `documents.visibilitePortail` (bool) + `documents.portailTokenDureeJours` (int, null=permanent) added to documents table; new `portailTokens` table (token UUID, email, expiresAt, utiliseLe, ipUtilisateur) for tracking download links. Only documents with `statutOCR = 'traite'` are ever exposed. Client: new `PortalPage.tsx` (public portal UI, 489 lines) + `portal.api.ts`, wired at route `/portal` in App.tsx and nav item in Layout.tsx (`nav.portail` i18n key). `DocumentsPage.tsx` gained a 'Portail Externe' column + toggle-visibility dialog (duration select: 7/30/90/sans expiration) calling `portalApi.toggleVisibilite`. Also: `index.ts` import cleanup (dropped stray `.js` extensions on notifications/jobs/email imports for consistency), i18n formatting pass (prettier-style line wraps, no content change besides new `portail` key).",
+    "startedAt": "2026-07-03",
+    "nextAction": "Sprint 9 work is functionally built but UNCOMMITTED as of this cache update — verify with `tsc --noEmit` on both packages, manually test the /portal flow (browse → consulter → token email → download), then commit. Watch the route naming inconsistency: server mounts at `/api/portal` (English) and DocumentsPage links to `/portail` (French) — nav item in Layout.tsx correctly points to `/portal` matching App.tsx's route; DocumentsPage.tsx's 'Exposé' link href=\"/portail\" is likely a bug (404) and should probably be `/portal`. After Sprint 9 lands: Sprint 11 (M11 Analytics) is scoped but unbuilt — see docs/TASKS.md Sprint 11 section. Also open: Sprint 8 leftover 'seed parametres via Drizzle migration'; re-enable auth rate limiter (commented out in index.ts)."
   },
 
   "index": [
@@ -37,8 +37,8 @@
     {
       "path": "active-session/current-task.md",
       "type": "session",
-      "tags": ["current", "sprint3", "accords", "courriers", "missions"],
-      "summary": "Sprint 3 in progress. Server M1+M4+M3 done. Accords+Courriers client done. MissionsPage pending."
+      "tags": ["current", "sprint9", "portail", "documents", "portal"],
+      "summary": "Sprint 9 (Portail Documentaire Externe) built this session — server module/portal + PortalPage + DocumentsPage toggle. Uncommitted pending verification."
     },
     {
       "path": "active-session/blockers.md",
@@ -49,8 +49,8 @@
     {
       "path": "active-session/next-actions.md",
       "type": "session",
-      "tags": ["actions", "immediate", "sprint3", "missions", "pdf-export"],
-      "summary": "Prioritized: MissionsPage.tsx → MissionFormPage.tsx → PDF/DOCX export → Sprint 4 prep"
+      "tags": ["actions", "immediate", "sprint9", "portail", "route-bug", "sprint11"],
+      "summary": "Verify Sprint 9 portal flow + fix /portail vs /portal route mismatch → commit → Sprint 11 Analytics"
     },
     {
       "path": "active-session/context.md",
@@ -125,6 +125,12 @@
       "summary": "10 gotchas with exact symptoms and fixes: transition in Variants, Tailwind v4 config, shadcn CLI, CORS wildcard, discriminatedUnion casting, ignoreDeprecations, multer limits, Drizzle where(), PG enums, premier_login role"
     },
     {
+      "path": "sessions/2026-07-03.md",
+      "type": "session-log",
+      "tags": ["2026-07-03", "sprint9", "portail", "portal", "documents", "visibilite"],
+      "summary": "Session: Sprint 9 — Portail Documentaire Externe (M8-bis). New server modules/portal (public browse/consulter/token/telecharger + admin toggle), schema additions (documents.visibilitePortail/portailTokenDureeJours, portailTokens table), client PortalPage.tsx + portal.api.ts, DocumentsPage visibility toggle UI. Uncommitted at cache update time."
+    },
+    {
       "path": "sessions/2026-07-02.md",
       "type": "session-log",
       "tags": ["2026-07-02", "refactor", "services", "error-handling", "sprint8", "dashboard", "notifications", "dd2809d", "7a1de70"],
@@ -167,7 +173,7 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications", "/api/jobs"],
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications", "/api/jobs", "/api/portal"],
     "pendingRoutes": ["/api/rapport-mensuel"]
   },
 

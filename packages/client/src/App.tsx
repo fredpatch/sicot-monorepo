@@ -19,6 +19,7 @@ import TraductionEditeur from './pages/traductions/components/TraductionEditeur'
 import DemandesPage from './pages/DemandesPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminParametresPage from './pages/AdminParametresPage';
+import PortailPage from './pages/PortalPage';
 
 function ComingSoon({ module }: { module: string }) {
   return (
@@ -202,6 +203,9 @@ export default function App() {
         {/* ── Redirections ──────────────────────────────────────────── */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+        {/* ── Portail documentaire ───────────────────────────────────── */}
+        <Route path="/portal" element={<PortailPage />} />
       </Routes>
     </AuthContext.Provider>
   );

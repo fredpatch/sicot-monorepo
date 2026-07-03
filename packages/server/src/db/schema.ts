@@ -251,6 +251,9 @@ export const documents = pgTable(
       .references(() => users.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     deletedAt: timestamp('deleted_at'),
+
+    visibilitePortail: boolean('visibilite_portail').notNull().default(false),
+    portailTokenDureeJours: integer('portail_token_duree_jours'), // null = permanent
   },
   (t) => [
     index('documents_hash_idx').on(t.hashMD5),
@@ -433,6 +436,28 @@ export const demandesTraduction = pgTable(
   (t) => [
     index('demandes_statut_idx').on(t.statut),
     index('demandes_traducteur_idx').on(t.traducteurId),
+  ]
+);
+
+// Sprint 9
+export const portailTokens = pgTable(
+  'portail_tokens',
+  {
+    id: serial('id').primaryKey(),
+    documentId: integer('document_id')
+      .notNull()
+      .references(() => documents.id),
+    email: varchar('email', { length: 255 }).notNull(),
+    token: varchar('token', { length: 36 }).notNull().unique(), // UUID v4
+    expiresAt: timestamp('expires_at'), // null = permanent
+    utiliseLe: timestamp('utilise_le'),
+    ipUtilisateur: varchar('ip_utilisateur', { length: 45 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    index('portail_tokens_token_idx').on(t.token),
+    index('portail_tokens_document_idx').on(t.documentId),
+    index('portail_tokens_email_idx').on(t.email),
   ]
 );
 

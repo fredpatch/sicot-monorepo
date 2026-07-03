@@ -29,6 +29,8 @@ export function toDocumentView(doc: typeof documents.$inferSelect): DocumentView
     parentId: doc.parentId ?? undefined,
     uploadePar: doc.uploadePar,
     createdAt: doc.createdAt,
+    visibilitePortail: doc.visibilitePortail,
+    portailTokenDureeJours: doc.portailTokenDureeJours ?? undefined,
   };
 }
 

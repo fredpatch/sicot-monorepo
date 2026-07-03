@@ -12,6 +12,8 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  GlobeLock,
+  Globe,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -33,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { documentsApi } from '../lib/api';
+import { documentsApi, portalApi } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -50,6 +52,8 @@ interface Document {
   uploadePar: number;
   texteExtrait?: string;
   createdAt: string;
+  visibilitePortail: boolean;
+  portailTokenDureeJours?: number;
 }
 
 type Categorie =
@@ -105,6 +109,10 @@ export default function DocumentsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
+  // ── États divers ─────────────────────────────────────────────────────
+  const [modalPortail, setModalPortail] = useState<Document | null>(null);
+  const [dureeToken, setDureeToken] = useState<string>('30');
+
   // ── Filtres ───────────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
   const [categorie, setCategorie] = useState<Categorie>('tous');
@@ -157,6 +165,16 @@ export default function DocumentsPage() {
       documentsApi.mettreAJourCategorie(id, cat),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
+    },
+  });
+
+  // ── Mutation visibilité portail ─────────────────────────────────────
+  const togglePortailMutation = useMutation({
+    mutationFn: ({ id, visible, duree }: { id: number; visible: boolean; duree?: number }) =>
+      portalApi.toggleVisibilite(id, visible, duree),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      setModalPortail(null);
     },
   });
 
@@ -378,6 +396,7 @@ export default function DocumentsPage() {
               <th className="text-left px-4 py-3">Langue</th>
               <th className="text-left px-4 py-3">Taille</th>
               <th className="text-left px-4 py-3">OCR</th>
+              <th className="text-left px-4 py-3">Portail Externe</th>
               <th className="text-left px-4 py-3">Version</th>
               <th className="text-left px-4 py-3">Date</th>
               <th className="text-left px-4 py-3">{t('common.actions')}</th>
@@ -434,6 +453,26 @@ export default function DocumentsPage() {
                   <td className="px-4 py-3 text-anac-muted">{formaterTaille(doc.taille)}</td>
                   <td className="px-4 py-3">
                     <BadgeOCR statut={doc.statutOCR} />
+                  </td>
+                  <td>
+                    {doc.visibilitePortail && (
+                      <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2.5 text-xs flex items-center gap-2">
+                        <Globe size={13} />
+                        <span>
+                          Document est visible sur le portail externe.
+                          {doc.portailTokenDureeJours
+                            ? ` Liens de téléchargement valables ${doc.portailTokenDureeJours} jour(s).`
+                            : ' Liens de téléchargement sans expiration.'}
+                        </span>
+                      </div>
+                    )}
+
+                    {!doc.visibilitePortail && (
+                      <div className="bg-anac-gray border border-anac-border text-anac-muted rounded-lg px-3 py-2.5 text-xs flex items-center gap-2">
+                        <GlobeLock size={13} />
+                        <span>Document non exposé sur le portail externe.</span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-anac-muted text-center">v{doc.version}</td>
                   <td className="px-4 py-3 text-anac-muted">
@@ -515,6 +554,52 @@ export default function DocumentsPage() {
                       >
                         Supprimer
                       </Button>
+
+                      {/* Toggle portail */}
+                      {doc.statutOCR === 'traite' && (
+                        <>
+                          <span className="text-anac-border">·</span>
+                          {doc.visibilitePortail ? (
+                            // Document exposé → deux options : retirer ou voir sur le portail
+                            <div className="flex items-center gap-1.5">
+                              <a
+                                href="/portail"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
+                              >
+                                <Globe size={11} /> Exposé
+                              </a>
+                              <span className="text-anac-border">·</span>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() =>
+                                  togglePortailMutation.mutate({ id: doc.id, visible: false })
+                                }
+                                disabled={togglePortailMutation.isPending}
+                                className="h-auto p-0 text-xs text-red-400 hover:text-red-600"
+                              >
+                                Retirer
+                              </Button>
+                            </div>
+                          ) : (
+                            // Document non exposé → bouton pour publier
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() => {
+                                setModalPortail(doc);
+                                setDureeToken('30');
+                              }}
+                              className="h-auto p-0 text-xs text-anac-muted hover:text-anac-sky"
+                            >
+                              <GlobeLock size={11} className="inline mr-1" />
+                              Portail
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -615,6 +700,78 @@ export default function DocumentsPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog : Portail ───────────────────────────────────────────── */}
+      <Dialog
+        open={!!modalPortail}
+        onOpenChange={(open) => {
+          if (!open) setModalPortail(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe size={15} className="text-anac-sky" />
+              Exposer sur le portail
+            </DialogTitle>
+            <DialogDescription>{modalPortail?.nomOriginal}</DialogDescription>
+          </DialogHeader>
+
+          <DialogBody className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Durée de validité des liens de téléchargement</Label>
+              <Select value={dureeToken} onValueChange={setDureeToken}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 jours</SelectItem>
+                  <SelectItem value="30">30 jours</SelectItem>
+                  <SelectItem value="90">90 jours</SelectItem>
+                  <SelectItem value="0">Sans expiration</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-anac-muted">
+                Durée de validité des liens envoyés aux utilisateurs externes qui demandent le
+                téléchargement.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded-lg px-3 py-2.5 text-xs">
+              Le document sera visible par tous les visiteurs du portail externe. La consultation
+              est libre, le téléchargement nécessite un email.
+            </div>
+          </DialogBody>
+
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setModalPortail(null)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={() => {
+                if (!modalPortail) return;
+                togglePortailMutation.mutate({
+                  id: modalPortail.id,
+                  visible: true,
+                  duree: dureeToken === '0' ? undefined : parseInt(dureeToken),
+                });
+              }}
+              disabled={togglePortailMutation.isPending}
+              className="gap-2"
+            >
+              {togglePortailMutation.isPending ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Publication...
+                </>
+              ) : (
+                <>
+                  <Globe size={13} /> Publier sur le portail
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
