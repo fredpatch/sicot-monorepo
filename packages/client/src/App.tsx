@@ -21,6 +21,7 @@ import DashboardPage from './pages/DashboardPage';
 import AdminParametresPage from './pages/AdminParametresPage';
 import PortailPage from './pages/PortalPage';
 import AuditPage from './pages/AuditPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 // function ComingSoon({ module }: { module: string }) {
 //   return (
@@ -164,6 +165,7 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/accords" element={<AccordsPage />} />
           <Route path="/accords/:id" element={<AccordsPage />} />
           <Route path="/accords/new" element={<AccordFormPage />} />

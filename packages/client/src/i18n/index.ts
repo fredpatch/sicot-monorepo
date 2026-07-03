@@ -18,6 +18,7 @@ const fr = {
     administration: 'Administration',
     audit: "Journal d'audit",
     portail: 'Portail externe',
+    analytics: 'Analytics & Rapports',
   },
   // Auth
   auth: {
@@ -111,6 +112,8 @@ const en = {
     documents: 'Documents',
     administration: 'Administration',
     audit: 'Audit Log',
+    portail: 'External Portal',
+    analytics: 'Analytics & Reports',
   },
   auth: {
     title: 'SICOT – Sign In',

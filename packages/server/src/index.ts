@@ -25,6 +25,7 @@ import parametresRoutes from './modules/parametres/routes/parametres.route';
 import notificationsRoutes from './modules/notifications/routes/notifications.route';
 import jobsRoutes from './modules/jobs/routes/jobs.route';
 import portalRoutes from './modules/portal/routes/portal.route';
+import analyticsRoutes from './modules/analytics/routes/analytics.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email';
@@ -32,6 +33,7 @@ import { demarrerJobsSauvegarde } from './jobs/backup';
 import { verifierServiceOCR } from './utils/ocr';
 import { demarrerJobsAlertes } from './jobs/alertes';
 import { seedParametresDefaut } from './start/services/parameters-seed.service';
+import { demarrerJobSnapshotCriticite } from './jobs/criticite-snapshot';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -100,6 +102,7 @@ app.use('/api/parametres', parametresRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/portal', portalRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -143,6 +146,9 @@ app.listen(PORT, async () => {
   // Démarrage des jobs de sauvegarde et d'alertes
   demarrerJobsSauvegarde();
   demarrerJobsAlertes();
+
+  // Démarrage du job de snapshot de criticité
+  demarrerJobSnapshotCriticite();
 });
 
 export default app;

@@ -5,7 +5,11 @@ type ErrorMap = Record<string, { status: number; message: string }>;
 type PrefixHandler = { prefix: string; status: number; message: (id: string) => string };
 
 // ── Fabrique de gestionnaires d'erreurs service → HTTP ────────────────────
-function createErrorHandler(errorMap: ErrorMap, logPrefix: string, prefixHandlers: PrefixHandler[] = []) {
+function createErrorHandler(
+  errorMap: ErrorMap,
+  logPrefix: string,
+  prefixHandlers: PrefixHandler[] = []
+) {
   return (res: Response, error: unknown): void => {
     const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
 
@@ -189,3 +193,5 @@ export const handleTraductionError = createErrorHandler(
   },
   '[traduction.controller]'
 );
+
+export const handleAnalyticsError = createErrorHandler({}, '[analytics.controller]');

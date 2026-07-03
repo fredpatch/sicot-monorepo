@@ -15,3 +15,4 @@ export { parametresApi } from './parametres.api';
 export { notificationsApi } from './notifications.api';
 export { jobsApi } from './jobs.api';
 export { portalApi } from './portal.api';
+export { analyticsApi } from './analytics.api';

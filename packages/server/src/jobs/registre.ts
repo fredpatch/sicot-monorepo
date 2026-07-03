@@ -5,6 +5,7 @@ import { db } from '@/db/index.js';
 import { courriers, recommandations } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
+import { snapshotCriticiteCourriers } from './criticite-snapshot.js';
 
 export interface JobDefinition {
   cle: string;
@@ -162,6 +163,21 @@ export const REGISTRE_JOBS: JobDefinition[] = [
       if (!resultat.succes) throw new Error(resultat.erreur ?? 'Échec de la sauvegarde.');
       return {
         resume: `Sauvegarde créée : ${resultat.nomFichier} (${resultat.tailleMo} Mo).`,
+        details: resultat,
+      };
+    },
+  },
+  {
+    cle: 'courriers_criticite_snapshot',
+    label: 'Capture criticité courriers (historique)',
+    description:
+      "Enregistre l'état du jour (normal/à surveiller/critique) pour alimenter l'évolution dans le temps en Analytics. Utile en dev pour peupler l'historique sans attendre plusieurs jours.",
+    module: 'M11',
+    roleMinimum: 'admin',
+    executer: async () => {
+      const resultat = await snapshotCriticiteCourriers();
+      return {
+        resume: `Snapshot du ${resultat.date} : ${resultat.normal} normal, ${resultat.aSurveiller} à surveiller, ${resultat.critique} critique.`,
         details: resultat,
       };
     },

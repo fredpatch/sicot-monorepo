@@ -20,6 +20,7 @@ import {
   Loader2,
   ShieldCheck,
   ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ interface NavItem {
 // ── Items de navigation ───────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
   { to: '/accords', labelKey: 'nav.accords', icon: FileText },
   { to: '/partenaires', labelKey: 'nav.partenaires', icon: Globe2 },
   { to: '/missions', labelKey: 'nav.missions', icon: Plane },

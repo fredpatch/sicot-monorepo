@@ -3,16 +3,16 @@
   "client": "ANAC Gabon",
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
-  "lastUpdated": "2026-07-03",
-  "lastCommit": "6aaa354",
-  "currentSprint": 10,
-  "currentSprintFocus": "Sprint 10 (Paramètres Système Élargis, M10) built + committed this session (6aaa354) — 5 hardcoded settings migrated to the `parametres` table, Journal d'audit UI + PDF/Excel export shipped, AdminParametresPage reorganized. Sprint 9 (Portail Documentaire Externe) shipped earlier same day (47ef8b8) with a known route bug still open. Sprint 11 (Analytics & Rapports, M11) planned/backlogged, not started.",
-  "status": "Sprints 1–5 + 8 + 9 + 10 COMPLETE ✅ (7a1de70, 47ef8b8, 6aaa354). Server refactor pass COMPLETE ✅ (dd2809d). Sprint 11 planned (47ffd94) — no code yet. Neither Sprint 9 nor Sprint 10 has been manually verified end-to-end yet.",
+  "lastUpdated": "2026-07-04",
+  "lastCommit": "PENDING",
+  "currentSprint": 11,
+  "currentSprintFocus": "Sprint 11 (Analytics & Rapports, M11) — analytics-dashboard half built this session (8-tab AnalyticsPage.tsx + modules/analytics server, in-memory cache, daily criticité-courriers snapshot job). The `rapports` half (PDF/Excel generation, monthly cron, on-demand reports) is NOT built yet — original Sprint 11 scope only half-delivered. docs/TASKS.md Sprint 11 header not updated, still shows ⬜ À FAIRE.",
+  "status": "Sprints 1–5 + 8 + 9 + 10 COMPLETE ✅ (7a1de70, 47ef8b8, 6aaa354). Server refactor pass COMPLETE ✅ (dd2809d). Sprint 11 analytics half built this session, pending commit at cache-write time — rapports half still open. Sprints 9/10 still not manually verified end-to-end.",
 
   "activeSession": {
-    "task": "Sprint 10 — Paramètres Système Élargis (M10), committed 6aaa354: migrated 5 hardcoded settings into the `parametres` table (otp_expiration_minutes, lockout_max_tentatives, lockout_duree_minutes, backup_retention_locale_jours, backup_retention_nas_jours, deepl_fallback_actif) with a new idempotent seed service (`start/services/parameters-seed.service.ts`, called from `index.ts` before `app.listen` body runs) replacing the previously-planned 'seed via Drizzle migration' approach. Closed the Sprint-1-era Journal d'audit UI gap: new `AuditPage.tsx` (386 lines) replaces the `/audit` `ComingSoon` placeholder, plus PDF/Excel export (`utils/pdf.ts` — first use of puppeteer; `audit.export.service.ts`; `audit.controller.ts` exporterPDF/exporterExcel; capped at 10000 rows). `AdminParametresPage.tsx` reorganized into a per-module grid with human-readable labels. `deepl_fallback_actif` is resolved per-request now (not fixed at translate-service startup) — server passes `deepl_actif` in the request body, translate-service's `resoudre_deepl_actif()` falls back to its own env var if omitted; `verifierLibreTranslate()`/`verifierMoteur()` now also report `deeplConfigure` so the UI can warn if the toggle is on without an API key. See `sessions/2026-07-03.md` Sprint 10 section for full file-by-file detail.",
-    "startedAt": "2026-07-03",
-    "nextAction": "Run `tsc --noEmit` on both packages, manually verify: audit export PDF/Excel download, OTP expiration / account lockout / backup retention actually read from `parametres` (not just default values), deepl_fallback_actif per-request toggle. Still-open from Sprint 9: fix `/portail` → `/portal` href bug in DocumentsPage.tsx (404), generate/apply a Drizzle migration for the Sprint 9 schema changes (portailTokens table + documents columns — currently hand-edited in schema.ts with no migration file). After that: Sprint 11 (M11 Analytics) is scoped but unbuilt — see docs/TASKS.md Sprint 11 section. Sprint 10's upload size/format limits item was deliberately deferred (not urgent)."
+    "task": "Sprint 11 — Module Analytics & Rapports (M11), analytics half: new server `modules/analytics` (types/service/controller/route) — one `get*Analytics(filtre)` per module (Accords/Courriers/Missions/Traduction/Demandes/Documents/Glossaire) plus a cross-module `getGlobalAnalytics`, each cached 60s via new `utils/cache.ts` (`avecCache()`, plain in-memory Map, explicitly not multi-instance-safe). Routes gated by `authenticate` + `requireTraducteur` (role hierarchy — traducteur and above). New `courriersCriticiteSnapshots` table + `jobs/criticite-snapshot.ts` (daily 23:55 cron, SQL-side FILTER aggregation, idempotent upsert on `date`) so the courrier-criticité evolution chart has history to read — also registered as a manually-triggerable job in `registre.ts` for backfilling in dev. Client: `AnalyticsPage.tsx` (1700 lines) — 8 tabs (global + M1/M4/M3/M6/M5/M8/M7), `ChartCanvas.tsx` component loading Chart.js from a CDN at runtime (not an npm dep), `analytics.api.ts`, routed at `/analytics`, nav item in Layout.tsx. Drive-by fix: `nav.portail` i18n key had been missing from the English block since Sprint 9 (French had it) — backfilled. NOT built: the `rapports` layer (PDF/Excel generation, ANAC template, monthly cron, on-demand, history) and any CSV/Excel export on the analytics dashboard itself — both were part of the original Sprint 11 plan. See `sessions/2026-07-04.md` for full file-by-file detail.",
+    "startedAt": "2026-07-04",
+    "nextAction": "Run `tsc --noEmit` on both packages, manually load `/analytics` and click through all 8 tabs with a real date range, manually trigger `courriers_criticite_snapshot` from AdminParametresPage and confirm it writes a row, generate a Drizzle migration for `courriersCriticiteSnapshots` (hand-edited in schema.ts, no migration file — same gap as Sprint 9/10). Then build Sprint 11's other half: `rapports.service.ts` (PDF/Excel, monthly cron, on-demand, history) — this also folds in the old Sprint 5 'rapport mensuel' leftover. Update docs/TASKS.md Sprint 11 status. Still-open from Sprint 9: fix `/portail` → `/portal` href bug in DocumentsPage.tsx (404), migration for portailTokens table. Still open from Sprint 10: manual verification of parameter-driven OTP/lockout/backup-retention/deepl behaviors."
   },
 
   "index": [
@@ -125,6 +125,12 @@
       "summary": "10 gotchas with exact symptoms and fixes: transition in Variants, Tailwind v4 config, shadcn CLI, CORS wildcard, discriminatedUnion casting, ignoreDeprecations, multer limits, Drizzle where(), PG enums, premier_login role"
     },
     {
+      "path": "sessions/2026-07-04.md",
+      "type": "session-log",
+      "tags": ["2026-07-04", "sprint11", "analytics", "rapports", "chartjs", "criticite", "cache"],
+      "summary": "Session: Sprint 11 analytics half — modules/analytics server (7 modules + global, cached), AnalyticsPage.tsx (8 tabs, Chart.js via CDN), daily courriers-criticité snapshot job/table. Rapports layer (PDF/Excel/cron) NOT built. Uncommitted at cache update time."
+    },
+    {
       "path": "sessions/2026-07-03.md",
       "type": "session-log",
       "tags": ["2026-07-03", "sprint9", "sprint10", "portail", "portal", "parametres", "audit", "audit-export", "pdf", "excel", "otp", "lockout", "backup-retention", "deepl"],
@@ -173,7 +179,7 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications", "/api/jobs", "/api/portal"],
+    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications", "/api/jobs", "/api/portal", "/api/analytics"],
     "pendingRoutes": ["/api/rapport-mensuel"]
   },
 
