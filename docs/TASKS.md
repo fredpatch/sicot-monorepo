@@ -430,17 +430,20 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 - [x] ~~`/portail`~~ - route publique hors ProtectedRoute (juillet 2026)
 
-## Sprint 10 – Paramètres Système Élargis | ⬜ À FAIRE
+## Sprint 10 – Paramètres Système Élargis | 🔶 EN COURS
 
 ### Reporté du Sprint 8 — chantier de fond distinct, hors urgence rappels CCIT
 
-- [ ] **Délai expiration OTP configurable** - Actuellement en dur dans `otp.ts`, devrait être un paramètre `otp_expiration_minutes`
-- [ ] **Seuil blocage compte configurable** - `tentativesEchouees` existe en BDD mais le seuil de blocage est en dur dans `auth.service.ts`, devrait être `compte_tentatives_max`
-- [ ] **Toggle fallback DeepL** - Paramètre booléen `deepl_fallback_actif`, activable/désactivable sans redéploiement — en attente validation DG/contrat RGPD au préalable (voir Waiting On)
-- [ ] **Rétention sauvegardes configurable** - Actuellement en dur dans `backup.ts` (30j local / 12 mois NAS), devrait être `backup_retention_locale_jours` / `backup_retention_nas_mois`
-- [ ] **Taille max upload et formats acceptés configurables** - Actuellement en dur dans la config Multer, devrait être pilotable sans redéploiement
+- [x] ~~**Délai expiration OTP configurable**~~ - Migré vers `parametres` (`otp_expiration_minutes`, défaut 10 min), `otp.ts` ne lit plus l'env var (juillet 2026)
+- [x] ~~**Seuil blocage compte configurable**~~ - Migré vers `parametres` (`lockout_max_tentatives` défaut 5, `lockout_duree_minutes` défaut 30) — nom final diffère du `compte_tentatives_max` prévu à la planification, et la durée de blocage (`BLOCAGE_MINUTES`, aussi en dur) a été migrée avec, non prévue séparément à l'origine (juillet 2026)
+- [x] ~~**Toggle fallback DeepL**~~ - Paramètre `deepl_fallback_actif` (booléen, défaut false), résolu côté Flask `translate-service` par requête (`resoudre_deepl_actif`) au lieu de l'env var figé au démarrage ; avertissement UI si activé sans `DEEPL_API_KEY` configuré. Implémentation technique terminée — activation réelle toujours en attente validation DG/contrat RGPD (voir Waiting On) (juillet 2026)
+- [x] ~~**Rétention sauvegardes configurable**~~ - Migré vers `parametres` (`backup_retention_locale_jours` défaut 30, `backup_retention_nas_jours` défaut 360) — NAS en jours et non en mois comme prévu initialement, pour rester cohérent avec les autres seuils déjà exprimés en jours (juillet 2026)
+- [ ] **Taille max upload et formats acceptés configurables** - Reporté volontairement, limite actuelle (50 Mo, en dur dans `upload.ts`) jugée suffisante pour l'instant ; nécessiterait une factory middleware pour lire la valeur par requête, non prioritaire
 - [ ] **Job manuel rapport mensuel** - Une fois M9 rapport mensuel implémenté, l'enregistrer dans `registre.ts` (déjà prévu en commentaire)
-- [ ] **Seed parametres intégré à la migration Drizzle** - Eviter le souci de seed manquant en production (actuellement SQL manuel uniquement)
+- [x] ~~**Seed parametres sans SQL manuel**~~ - Approche différente de celle prévue : plutôt qu'intégré à une migration Drizzle, seed idempotent (`ON CONFLICT DO NOTHING`) exécuté au démarrage serveur via `start/services/parametres-seed.service.ts`, avant `app.listen` — même résultat (zéro étape manuelle), mécanisme différent (juillet 2026)
+- [x] ~~**Réorganisation UI `AdminParametresPage.tsx`**~~ - Non planifiée initialement, ajoutée en cours de sprint : grille par module (au lieu de liste), libellés lisibles via `PARAMETRE_LABELS`, unité correcte par clé (`uniteDepuisCle`), clé technique reléguée en tag discret (juillet 2026)
+- [x] ~~**Journal d'audit - Interface de consultation**~~ - Non planifiée dans Sprint 10, mais chantier ouvert depuis Sprint 1 (backend fait, UI restée en `ComingSoon`). `AuditPage.tsx`:filtres Module/Action/Date, tableau paginé, modal détails JSON. Filtre `search` du type `AuditFilters` constaté déclaré mais jamais utilisé côté service - volontairement exclu de l'UI plutôt que branché sur un filtre inopérant (juillet 2026)
+- [x] ~~**Journal d'audit - exportPDF/Excel**~~ - Première utilisation de `puppeteer`/`exceljs` dans le projet (dépendances présentes depuis le début, jamais câblées). `utils/pdf.ts` conçu générique et réutilisable pour les futurs exports (Accords/Courriers/Missions, cf. Sprint 3/11). Export plafonné à 10 000 lignes avec détection de troncature ; l'export lui-même est audité (`AUDIT_EXPORT_PDF` / `AUDIT_EXPORT_EXCEL`) (juillet 2026)
 
 ## Sprint 11 – Module Analytics & Rapports (M11) | ⬜ À FAIRE
 

@@ -1,11 +1,14 @@
 import os
 import re
 import requests
-from flask import Flask, request, jsonify # type: ignore
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify 
 from waitress import serve
-from langdetect import detect, LangDetectException # type: ignore
+from langdetect import detect, LangDetectException 
 
 # ── Configuration ──────────────────────────────────────────────────────────
+load_dotenv()
+
 app = Flask(__name__)
 
 PORT = int(os.environ.get("TRANSLATE_PORT", 5002))
@@ -134,7 +137,7 @@ def traduire_deepl(texte: str, source: str, cible: str) -> dict:
     }
 
 # ── Traduction avec fallback automatique ───────────────────────────────────
-def traduire(texte: str, source: str, cible: str) -> dict:
+def traduire(texte: str, source: str, cible: str, deepl_actif: bool = DEEPL_ENABLED) -> dict:
     # Essayer LibreTranslate en premier
     try:
         return traduire_libretranslate(texte, source, cible)
@@ -142,8 +145,8 @@ def traduire(texte: str, source: str, cible: str) -> dict:
         libretranslate_erreur = str(e)
         print(f"[translate] LibreTranslate échoué : {libretranslate_erreur}")
 
-    # Fallback DeepL si activé
-    if DEEPL_ENABLED:
+   # Fallback DeepL si activé (au niveau de la requête, sinon valeur par défaut du service)
+    if deepl_actif:
         try:
             print("[translate] Bascule vers DeepL...")
             return traduire_deepl(texte, source, cible)
@@ -153,6 +156,11 @@ def traduire(texte: str, source: str, cible: str) -> dict:
     raise RuntimeError(
         f"Tous les moteurs ont échoué. LibreTranslate: {libretranslate_erreur}"
     )
+
+# ── Résoudre deepl_actif depuis la requête, avec repli sur la config serveur ─
+def resoudre_deepl_actif(data: dict) -> bool:
+    valeur = data.get("deepl_actif")
+    return DEEPL_ENABLED if valeur is None else bool(valeur)
 
 # ── Route : POST /translate ────────────────────────────────────────────────
 @app.route("/translate", methods=["POST"])
@@ -198,8 +206,10 @@ def translate():
             "message": "Source et cible identiques — texte retourné sans traduction.",
         })
 
+    deepl_actif = resoudre_deepl_actif(data)
+
     try:
-        resultat = traduire(texte, source, cible)
+        resultat = traduire(texte, source, cible, deepl_actif)
         return jsonify({
             **resultat,
             "source_detectee": source,
@@ -247,6 +257,8 @@ def translate_batch():
             "succes": True,
         })
 
+    deepl_actif = resoudre_deepl_actif(data)
+
     # Découper en segments
     segments = decouper_en_segments(texte)
     segments_traduits = []
@@ -255,7 +267,7 @@ def translate_batch():
 
     for i, segment in enumerate(segments):
         try:
-            resultat = traduire(segment, source, cible)
+            resultat = traduire(segment, source, cible, deepl_actif)
             segments_traduits.append({
                 "original": segment,
                 "traduit": resultat["texte"],

@@ -2,7 +2,7 @@ import { db } from '@/db/index.js';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { signAccessToken, signRefreshToken, TokenPayload } from '@/utils/jwt';
-import { MAX_LOGIN_ATTEMPTS, BLOCAGE_MINUTES } from './auth.constants';
+import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
 import type { AuthTokens, UserPublic } from './auth.types';
 
 // ── Incrémenter les tentatives échouées ───────────────────────────────────
@@ -13,9 +13,11 @@ export async function handleEchecConnexion(
   const tentatives = tentativesActuelles + 1;
   const updates: Record<string, unknown> = { tentativesEchouees: tentatives };
 
-  if (tentatives >= MAX_LOGIN_ATTEMPTS) {
+  const maxTentatives = await getValeurEntier('lockout_max_tentatives', 5);
+  if (tentatives >= maxTentatives) {
+    const dureeBlocage = await getValeurEntier('lockout_duree_minutes', 30);
     const blocageDate = new Date();
-    blocageDate.setMinutes(blocageDate.getMinutes() + BLOCAGE_MINUTES);
+    blocageDate.setMinutes(blocageDate.getMinutes() + dureeBlocage);
     updates.bloqueJusquA = blocageDate;
   }
 

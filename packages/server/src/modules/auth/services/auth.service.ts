@@ -6,8 +6,14 @@ import { signAccessToken, verifyRefreshToken } from '@/utils/jwt';
 import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendOTPEmail } from '@/utils/email.js';
 import { SALT_ROUNDS } from './auth.constants';
-import { handleEchecConnexion, resetTentatives, buildTokens, buildUserPublic } from './auth.helpers';
+import {
+  handleEchecConnexion,
+  resetTentatives,
+  buildTokens,
+  buildUserPublic,
+} from './auth.helpers';
 import type { AuthTokens, UserPublic, LoginResult } from './auth.types';
+import { getValeurEntier } from '@/modules/parametres/services/parametres.service';
 
 export type { AuthTokens, UserPublic, LoginResult } from './auth.types';
 
@@ -158,12 +164,10 @@ export async function genererEtEnvoyerOTP(userId: number): Promise<void> {
 
   const otp = generateOTP();
   const otpHash = await hashOTP(otp);
-  const expiresAt = otpExpiresAt();
+  const minutesExpiration = await getValeurEntier('otp_expiration_minutes', 10);
+  const expiresAt = otpExpiresAt(minutesExpiration);
 
-  await db
-    .update(users)
-    .set({ otpHash, otpExpiresAt: expiresAt })
-    .where(eq(users.id, userId));
+  await db.update(users).set({ otpHash, otpExpiresAt: expiresAt }).where(eq(users.id, userId));
 
   await sendOTPEmail({
     to: user.email,

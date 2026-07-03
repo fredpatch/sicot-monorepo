@@ -16,7 +16,7 @@ export async function listerAuditLogs(filters: AuditFilters): Promise<{
   const offset = (page - 1) * pageSize;
 
   // Construction des conditions
-  const conditions = [];
+  const conditions = construireConditions(filters);
 
   if (filters.userId) {
     conditions.push(eq(auditLogs.userId, filters.userId));
@@ -102,4 +102,45 @@ export async function getActionsDisponibles(): Promise<string[]> {
     .orderBy(auditLogs.action);
 
   return rows.map((r) => r.action);
+}
+
+// ── Construction des conditions de filtre — partagée liste + export ───────
+function construireConditions(filters: AuditFilters) {
+  const conditions = [];
+
+  if (filters.userId) conditions.push(eq(auditLogs.userId, filters.userId));
+  if (filters.module) conditions.push(eq(auditLogs.module, filters.module));
+  if (filters.action) conditions.push(ilike(auditLogs.action, `%${filters.action}%`));
+  if (filters.dateDebut) conditions.push(gte(auditLogs.createdAt, filters.dateDebut));
+  if (filters.dateFin) conditions.push(lte(auditLogs.createdAt, filters.dateFin));
+
+  return conditions;
+}
+
+// ── SERVICE : Lister pour export — sans pagination, plafonné ──────────────
+// Les exports PDF/Excel portent sur l'ensemble des résultats filtrés, pas
+// seulement la page affichée. Plafond de sécurité pour éviter une requête
+// incontrôlée si les filtres sont trop larges (ex: aucune date).
+const EXPORT_LIMITE_MAX = 10000;
+
+export async function listerAuditLogsExport(
+  filters: AuditFilters
+): Promise<{ data: AuditLogView[]; tronque: boolean }> {
+  const conditions = construireConditions(filters);
+
+  const rows = await db
+    .select({
+      log: auditLogs,
+      user: { matricule: users.matricule, nom: users.nom, prenom: users.prenom },
+    })
+    .from(auditLogs)
+    .leftJoin(users, eq(auditLogs.userId, users.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(EXPORT_LIMITE_MAX + 1);
+
+  const tronque = rows.length > EXPORT_LIMITE_MAX;
+  const data = rows.slice(0, EXPORT_LIMITE_MAX).map(toAuditLogView);
+
+  return { data, tronque };
 }

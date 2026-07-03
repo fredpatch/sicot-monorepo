@@ -1,30 +1,45 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-03
-**Status**: ✅ Sprint 9 — Portail Documentaire Externe (M8-bis) BUILT and committed (47ef8b8)
+**Status**: ✅ Sprint 9 (Portail Documentaire Externe) shipped & pushed (47ef8b8). ✅ Sprint 10 (Paramètres Système Élargis) built, pending commit at cache-write time.
 
-## ✅ Done (functionally): Sprint 9 — Portail Documentaire Externe (M8-bis)
+## ✅ Done: Sprint 10 — Paramètres Système Élargis (M10)
 
-External-facing document portal with admin-curated visibility, per
-`docs/note.md` original CCIT brief. This session's work (see
-`sessions/2026-07-03.md` for full detail):
+See `sessions/2026-07-03.md` Sprint 10 section for full file-by-file detail.
 
-- New server module `modules/portal/` — public browse/consult/download-token
-  routes (no auth) + admin visibility-toggle route (auth + admin role)
-- Schema: `documents.visibilitePortail`, `documents.portailTokenDureeJours`,
-  new `portailTokens` table (token, email, expiry, usage tracking)
-- Client: `PortalPage.tsx` (public portal UI) + `portal.api.ts`, routed at
-  `/portal`, nav item added to `Layout.tsx`
-- `DocumentsPage.tsx` — "Portail Externe" column + expose/retire dialog
+- 5 hardcoded settings migrated to the `parametres` table:
+  `otp_expiration_minutes`, `lockout_max_tentatives`,
+  `lockout_duree_minutes`, `backup_retention_locale_jours`,
+  `backup_retention_nas_jours`, `deepl_fallback_actif`
+- New idempotent seed service `start/services/parameters-seed.service.ts`
+  (`onConflictDoNothing`, called from `index.ts` before `app.listen` body)
+  — replaces the previously-planned "seed via Drizzle migration" approach
+- `deepl_fallback_actif` resolved **per-request** now, not fixed at
+  translate-service startup — server sends `deepl_actif` in the request
+  body, translate-service's `resoudre_deepl_actif()` falls back to its own
+  env var if omitted
+- Journal d'audit UI shipped (`AuditPage.tsx`, open since Sprint 1) +
+  PDF/Excel export (`utils/pdf.ts` — first use of puppeteer/exceljs in the
+  project), capped at 10,000 rows with truncation flag
+- `AdminParametresPage.tsx` reorganized into a per-module grid with
+  human-readable labels (not originally planned, added mid-sprint)
+- Deliberately deferred: upload size/format limits (still hardcoded,
+  judged sufficient for now)
 
-**⚠️ Known bug not yet fixed**: `DocumentsPage.tsx`'s "Exposé" link uses
+## ✅ Done (earlier same day): Sprint 9 — Portail Documentaire Externe (M8-bis)
+
+Committed `47ef8b8`, pushed. Public document portal — admin curates
+visibility, external visitors browse/consult freely, downloads gated
+behind an emailed token link. Full detail in `sessions/2026-07-03.md`.
+
+**⚠️ Known unresolved bug**: `DocumentsPage.tsx`'s "Exposé" link uses
 `href="/portail"` but the actual route (App.tsx + server mount) is
-`/portal` — will 404, needs a one-line fix before commit.
+`/portal` — will 404. Not yet fixed.
 
-**Not yet done**: `tsc --noEmit` verification, manual end-to-end test of the
-portal flow, Drizzle migration file for the schema changes (schema.ts was
-hand-edited). Code is committed (47ef8b8) despite these gaps — fix and
-follow up with a corrective commit next session.
+**Also not yet done**: `tsc --noEmit` verification, manual end-to-end test
+of both the portal flow and the new Sprint 10 parameter-driven behaviors,
+Drizzle migration file for Sprint 9's schema changes (hand-edited, no
+migration generated).
 
 ---
 
@@ -32,24 +47,21 @@ follow up with a corrective commit next session.
 
 - Sprint 8 (Centre de Notifications & Rappels CCIT) — COMPLETE, committed
   `7a1de70`
-- Server-wide services refactor (types/helpers/service split,
-  `createErrorHandler`) — COMPLETE, committed `dd2809d`
-- Sprint 11 (M11 Analytics & Rapports) — planning only, committed `47ffd94`,
-  no code yet
+- Server-wide services refactor — COMPLETE, committed `dd2809d`
+- Sprint 11 (M11 Analytics & Rapports) — planning only, committed
+  `47ffd94`, no code yet
 
 ## Leftover items (not blocking, tracked in docs/TASKS.md)
 
-- [ ] Fix `/portail` → `/portal` href bug in `DocumentsPage.tsx` (Sprint 9,
-      found this session)
-- [ ] Generate/apply Drizzle migration for `portailTokens` table +
-      `documents` columns (Sprint 9)
-- [ ] **Rapport mensuel automatique** — scoped as part of Sprint 11's
-      `rapports.service.ts`
-- [ ] **Seed parametres via migration Drizzle** — currently manual SQL only
-      (Sprint 8 item)
+- [ ] Fix `/portail` → `/portal` href bug in `DocumentsPage.tsx` (Sprint 9)
+- [ ] Generate/apply Drizzle migration for Sprint 9 schema (`portailTokens`
+      table + `documents` columns)
+- [ ] `tsc --noEmit` + manual verification of Sprint 9 + Sprint 10 work
+- [ ] **Job manuel rapport mensuel** — register in `registre.ts` once M9
+      rapport mensuel is implemented (Sprint 11)
+- [ ] **Taille max upload configurable** — deferred, Sprint 10
 - [ ] `pg_dump` on SERV-APPI (Linux production) — validate PATH availability
 - [ ] Re-enable auth rate limiter (commented out in `index.ts`)
-- [ ] Export PDF/DOCX (optional)
 
 ## Progress Tracker
 
@@ -60,11 +72,11 @@ Sprint 3  Accords/Correspondances/Missions    ██████████ 100
 Sprint 4  Traduction IA/Glossaire/Demandes    ██████████ 100% ✅
 Sprint 5  Dashboard & Statistiques (V1)       ██████████ 100% ✅
 Sprint 8  Notifications & Rappels CCIT        ██████████ 100% ✅
+Sprint 9  Portail Documentaire Externe        █████████░  90% ✅ (route bug + migration open)
+Sprint 10 Paramètres Système Élargis          █████████░  90% ✅ (verification pending)
 Server services refactor                      ██████████ 100% ✅
 ──────────────────────────────────────────────────────────────
-Sprint 9  Portail Documentaire Externe        █████████░  90% ← IN PROGRESS (uncommitted)
 Sprint 11 Analytics & Rapports (planning)     ██░░░░░░░░  20% (scoped, no code)
-Sprint 10 Paramètres Système Élargis          ░░░░░░░░░░   0%
 Sprint 6  Tests, Recette & Corrections        ░░░░░░░░░░   0% (postponed)
 Sprint 7  Déploiement Production & Formation  ░░░░░░░░░░   0% (postponed)
 ```

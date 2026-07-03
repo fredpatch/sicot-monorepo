@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
 
 const execAsync = promisify(exec);
 
@@ -11,8 +12,6 @@ const execAsync = promisify(exec);
 const PG_DUMP_BIN = process.env.PG_DUMP_PATH ?? 'pg_dump';
 export const BACKUP_LOCAL_DIR = process.env.BACKUP_LOCAL_DIR ?? '/sicot/backups/local';
 export const BACKUP_NAS_DIR = process.env.BACKUP_NAS_DIR ?? '/mnt/nas/sicot/backups';
-const LOCAL_RETENTION_DAYS = 30;
-const NAS_RETENTION_MONTHS = 12;
 
 // ── Utilitaires ───────────────────────────────────────────────────────────
 function ensureDir(dir: string): void {
@@ -100,7 +99,8 @@ function demarrerSauvegardeQuotidienne(): void {
   cron.schedule('0 2 * * *', async () => {
     console.log('⏰ Démarrage sauvegarde quotidienne...');
     await effectuerSauvegarde(BACKUP_LOCAL_DIR, 'quotidien');
-    supprimerAnciensBackups(BACKUP_LOCAL_DIR, LOCAL_RETENTION_DAYS);
+    const retentionJours = await getValeurEntier('backup_retention_locale_jours', 30);
+    supprimerAnciensBackups(BACKUP_LOCAL_DIR, retentionJours);
   });
 
   console.log('📅 Sauvegarde quotidienne planifiée à 02h00');
@@ -111,7 +111,8 @@ function demarrerSauvegardeHebdomadaire(): void {
   cron.schedule('0 3 * * 0', async () => {
     console.log('⏰ Démarrage sauvegarde hebdomadaire NAS...');
     await effectuerSauvegarde(BACKUP_NAS_DIR, 'hebdomadaire');
-    supprimerAnciensBackups(BACKUP_NAS_DIR, NAS_RETENTION_MONTHS * 30);
+    const retentionJours = await getValeurEntier('backup_retention_nas_jours', 360);
+    supprimerAnciensBackups(BACKUP_NAS_DIR, retentionJours);
   });
 
   console.log('📅 Sauvegarde hebdomadaire NAS planifiée le dimanche à 03h00');

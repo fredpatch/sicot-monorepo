@@ -31,6 +31,7 @@ import { verifyEmailConnection } from './utils/email';
 import { demarrerJobsSauvegarde } from './jobs/backup';
 import { verifierServiceOCR } from './utils/ocr';
 import { demarrerJobsAlertes } from './jobs/alertes';
+import { seedParametresDefaut } from './start/services/parameters-seed.service';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -125,13 +126,21 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 app.listen(PORT, async () => {
   console.log(`✅ SICOT API démarrée sur http://localhost:${PORT}`);
   console.log(`📋 Environnement : ${process.env.NODE_ENV ?? 'development'}`);
+  // Seed des paramètres par défaut
+  await seedParametresDefaut();
+
+  // Vérification de la connexion au serveur SMTP
   await verifyEmailConnection();
+
+  // Vérification de la disponibilité du service OCR
   const ocrAvailable = await verifierServiceOCR();
   if (ocrAvailable) {
     console.log('✅ Service OCR disponible');
   } else {
     console.warn('⚠️  Service OCR indisponible — démarrez packages/ocr-service/main.py');
   }
+
+  // Démarrage des jobs de sauvegarde et d'alertes
   demarrerJobsSauvegarde();
   demarrerJobsAlertes();
 });

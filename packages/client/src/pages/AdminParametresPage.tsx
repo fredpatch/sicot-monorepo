@@ -13,13 +13,14 @@ import {
   Play,
   Loader2Icon,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parametresApi, type ParametreType } from '@/lib/parametres.api';
-import { jobsApi } from '@/lib/api';
+import { jobsApi, traductionsApi } from '@/lib/api';
 import { useAuth } from '@/App';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -51,6 +52,20 @@ interface JobResultat {
   dureeMs: number;
 }
 
+// ── Labels paramètres ──────────────────────────────────────────────────────
+const PARAMETRE_LABELS: Record<string, string> = {
+  otp_expiration_minutes: 'Expiration du code OTP',
+  lockout_max_tentatives: 'Tentatives avant blocage',
+  lockout_duree_minutes: 'Durée du blocage',
+  backup_retention_locale_jours: 'Rétention sauvegarde locale',
+  backup_retention_nas_jours: 'Rétention sauvegarde NAS',
+  accord_alerte_jours: 'Alerte échéance accord',
+  courrier_alerte_jours: 'Seuil courrier "à surveiller"',
+  courrier_alerte_critique_jours: 'Seuil courrier "critique"',
+  recommandation_alerte_jours: 'Alerte recommandation à risque',
+  deepl_fallback_actif: 'Fallback traduction DeepL',
+};
+
 // ── Labels modules ─────────────────────────────────────────────────────────
 const MODULE_LABELS: Record<string, string> = {
   M1: 'Accords & Partenariats',
@@ -58,21 +73,37 @@ const MODULE_LABELS: Record<string, string> = {
   M4: 'Correspondances',
   NOTIF: 'Notifications',
   ADMIN: 'Administration',
+  M10: 'Sécurité & Système',
 };
+
+// ── Déduire l'unité depuis la clé du paramètre ─────────────────────────────
+function uniteDepuisCle(cle: string): string {
+  if (cle.endsWith('_jours')) return 'jours';
+  if (cle.endsWith('_minutes')) return 'min';
+  return '';
+}
 
 // ── Ligne paramètre éditable ───────────────────────────────────────────────
 function LigneParametre({
   parametre,
   onSave,
   saving,
+  succes,
+  deeplNonConfigure,
 }: {
   parametre: Parametre;
   onSave: (cle: string, valeur: string) => void;
   saving: boolean;
+  succes: boolean;
+  deeplNonConfigure?: boolean;
 }) {
   const [valeur, setValeur] = useState(parametre.valeur);
   const [modifie, setModifie] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+
+  const succesInline = succes ? (
+    <span className="text-[10px] text-green-600 font-medium">✓ Enregistré</span>
+  ) : null;
 
   function handleChange(v: string) {
     setValeur(v);
@@ -81,7 +112,6 @@ function LigneParametre({
   }
 
   function handleSave() {
-    // Validation côté client avant envoi
     if (parametre.type === 'entier' && !/^\d+$/.test(valeur)) {
       setErreur('Doit être un nombre entier positif.');
       return;
@@ -90,51 +120,53 @@ function LigneParametre({
     setModifie(false);
   }
 
+  const unite = uniteDepuisCle(parametre.cle);
+
   return (
-    <div className="flex items-center justify-between py-3 px-4 hover:bg-anac-gray/30 transition-colors">
-      <div className="flex-1 min-w-0 pr-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-anac-navy font-mono">{parametre.cle}</span>
-        </div>
+    <div className="card p-3.5 flex flex-col gap-2.5 h-full">
+      <div>
+        <p className="text-sm font-semibold text-anac-navy leading-snug">
+          {PARAMETRE_LABELS[parametre.cle] ?? parametre.cle}
+        </p>
         {parametre.description && (
-          <p className="text-xs text-anac-muted mt-0.5">{parametre.description}</p>
+          <p className="text-xs text-anac-muted mt-0.5 leading-snug">{parametre.description}</p>
         )}
-        {parametre.modifiePar && (
-          <p className="text-[10px] text-anac-muted mt-1 flex items-center gap-1">
-            <History size={9} />
-            Modifié le {new Date(parametre.updatedAt).toLocaleDateString('fr-FR')}
+        {deeplNonConfigure && (
+          <p className="text-[11px] text-orange-600 font-medium mt-1 flex items-center gap-1">
+            <AlertTriangle size={11} className="shrink-0" />
+            Activé mais DEEPL_API_KEY absent sur le microservice - le fallback échouera
+            silencieusement
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        {/* Champ selon le type */}
+      <div className="flex items-center gap-2 mt-auto pt-1">
         {parametre.type === 'booleen' ? (
           <select
             value={valeur}
             onChange={(e) => handleChange(e.target.value)}
-            className="input h-8 text-sm w-28"
+            className="input h-8 text-sm flex-1"
           >
             <option value="true">Activé</option>
             <option value="false">Désactivé</option>
           </select>
         ) : parametre.type === 'entier' ? (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-1">
             <Input
               type="number"
               min={0}
               value={valeur}
               onChange={(e) => handleChange(e.target.value)}
-              className="h-8 text-sm w-20 text-right"
+              className="h-8 text-sm w-full text-right"
             />
-            <span className="text-xs text-anac-muted">jours</span>
+            {unite && <span className="text-xs text-anac-muted shrink-0">{unite}</span>}
           </div>
         ) : (
           <Input
             type="text"
             value={valeur}
             onChange={(e) => handleChange(e.target.value)}
-            className="h-8 text-sm w-40"
+            className="h-8 text-sm flex-1"
           />
         )}
 
@@ -142,13 +174,18 @@ function LigneParametre({
           size="sm"
           onClick={handleSave}
           disabled={!modifie || saving}
-          className="h-8 px-2.5 gap-1"
+          className="h-8 px-2.5 gap-1 shrink-0"
         >
           {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
         </Button>
       </div>
 
-      {erreur && <p className="text-[11px] text-anac-danger absolute mt-10">{erreur}</p>}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-anac-muted/70 font-mono">{parametre.cle}</span>
+        {succesInline}
+      </div>
+
+      {erreur && <p className="text-[11px] text-anac-danger">{erreur}</p>}
     </div>
   );
 }
@@ -179,6 +216,15 @@ export default function AdminParametresPage() {
     queryFn: async () => {
       const res = await parametresApi.lister();
       return res.data as Parametre[];
+    },
+  });
+
+  // ── Requête statut moteur traduction ───────────────────────────────
+  const { data: moteurStatus } = useQuery({
+    queryKey: ['moteur-status'],
+    queryFn: async () => {
+      const res = await traductionsApi.moteurStatus();
+      return res.data as { accessible: boolean; deeplConfigure: boolean };
     },
   });
 
@@ -240,7 +286,7 @@ export default function AdminParametresPage() {
 
   // ── Rendu ─────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6 max-w-7xl">
       {/* ── En-tête ──────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-anac-navy/8 flex items-center justify-center">
@@ -274,24 +320,24 @@ export default function AdminParametresPage() {
         <div className="text-center py-16 text-anac-muted text-sm">Aucun paramètre configuré.</div>
       ) : (
         modules.map((module) => (
-          <div key={module} className="space-y-2">
+          <div key={module} className="space-y-6 max-w-5xl">
             <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide px-1">
               {MODULE_LABELS[module] ?? module}
             </p>
-            <div className="card p-0 overflow-hidden divide-y divide-anac-border/60">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {parametresParModule[module].map((p) => (
-                <div key={p.cle} className="relative">
-                  <LigneParametre
-                    parametre={p}
-                    onSave={handleSave}
-                    saving={cleEnCours === p.cle && mettreAJourMutation.isPending}
-                  />
-                  {succesCle === p.cle && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] text-green-600 font-medium">
-                      ✓ Enregistré
-                    </span>
-                  )}
-                </div>
+                <LigneParametre
+                  key={p.cle}
+                  parametre={p}
+                  onSave={handleSave}
+                  saving={cleEnCours === p.cle && mettreAJourMutation.isPending}
+                  succes={succesCle === p.cle}
+                  deeplNonConfigure={
+                    p.cle === 'deepl_fallback_actif' &&
+                    p.valeur === 'true' &&
+                    moteurStatus?.deeplConfigure === false
+                  }
+                />
               ))}
             </div>
           </div>
