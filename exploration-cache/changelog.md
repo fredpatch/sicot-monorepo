@@ -1,5 +1,50 @@
 # 📝 SICOT – Changelog
 
+## [f3547d4] — 2026-07-04 — feat(sprint11): Module Analytics (M11) — dashboard half
+
+### Added
+- `packages/server/src/modules/analytics/` — new module: `analytics.types.ts`
+  (one interface per module + `GlobalAnalytics`), `analytics.service.ts`
+  (651 lines, one `get*Analytics(filtre)` per module, each `avecCache()`-
+  wrapped, default trailing-12-months window), `analytics.controller.ts`,
+  `analytics.route.ts` (`GET /accords|courriers|missions|traductions|
+  demandes|documents|glossaire|global`, gated `authenticate` +
+  `requireTraducteur`)
+- `packages/server/src/utils/cache.ts` — `avecCache()`, in-memory `Map`
+  with TTL, single-process only (documented limitation, not a bug)
+- `courriersCriticiteSnapshots` table + `packages/server/src/jobs/
+  criticite-snapshot.ts` — daily 23:55 cron capturing courrier criticité
+  counts (never persisted before), SQL-side aggregation, idempotent upsert
+  on `date`; also registered as a manually-triggerable job in
+  `registre.ts` (`courriers_criticite_snapshot`, module M11, admin) for
+  dev backfilling
+- `packages/client/src/pages/AnalyticsPage.tsx` (1700 lines) — 8 tabs
+  (global + 7 modules), routed at `/analytics`
+- `packages/client/src/components/analytics/ChartCanvas.tsx` — generic
+  Chart.js wrapper, loads Chart.js from a CDN at runtime (not an npm dep)
+- `packages/client/src/lib/analytics.api.ts` — client API wrapper
+- `packages/server/src/utils/error.ts` — `handleAnalyticsError` (empty
+  error map, falls through to generic 500)
+- `packages/server/src/db/seed-demo.ts` — empty stub, no content
+
+### Changed
+- `index.ts` — mounted `/api/analytics`, started
+  `demarrerJobSnapshotCriticite()` at boot
+- `Layout.tsx` — new nav item `/analytics` (`BarChart3` icon)
+- `i18n/index.ts` — `nav.analytics` key (fr+en); also backfilled
+  `nav.portail` in the English block, missing since Sprint 9
+
+### Not done (Sprint 11's original scope is only half-delivered)
+- The `rapports` layer: PDF/Excel generation, ANAC-branded template,
+  monthly cron, on-demand reports, history — none built. `utils/pdf.ts`
+  (Sprint 10) is already generic enough to reuse
+- CSV/Excel export on the analytics dashboard itself
+- `docs/TASKS.md` Sprint 11 section not updated — still `⬜ À FAIRE`
+
+See `sessions/2026-07-04.md` for full detail.
+
+---
+
 ## [6aaa354] — 2026-07-03 — feat(sprint10): Paramètres Système Élargis (M10)
 
 ### Added
