@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
-import * as auditService from '../services/audit.service.js';
-import { handleAuditError } from '@/utils/error.js';
+import * as auditService from '../services/audit.service';
+import * as auditExportService from '../services/audit.export.service';
+import { handleAuditError } from '@/utils/error';
+import { logAudit } from '@/modules/auth/services/auth.service';
 
 // ── GET /api/audit ────────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
@@ -56,6 +58,78 @@ export async function getActions(req: Request, res: Response): Promise<void> {
   try {
     const actions = await auditService.getActionsDisponibles();
     res.json(actions);
+  } catch (error) {
+    handleAuditError(res, error);
+  }
+}
+
+// ── GET /api/audit/export/pdf ─────────────────────────────────────────────
+export async function exporterPDF(req: Request, res: Response): Promise<void> {
+  try {
+    const { module, action, dateDebut, dateFin } = req.query;
+
+    const filters = {
+      module: module as string | undefined,
+      action: action as string | undefined,
+      dateDebut: dateDebut ? new Date(dateDebut as string) : undefined,
+      dateFin: dateFin ? new Date(dateFin as string) : undefined,
+    };
+
+    const { data, tronque } = await auditService.listerAuditLogsExport(filters);
+    const resume = auditExportService.resumerFiltres(filters);
+    const pdf = await auditExportService.genererPDFAudit(data, resume, tronque);
+
+    await logAudit({
+      userId: req.user!.userId,
+      action: 'AUDIT_EXPORT_PDF',
+      module: 'M10',
+      details: { ...filters, nbLignes: data.length },
+      ip: req.ip,
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="journal-audit-${new Date().toISOString().slice(0, 10)}.pdf"`
+    );
+    res.send(pdf);
+  } catch (error) {
+    handleAuditError(res, error);
+  }
+}
+
+// ── GET /api/audit/export/excel ───────────────────────────────────────────
+export async function exporterExcel(req: Request, res: Response): Promise<void> {
+  try {
+    const { module, action, dateDebut, dateFin } = req.query;
+
+    const filters = {
+      module: module as string | undefined,
+      action: action as string | undefined,
+      dateDebut: dateDebut ? new Date(dateDebut as string) : undefined,
+      dateFin: dateFin ? new Date(dateFin as string) : undefined,
+    };
+
+    const { data } = await auditService.listerAuditLogsExport(filters);
+    const excel = await auditExportService.genererExcelAudit(data);
+
+    await logAudit({
+      userId: req.user!.userId,
+      action: 'AUDIT_EXPORT_EXCEL',
+      module: 'M10',
+      details: { ...filters, nbLignes: data.length },
+      ip: req.ip,
+    });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="journal-audit-${new Date().toISOString().slice(0, 10)}.xlsx"`
+    );
+    res.send(excel);
   } catch (error) {
     handleAuditError(res, error);
   }

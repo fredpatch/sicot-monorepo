@@ -1,11 +1,13 @@
 import axios from 'axios';
-import type {
+import type { TraductionDirection, ResultatTraduction, SegmentTraduit } from './traduction.types';
+import { getValeurBooleen } from '@/modules/parametres/services/parametres.service';
+
+export type {
   TraductionDirection,
+  MoteurTraduction,
   ResultatTraduction,
   SegmentTraduit,
 } from './traduction.types';
-
-export type { TraductionDirection, MoteurTraduction, ResultatTraduction, SegmentTraduit } from './traduction.types';
 
 // ── Configuration ──────────────────────────────────────────────────────────
 // Appelle notre microservice translate-service (port 5002)
@@ -31,11 +33,12 @@ export async function traduireSegment(
   }
 
   const { source, cible } = toLangCodes(direction);
+  const deeplActif = await getValeurBooleen('deepl_fallback_actif', false);
 
   try {
     const res = await axios.post(
       `${TRANSLATE_SERVICE_URL}/translate`,
-      { texte, source, cible },
+      { texte, source, cible, deepl_actif: deeplActif },
       { timeout: 30000 }
     );
 
@@ -70,12 +73,13 @@ export async function traduireTexte(
   moteur: string;
 }> {
   const { source, cible } = toLangCodes(direction);
+  const deeplActif = await getValeurBooleen('deepl_fallback_actif', false);
 
   try {
     const res = await axios.post(
       `${TRANSLATE_SERVICE_URL}/translate/batch`,
-      { texte, source, cible },
-      { timeout: 120000 } // 2 minutes pour les longs documents
+      { texte, source, cible, deepl_actif: deeplActif },
+      { timeout: 280000 } // pour les longs documents on laisse 4min40 max (LibreTranslate a un timeout de 5min)
     );
 
     const data = res.data;
@@ -136,6 +140,7 @@ export async function detecterLangue(texte: string): Promise<string> {
 export async function verifierLibreTranslate(): Promise<{
   accessible: boolean;
   langues: string[];
+  deeplConfigure: boolean;
   erreur?: string;
 }> {
   try {
@@ -143,11 +148,13 @@ export async function verifierLibreTranslate(): Promise<{
 
     const data = res.data;
     const libreTranslateOk = data.moteurs?.libretranslate?.disponible === true;
+    const deeplConfigure = data.moteurs?.deepl?.configure === true;
 
     if (!libreTranslateOk) {
       return {
         accessible: false,
         langues: [],
+        deeplConfigure,
         erreur: 'LibreTranslate inaccessible depuis le microservice',
       };
     }
@@ -155,11 +162,13 @@ export async function verifierLibreTranslate(): Promise<{
     return {
       accessible: true,
       langues: data.langues_supportees ?? ['fr', 'en'],
+      deeplConfigure,
     };
   } catch (error) {
     return {
       accessible: false,
       langues: [],
+      deeplConfigure: false,
       erreur: error instanceof Error ? error.message : 'Translate service inaccessible',
     };
   }

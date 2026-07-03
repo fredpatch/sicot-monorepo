@@ -24,8 +24,7 @@ export async function verifyOTP(otp: string, hash: string): Promise<boolean> {
 }
 
 // ── Calcul de la date d'expiration ────────────────────────────────────────
-export function otpExpiresAt(): Date {
-  const minutes = parseInt(process.env.OTP_EXPIRY_MINUTES ?? '10');
+export function otpExpiresAt(minutes: number): Date {
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + minutes);
   return expiresAt;

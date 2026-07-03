@@ -20,18 +20,19 @@ import DemandesPage from './pages/DemandesPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminParametresPage from './pages/AdminParametresPage';
 import PortailPage from './pages/PortalPage';
+import AuditPage from './pages/AuditPage';
 
-function ComingSoon({ module }: { module: string }) {
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <div className="text-4xl mb-4">🚧</div>
-        <h2 className="text-xl font-semibold text-anac-navy">{module}</h2>
-        <p className="text-anac-muted mt-2 text-sm">En cours de développement...</p>
-      </div>
-    </div>
-  );
-}
+// function ComingSoon({ module }: { module: string }) {
+//   return (
+//     <div className="flex items-center justify-center h-64">
+//       <div className="text-center">
+//         <div className="text-4xl mb-4">🚧</div>
+//         <h2 className="text-xl font-semibold text-anac-navy">{module}</h2>
+//         <p className="text-anac-muted mt-2 text-sm">En cours de développement...</p>
+//       </div>
+//     </div>
+//   );
+// }
 
 interface AuthUser {
   id: number;
@@ -194,7 +195,7 @@ export default function App() {
             path="/audit"
             element={
               <AdminRoute>
-                <ComingSoon module="Journal d'audit" />
+                <AuditPage />
               </AdminRoute>
             }
           />

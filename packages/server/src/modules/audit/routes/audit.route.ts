@@ -14,6 +14,10 @@ router.use(authenticate, requireAdmin);
 router.get('/meta/modules', auditController.getModules);
 router.get('/meta/actions', auditController.getActions);
 
+// ── Exports — même contrainte d'ordre que les routes meta ci-dessus ──────
+router.get('/export/pdf', auditController.exporterPDF);
+router.get('/export/excel', auditController.exporterExcel);
+
 // ── Journal ───────────────────────────────────────────────────────────────
 router.get('/', auditController.lister);
 router.get('/:id', auditController.getById);

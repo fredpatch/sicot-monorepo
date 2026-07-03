@@ -262,6 +262,7 @@ export async function getSuggestionsGlossaire(
 export async function verifierMoteur(): Promise<{
   accessible: boolean;
   langues: string[];
+  deeplConfigure: boolean;
   erreur?: string;
 }> {
   return verifierLibreTranslate();
