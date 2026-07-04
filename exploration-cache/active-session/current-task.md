@@ -1,7 +1,7 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-04
-**Status**: ✅ Sprint 11 (Analytics & Rapports) — BOTH halves now built. Analytics half committed (f3547d4); rapports half pending commit at cache-write time.
+**Status**: ✅ Sprint 11 (Analytics & Rapports) — BOTH halves built and committed (f3547d4, f27d58f). Not yet manually verified.
 
 ## ✅ Done: Sprint 11 — Module Analytics & Rapports (M11), rapports half
 
