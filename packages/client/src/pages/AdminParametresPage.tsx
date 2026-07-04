@@ -7,21 +7,22 @@ import {
   Save,
   Settings2,
   Info,
-  History,
   CheckCircle2,
   XCircle,
   Play,
   Loader2Icon,
   Zap,
   AlertTriangle,
+  Sparkles,
+  ThermometerSun,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { parametresApi, type ParametreType } from '@/lib/parametres.api';
 import { jobsApi, traductionsApi } from '@/lib/api';
 import { useAuth } from '@/App';
+import { analyticsApi, StatutGemini } from '@/lib/analytics.api';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Parametre {
@@ -75,6 +76,102 @@ const MODULE_LABELS: Record<string, string> = {
   ADMIN: 'Administration',
   M10: 'Sécurité & Système',
 };
+
+// ── Section : Suivi usage Gemini (rapports IA) ─────────────────────────────
+const LABELS_MODELE_GEMINI: Record<string, string> = {
+  'gemini-2.5-flash': 'Gemini 2.5 Flash',
+  'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
+  'gemini-3.1-flash-lite': 'Gemini 3.1 Flash Lite',
+};
+
+function BarreUsage({ utilises, max }: { utilises: number; max: number }) {
+  const pourcentage = max > 0 ? Math.min(100, Math.round((utilises / max) * 100)) : 0;
+  const couleur =
+    pourcentage >= 90
+      ? 'bg-anac-danger'
+      : pourcentage >= 70
+        ? 'bg-anac-attention'
+        : 'bg-anac-succes';
+
+  return (
+    <div className="w-full bg-anac-gray/60 rounded-full h-1.5 mt-1.5">
+      <div className={`h-1.5 rounded-full ${couleur}`} style={{ width: `${pourcentage}%` }} />
+    </div>
+  );
+}
+
+function SectionSuiviGemini() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['gemini-usage'],
+    queryFn: async () => {
+      const res = await analyticsApi.getStatutGemini();
+      return res.data as StatutGemini;
+    },
+    refetchInterval: 60_000, // se rafraîchit seul - pas besoin de recharger la page pour voir l'évolution du jour
+  });
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-xs font-semibold text-anac-muted uppercase tracking-wide px-1">
+          Suivi usage Gemini (Rapports IA)
+        </h3>
+        <p className="text-xs text-anac-muted px-1 mt-0.5">
+          Plafonds auto-imposés, bien en dessous des vrais quotas gratuits - évite tout échec par
+          quota au lieu de le gérer après coup.
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-8 text-anac-muted text-sm">
+          <Loader2 size={16} className="animate-spin inline mr-2" />
+          Chargement...
+        </div>
+      ) : !data ? null : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {data.modeles.map((m: any) => (
+            <div key={m.modele} className="card p-4">
+              <p className="text-sm font-semibold text-anac-navy">
+                {LABELS_MODELE_GEMINI[m.modele] ?? m.modele}
+              </p>
+              <p className="text-xs text-anac-muted mt-0.5">
+                {m.appelsAujourdhui} / {m.plafond} appels aujourd&apos;hui
+              </p>
+              <BarreUsage utilises={m.appelsAujourdhui} max={m.plafond} />
+              <p className="text-[10px] text-anac-muted/70 mt-2 flex items-center gap-1">
+                <ThermometerSun size={11} />
+                {m.thinkingTokensAujourdhui.toLocaleString('fr-FR')} tokens de réflexion
+                aujourd&apos;hui
+              </p>
+            </div>
+          ))}
+
+          <div className="card p-4">
+            <p className="text-sm font-semibold text-anac-navy">Rapports IA à la demande</p>
+            <p className="text-xs text-anac-muted mt-0.5">
+              {data.rapportsIA.utilises} / {data.rapportsIA.max} générés aujourd&apos;hui, tous
+              utilisateurs
+            </p>
+            <BarreUsage utilises={data.rapportsIA.utilises} max={data.rapportsIA.max} />
+          </div>
+
+          <div className="card p-4">
+            <p className="text-sm font-semibold text-anac-navy flex items-center gap-1.5">
+              <Sparkles size={13} /> Dernier rapport mensuel auto
+            </p>
+            {data.dernierRapportMensuel ? (
+              <p className="text-xs text-anac-muted mt-1.5">
+                {new Date(data.dernierRapportMensuel.createdAt).toLocaleDateString('fr-FR')}
+              </p>
+            ) : (
+              <p className="text-xs text-anac-muted mt-1.5">Aucun généré pour l&apos;instant</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Déduire l'unité depuis la clé du paramètre ─────────────────────────────
 function uniteDepuisCle(cle: string): string {
@@ -344,6 +441,8 @@ export default function AdminParametresPage() {
         ))
       )}
 
+      <SectionSuiviGemini />
+
       <div className="space-y-2 pt-4 border-t border-anac-border">
         <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide px-1 flex items-center gap-1.5">
           <Zap size={12} />
@@ -401,7 +500,7 @@ export default function AdminParametresPage() {
                     )}
                     <span>
                       {resultat.resume}
-                      {resultat.erreur && ` — ${resultat.erreur}`}
+                      {resultat.erreur && ` - ${resultat.erreur}`}
                       <span className="text-anac-muted ml-1.5">({resultat.dureeMs}ms)</span>
                     </span>
                   </div>

@@ -3,6 +3,22 @@ import { parametres } from '@/db/schema';
 
 const DEFAUTS = [
   {
+    cle: 'gemini_quota_journalier_par_modele',
+    valeur: '15',
+    type: 'entier' as const,
+    module: 'M11',
+    description:
+      "Plafond auto-imposé d'appels par modèle Gemini et par jour (marge de sécurité sous le vrai quota gratuit de 20/jour)",
+  },
+  {
+    cle: 'gemini_rapports_manuels_max_jour',
+    valeur: '10',
+    type: 'entier' as const,
+    module: 'M11',
+    description:
+      'Nombre maximum de rapports IA générés à la demande par jour, tous utilisateurs confondus',
+  },
+  {
     cle: 'deepl_fallback_actif',
     valeur: 'false',
     type: 'booleen' as const,
@@ -10,6 +26,7 @@ const DEFAUTS = [
     description:
       'Autoriser le fallback DeepL si LibreTranslate échoue - nécessite DEEPL_API_KEY configuré sur le microservice',
   },
+
   {
     cle: 'otp_expiration_minutes',
     valeur: '10',

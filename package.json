@@ -20,7 +20,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "concurrently": "^8.2.2",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "0.31.10",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.34.0",
@@ -32,6 +32,10 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
-    "pg": "^8.22.0"
+    "exceljs": "3.4.0",
+    "node-cron": "4.5.0",
+    "nodemailer": "9.0.3",
+    "pg": "^8.22.0",
+    "uuid": "14.0.1"
   }
 }

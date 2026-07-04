@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { genererRapport } from '@/modules/report/services/rapports.service';
+import { genererAnalyseIA, genererRapport } from '@/modules/report/services/rapports.service';
 
 const TOUS_LES_MODULES = [
   'global',
@@ -41,6 +41,13 @@ export async function genererRapportMensuel(): Promise<{ pdf: number; excel: num
     format: 'excel',
     type: 'mensuel',
   });
+
+  // Analyse IA tentée sur le rapport PDF uniquement — jamais bloquante
+  try {
+    await genererAnalyseIA(pdf.rapportId, { estAutomatique: true });
+  } catch (err) {
+    console.warn('⚠️ Analyse IA du rapport mensuel non générée :', err);
+  }
 
   return { pdf: pdf.documentId, excel: excel.documentId };
 }

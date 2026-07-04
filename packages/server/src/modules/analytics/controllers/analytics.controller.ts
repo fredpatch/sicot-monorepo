@@ -4,6 +4,7 @@ import { handleAnalyticsError } from '@/utils/error';
 import * as analyticsExportService from '../services/analytics.export.service';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { SERVICE_PAR_MODULE } from '../services/analytics.service.js';
+import * as geminiQuotaService from '../services/gemini-quota.service.js';
 
 function parsePeriode(req: Request): { dateDebut?: Date; dateFin?: Date } {
   const { dateDebut, dateFin } = req.query;
@@ -146,6 +147,16 @@ export async function exporterAnalytics(req: Request, res: Response): Promise<vo
       );
       res.send('\uFEFF' + csv); // BOM — accents corrects à l'ouverture dans Excel
     }
+  } catch (error) {
+    handleAnalyticsError(res, error);
+  }
+}
+
+// ── GET /api/analytics/gemini-usage ────────────────────────────────────────
+export async function statutGemini(req: Request, res: Response): Promise<void> {
+  try {
+    const statut = await geminiQuotaService.getStatutUsageGemini();
+    res.json(statut);
   } catch (error) {
     handleAnalyticsError(res, error);
   }

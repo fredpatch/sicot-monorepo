@@ -57,7 +57,14 @@ interface Document {
 }
 
 type Categorie =
-  'tous' | 'accord' | 'correspondance' | 'mission' | 'traduction' | 'glossaire' | 'autre';
+  | 'tous'
+  | 'accord'
+  | 'correspondance'
+  | 'mission'
+  | 'traduction'
+  | 'glossaire'
+  | 'rapport'
+  | 'autre';
 
 const CATEGORIES: { value: Categorie; label: string }[] = [
   { value: 'tous', label: 'Tous' },
@@ -66,6 +73,7 @@ const CATEGORIES: { value: Categorie; label: string }[] = [
   { value: 'mission', label: 'Missions' },
   { value: 'traduction', label: 'Traductions' },
   { value: 'glossaire', label: 'Glossaire' },
+  { value: 'rapport', label: 'Rapports' },
   { value: 'autre', label: 'Autres' },
 ];
 

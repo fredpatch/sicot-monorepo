@@ -1,6 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BarChart3, FileDown, FileSpreadsheet, FileText, Loader2, LoaderIcon } from 'lucide-react';
+import {
+  BarChart3,
+  Check,
+  FileDown,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  LoaderIcon,
+  ShieldAlert,
+  Sparkles,
+  X,
+} from 'lucide-react';
+
+import Markdown from 'react-markdown';
 
 import { ChartCanvas, COULEURS_GRAPHIQUE } from '@/components/analytics/ChartCanvas';
 
@@ -15,6 +28,16 @@ import { cn } from '@/lib/utils';
 import { analyticsApi } from '@/lib/analytics.api';
 import { Button } from '@/components/ui/button';
 import { documentsApi } from '@/lib/documents.api';
+import { useAuth } from '@/App';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // ── Onglets ─────────────────────────────────────────────────────────────
 type Onglet =
@@ -51,6 +74,14 @@ const PRESETS: { cle: PeriodePreset; label: string; jours?: number }[] = [
   { cle: '1an', label: '12 derniers mois', jours: 365 },
   { cle: 'personnalise', label: 'Personnalisé' },
 ];
+
+function badgeAnalyseIA(r: RapportHistorique) {
+  if (r.statutRelectureIA === 'non_applicable') return null;
+  if (r.statutRelectureIA === 'en_attente')
+    return <span className="badge-attention">IA - non relu</span>;
+  if (r.statutRelectureIA === 'valide') return <span className="badge-actif">IA - relu</span>;
+  return <span className="badge-expire">IA - rejeté</span>;
+}
 
 function resoudrePeriode(
   preset: PeriodePreset,
@@ -100,7 +131,7 @@ export default function AnalyticsPage() {
           <div>
             <h2 className="text-xl font-bold text-anac-navy">Analytics & Rapports</h2>
             <p className="text-anac-muted text-sm mt-0.5">
-              Pilotage stratégique — tendances et volumes d&apos;activité
+              Pilotage stratégique - tendances et volumes d&apos;activité
             </p>
           </div>
         </div>
@@ -496,7 +527,7 @@ function OngletAccords({ periode }: { periode: { dateDebut?: string; dateFin?: s
                 {data.repartitionGeographique.map((r) => (
                   <tr key={`${r.pays}-${r.region}`} className="table-row">
                     <td className="px-4 py-2 text-anac-text">{r.pays}</td>
-                    <td className="px-4 py-2 text-anac-muted">{r.region ?? '—'}</td>
+                    <td className="px-4 py-2 text-anac-muted">{r.region ?? '-'}</td>
                     <td className="px-4 py-2 text-right font-medium text-anac-navy">
                       {r.nombrePartenaires}
                     </td>
@@ -603,12 +634,12 @@ function OngletCourriers({ periode }: { periode: { dateDebut?: string; dateFin?:
             <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-anac-navy/8 text-anac-navy text-[10px] font-medium mr-1">
               Historisé depuis juillet 2026
             </span>
-            Photo quotidienne des courriers en attente, capturée chaque nuit — pas d&apos;historique
+            Photo quotidienne des courriers en attente, capturée chaque nuit - pas d&apos;historique
             avant cette date.
           </p>
           {data.evolutionCriticite.length === 0 ? (
             <p className="text-sm text-anac-muted text-center py-8">
-              Pas encore de capture — le job automatique s&apos;exécute chaque nuit à 23h55
+              Pas encore de capture - le job automatique s&apos;exécute chaque nuit à 23h55
             </p>
           ) : (
             <ChartCanvas
@@ -708,7 +739,7 @@ function OngletCourriers({ periode }: { periode: { dateDebut?: string; dateFin?:
               <p className="text-center text-xs text-anac-muted mt-2">
                 {tauxPourcentage}% répondus
                 {data.tempsMoyenReponseJours !== null && (
-                  <> — délai moyen estimé : {data.tempsMoyenReponseJours} j*</>
+                  <> - délai moyen estimé : {data.tempsMoyenReponseJours} j*</>
                 )}
               </p>
               {data.tempsMoyenReponseJours !== null && (
@@ -887,7 +918,7 @@ function OngletMissions({ periode }: { periode: { dateDebut?: string; dateFin?: 
                   <span className="text-anac-danger font-medium">
                     {depassees} dépassée{depassees > 1 ? 's' : ''}
                   </span>
-                  <span className="text-anac-muted"> — nécessite une relance</span>
+                  <span className="text-anac-muted"> - nécessite une relance</span>
                 </p>
               )}
             </>
@@ -1003,7 +1034,7 @@ function OngletTraductions({ periode }: { periode: { dateDebut?: string; dateFin
         <div className="card p-4">
           <p className="text-sm font-semibold text-anac-navy mb-0.5">Volume traduit par mois</p>
           <p className="text-xs text-anac-muted mb-3">
-            Traductions créées dans la période. Pas de décompte par segment — voir note en backlog.
+            Traductions créées dans la période. Pas de décompte par segment - voir note en backlog.
           </p>
           {data.volumeParMois.length === 0 ? (
             <p className="text-sm text-anac-muted text-center py-8">Aucune donnée sur la période</p>
@@ -1473,7 +1504,7 @@ function OngletDocuments({ periode }: { periode: { dateDebut?: string; dateFin?:
         <div className="card p-4">
           <p className="text-sm font-semibold text-anac-navy mb-0.5">Taux de succès OCR</p>
           <p className="text-xs text-anac-muted mb-3">
-            Documents dont l&apos;OCR a été tenté dans la période — traité, échec, ou à retraiter.
+            Documents dont l&apos;OCR a été tenté dans la période - traité, échec, ou à retraiter.
           </p>
           {totalOCR === 0 ? (
             <p className="text-sm text-anac-muted text-center py-8">
@@ -1732,6 +1763,11 @@ interface RapportHistorique {
   format: string;
   documentId: number;
   createdAt: string;
+  contenuIA: string | null;
+  contenuIAValide: string | null;
+  statutRelectureIA: 'non_applicable' | 'en_attente' | 'valide' | 'rejete';
+  moteurIA: string | null;
+  relusLeIA: string | null;
 }
 
 const MODULES_DISPONIBLES: { cle: string; label: string }[] = [
@@ -1754,6 +1790,35 @@ function OngletRapports() {
   const [periodeDebut, setPeriodeDebut] = useState('');
   const [periodeFin, setPeriodeFin] = useState('');
 
+  // On ne montre l'onglet "Rapports" qu'aux admins et super-admins, car il permet de générer des rapports globaux sur les données de l'application.
+  const { user } = useAuth();
+  const estAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const [rapportEnRevue, setRapportEnRevue] = useState<RapportHistorique | null>(null);
+  const [texteEdite, setTexteEdite] = useState('');
+
+  // Mutations pour générer et valider les rapports IA
+  const genererIA = useMutation({
+    mutationFn: (rapportId: number) => analyticsApi.genererAnalyseIA(rapportId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['analytics-rapports'] }),
+    onError: (err: any) => {
+      console.error('Échec génération analyse IA :', err);
+    },
+  });
+
+  const validerIA = useMutation({
+    mutationFn: ({ id, statut }: { id: number; statut: 'valide' | 'rejete' }) =>
+      analyticsApi.validerAnalyseIA(id, { statutRelectureIA: statut, contenuIAValide: texteEdite }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analytics-rapports'] });
+      setRapportEnRevue(null);
+    },
+  });
+
+  function ouvrirRevue(r: RapportHistorique) {
+    setTexteEdite(r.contenuIA ?? '');
+    setRapportEnRevue(r);
+  }
+
   const { data: historique, isLoading: chargementHistorique } = useQuery({
     queryKey: ['analytics-rapports'],
     queryFn: async () => {
@@ -1764,12 +1829,14 @@ function OngletRapports() {
 
   const generation = useMutation({
     mutationFn: async () => {
-      return analyticsApi.genererRapport({
+      const res = await analyticsApi.genererRapport({
         periodeDebut,
         periodeFin,
         modules: modulesChoisis,
         format,
       });
+
+      return res.data as { rapportId: number; documentId: number };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['analytics-rapports'] });
@@ -1868,12 +1935,25 @@ function OngletRapports() {
             Générer le rapport
           </Button>
           {generation.isSuccess && (
-            <span className="text-xs text-anac-succes font-medium">
-              ✓ Rapport généré — disponible ci-dessous et dans la Gestion Documentaire
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-anac-succes font-medium">
+                ✓ Rapport généré - disponible ci-dessous et dans la Gestion Documentaire
+              </span>
+              {estAdmin && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  disabled={genererIA.isPending}
+                  onClick={() => generation.data && genererIA.mutate(generation.data.rapportId)}
+                >
+                  <Sparkles size={11} /> Générer l&apos;analyse IA pour ce rapport
+                </Button>
+              )}
+            </div>
           )}
           {generation.isError && (
-            <span className="text-xs text-anac-danger">Échec de la génération — réessayez</span>
+            <span className="text-xs text-anac-danger">Échec de la génération - réessayez</span>
           )}
         </div>
       </div>
@@ -1901,6 +1981,7 @@ function OngletRapports() {
               <tr className="table-header">
                 <th className="text-left px-4 py-2">Généré le</th>
                 <th className="text-left px-4 py-2">Type</th>
+                <th className="text-left px-4 py-2">Analyse IA</th>
                 <th className="text-left px-4 py-2">Période couverte</th>
                 <th className="text-left px-4 py-2">Modules</th>
                 <th className="text-left px-4 py-2">Format</th>
@@ -1918,8 +1999,58 @@ function OngletRapports() {
                       {r.type === 'mensuel' ? 'Mensuel auto' : 'À la demande'}
                     </span>
                   </td>
+                  <td className="px-4 py-2">
+                    {r.statutRelectureIA === 'non_applicable' ? (
+                      estAdmin ? (
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="h-7 gap-1 text-xs"
+                            disabled={genererIA.isPending}
+                            onClick={() => genererIA.mutate(r.id)}
+                          >
+                            <Sparkles size={11} /> Générer
+                          </Button>
+                          {genererIA.isError && genererIA.variables === r.id && (
+                            <span className="text-[10px] text-anac-danger">
+                              {(genererIA.error as any)?.response?.data?.message ??
+                                'Échec - réessayez'}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-anac-muted">-</span>
+                      )
+                    ) : r.statutRelectureIA === 'rejete' && estAdmin ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => ouvrirRevue(r)}
+                          className="hover:opacity-80 transition-opacity"
+                        >
+                          {badgeAnalyseIA(r)}
+                        </button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="h-7 gap-1 text-xs"
+                          disabled={genererIA.isPending}
+                          onClick={() => genererIA.mutate(r.id)}
+                        >
+                          <Sparkles size={11} /> Régénérer
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => ouvrirRevue(r)}
+                        className="hover:opacity-80 transition-opacity"
+                      >
+                        {badgeAnalyseIA(r)}
+                      </button>
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-anac-muted whitespace-nowrap">
-                    {new Date(r.periodeDebut).toLocaleDateString('fr-FR')} —{' '}
+                    {new Date(r.periodeDebut).toLocaleDateString('fr-FR')} -{' '}
                     {new Date(r.periodeFin).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="px-4 py-2 text-anac-muted text-xs">
@@ -1944,6 +2075,76 @@ function OngletRapports() {
           </table>
         )}
       </div>
+
+      <Dialog open={!!rapportEnRevue} onOpenChange={(open) => !open && setRapportEnRevue(null)}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>
+              Analyse IA -{' '}
+              {rapportEnRevue && new Date(rapportEnRevue.periodeDebut).toLocaleDateString('fr-FR')}{' '}
+              au {rapportEnRevue && new Date(rapportEnRevue.periodeFin).toLocaleDateString('fr-FR')}
+            </DialogTitle>
+            <DialogDescription>
+              {rapportEnRevue?.moteurIA && `Généré par ${rapportEnRevue.moteurIA}`}
+              {rapportEnRevue?.relusLeIA &&
+                ` - relu le ${new Date(rapportEnRevue.relusLeIA).toLocaleDateString('fr-FR')}`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="flex-1 flex flex-col min-h-0">
+            <div className="bg-anac-attention/10 border border-anac-attention/30 rounded-lg p-3 mb-3 flex items-start gap-2 shrink-0">
+              <ShieldAlert size={16} className="text-anac-attention shrink-0 mt-0.5" />
+              <p className="text-sm text-anac-text">
+                <strong>Analyse générée par intelligence artificielle (Gemini).</strong> Les faits,
+                chiffres et recommandations doivent être vérifiés avant toute décision.
+                {rapportEnRevue?.statutRelectureIA === 'en_attente' &&
+                  " Ce contenu n'a pas encore été relu par un administrateur."}
+              </p>
+            </div>
+
+            {estAdmin && rapportEnRevue?.statutRelectureIA === 'en_attente' ? (
+              <textarea
+                value={texteEdite}
+                onChange={(e) => setTexteEdite(e.target.value)}
+                className="input w-full flex-1 text-sm font-mono leading-relaxed resize-none"
+              />
+            ) : (
+              <div className="prose prose-sm max-w-none flex-1 overflow-y-auto text-sm text-anac-text">
+                <Markdown>
+                  {rapportEnRevue?.contenuIAValide ?? rapportEnRevue?.contenuIA ?? ''}
+                </Markdown>
+              </div>
+            )}
+          </DialogBody>
+          {estAdmin && rapportEnRevue?.statutRelectureIA === 'en_attente' && (
+            <DialogFooter>
+              <Button
+                variant="destructive"
+                className="gap-1.5"
+                disabled={validerIA.isPending}
+                onClick={() => {
+                  if (
+                    rapportEnRevue &&
+                    confirm('Rejeter cette analyse ? Une nouvelle génération sera nécessaire.')
+                  ) {
+                    validerIA.mutate({ id: rapportEnRevue.id, statut: 'rejete' });
+                  }
+                }}
+              >
+                <X size={13} /> Rejeter
+              </Button>
+              <Button
+                className="gap-1.5"
+                disabled={validerIA.isPending}
+                onClick={() =>
+                  rapportEnRevue && validerIA.mutate({ id: rapportEnRevue.id, statut: 'valide' })
+                }
+              >
+                <Check size={13} /> Valider
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

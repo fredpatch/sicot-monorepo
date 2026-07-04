@@ -445,7 +445,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [x] ~~**Journal d'audit — interface de consultation**~~ - Non planifiée dans Sprint 10, mais chantier ouvert depuis Sprint 1 (backend fait, UI restée en `ComingSoon`). `AuditPage.tsx` : filtres Module/Action/Date, tableau paginé, modal détails JSON. Filtre `search` du type `AuditFilters` constaté déclaré mais jamais utilisé côté service — volontairement exclu de l'UI plutôt que branché sur un filtre inopérant (juillet 2026)
 - [x] ~~**Journal d'audit — export PDF/Excel**~~ - Première utilisation de `puppeteer`/`exceljs` dans le projet (dépendances présentes depuis le début, jamais câblées). `utils/pdf.ts` conçu générique et réutilisable pour les futurs exports (Accords/Courriers/Missions, cf. Sprint 3/11). Export plafonné à 10 000 lignes avec détection de troncature ; l'export lui-même est audité (`AUDIT_EXPORT_PDF` / `AUDIT_EXPORT_EXCEL`) (juillet 2026)
 
-## Sprint 11 – Module Analytics & Rapports (M11) | ⬜ À FAIRE
+## Sprint 11 – Module Analytics & Rapports (M11) | ✅ COMPLÉTÉ
 
 ### Positionnement — distinction claire avec le Dashboard M9
 
@@ -455,81 +455,116 @@ Les rapports générés par M11 puisent dans les agrégats analytics — analyti
 
 ### Serveur
 
-- [ ] **`analytics.service.ts`** - Agrégats par module et par période (filtre dateDebut/dateFin), requêtes SQL optimisées, cache courte durée pour éviter surcharge BDD
-- [ ] **`analytics.controller.ts`** - Endpoints par module + endpoint global
-- [ ] **`analytics.route.ts`** - GET /api/analytics/accords, /courriers, /missions, /traductions, /demandes, /documents, /glossaire, /global — rôle traducteur minimum
+- [x] ~~**`analytics.service.ts`**~~ - Agrégats par module et par période, requêtes SQL brutes (raw `sql` Drizzle) pour les agrégations complexes, cache mémoire 60s (`utils/cache.ts`, réutilisable) (juillet 2026)
+- [x] ~~**`analytics.controller.ts`**~~ - Un handler par module + `/global`, plus `/export` générique (voir plus bas) (juillet 2026)
+- [x] ~~**`analytics.route.ts`**~~ - Tous les endpoints prévus + `/export` et `/rapports`, rôle `traducteur` minimum via `requireTraducteur` (juillet 2026)
 
 ### Périmètre analytics par module
 
 **M1 Accords**
 
-- [ ] Durée moyenne des accords par type de partenaire
-- [ ] Taux de renouvellement vs clôture
-- [ ] Répartition géographique des partenaires actifs (pays/région)
-- [ ] Évolution du nombre d'accords signés par année/mois
+- [x] ~~Durée moyenne des accords par type de partenaire~~
+- [x] ~~Taux de renouvellement vs clôture~~ - Basé sur `statut IN ('en_renouvellement','expire')`, pas de self-join `parentId` nécessaire (juillet 2026)
+- [x] ~~Répartition géographique des partenaires actifs~~ - Volontairement indépendante de la période (photo instantanée), badge UI explicite
+- [x] ~~Évolution du nombre d'accords signés par année/mois~~
 
 **M4 Courriers**
 
-- [ ] Volume entrant vs sortant par mois
-- [ ] Temps moyen de réponse (dateReception → statut repondu)
-- [ ] Taux de réponse (répondus vs archivés sans réponse)
-- [ ] Répartition par organisation expéditrice (top 5)
-- [ ] Évolution de la criticité dans le temps (normal/à surveiller/critique)
+- [x] ~~Volume entrant vs sortant par mois~~
+- [x] ~~Temps moyen de réponse~~ - _Proxy `updated_at`, pas de colonne `date_reponse` dédiée — caveat affiché dans l'UI (voir dette technique ci-dessous)_
+- [x] ~~Taux de réponse~~
+- [x] ~~Répartition par organisation expéditrice (top 5)~~
+- [x] ~~Évolution de la criticité dans le temps~~ - Nécessitait une nouvelle table `courriers_criticite_snapshots` + cron quotidien 23h55, la criticité n'étant jamais persistée nativement. S'accumule à partir du déploiement (juillet 2026)
 
 **M3 Missions**
 
-- [ ] Nombre de missions par destination/pays
-- [ ] Taux de recommandations réalisées vs en attente vs dépassées
-- [ ] Délai moyen entre fin de mission et dépôt du rapport
-- [ ] Agents les plus mobilisés (top participants)
+- [x] ~~Nombre de missions par destination/pays~~
+- [x] ~~Taux de recommandations réalisées vs en attente vs dépassées~~ - Bucket `en_cours` conservé séparément plutôt que fondu, même convention que `dashboard.helpers.ts`
+- [x] ~~Délai moyen entre fin de mission et dépôt du rapport~~ - Seule métrique de délai basée sur une vraie colonne dédiée (`documents.created_at`), pas un proxy
+- [x] ~~Agents les plus mobilisés (top participants)~~ - Top 10
 
 **M6 Traduction**
 
-- [ ] Volume traduit par mois (nombre de traductions, segments)
-- [ ] Taux de correction IA — ratio texteIA modifié vs validé tel quel (indicateur qualité LibreTranslate)
-- [ ] Temps moyen de traitement (création → approbation)
-- [ ] Répartition FR→EN vs EN→FR
-- [ ] Termes ajoutés au glossaire via delta corrections M6
+- [x] ~~Volume traduit par mois~~ - _Décompte des traductions uniquement — aucune colonne/table "segments" n'existe, dropped plutôt que fabriqué (voir dette technique)_
+- [x] ~~Taux de correction IA~~
+- [x] ~~Temps moyen de traitement~~ - _Proxy `updated_at`, même caveat que courriers_
+- [x] ~~Répartition FR→EN vs EN→FR~~
+- [x] ~~Termes ajoutés au glossaire via delta corrections M6~~ - _Détection par chaîne fixe dans `contexte`, pas une colonne dédiée (voir dette technique)_
 
 **M5 Demandes**
 
-- [ ] Délai moyen de prise en charge (soumise → en_cours)
-- [ ] Taux d'urgence validée vs demandée (demandeur propose urgente, admin valide normale)
-- [ ] Volume par demandeur/service
-- [ ] Taux de complétion (validées vs archivées vs en cours)
+- [x] ~~Délai moyen de prise en charge~~ - _Proxy `updated_at`, même caveat_
+- [x] ~~Taux d'urgence validée vs demandée~~
+- [x] ~~Volume par demandeur/service~~ - Top 10
+- [x] ~~Taux de complétion~~
 
 **M8 Documents**
 
-- [ ] Volume archivé par catégorie et par mois
-- [ ] Taux de succès OCR (traite vs echec vs a_retraiter)
-- [ ] Évolution du stock documentaire total dans le temps
+- [x] ~~Volume archivé par catégorie et par mois~~
+- [x] ~~Taux de succès OCR~~
+- [x] ~~Évolution du stock documentaire total~~ - Cumul : base pré-période + additions mois par mois
 
 **M7 Glossaire**
 
-- [ ] Croissance du glossaire dans le temps (termes ajoutés par mois)
-- [ ] Répartition termes ajoutés manuellement vs automatiquement (delta corrections M6)
-- [ ] Répartition par domaine
+- [x] ~~Croissance du glossaire dans le temps~~
+- [x] ~~Répartition termes ajoutés manuellement vs automatiquement~~
+- [x] ~~Répartition par domaine~~
 
 ### Client React
 
-- [ ] **`analytics.api.ts`** - Endpoints par module avec paramètres dateDebut/dateFin/module
-- [ ] **`AnalyticsPage.tsx`** - Navigation par onglet (un onglet par module + vue globale), graphiques Chart.js (lignes temporelles, barres groupées, camemberts, tableaux de données)
-- [ ] **Sélecteur de période global** - Filtres prédéfinis (7j, 30j, 90j, 6 mois, 1 an, personnalisé)
-- [ ] **Export CSV/Excel par section** - Données brutes téléchargeables pour chaque bloc analytics, prérequis pour les rapports
-- [ ] **Vue globale cross-modules** - Synthèse activité totale sur la période sélectionnée
+- [x] ~~**`analytics.api.ts`**~~
+- [x] ~~**`AnalyticsPage.tsx`**~~ - 8 onglets (7 modules + vue globale) + 9ème onglet Rapports. Tabs faits maison (pas de `@radix-ui/react-tabs` installé) — à migrer vers shadcn/ui lors du sprint de durcissement UI prévu
+- [x] ~~**Sélecteur de période global**~~ - 5 préréglages + personnalisé
+- [x] ~~**Export CSV/Excel par section**~~ - Un seul endpoint générique `/analytics/export?module=X&format=Y` plutôt que dupliqué par module, réutilisable pour tout futur module analytics
+- [x] ~~**Vue globale cross-modules**~~ - Réutilise les 7 fonctions service existantes plutôt que dupliquer les requêtes SQL
 
 ### Rapports (dépend des analytics)
 
-- [ ] **`rapports.service.ts`** - Génération PDF + Excel depuis les agrégats analytics, templates aux couleurs ANAC
-- [ ] **Rapport mensuel automatique** - Cron 1er du mois → PDF + Excel → archivé dans M8, job manuel dans le registre
-- [ ] **Rapport à la demande** - Sélection période + modules inclus + format (PDF ou Excel)
-- [ ] **Historique des rapports générés** - Liste consultable dans AnalyticsPage, lien vers le document dans M8
-- [ ] **Template PDF ANAC** - Logo, couleurs institutionnelles (#1B2A5E), mise en page professionnelle, sections par module
+- [x] ~~**`rapports.service.ts`**~~ - Génération PDF (Puppeteer, sections par module, saut de page entre modules) + Excel (une feuille par métrique, noms préfixés par module et dédupliqués)
+- [x] ~~**Rapport mensuel automatique**~~ - Cron 1er du mois 06h00, tous modules confondus, PDF + Excel, attribué à un `super_admin` système (`resoudreUtilisateurSysteme`). Job manuel `rapport_mensuel` dans `registre.ts`
+- [x] ~~**Rapport à la demande**~~ - Formulaire période + sélection modules (checkboxes) + format, dans l'onglet Rapports
+- [x] ~~**Historique des rapports générés**~~ - Nouvelle table `rapports`, liste consultable dans `AnalyticsPage.tsx`, lien direct de téléchargement vers le document M8
+- [x] ~~**Template PDF ANAC**~~ - `utils/pdf.ts`, générique et déjà réutilisé par l'export Journal d'audit (Sprint 10)
+- [x] ~~**Migration schéma**~~ - Non planifiée à l'origine : ajout de `rapport` à `document_categorie` (les rapports ont leur propre catégorie M8 plutôt que `autre`), nouvelles tables `rapports` et `courriers_criticite_snapshots`
 
 ### Routes App.tsx
 
-- [ ] `/analytics` - accessible à tous les rôles connectés (lecture)
-- [ ] `/analytics/:module` - vue détaillée par module
+- [x] ~~`/analytics`~~ - accessible à tous les rôles connectés (lecture)
+- [ ] `/analytics/:module` - **Non implémenté tel que prévu.** Choix différent : une seule page avec navigation par onglets côté client (état React), pas de sous-routes URL par module. Fonctionnellement équivalent, mais un lien direct vers un onglet précis (ex: partagé par email) n'est pas possible sans état d'URL. À revoir si ce besoin se manifeste.
+
+### Ajout post-clôture — Rapports IA (Gemini)
+
+Non planifié dans le périmètre initial de Sprint 11 — proposé et scopé en cours de route, implémenté immédiatement après clôture du sprint plutôt que reporté (dépendait directement des fondations analytics déjà en place).
+
+- [x] ~~**Architecture brouillon séparé**~~ - Narratif IA jamais inclus dans un PDF téléchargeable avant validation (modèle `texteIA`/`texteFinal` de M6, transposé aux rapports). Validation = rôle Admin minimum. Texte validé figé définitivement, jamais régénéré silencieusement
+- [x] ~~**Anonymisation obligatoire**~~ - Noms/matricules des agents (top participants, top demandeurs) systématiquement retirés du payload envoyé à Gemini, remplacés par "Agent A/B/C..." — appliqué par défaut, indépendamment de toute décision de gouvernance
+- [x] ~~**Deltas déterministes**~~ - Comparaison vs le dernier rapport _validé_ calculée en code (jamais par le modèle), gère l'absence de rapport précédent et les écarts d'historique
+- [x] ~~**Garde-fou activité insuffisante**~~ - Seuil dur en code (pas une instruction de prompt) : en dessous d'un volume minimal, aucun appel Gemini n'est fait, message fixe déterministe renvoyé à la place
+- [x] ~~**Rotation de modèles + quota auto-imposé**~~ - 3 modèles candidats (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.1-flash-lite`), plafond auto-imposé de 15/jour/modèle (sur un quota réel de 20), très large marge sous le vrai quota. Limite globale de 10 rapports IA à la demande/jour, tous utilisateurs confondus, paramétrable via `parametres`
+- [x] ~~**Contrôle du thinking budget**~~ - `thinkingBudget: 0` (Gemini 2.5) / `ThinkingLevel.LOW` (Gemini 3.x) explicitement fixé sur chaque appel — laissé par défaut, un test a montré jusqu'à 2092 tokens de réflexion facturés pour une réponse triviale
+- [x] ~~**Workflow de relecture**~~ - Génération → `en_attente` → admin édite/valide/rejette, avec confirmation avant rejet (bug initial : rejet sans confirmation déclenché par un simple clic d'exploration)
+- [x] ~~**Disclaimer à 3 endroits**~~ - Bannière dans la modale de relecture, badge de statut dans l'historique, modèle/version tracé sur chaque enregistrement (`moteurIA`)
+- [x] ~~**Régénération après rejet**~~ - Bouton dédié pour les rapports `rejete`, absent initialement (gap découvert en test)
+- [x] ~~**Rendu Markdown sécurisé**~~ - `react-markdown` plutôt que `dangerouslySetInnerHTML` + regex — le contenu vient d'un LLM externe, non fiable par défaut (risque d'injection identifié dans le scoping)
+
+**Bugs réels trouvés et corrigés pendant l'implémentation** (pour référence future) :
+
+- `listerRapports()` retournait un objet reconstruit manuellement, sans les champs IA — chaque ligne de l'historique affichait "IA - rejeté" par défaut (`undefined` ne correspondant à aucun cas du switch), quel que soit le vrai statut
+- Tri par `createdAt` ascendant plutôt que descendant — nouveaux rapports invisibles en haut de tableau
+- `cn()` utilisait `clsx` seul, sans `tailwind-merge` — une classe `className` personnalisée (ex: `max-w-4xl`) ne l'emportait pas de façon fiable sur les styles par défaut d'un composant (`max-w-lg`). Corrigé à la racine (`lib/utils.ts`), corrige potentiellement le même bug latent ailleurs dans l'app
+- Catégorie de document `rapport` ajoutée côté serveur (schéma) mais oubliée côté client (`DocumentsPage.tsx` avait sa propre liste de catégories non synchronisée) — catégorie vide affichée pour tout document de type rapport
+
+**Reporté** :
+
+- [x] ~~**Écran de suivi Gemini dans `AdminParametresPage.tsx`**~~ - Barres d'usage par modèle vs plafond (15/jour), compteur global rapports IA (X/10), dernier rapport mensuel auto, cumul tokens de réflexion. Rafraîchissement automatique toutes les 60s (juillet 2026)
+- [ ] **Export PDF/DOCX du narratif IA validé** - PDF réutilise `utils/pdf.ts` ; DOCX nécessiterait la lib `docx` (aucune génération DOCX n'existe encore dans le projet, même gap que Sprint 4). Décision à prendre : narratif seul ou fusionné avec les tableaux numériques ?
+
+### Dette technique identifiée (voir aussi Notion, tâches différées)
+
+- Aucune colonne segments pour les traductions (M6 volume)
+- 3 métriques de délai (courriers, demandes, traductions) reposent sur `updated_at` comme proxy, pas de colonne de transition de statut dédiée
+- Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
+- Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
 ## Waiting On
 

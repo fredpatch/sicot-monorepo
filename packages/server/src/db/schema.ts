@@ -126,6 +126,13 @@ export const logistiqueStatutEnum = pgEnum('logistique_statut', [
   'confirme',
 ]);
 
+export const statutRelectureIAEnum = pgEnum('statut_relecture_ia', [
+  'non_applicable', // rapport sans narratif IA
+  'en_attente',
+  'valide',
+  'rejete',
+]);
+
 // ── M10 – Notifications ───────────────────────────────────────────────────
 export const notifications = pgTable(
   'notifications',
@@ -492,8 +499,38 @@ export const rapports = pgTable('rapports', {
   documentId: integer('document_id')
     .notNull()
     .references(() => documents.id),
-  genereParUserId: integer('genere_par_user_id').references(() => users.id), // null = généré par le cron
+  genereParUserId: integer('genere_par_user_id').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+
+  // ── Narratif IA (Gemini) — brouillon distinct, jamais dans le document tant que non validé ──
+  contenuIA: text('contenu_ia'), // texte brut généré par le modèle
+  contenuIAValide: text('contenu_ia_valide'), // texte final après relecture/édition humaine — figé
+  statutRelectureIA: statutRelectureIAEnum('statut_relecture_ia')
+    .notNull()
+    .default('non_applicable'),
+  moteurIA: varchar('moteur_ia', { length: 50 }), // ex: 'gemini-2.5-pro' — pinné, jamais "latest"
+  relecteurIAId: integer('relecteur_ia_id').references(() => users.id),
+  relusLeIA: timestamp('relus_le_ia'),
+});
+
+// ── M11 – Quota journalier auto-imposé par modèle Gemini ───────────────────
+export const geminiUsageQuotidien = pgTable(
+  'gemini_usage_quotidien',
+  {
+    id: serial('id').primaryKey(),
+    modele: varchar('modele', { length: 50 }).notNull(),
+    date: date('date').notNull(),
+    nombreAppels: integer('nombre_appels').notNull().default(0),
+    thinkingTokensTotal: integer('thinking_tokens_total').notNull().default(0),
+  },
+  (t) => [uniqueIndex('gemini_usage_modele_date_idx').on(t.modele, t.date)]
+);
+
+// ── M11 – Limite globale quotidienne de rapports IA à la demande ──────────
+export const rapportsIAQuotidien = pgTable('rapports_ia_quotidien', {
+  id: serial('id').primaryKey(),
+  date: date('date').notNull().unique(),
+  nombreGeneres: integer('nombre_generes').notNull().default(0),
 });
 
 // ── Relations ──────────────────────────────────────────────────────────────
