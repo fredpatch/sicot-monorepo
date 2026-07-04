@@ -1,5 +1,55 @@
 # 📝 SICOT – Changelog
 
+## [f27d58f] — 2026-07-04 — feat(sprint11): Module Rapports (M11) — closes analytics scope
+
+### Added
+- `packages/server/src/modules/report/` — new module: `rapports.service.ts`
+  (237 lines: `genererRapport()` combined multi-module PDF via
+  `genererPDFDepuisHTML`/multi-sheet Excel, archives to `documents`
+  (`rapport` category) + `rapports` history table; `listerRapports()`),
+  `rapports.controller.ts` (44 lines). `routes/rapports.route.ts` created
+  **empty (0 bytes) and never wired up** — dead code, actual routes live
+  in `analytics.route.ts` instead
+- `rapports` table (`type` mensuel/a_la_demande, `periodeDebut`/`Fin`,
+  `modulesInclus` jsonb, `format` pdf/excel, `documentId` FK,
+  `genereParUserId` nullable FK = cron); `rapportTypeEnum`,
+  `rapportFormatEnum`; `documentCategorieEnum` gains `'rapport'`
+- `packages/server/src/jobs/rapport-mensuel.ts` — `genererRapportMensuel()`
+  (previous calendar month, PDF+Excel, all 8 modules),
+  `demarrerJobRapportMensuel()` (cron `0 6 1 * *`), started in `index.ts`,
+  registered in `registre.ts` as `rapport_mensuel` — closes the Sprint 10
+  "job manuel rapport mensuel" backlog item
+- `packages/server/src/modules/analytics/services/analytics.export.service.ts`
+  (79 lines) — `humaniser()`, `normaliserEnLignes()`, `genererExcelAnalytics()`,
+  `genererCSVAnalytics()` (UTF-8 BOM for Excel accent compatibility)
+- `analytics.controller.ts` — `exporterAnalytics`, `GET /api/analytics/export?module=&format=excel|csv`,
+  audited as `ANALYTICS_EXPORT_EXCEL`/`ANALYTICS_EXPORT_CSV`
+- `analytics.service.ts` — `SERVICE_PAR_MODULE` export (module-key → fn
+  map), shared by the export endpoint and the rapports collector
+- `packages/client/src/pages/AnalyticsPage.tsx` — 9th "Rapports" tab
+  (generation form + history), Excel/CSV export buttons on every tab
+- `packages/client/src/lib/analytics.api.ts` — `getUrlExport()`,
+  `genererRapport()`, `listerRapports()`
+- `packages/server/src/db/seed-demo.ts` (446 lines) — filled in from the
+  empty stub committed last session. NODE_ENV-guarded demo-data generator
+  (organisations/accords/courriers/missions/documents/traductions/
+  demandes/glossaire across trailing 12 months) so Analytics dashboards
+  have data to render; also backfills 14 days of
+  `courriersCriticiteSnapshots`
+
+### Changed
+- `db:seed-demo` npm script moved from root `package.json` (wrong
+  workspace, added by mistake last session) to
+  `packages/server/package.json`
+- `docs/TASKS.md` — Sprint 10 header flipped `🔶 EN COURS` → `✅ COMPLÉTÉ`;
+  its "Job manuel rapport mensuel" item marked done. Sprint 11's own
+  header **not updated** — still shows `⬜ À FAIRE` despite both halves
+  now being functionally complete
+
+See `sessions/2026-07-04.md` (second section) for full detail.
+
+---
+
 ## [f3547d4] — 2026-07-04 — feat(sprint11): Module Analytics (M11) — dashboard half
 
 ### Added
