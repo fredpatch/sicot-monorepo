@@ -10,6 +10,7 @@ export const DOSSIERS: Record<DocumentCategorie | 'temp', string> = {
   mission: path.join(UPLOAD_DIR, 'missions'),
   traduction: path.join(UPLOAD_DIR, 'traductions'),
   glossaire: path.join(UPLOAD_DIR, 'glossaire'),
+  rapport: path.join(UPLOAD_DIR, 'rapports'),
   autre: path.join(UPLOAD_DIR, 'autres'),
   temp: path.join(UPLOAD_DIR, 'temp'),
 };
@@ -49,5 +50,6 @@ export const MOTS_CLES_CATEGORIES: Record<DocumentCategorie, string[]> = {
   ],
   traduction: ['traduction', 'translation', 'traduit', 'translated', 'version'],
   glossaire: ['glossaire', 'glossary', 'terminologie', 'terminology', 'lexique'],
+  rapport: ['rapport', 'analytics', 'bilan', 'synthèse', 'report'],
   autre: [],
 };

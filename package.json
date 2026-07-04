@@ -13,8 +13,7 @@
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
     "db:generate": "npm run db:generate --workspace=packages/server",
     "db:migrate": "npm run db:migrate --workspace=packages/server",
-    "db:studio": "npm run db:studio --workspace=packages/server",
-    "db:seed-demo": "tsx src/db/seed-demo.ts"
+    "db:studio": "npm run db:studio --workspace=packages/server"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",

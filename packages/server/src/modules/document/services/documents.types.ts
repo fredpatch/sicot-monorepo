@@ -1,5 +1,5 @@
 export type DocumentCategorie =
-  'accord' | 'correspondance' | 'mission' | 'traduction' | 'glossaire' | 'autre';
+  'accord' | 'correspondance' | 'mission' | 'traduction' | 'glossaire' | 'rapport' | 'autre';
 
 export interface UploadDocumentParams {
   buffer: Buffer;

@@ -34,6 +34,7 @@ import { verifierServiceOCR } from './utils/ocr';
 import { demarrerJobsAlertes } from './jobs/alertes';
 import { seedParametresDefaut } from './start/services/parameters-seed.service';
 import { demarrerJobSnapshotCriticite } from './jobs/criticite-snapshot';
+import { demarrerJobRapportMensuel } from './jobs/rapport-mensuel';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -149,6 +150,9 @@ app.listen(PORT, async () => {
 
   // Démarrage du job de snapshot de criticité
   demarrerJobSnapshotCriticite();
+
+  // Démarrage du job de génération automatique du rapport mensuel
+  demarrerJobRapportMensuel();
 });
 
 export default app;

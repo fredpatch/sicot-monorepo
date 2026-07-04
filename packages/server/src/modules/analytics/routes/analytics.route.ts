@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '@/middleware/auth';
 import { requireTraducteur } from '@/middleware/requiredRole';
 import * as analyticsController from '../controllers/analytics.controller';
+import * as rapportsController from '@/modules/report/controllers/rapports.controller';
 
 const router = Router();
 
@@ -31,5 +32,12 @@ router.get('/glossaire', analyticsController.glossaire);
 
 // ── M8 Global ─────────────────────────────────
 router.get('/global', analyticsController.global);
+
+// ── Export Excel ─────────────────────────────────
+router.get('/export', analyticsController.exporterAnalytics);
+
+// ── Rapports ───────────────────────────────────────────────
+router.post('/rapports', rapportsController.genererRapport);
+router.get('/rapports', rapportsController.listerRapports);
 
 export default router;

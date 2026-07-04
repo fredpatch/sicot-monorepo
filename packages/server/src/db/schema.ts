@@ -69,8 +69,13 @@ export const documentCategorieEnum = pgEnum('document_categorie', [
   'mission',
   'traduction',
   'glossaire',
+  'rapport',
   'autre',
 ]);
+
+export const rapportTypeEnum = pgEnum('rapport_type', ['mensuel', 'a_la_demande']);
+
+export const rapportFormatEnum = pgEnum('rapport_format', ['pdf', 'excel']);
 
 export const documentStatutOCREnum = pgEnum('document_statut_ocr', [
   'en_attente',
@@ -473,6 +478,21 @@ export const courriersCriticiteSnapshots = pgTable('courriers_criticite_snapshot
   aSurveiller: integer('a_surveiller').notNull(),
   critique: integer('critique').notNull(),
   totalEnAttente: integer('total_en_attente').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ── M11 – Historique des rapports générés ──────────────────────────────────
+export const rapports = pgTable('rapports', {
+  id: serial('id').primaryKey(),
+  type: rapportTypeEnum('type').notNull(),
+  periodeDebut: timestamp('periode_debut').notNull(),
+  periodeFin: timestamp('periode_fin').notNull(),
+  modulesInclus: jsonb('modules_inclus').notNull(),
+  format: rapportFormatEnum('format').notNull(),
+  documentId: integer('document_id')
+    .notNull()
+    .references(() => documents.id),
+  genereParUserId: integer('genere_par_user_id').references(() => users.id), // null = généré par le cron
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
