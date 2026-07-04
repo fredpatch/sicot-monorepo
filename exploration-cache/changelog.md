@@ -1,5 +1,71 @@
 # 📝 SICOT – Changelog
 
+## [d312a86] — 2026-07-04 — feat(sprint11): Rapports IA — narratif Gemini avec relecture obligatoire
+
+### Added
+- `modules/analytics/services/gemini.service.ts` (205 lines) —
+  `genererNarratifIA()`: mandatory anonymization of agent names before any
+  Gemini call, deterministic deltas vs. last *validated* report period
+  (computed in code, never by the model), hard activity floor
+  (`SEUIL_ACTIVITE_MINIMALE = 5`) below which no API call happens at all,
+  3-model rotation (`gemini-2.5-flash`, `gemini-2.5-flash-lite`,
+  `gemini-3.1-flash-lite`) with reactive 429 fallback, thinking budget
+  pinned near-zero on every call
+- `modules/analytics/services/gemini-quota.service.ts` (135 lines) — two
+  independent daily caps: per-model call count
+  (`gemini_quota_journalier_par_modele`, default 15, real free quota is
+  20) and a global cap on on-demand generations only
+  (`gemini_rapports_manuels_max_jour`, default 10 — cron runs don't
+  count); `getStatutUsageGemini()` for the admin monitor
+- New tables `geminiUsageQuotidien`, `rapportsIAQuotidien`; new
+  `statutRelectureIAEnum`; `rapports` gains `contenuIA` (raw),
+  `contenuIAValide` (frozen post-review), `statutRelectureIA`, `moteurIA`
+  (pinned, never "latest"), `relecteurIAId`, `relusLeIA`
+- `rapports.service.ts` — `genererAnalyseIA()`, `validerOuRejeterAnalyseIA()`
+  (admin-only, refuses if not `en_attente`, audits
+  `RAPPORT_IA_VALIDE`/`RAPPORT_IA_REJETE`), `getRapportById()`
+- `analytics.route.ts` — `GET/POST /rapports/:id`,
+  `POST/PATCH /rapports/:id/analyse-ia` (PATCH requires admin),
+  `GET /gemini-usage` (admin)
+- `jobs/rapport-mensuel.ts` — attempts AI analysis on the monthly PDF,
+  never blocks the cron on failure
+- `packages/server/src/scripts/gemini-smoke-test.ts` — standalone
+  connectivity check (`npm run test:gemini`)
+- Client: `AnalyticsPage.tsx` Rapports tab gains a review dialog
+  (`react-markdown`, not `dangerouslySetInnerHTML`) with validate/reject
+  (confirmation required) + regenerate-after-reject; status badges;
+  `AdminParametresPage.tsx` gains a Gemini usage monitor (per-model bars,
+  thinking tokens, auto-refresh 60s)
+- `.env.example` — `GEMINI_API_KEY`/`GEMINI_MODEL`, test-environment-only
+  by explicit comment (production requires DG/RGPD sign-off)
+
+### Fixed (real bugs found during this work)
+- `listerRapports()` omitted the IA fields entirely — every history row
+  showed the wrong status regardless of actual state
+- Rapports were sorted oldest-first, not newest-first
+- `cn()` (`lib/utils.ts`) lacked `tailwind-merge` — a custom `className`
+  didn't reliably override a component's own default; fixed at the root
+- `DocumentsPage.tsx` had its own unsynced document category list —
+  `rapport`-category documents showed a blank category
+
+### Changed
+- `docs/TASKS.md` — Sprint 11 header flipped to ✅ COMPLÉTÉ with extensive
+  documentation of this whole add-on
+
+### ⚠️ Not fixed — flagged for follow-up
+- `package-lock.json` churned ~2800 lines this session. `exceljs` in
+  `packages/server/package.json` was downgraded `^4.4.0` → `^3.4.0`
+  (confirmed installed) — the exact library used by 3 separate Excel
+  export features built this and last session, against the 4.x API.
+  `node-cron`, `nodemailer`, `uuid` also jumped multiple majors. Root
+  `package.json` picked up duplicate direct deps on the same packages.
+  Pattern suggests an `npm install` run from the repo root instead of
+  inside `packages/server`. See `sessions/2026-07-04.md` for full detail.
+
+See `sessions/2026-07-04.md` (third section) for full detail.
+
+---
+
 ## [f27d58f] — 2026-07-04 — feat(sprint11): Module Rapports (M11) — closes analytics scope
 
 ### Added
