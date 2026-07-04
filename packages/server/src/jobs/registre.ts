@@ -6,6 +6,7 @@ import { courriers, recommandations } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { snapshotCriticiteCourriers } from './criticite-snapshot.js';
+import { genererRapportMensuel } from './rapport-mensuel.js';
 
 export interface JobDefinition {
   cle: string;
@@ -178,6 +179,21 @@ export const REGISTRE_JOBS: JobDefinition[] = [
       const resultat = await snapshotCriticiteCourriers();
       return {
         resume: `Snapshot du ${resultat.date} : ${resultat.normal} normal, ${resultat.aSurveiller} à surveiller, ${resultat.critique} critique.`,
+        details: resultat,
+      };
+    },
+  },
+  {
+    cle: 'rapport_mensuel',
+    label: 'Générer le rapport mensuel',
+    description:
+      'Génère manuellement le rapport du mois précédent (PDF + Excel), archivé dans M8. Utile en dev pour tester sans attendre le 1er du mois.',
+    module: 'M11',
+    roleMinimum: 'admin',
+    executer: async () => {
+      const resultat = await genererRapportMensuel();
+      return {
+        resume: `Rapport mensuel généré — document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
         details: resultat,
       };
     },

@@ -1,37 +1,50 @@
 # 🎯 Current Task
 
 **Session date**: 2026-07-04
-**Status**: ✅ Sprint 11 (Analytics & Rapports) — analytics half BUILT and committed (f3547d4). Rapports half not started.
+**Status**: ✅ Sprint 11 (Analytics & Rapports) — BOTH halves now built. Analytics half committed (f3547d4); rapports half pending commit at cache-write time.
 
-## ✅ Done (analytics half only): Sprint 11 — Module Analytics & Rapports (M11)
+## ✅ Done: Sprint 11 — Module Analytics & Rapports (M11), rapports half
 
-Full detail in `sessions/2026-07-04.md`. Summary:
+Second part of today's session. Full detail in `sessions/2026-07-04.md`
+(second section). Summary:
 
-- New server `modules/analytics/` — 7 per-module analytics endpoints
-  (Accords/Courriers/Missions/Traduction/Demandes/Documents/Glossaire) +
-  1 cross-module `global`, all gated `authenticate` + `requireTraducteur`,
-  all cached 60s via new `utils/cache.ts` (in-memory `Map`, single-process
-  only)
-- New `courriersCriticiteSnapshots` table + daily 23:55 cron
-  (`jobs/criticite-snapshot.ts`) — criticité was never persisted before,
-  so there was no way to chart its evolution; also registered as a
-  manually-triggerable job in `registre.ts` for dev backfilling
-- Client `AnalyticsPage.tsx` (1700 lines) — 8 tabs, `ChartCanvas.tsx`
-  loading Chart.js from a CDN at runtime, routed at `/analytics`
+- New `modules/report/` — `rapports.service.ts` generates a combined
+  multi-module PDF or multi-sheet Excel, archives it as a `documents` row
+  (new `rapport` category) + a `rapports` history row
+- Monthly cron (`jobs/rapport-mensuel.ts`, 1st of month 06:00) + manual
+  trigger via `registre.ts` (`rapport_mensuel`) — closes the Sprint 10
+  backlog item of the same name
+- New single-module live CSV/Excel export
+  (`GET /api/analytics/export`, `analytics.export.service.ts`), separate
+  from the archived multi-module rapport
+- Client: `AnalyticsPage.tsx` gained a 9th "Rapports" tab (generation form
+  + history) and Excel/CSV export buttons on every other tab
+- `packages/server/src/db/seed-demo.ts` (446 lines) filled in from last
+  session's empty stub — NODE_ENV-guarded demo data generator across 12
+  months, plus a 14-day backfill of `courriersCriticiteSnapshots`
+- `db:seed-demo` npm script moved from the root `package.json` (wrong
+  place, added by mistake last session) to `packages/server/package.json`
+- `docs/TASKS.md`: Sprint 10 flipped to ✅ COMPLÉTÉ; Sprint 11's own
+  header **still not updated** (still `⬜ À FAIRE`) despite both halves
+  now being done
 
-**NOT built this session** (part of Sprint 11's original scope):
+**⚠️ Known dead code**: `modules/report/routes/rapports.route.ts` was
+created empty (0 bytes) and never wired up anywhere — the actual routes
+are registered directly in `analytics.route.ts`. Should be deleted.
 
-- The `rapports` layer entirely — PDF/Excel generation, ANAC-branded
-  template, monthly cron, on-demand reports, history. `utils/pdf.ts`
-  (built in Sprint 10) is already generic enough to reuse.
-- CSV/Excel export on the analytics dashboard itself
-- `docs/TASKS.md` Sprint 11 section — still shows `⬜ À FAIRE`, not
-  updated to reflect this session's progress
+**Not yet done**: `tsc --noEmit`, manual generation of an on-demand
+report, running `npm run db:seed-demo` against a dev DB, manually
+triggering the `rapport_mensuel` job, a Drizzle migration covering
+everything hand-edited into `schema.ts` across Sprint 9/10/11 (this gap
+has now persisted three sessions running), updating `docs/TASKS.md`
+Sprint 11's header.
 
-**Not yet done**: `tsc --noEmit` verification, manual click-through of all
-8 analytics tabs, manual trigger of the criticité snapshot job, Drizzle
-migration for `courriersCriticiteSnapshots` (hand-edited in schema.ts,
-same recurring gap as Sprint 9/10).
+## ✅ Done (earlier same day): Sprint 11 — analytics dashboard half
+
+Committed `f3547d4`. New `modules/analytics` server (7 modules + global,
+60s in-memory cache), `AnalyticsPage.tsx` (8 tabs), daily
+courriers-criticité snapshot job/table. See `sessions/2026-07-04.md`
+first section.
 
 ---
 
@@ -39,22 +52,21 @@ same recurring gap as Sprint 9/10).
 
 - Sprint 9 (Portail Documentaire Externe) — shipped `47ef8b8`. Known open
   bug: `DocumentsPage.tsx`'s "Exposé" link uses `href="/portail"` but the
-  real route is `/portal` — 404, not yet fixed. No Drizzle migration for
-  its schema changes either.
+  real route is `/portal` — 404, not yet fixed.
 - Sprint 10 (Paramètres Système Élargis) — shipped `6aaa354`. Not yet
-  manually verified that DB-backed OTP/lockout/backup-retention/deepl
-  values are actually honored at runtime (vs. just matching old defaults).
+  manually verified that DB-backed values are honored at runtime.
 - Sprint 8 (Centre de Notifications & Rappels CCIT) — COMPLETE, `7a1de70`
 - Server-wide services refactor — COMPLETE, `dd2809d`
 
 ## Leftover items (not blocking, tracked in docs/TASKS.md)
 
-- [ ] Build Sprint 11's `rapports` layer (PDF/Excel, monthly cron,
-      on-demand) — folds in the old Sprint 5 "rapport mensuel" leftover
-- [ ] Update `docs/TASKS.md` Sprint 11 status
-- [ ] Generate Drizzle migrations for Sprint 9 (`portailTokens` +
-      `documents` columns) and Sprint 11 (`courriersCriticiteSnapshots`)
-      schema changes — recurring gap, schema.ts hand-edited each time
+- [ ] Delete or wire up the dead `modules/report/routes/rapports.route.ts`
+      empty stub
+- [ ] Update `docs/TASKS.md` Sprint 11 header to ✅
+- [ ] Generate one Drizzle migration covering everything hand-edited into
+      `schema.ts` across Sprint 9/10/11 (portailTokens, documents columns,
+      courriersCriticiteSnapshots, rapports table + enums, documents'
+      `rapport` category)
 - [ ] Fix `/portail` → `/portal` href bug in `DocumentsPage.tsx` (Sprint 9)
 - [ ] `tsc --noEmit` + manual verification of Sprint 9 + 10 + 11 work
 - [ ] **Taille max upload configurable** — deferred, Sprint 10
@@ -72,9 +84,9 @@ Sprint 5  Dashboard & Statistiques (V1)       ██████████ 100
 Sprint 8  Notifications & Rappels CCIT        ██████████ 100% ✅
 Sprint 9  Portail Documentaire Externe        █████████░  90% ✅ (route bug + migration open)
 Sprint 10 Paramètres Système Élargis          █████████░  90% ✅ (verification pending)
+Sprint 11 Analytics & Rapports (M11)          █████████░  90% ✅ (verification + migration pending)
 Server services refactor                      ██████████ 100% ✅
 ──────────────────────────────────────────────────────────────
-Sprint 11 Analytics & Rapports (M11)          █████░░░░░  50% 🔄 (analytics done, rapports not started)
 Sprint 6  Tests, Recette & Corrections        ░░░░░░░░░░   0% (postponed)
 Sprint 7  Déploiement Production & Formation  ░░░░░░░░░░   0% (postponed)
 ```

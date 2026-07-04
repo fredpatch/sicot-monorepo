@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { BarChart3, Loader2 } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { BarChart3, FileDown, FileSpreadsheet, FileText, Loader2, LoaderIcon } from 'lucide-react';
 
 import { ChartCanvas, COULEURS_GRAPHIQUE } from '@/components/analytics/ChartCanvas';
 
@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { analyticsApi } from '@/lib/analytics.api';
+import { Button } from '@/components/ui/button';
+import { documentsApi } from '@/lib/documents.api';
 
 // ── Onglets ─────────────────────────────────────────────────────────────
 type Onglet =
@@ -23,7 +25,8 @@ type Onglet =
   | 'traductions'
   | 'demandes'
   | 'documents'
-  | 'glossaire';
+  | 'glossaire'
+  | 'rapports';
 
 const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: 'global', label: 'Vue globale' },
@@ -34,6 +37,7 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: 'demandes', label: 'Demandes' },
   { cle: 'documents', label: 'Documents' },
   { cle: 'glossaire', label: 'Glossaire' },
+  { cle: 'rapports', label: 'Rapports' },
 ];
 
 // ── Période ─────────────────────────────────────────────────────────────
@@ -133,6 +137,24 @@ export default function AnalyticsPage() {
               />
             </>
           )}
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-1.5"
+            onClick={() =>
+              window.open(analyticsApi.getUrlExport(onglet, 'excel', periode), '_blank')
+            }
+          >
+            <FileSpreadsheet size={13} /> Excel
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => window.open(analyticsApi.getUrlExport(onglet, 'csv', periode), '_blank')}
+          >
+            <FileText size={13} /> CSV
+          </Button>
         </div>
       </div>
 
@@ -168,6 +190,7 @@ export default function AnalyticsPage() {
       {onglet === 'demandes' && <OngletDemandes periode={periode} />}
       {onglet === 'documents' && <OngletDocuments periode={periode} />}
       {onglet === 'glossaire' && <OngletGlossaire periode={periode} />}
+      {onglet === 'rapports' && <OngletRapports />}
     </div>
   );
 }
@@ -1689,6 +1712,232 @@ function OngletGlossaire({ periode }: { periode: { dateDebut?: string; dateFin?:
                 <tr key={d.domaine} className="table-row">
                   <td className="px-4 py-2 text-anac-text">{d.domaine}</td>
                   <td className="px-4 py-2 text-right font-medium text-anac-navy">{d.nombre}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Onglet : Rapports ───────────────────────────────────────────────────
+interface RapportHistorique {
+  id: number;
+  type: string;
+  periodeDebut: string;
+  periodeFin: string;
+  modulesInclus: string[];
+  format: string;
+  documentId: number;
+  createdAt: string;
+}
+
+const MODULES_DISPONIBLES: { cle: string; label: string }[] = [
+  { cle: 'global', label: 'Vue globale' },
+  { cle: 'accords', label: 'Accords' },
+  { cle: 'courriers', label: 'Courriers' },
+  { cle: 'missions', label: 'Missions' },
+  { cle: 'traductions', label: 'Traductions' },
+  { cle: 'demandes', label: 'Demandes' },
+  { cle: 'documents', label: 'Documents' },
+  { cle: 'glossaire', label: 'Glossaire' },
+];
+
+function OngletRapports() {
+  const queryClient = useQueryClient();
+  const [modulesChoisis, setModulesChoisis] = useState<string[]>(
+    MODULES_DISPONIBLES.map((m) => m.cle)
+  );
+  const [format, setFormat] = useState<'pdf' | 'excel'>('pdf');
+  const [periodeDebut, setPeriodeDebut] = useState('');
+  const [periodeFin, setPeriodeFin] = useState('');
+
+  const { data: historique, isLoading: chargementHistorique } = useQuery({
+    queryKey: ['analytics-rapports'],
+    queryFn: async () => {
+      const res = await analyticsApi.listerRapports();
+      return res.data as RapportHistorique[];
+    },
+  });
+
+  const generation = useMutation({
+    mutationFn: async () => {
+      return analyticsApi.genererRapport({
+        periodeDebut,
+        periodeFin,
+        modules: modulesChoisis,
+        format,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analytics-rapports'] });
+    },
+  });
+
+  function toggleModule(cle: string) {
+    setModulesChoisis((prev) =>
+      prev.includes(cle) ? prev.filter((m) => m !== cle) : [...prev, cle]
+    );
+  }
+
+  const formulaireValide = periodeDebut !== '' && periodeFin !== '' && modulesChoisis.length > 0;
+
+  return (
+    <div className="space-y-4">
+      {/* ── Générer un rapport à la demande ──────────────────────────── */}
+      <div className="card p-4">
+        <p className="text-sm font-semibold text-anac-navy mb-0.5">Générer un rapport</p>
+        <p className="text-xs text-anac-muted mb-4">
+          Sélectionnez la période, les modules à inclure, et le format. Le rapport est archivé
+          automatiquement dans la Gestion Documentaire (catégorie « Rapport »).
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="text-xs text-anac-muted block mb-1.5">Période</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={periodeDebut}
+                onChange={(e) => setPeriodeDebut(e.target.value)}
+                className="input h-9 text-sm w-36"
+              />
+              <span className="text-anac-muted text-sm">au</span>
+              <input
+                type="date"
+                value={periodeFin}
+                onChange={(e) => setPeriodeFin(e.target.value)}
+                className="input h-9 text-sm w-36"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-anac-muted block mb-1.5">Modules inclus</label>
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+              {MODULES_DISPONIBLES.map((m) => (
+                <label
+                  key={m.cle}
+                  className="flex items-center gap-1.5 text-sm text-anac-text cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={modulesChoisis.includes(m.cle)}
+                    onChange={() => toggleModule(m.cle)}
+                    className="rounded border-anac-border"
+                  />
+                  {m.label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-anac-muted block mb-1.5">Format</label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-1.5 text-sm text-anac-text cursor-pointer">
+                <input type="radio" checked={format === 'pdf'} onChange={() => setFormat('pdf')} />
+                PDF
+              </label>
+              <label className="flex items-center gap-1.5 text-sm text-anac-text cursor-pointer">
+                <input
+                  type="radio"
+                  checked={format === 'excel'}
+                  onChange={() => setFormat('excel')}
+                />
+                Excel
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <Button
+            size="sm"
+            disabled={!formulaireValide || generation.isPending}
+            onClick={() => generation.mutate()}
+            className="gap-1.5"
+          >
+            {generation.isPending ? (
+              <LoaderIcon size={13} className="animate-spin" />
+            ) : (
+              <FileDown size={13} />
+            )}
+            Générer le rapport
+          </Button>
+          {generation.isSuccess && (
+            <span className="text-xs text-anac-succes font-medium">
+              ✓ Rapport généré — disponible ci-dessous et dans la Gestion Documentaire
+            </span>
+          )}
+          {generation.isError && (
+            <span className="text-xs text-anac-danger">Échec de la génération — réessayez</span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Historique ────────────────────────────────────────────────── */}
+      <div className="card p-0 overflow-hidden">
+        <div className="px-4 pt-4 pb-2">
+          <p className="text-sm font-semibold text-anac-navy mb-0.5">Historique des rapports</p>
+          <p className="text-xs text-anac-muted">
+            Rapports générés automatiquement (1er du mois) ou à la demande.
+          </p>
+        </div>
+        {chargementHistorique ? (
+          <div className="text-center py-8 text-anac-muted">
+            <Loader2 size={16} className="animate-spin inline mr-2" />
+            Chargement...
+          </div>
+        ) : !historique || historique.length === 0 ? (
+          <p className="text-sm text-anac-muted text-center py-8">
+            Aucun rapport généré pour le moment
+          </p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="table-header">
+                <th className="text-left px-4 py-2">Généré le</th>
+                <th className="text-left px-4 py-2">Type</th>
+                <th className="text-left px-4 py-2">Période couverte</th>
+                <th className="text-left px-4 py-2">Modules</th>
+                <th className="text-left px-4 py-2">Format</th>
+                <th className="text-left px-4 py-2">Fichier</th>
+              </tr>
+            </thead>
+            <tbody>
+              {historique.map((r) => (
+                <tr key={r.id} className="table-row">
+                  <td className="px-4 py-2 text-anac-text whitespace-nowrap">
+                    {new Date(r.createdAt).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={r.type === 'mensuel' ? 'badge-info' : 'badge-neutre'}>
+                      {r.type === 'mensuel' ? 'Mensuel auto' : 'À la demande'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-anac-muted whitespace-nowrap">
+                    {new Date(r.periodeDebut).toLocaleDateString('fr-FR')} —{' '}
+                    {new Date(r.periodeFin).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="px-4 py-2 text-anac-muted text-xs">
+                    {r.modulesInclus.join(', ')}
+                  </td>
+                  <td className="px-4 py-2 uppercase text-xs font-medium text-anac-navy">
+                    {r.format}
+                  </td>
+                  <td className="px-4 py-2">
+                    <a
+                      href={documentsApi.getUrlTelechargement(r.documentId)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-anac-sky hover:text-anac-navy text-xs font-medium inline-flex items-center gap-1"
+                    >
+                      <FileDown size={12} /> Télécharger
+                    </a>
+                  </td>
                 </tr>
               ))}
             </tbody>

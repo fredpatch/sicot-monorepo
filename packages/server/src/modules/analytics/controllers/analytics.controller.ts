@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import * as analyticsService from '../services/analytics.service';
 import { handleAnalyticsError } from '@/utils/error';
+import * as analyticsExportService from '../services/analytics.export.service';
+import { logAudit } from '@/modules/auth/services/auth.service.js';
+import { SERVICE_PAR_MODULE } from '../services/analytics.service.js';
 
 function parsePeriode(req: Request): { dateDebut?: Date; dateFin?: Date } {
   const { dateDebut, dateFin } = req.query;
@@ -90,6 +93,59 @@ export async function glossaire(req: Request, res: Response): Promise<void> {
 export async function global(req: Request, res: Response): Promise<void> {
   try {
     res.json(await analyticsService.getGlobalAnalytics(parsePeriode(req)));
+  } catch (error) {
+    handleAnalyticsError(res, error);
+  }
+}
+
+// ── GET /api/analytics/export?module=accords&format=excel ─────────────────
+export async function exporterAnalytics(req: Request, res: Response): Promise<void> {
+  try {
+    const moduleCle = req.query.module as string;
+    const format = req.query.format as string;
+
+    const serviceFn = SERVICE_PAR_MODULE[moduleCle];
+    if (!serviceFn) {
+      res.status(400).json({ message: `Module analytics inconnu : ${moduleCle}` });
+      return;
+    }
+    if (format !== 'excel' && format !== 'csv') {
+      res.status(400).json({ message: 'Format invalide — excel ou csv attendu' });
+      return;
+    }
+
+    const periode = parsePeriode(req);
+    const data = await serviceFn(periode);
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    await logAudit({
+      userId: req.user!.userId,
+      action: `ANALYTICS_EXPORT_${format.toUpperCase()}`,
+      module: 'M11',
+      details: { module: moduleCle, ...periode },
+      ip: req.ip,
+    });
+
+    if (format === 'excel') {
+      const buffer = await analyticsExportService.genererExcelAnalytics(data);
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="analytics-${moduleCle}-${dateStr}.xlsx"`
+      );
+      res.send(buffer);
+    } else {
+      const csv = analyticsExportService.genererCSVAnalytics(data);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="analytics-${moduleCle}-${dateStr}.csv"`
+      );
+      res.send('\uFEFF' + csv); // BOM — accents corrects à l'ouverture dans Excel
+    }
   } catch (error) {
     handleAnalyticsError(res, error);
   }

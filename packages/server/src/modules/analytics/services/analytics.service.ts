@@ -649,3 +649,14 @@ export async function getGlobalAnalytics(filtre: PeriodeFiltre): Promise<GlobalA
     };
   });
 }
+
+export const SERVICE_PAR_MODULE: Record<string, (filtre: PeriodeFiltre) => Promise<any>> = {
+  global: getGlobalAnalytics,
+  accords: getAccordsAnalytics,
+  courriers: getCourriersAnalytics,
+  missions: getMissionsAnalytics,
+  traductions: getTraductionAnalytics,
+  demandes: getDemandesAnalytics,
+  documents: getDocumentsAnalytics,
+  glossaire: getGlossaireAnalytics,
+};
