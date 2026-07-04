@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '@/middleware/auth';
-import { requireTraducteur } from '@/middleware/requiredRole';
+import { requireAdmin, requireTraducteur } from '@/middleware/requiredRole';
 import * as analyticsController from '../controllers/analytics.controller';
 import * as rapportsController from '@/modules/report/controllers/rapports.controller';
 
@@ -39,5 +39,13 @@ router.get('/export', analyticsController.exporterAnalytics);
 // ── Rapports ───────────────────────────────────────────────
 router.post('/rapports', rapportsController.genererRapport);
 router.get('/rapports', rapportsController.listerRapports);
+
+// ── Rapports IA (narratif d'analyse) ───────────────────────────────
+router.get('/rapports/:id', rapportsController.getRapportDetail);
+router.post('/rapports/:id/analyse-ia', rapportsController.genererAnalyseIA);
+router.patch('/rapports/:id/analyse-ia', requireAdmin, rapportsController.validerAnalyseIA);
+
+// ── Statut Gemini Quota ─────────────────────────────────────────────
+router.get('/gemini-usage', requireAdmin, analyticsController.statutGemini);
 
 export default router;

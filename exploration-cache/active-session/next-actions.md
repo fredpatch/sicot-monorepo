@@ -4,73 +4,81 @@ Last updated: 2026-07-04
 
 ## 🔥 Immediate (start here next session)
 
-1. **Clean up + verify Sprint 11 (both halves now done)**
-   - Delete `packages/server/src/modules/report/routes/rapports.route.ts`
-     (empty 0-byte stub, never imported — the real routes live in
-     `analytics.route.ts`) or actually wire it up properly
-   - Run `tsc --noEmit` in both `packages/client` and `packages/server`
-   - Manually load `/analytics`, click through all 9 tabs (global +
-     7 modules + Rapports)
-   - Manually generate an on-demand report (PDF and Excel) from the new
-     Rapports tab, confirm the archived document opens from its link
-   - Manually trigger `rapport_mensuel` and `courriers_criticite_snapshot`
-     from AdminParametresPage
-   - Run `npm run db:seed-demo` against a dev database and confirm the
-     Analytics dashboards render non-empty, plausible charts
-   - Generate **one** Drizzle migration covering everything hand-edited
-     into `schema.ts` across Sprint 9/10/11: `portailTokens` table,
-     `documents.visibilitePortail`/`portailTokenDureeJours`,
-     `courriersCriticiteSnapshots` table, `rapports` table,
-     `rapportTypeEnum`/`rapportFormatEnum`, `documentCategorieEnum`'s new
-     `'rapport'` value — this gap has now persisted three sessions running
-   - Update `docs/TASKS.md` Sprint 11 header to ✅ (Sprint 10 was already
-     flipped to ✅ this session)
-   - Commit + push
+1. **Fix the exceljs dependency regression — do this first**
+   - `packages/server/package.json` currently pins `exceljs` to `^3.4.0`,
+     down from `^4.4.0` — confirmed installed as 3.4.0. Restore to
+     `^4.4.0` in both `packages/server/package.json` and remove the
+     duplicate `exceljs`/`node-cron`/`nodemailer`/`uuid` entries that
+     appeared in the **root** `package.json` (they don't belong there)
+   - Re-run `npm install`, then manually re-test all 3 Excel export
+     features: audit journal export, analytics dashboard export, rapports
+     generation — all were built/verified against exceljs 4.x
+   - Also smoke-test `node-cron` jobs (all scheduled jobs use it) and
+     `nodemailer` email sending given the multi-major version jumps
+     (`^3.0.3`→`^4.5.0` and `^6.9.13`→`^9.0.3` respectively)
 
-2. **Clear the Sprint 9 backlog**
+2. **Verify Sprint 11's Gemini rapports-IA add-on**
+   - Run `tsc --noEmit` in both packages
+   - Manually generate an on-demand report, then generate its AI analysis,
+     open the review dialog, validate it, confirm the frozen
+     `contenuIAValide` text persists correctly
+   - Manually trigger a rejection + regeneration to confirm that path
+   - Manually check `AdminParametresPage.tsx`'s Gemini usage monitor
+     renders live data and updates after a generation
+   - Confirm `GEMINI_API_KEY` is set only in a test environment, never in
+     any production-bound `.env`
+
+3. **Clean up remaining Sprint 11 loose ends**
+   - Delete `packages/server/src/modules/report/routes/rapports.route.ts`
+     (still an empty, unused stub — the real routes live in
+     `analytics.route.ts`)
+   - Generate **one** Drizzle migration covering everything hand-edited
+     into `schema.ts` across Sprint 9/10/11: `portailTokens`,
+     `documents.visibilitePortail`/`portailTokenDureeJours`,
+     `courriersCriticiteSnapshots`, `rapports` (+ all its IA columns),
+     `rapportTypeEnum`/`rapportFormatEnum`/`statutRelectureIAEnum`,
+     `geminiUsageQuotidien`, `rapportsIAQuotidien`,
+     `documentCategorieEnum`'s `'rapport'` value — this gap has now
+     persisted three sessions running
+
+4. **Clear the Sprint 9 backlog**
    - Fix `href="/portail"` → `/portal` in `DocumentsPage.tsx` (404 today)
    - Manual end-to-end test: expose a document → `/portal` → consult →
      request download → redeem token link
 
-3. **Manually verify Sprint 10's parameter-driven behaviors**
-   - Trigger account lockout, confirm `lockout_max_tentatives`/
-     `lockout_duree_minutes` from `parametres` apply
-   - Confirm OTP expiry honors `otp_expiration_minutes`
-   - Export the audit journal as PDF and Excel
-   - Toggle `deepl_fallback_actif` and confirm the translate-service call
-     reflects it
+5. **Manually verify Sprint 10's parameter-driven behaviors**
+   - Trigger account lockout, confirm parameters apply; confirm OTP
+     expiry; export the audit journal as PDF and Excel (after the exceljs
+     fix above); toggle `deepl_fallback_actif`
 
-4. **Re-enable auth rate limiter**
-   - Currently commented out in `packages/server/src/index.ts`
+6. **Re-enable auth rate limiter** (commented out in `index.ts`)
 
 ## 📅 Later
 
-5. **Taille max upload et formats acceptés configurables** (Sprint 10,
+7. **Decide on export PDF/DOCX of the validated AI narrative** — PDF is
+   trivial (reuse `utils/pdf.ts`), DOCX needs a new `docx` library (same
+   gap noted since Sprint 4)
+
+8. **Taille max upload et formats acceptés configurables** (Sprint 10,
    deliberately deferred)
 
-6. **Export PDF/DOCX** for Accords/Courriers/Missions — `utils/pdf.ts` is
-   already generic and reusable (proven twice now: audit export + rapports)
+9. **Sprint 6 — Tests & Recette** (postponed until after 9/10/11)
 
-7. **Sprint 6 — Tests & Recette** (postponed until after 9/10/11)
+10. **Sprint 7 — Déploiement SERV-APPI** (postponed until after 9/10/11)
 
-8. **Sprint 7 — Déploiement SERV-APPI** (postponed until after 9/10/11)
+## 📋 Definition of "Sprint 11 Done" (including the Gemini add-on)
 
-## 📋 Definition of "Sprint 11 Done"
-
-- [x] Analytics endpoints for all 7 modules + global, cached ✅
-- [x] `AnalyticsPage.tsx` with 9 tabs (8 analytics + Rapports), Chart.js
-      visualizations ✅
-- [x] Courriers-criticité history mechanism (snapshot table + daily job) ✅
-- [x] `rapports.service.ts` — PDF/Excel generation ✅
-- [x] Monthly cron + on-demand + history ✅
-- [x] Job registered in `registre.ts` ✅
-- [x] CSV/Excel export on the analytics dashboard ✅
+- [x] Analytics endpoints, 9-tab `AnalyticsPage.tsx`, criticité history ✅
+- [x] `rapports.service.ts` — PDF/Excel generation, monthly cron,
+      on-demand, history, CSV/Excel export ✅
 - [x] Demo data seeder (`seed-demo.ts`) ✅
-- [ ] `docs/TASKS.md` Sprint 11 header marked complete
+- [x] `docs/TASKS.md` Sprint 11 marked ✅ COMPLÉTÉ ✅
+- [x] Gemini AI narrative generation + admin review workflow ✅
+- [x] Gemini quota monitoring UI ✅
+- [ ] exceljs version regression fixed and re-tested
 - [ ] Delete/fix the dead `rapports.route.ts` stub
 - [ ] Manual verification + `tsc --noEmit`
 - [ ] Single Drizzle migration for all of Sprint 9/10/11's schema changes
-- [ ] Committed and pushed to `origin/main`
 
 ## 📋 Definition of "Sprint 10 Done" (carried over, still open items)
 

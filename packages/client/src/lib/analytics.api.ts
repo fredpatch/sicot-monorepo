@@ -29,4 +29,22 @@ export const analyticsApi = {
   },
   genererRapport: (payload: GenererRapportPayload) => api.post('/analytics/rapports', payload),
   listerRapports: () => api.get('/analytics/rapports'),
+  genererAnalyseIA: (rapportId: number) => api.post(`/analytics/rapports/${rapportId}/analyse-ia`),
+  getRapport: (rapportId: number) => api.get(`/analytics/rapports/${rapportId}`),
+  validerAnalyseIA: (
+    rapportId: number,
+    payload: { statutRelectureIA: 'valide' | 'rejete'; contenuIAValide?: string }
+  ) => api.patch(`/analytics/rapports/${rapportId}/analyse-ia`, payload),
+  getStatutGemini: () => api.get('/analytics/gemini-usage'),
 };
+
+export interface StatutGemini {
+  modeles: {
+    modele: string;
+    appelsAujourdhui: number;
+    plafond: number;
+    thinkingTokensAujourdhui: number;
+  }[];
+  rapportsIA: { utilises: number; max: number };
+  dernierRapportMensuel: { createdAt: string; documentId: number } | null;
+}

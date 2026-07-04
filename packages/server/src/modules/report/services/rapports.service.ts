@@ -3,7 +3,7 @@ import path from 'path';
 import ExcelJS from 'exceljs';
 import { db } from '@/db/index.js';
 import { documents, rapports, users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { DOSSIERS } from '@/modules/document/services/documents.constants.js';
 import { genererPDFDepuisHTML } from '@/utils/pdf.js';
 import { calculerMD5 } from '@/utils/hash.js';
@@ -12,6 +12,12 @@ import {
   humaniser,
   normaliserEnLignes,
 } from '@/modules/analytics/services/analytics.export.service.js';
+import { logAudit } from '@/modules/auth/services/auth.service';
+import {
+  incrementerRapportsManuelsJour,
+  verifierLimiteRapportsManuelsJour,
+} from '@/modules/analytics/services/gemini-quota.service';
+import { genererNarratifIA } from '@/modules/analytics/services/gemini.service';
 
 const LABELS_MODULE: Record<string, string> = {
   global: 'Vue globale',
@@ -220,9 +226,15 @@ export async function listerRapports(): Promise<
     format: string;
     documentId: number;
     createdAt: Date;
+    contenuIA: string | null;
+    contenuIAValide: string | null;
+    statutRelectureIA: string;
+    moteurIA: string | null;
+    relecteurIAId: number | null;
+    relusLeIA: Date | null;
   }[]
 > {
-  const rows = await db.select().from(rapports).orderBy(rapports.createdAt);
+  const rows = await db.select().from(rapports).orderBy(desc(rapports.createdAt));
 
   return rows.map((r) => ({
     id: r.id,
@@ -233,5 +245,97 @@ export async function listerRapports(): Promise<
     format: r.format,
     documentId: r.documentId,
     createdAt: r.createdAt,
+    contenuIA: r.contenuIA,
+    contenuIAValide: r.contenuIAValide,
+    statutRelectureIA: r.statutRelectureIA,
+    moteurIA: r.moteurIA,
+    relecteurIAId: r.relecteurIAId,
+    relusLeIA: r.relusLeIA,
   }));
+}
+
+// ── SERVICE : Récupérer un rapport avec son narratif IA éventuel ──────────
+export async function getRapportById(id: number) {
+  const [rapport] = await db.select().from(rapports).where(eq(rapports.id, id));
+  if (!rapport) throw new Error('RAPPORT_INTROUVABLE');
+  return rapport;
+}
+
+// ── SERVICE : Générer le narratif IA pour un rapport existant ─────────────
+export async function genererAnalyseIA(
+  rapportId: number,
+  options?: { estAutomatique?: boolean }
+): Promise<void> {
+  const rapport = await getRapportById(rapportId);
+
+  // La limite quotidienne (Layer 2) ne s'applique qu'aux déclenchements
+  // humains — le cron mensuel (estAutomatique) n'est pas une "demande manuelle"
+  if (!options?.estAutomatique) {
+    const { autorise, utilises, max } = await verifierLimiteRapportsManuelsJour();
+    if (!autorise) {
+      throw new Error(`LIMITE_QUOTIDIENNE_ATTEINTE:${utilises}/${max}`);
+    }
+  }
+
+  const modules = rapport.modulesInclus as string[];
+  const periode = { dateDebut: rapport.periodeDebut, dateFin: rapport.periodeFin };
+  const dataParModule = await collecterDonnees(modules, periode);
+
+  let resultat;
+  try {
+    resultat = await genererNarratifIA(dataParModule, periode);
+  } catch (err) {
+    console.error(`❌ Échec génération analyse IA pour rapport #${rapportId} :`, err);
+    throw err;
+  }
+
+  // Un message "activité insuffisante" est un texte fixe, déterministe, sans
+  // risque interprétatif — pas besoin de relecture humaine, validé d'office
+  const statut = resultat.insuffisant ? 'valide' : 'en_attente';
+
+  await db
+    .update(rapports)
+    .set({
+      contenuIA: resultat.texte,
+      contenuIAValide: resultat.insuffisant ? resultat.texte : null,
+      moteurIA: resultat.modeleUtilise,
+      statutRelectureIA: statut,
+    })
+    .where(eq(rapports.id, rapportId));
+
+  if (!options?.estAutomatique) {
+    await incrementerRapportsManuelsJour();
+  }
+}
+
+// ── SERVICE : Valider ou rejeter le narratif IA (Admin minimum) ──────────
+export async function validerOuRejeterAnalyseIA(
+  rapportId: number,
+  params: { statutRelectureIA: 'valide' | 'rejete'; contenuIAValide?: string; relecteurId: number }
+): Promise<void> {
+  const rapport = await getRapportById(rapportId);
+  if (rapport.statutRelectureIA !== 'en_attente') {
+    throw new Error('DEJA_TRAITE');
+  }
+
+  await db
+    .update(rapports)
+    .set({
+      statutRelectureIA: params.statutRelectureIA,
+      contenuIAValide:
+        params.statutRelectureIA === 'valide'
+          ? (params.contenuIAValide ?? rapport.contenuIA)
+          : null,
+      relecteurIAId: params.relecteurId,
+      relusLeIA: new Date(),
+    })
+    .where(eq(rapports.id, rapportId));
+
+  await logAudit({
+    userId: params.relecteurId,
+    action: params.statutRelectureIA === 'valide' ? 'RAPPORT_IA_VALIDE' : 'RAPPORT_IA_REJETE',
+    module: 'M11',
+    entiteId: rapportId,
+    details: {},
+  });
 }
