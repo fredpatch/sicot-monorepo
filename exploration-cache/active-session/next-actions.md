@@ -1,6 +1,6 @@
 # ⚡ Next Actions
 
-Last updated: 2026-07-05
+Last updated: 2026-07-06 (no changes to the list itself — the UI hardening sprint continued 2026-07-05's work and didn't touch any of these items; see sessions/2026-07-06.md)
 
 ## 🔥 Immediate (start here next session)
 
