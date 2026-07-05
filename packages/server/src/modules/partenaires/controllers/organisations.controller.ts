@@ -5,7 +5,9 @@ import { handleOrganisationsError } from '@/utils/error.js';
 // ── GET /api/organisations ────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { search, pays, region, type, actif, page, pageSize } = req.query;
+    const { search, pays, region, type, actif, page, pageSize, sortBy, sortOrder } = req.query;
+
+    const SORTABLE_FIELDS = ['nom', 'type', 'pays', 'region', 'actif', 'createdAt'];
 
     const result = await organisationsService.listerOrganisations({
       search: search as string | undefined,
@@ -15,6 +17,10 @@ export async function lister(req: Request, res: Response): Promise<void> {
       actif: actif !== undefined ? actif === 'true' : undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
+      sortBy: SORTABLE_FIELDS.includes(sortBy as string)
+        ? (sortBy as organisationsService.OrganisationSortBy)
+        : undefined,
+      sortOrder: sortOrder === 'asc' ? 'asc' : sortOrder === 'desc' ? 'desc' : undefined,
     });
 
     res.json(result);
