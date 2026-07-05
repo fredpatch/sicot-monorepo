@@ -9,6 +9,8 @@ export const organisationsApi = {
     actif?: boolean;
     page?: number;
     pageSize?: number;
+    sortBy?: 'nom' | 'type' | 'pays' | 'region' | 'actif' | 'createdAt';
+    sortOrder?: 'asc' | 'desc';
   }) => api.get('/organisations', { params }),
 
   getById: (id: number) => api.get(`/organisations/${id}`),

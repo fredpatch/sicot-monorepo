@@ -19,6 +19,9 @@ export interface UpdateOrganisationParams {
   updatedByUserId: number;
 }
 
+export type OrganisationSortBy = 'nom' | 'type' | 'pays' | 'region' | 'actif' | 'createdAt';
+export type OrganisationSortOrder = 'asc' | 'desc';
+
 export interface OrganisationFilters {
   search?: string;
   pays?: string;
@@ -27,6 +30,8 @@ export interface OrganisationFilters {
   actif?: boolean;
   page?: number;
   pageSize?: number;
+  sortBy?: OrganisationSortBy;
+  sortOrder?: OrganisationSortOrder;
 }
 
 export interface CreateContactParams {

@@ -1,6 +1,7 @@
 import { db } from '@/db/index';
 import { organisations, contacts } from '@/db/schema';
-import { eq, ilike, and, or, desc } from 'drizzle-orm';
+import { eq, ilike, and, or, asc, desc } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { toOrganisationView, toContactView } from './organisations.helpers';
 import type {
@@ -8,6 +9,8 @@ import type {
   CreateOrganisationParams,
   UpdateOrganisationParams,
   OrganisationFilters,
+  OrganisationSortBy,
+  OrganisationSortOrder,
   CreateContactParams,
   UpdateContactParams,
   OrganisationView,
@@ -19,11 +22,27 @@ export type {
   CreateOrganisationParams,
   UpdateOrganisationParams,
   OrganisationFilters,
+  OrganisationSortBy,
+  OrganisationSortOrder,
   CreateContactParams,
   UpdateContactParams,
   OrganisationView,
   ContactView,
 } from './organisations.types';
+
+const SORTABLE_COLUMNS = {
+  nom: organisations.nom,
+  type: organisations.type,
+  pays: organisations.pays,
+  region: organisations.region,
+  actif: organisations.actif,
+  createdAt: organisations.createdAt,
+} as const satisfies Record<OrganisationSortBy, unknown>;
+
+function buildOrderBy(sortBy?: OrganisationSortBy, sortOrder?: OrganisationSortOrder): SQL {
+  const column = SORTABLE_COLUMNS[sortBy ?? 'createdAt'];
+  return sortOrder === 'asc' ? asc(column) : desc(column);
+}
 
 // ── SERVICE : Lister les organisations ────────────────────────────────────
 export async function listerOrganisations(
@@ -64,7 +83,7 @@ export async function listerOrganisations(
     .select()
     .from(organisations)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(organisations.createdAt))
+    .orderBy(buildOrderBy(filters.sortBy, filters.sortOrder))
     .limit(pageSize)
     .offset(offset);
 
