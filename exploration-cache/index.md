@@ -3,7 +3,7 @@
 This folder is the living knowledge base for the SICOT project. Update it as the project evolves.
 
 **Project**: Système Intégré de Coopération Internationale et de Traduction — ANAC Gabon
-**Last updated**: 2026-07-02 | **Sprint**: 8 complete (7a1de70) — Sprint 9 (Portail Documentaire Externe) next
+**Last updated**: 2026-07-05 | **Sprint**: 11 complete (`f3547d4`+`f27d58f`+`d312a86`) — 2026-07-05 was UI hardening (sonner toasts, PartenairesPage refactor), no new sprint started
 
 ---
 
@@ -54,6 +54,8 @@ This folder is the living knowledge base for the SICOT project. Update it as the
 
 | File | What Happened |
 |------|--------------|
+| [`sessions/2026-07-05.md`](sessions/2026-07-05.md) | UI hardening, no sprint scope: PartenairesPage server-side sorting + feature-folder refactor (169f725); sonner toast migration replacing all alert()/confirm() (6ea082a), plus Documents/Audit feature-folder split found alongside. |
+| [`sessions/2026-07-04.md`](sessions/2026-07-04.md) | Sprint 11 complete — analytics dashboard (f3547d4) + rapports layer (f27d58f) + unplanned Gemini rapports-IA add-on (d312a86). |
 | [`sessions/2026-07-02.md`](sessions/2026-07-02.md) | Server-wide refactor (dd2809d) + Sprint 8 completion: HistoriqueNotifications component, AccordDetail bulk-notify, dashboard accords-expirés block (7a1de70). |
 | [`sessions/2026-06-30.md`](sessions/2026-06-30.md) | Sprint 5 — Dashboard M9 + AdminParametresPage + Notifications built (uncommitted) |
 | [`sessions/2026-06-29.md`](sessions/2026-06-29.md) | Sprint 3+4 complete — Missions/Glossaire/Traductions/Demandes client all done |

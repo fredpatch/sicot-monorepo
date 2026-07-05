@@ -1,9 +1,49 @@
 # 🎯 Current Task
 
-**Session date**: 2026-07-04
-**Status**: ✅ Sprint 11 (Analytics & Rapports) fully COMPLÉTÉ per docs/TASKS.md, including an unplanned Gemini AI-narrative add-on. ⚠️ Dependency version regression found, not yet fixed.
+**Session date**: 2026-07-05
+**Status**: ✅ Two cross-cutting client UI tasks done, no sprint scope: PartenairesPage server-side sorting + feature-folder refactor (`169f725`), and a client-wide sonner toast migration replacing `alert()`/`confirm()` (`6ea082a`, also picked up an in-progress Documents/Audit feature-folder split found in the working tree). ⚠️ `tsc --noEmit` is broken client-wide (pre-existing, unrelated to this session) and the exceljs dependency regression from 2026-07-04 is still unfixed.
 
-## ✅ Done: Sprint 11 post-closure add-on — Rapports IA (Gemini)
+## ✅ Done (2026-07-05): PartenairesPage sorting + refactor, sonner migration
+
+Full detail in `sessions/2026-07-05.md`. Summary:
+
+- **Server-side sorting** for the Partenaires table: `DataTable` already
+  supported manual sorting via `sorting`/`onSortingChange`, nothing wired
+  it up. Threaded `sortBy`/`sortOrder` through
+  `organisations.service.ts` (whitelisted `SORTABLE_COLUMNS` map +
+  `buildOrderBy()`), `organisations.controller.ts` (validates against a
+  `SORTABLE_FIELDS` whitelist), `organisations.api.ts`, and
+  `PartenairesPage.tsx`
+- **PartenairesPage.tsx refactor**: 833 lines → ~190-line orchestrator +
+  `pages/partenaires/{types,constants,schemas,columns,hooks/*,components/*}`,
+  scoped strictly to this page per explicit user request (verified via
+  grep no other file imports its internals)
+- **sonner toast migration**: installed `sonner`, added
+  `components/ui/sonner.tsx` (`Toaster`, mounted in `App.tsx`) and
+  `lib/confirm-toast.ts` (`confirmToast()` — non-blocking action-toast
+  replacing `window.confirm()`, picked over a separate shadcn
+  `AlertDialog` per user's choice). Replaced every `alert()` →
+  `toast.error()` and `confirm()` → `confirmToast()` in
+  `AdminParametresPage`, `AnalyticsPage`, `DemandesPage`, `DocumentsPage`,
+  `TraductionsPage`, `TraductionEditeur` — verified via grep none remain
+- **Found already in the working tree** (committed alongside, not
+  authored by either task above): `DocumentsPage.tsx`/`AuditPage.tsx`
+  split into the same feature-folder pattern; pagination promoted to
+  shared `components/table/data-table-pagination.tsx`
+
+## ⚠️ Found this session: `tsc --noEmit` broken client-wide
+
+`packages/client/tsconfig.json`'s `"ignoreDeprecations": "6.0"` is
+rejected by the installed TypeScript `5.9.3` (`TS5103`) —
+`package.json` declares `^5.4.5` but 5.9.3 is what's actually installed.
+Confirmed via `git stash` this reproduces with this session's changes
+removed, so it's pre-existing drift, not a regression. Used `eslint`
+instead to verify (clean — only pre-existing warnings). **Not yet
+fixed.**
+
+---
+
+## ✅ Previously done (2026-07-04): Sprint 11 post-closure add-on — Rapports IA (Gemini)
 
 Full detail in `sessions/2026-07-04.md` (third section) and
 `docs/TASKS.md` ("Ajout post-clôture — Rapports IA (Gemini)"). Summary:
@@ -62,6 +102,9 @@ See `sessions/2026-07-04.md` first and second sections.
 
 ## Leftover items (not blocking, tracked in docs/TASKS.md)
 
+- [ ] **Priority**: fix `tsc --noEmit` client-wide —
+      `ignoreDeprecations: "6.0"` in `packages/client/tsconfig.json`
+      rejected by installed TypeScript 5.9.3 (found 2026-07-05, pre-existing)
 - [ ] **Priority**: restore `exceljs` to `^4.4.0` (server + remove the
       duplicate root-level deps entirely), re-test all 3 Excel exports
 - [ ] Smoke-test node-cron jobs and nodemailer sending given the major

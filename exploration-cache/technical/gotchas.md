@@ -75,6 +75,14 @@ Or check membership: `'otp' in errors ? (errors as ...).otp?.message : undefined
 **Fix**: Remove it from `tsconfig.base.json`. Only `packages/client/tsconfig.json` should have it.
 **Do not remove it from client tsconfig** — it's intentional.
 
+**2026-07-05 update**: this now also fails *in* `packages/client/tsconfig.json`
+itself, breaking `tsc --noEmit` client-wide. `package.json` declares
+`typescript: ^5.4.5` but the actually-installed version is `5.9.3`, which
+rejects `"ignoreDeprecations": "6.0"` outright (`TS5103`). Confirmed via
+`git stash` this is pre-existing drift, not caused by any specific commit.
+**Not yet fixed** — until it is, use `eslint` as the verification substitute
+for TypeScript errors in the client package.
+
 ---
 
 ## G7 — multer file size and MIME filtering

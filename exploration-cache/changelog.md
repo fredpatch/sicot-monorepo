@@ -1,5 +1,61 @@
 # 📝 SICOT – Changelog
 
+## [6ea082a] — 2026-07-05 — feat(client): replace browser alert/confirm with sonner toasts
+
+### Added
+- `src/components/ui/sonner.tsx` — shadcn-style `Toaster` wrapper (styled
+  with `anac-*` tokens), mounted once in `App.tsx`
+- `src/lib/confirm-toast.ts` — `confirmToast(message, onConfirm)`, replaces
+  `window.confirm()` with a non-blocking sonner action-toast
+  (Confirm/Cancel), chosen over a separate shadcn `AlertDialog` so every
+  notification/confirmation lives on one system
+- Feature-folder split for `DocumentsPage.tsx` and `AuditPage.tsx`
+  (columns/types/utils/components/hooks), mirroring `pages/partenaires/`
+- `components/table/data-table-pagination.tsx` — pagination UI promoted
+  out of `pages/partenaires/components/PartenairesPagination.tsx` into a
+  shared component reused by Documents/Audit/Partenaires
+
+### Changed
+- Replaced `alert(...)` → `toast.error(...)`: `AdminParametresPage.tsx`,
+  `DemandesPage.tsx`, `TraductionsPage.tsx`
+- Replaced `confirm(...)` → `confirmToast(...)`: `DocumentsPage.tsx`,
+  `TraductionsPage.tsx`, `DemandesPage.tsx`, `AnalyticsPage.tsx`,
+  `TraductionEditeur.tsx`
+
+### ⚠️ Found, not caused by this commit
+- `tsc --noEmit` fails client-wide: `tsconfig.json`'s
+  `"ignoreDeprecations": "6.0"` isn't accepted by the installed TypeScript
+  `5.9.3` (`TS5103`). Confirmed via `git stash` that this reproduces
+  without this session's changes — pre-existing drift between the
+  declared `^5.4.5` and the installed 5.9.3. `eslint` used instead to
+  verify (clean).
+
+Full detail: `sessions/2026-07-05.md`.
+
+## [169f725] — 2026-07-05 — feat(client): refactoring PartenairePage and UI shadcn hardening
+
+### Added — server-side sorting for the Partenaires table
+- `organisations.types.ts` — `OrganisationSortBy`/`OrganisationSortOrder`
+  added to `OrganisationFilters`
+- `organisations.service.ts` — `SORTABLE_COLUMNS` whitelist + `buildOrderBy()`
+- `organisations.controller.ts` — validates `sortBy` against a
+  `SORTABLE_FIELDS` whitelist before it reaches the service
+- `organisations.api.ts` (client) + `PartenairesPage.tsx` — `SortingState`
+  wired to `DataTable`'s existing `sorting`/`onSortingChange` props (table
+  is server-paginated at 20 rows/page, so sorting had to be server-side,
+  not `getSortedRowModel`)
+
+### Changed — `PartenairesPage.tsx` split from 833 lines to a ~190-line
+orchestrator, scoped strictly to this page per explicit user request:
+`pages/partenaires/{partenaires.types.ts, partenaires.constants.ts,
+partenaires.schemas.ts, partenaires.columns.tsx, hooks/usePartenairesQueries.ts,
+hooks/usePartenairesMutations.ts, components/{BadgeType,
+FormulaireOrganisation, FormulaireContact, PartenairesFiltres,
+OrganisationDialog, ContactsDialog}.tsx}`. Also added shadcn `components.json`,
+`data-table.tsx`/`table.tsx` primitives (Radix-backed).
+
+Full detail: `sessions/2026-07-05.md`.
+
 ## [d312a86] — 2026-07-04 — feat(sprint11): Rapports IA — narratif Gemini avec relecture obligatoire
 
 ### Added
