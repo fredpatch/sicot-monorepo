@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface PartenairesPaginationProps {
+interface DataTablePaginationProps {
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -9,13 +9,13 @@ interface PartenairesPaginationProps {
   ofLabel: string;
 }
 
-export function PartenairesPagination({
+export function DataTablePagination({
   page,
   totalPages,
   onPageChange,
   pageLabel,
   ofLabel,
-}: PartenairesPaginationProps) {
+}: DataTablePaginationProps) {
   if (totalPages <= 1) return null;
 
   return (

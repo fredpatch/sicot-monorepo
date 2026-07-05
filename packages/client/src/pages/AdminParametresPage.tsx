@@ -17,6 +17,8 @@ import {
   ThermometerSun,
 } from 'lucide-react';
 
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { parametresApi, type ParametreType } from '@/lib/parametres.api';
@@ -336,7 +338,7 @@ export default function AdminParametresPage() {
       setTimeout(() => setSuccesCle(null), 2000);
     },
     onError: (err: unknown) => {
-      alert(
+      toast.error(
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
           'Erreur lors de la mise à jour.'
       );

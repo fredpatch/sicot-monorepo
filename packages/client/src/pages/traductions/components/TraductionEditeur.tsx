@@ -15,6 +15,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { confirmToast } from '@/lib/confirm-toast';
 import { traductionsApi, type TraductionStatut } from '@/lib/traductions.api';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -318,9 +319,9 @@ export default function TraductionEditeur() {
               variant="secondary"
               size="sm"
               onClick={() => {
-                if (confirm('Supprimer cette traduction ? Cette action est réversible.')) {
-                  supprimerMutation.mutate();
-                }
+                confirmToast('Supprimer cette traduction ? Cette action est réversible.', () =>
+                  supprimerMutation.mutate()
+                );
               }}
               disabled={supprimerMutation.isPending}
               className="gap-1.5 text-anac-muted hover:text-anac-danger hover:border-anac-danger"

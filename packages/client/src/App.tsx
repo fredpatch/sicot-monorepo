@@ -22,6 +22,7 @@ import AdminParametresPage from './pages/AdminParametresPage';
 import PortailPage from './pages/PortalPage';
 import AuditPage from './pages/AuditPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import { Toaster } from './components/ui/sonner';
 
 // function ComingSoon({ module }: { module: string }) {
 //   return (
@@ -146,6 +147,7 @@ export default function App() {
 
   return (
     <AuthContext.Provider value={{ user, setUser, chargement }}>
+      <Toaster />
       <Routes>
         {/* ── Bootstrap — premier démarrage ─────────────────────────── */}
         <Route path="/bootstrap" element={<BootstrapRoute bootstrapNeeded={bootstrapNeeded} />} />

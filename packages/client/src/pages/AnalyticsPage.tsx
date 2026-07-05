@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { confirmToast } from '@/lib/confirm-toast';
 import { analyticsApi } from '@/lib/analytics.api';
 import { Button } from '@/components/ui/button';
 import { documentsApi } from '@/lib/documents.api';
@@ -2122,12 +2123,11 @@ function OngletRapports() {
                 className="gap-1.5"
                 disabled={validerIA.isPending}
                 onClick={() => {
-                  if (
-                    rapportEnRevue &&
-                    confirm('Rejeter cette analyse ? Une nouvelle génération sera nécessaire.')
-                  ) {
-                    validerIA.mutate({ id: rapportEnRevue.id, statut: 'rejete' });
-                  }
+                  if (!rapportEnRevue) return;
+                  confirmToast(
+                    'Rejeter cette analyse ? Une nouvelle génération sera nécessaire.',
+                    () => validerIA.mutate({ id: rapportEnRevue.id, statut: 'rejete' })
+                  );
                 }}
               >
                 <X size={13} /> Rejeter

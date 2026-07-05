@@ -37,6 +37,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { confirmToast } from '@/lib/confirm-toast';
 import { demandesApi, type DemandeStatut, type DemandePriorite } from '@/lib/demandes.api';
 import { documentsApi } from '@/lib/documents.api';
 import { useNavigate } from 'react-router-dom';
@@ -230,7 +232,7 @@ export default function DemandesPage() {
       }
     },
     onError: (err: unknown) => {
-      alert(
+      toast.error(
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
           'Erreur lors de la prise en charge.'
       );
@@ -486,9 +488,9 @@ export default function DemandesPage() {
                             variant="link"
                             size="sm"
                             onClick={() => {
-                              if (confirm('Rappeler cette demande ?')) {
-                                rappelerMutation.mutate(demande.id);
-                              }
+                              confirmToast('Rappeler cette demande ?', () =>
+                                rappelerMutation.mutate(demande.id)
+                              );
                             }}
                             className="h-auto p-0 text-xs text-anac-muted hover:text-anac-danger"
                           >
