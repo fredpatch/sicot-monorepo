@@ -34,6 +34,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { confirmToast } from '@/lib/confirm-toast';
 import {
   traductionsApi,
   type TraductionStatut,
@@ -163,7 +165,7 @@ export default function TraductionsPage() {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'Erreur lors de la suppression.';
-      alert(msg);
+      toast.error(msg);
     },
   });
 
@@ -401,9 +403,9 @@ export default function TraductionsPage() {
                             variant="link"
                             size="sm"
                             onClick={() => {
-                              if (confirm('Supprimer cette traduction ?')) {
-                                supprimerMutation.mutate(trad.id);
-                              }
+                              confirmToast('Supprimer cette traduction ?', () =>
+                                supprimerMutation.mutate(trad.id)
+                              );
                             }}
                             disabled={supprimerMutation.isPending}
                             className="h-auto p-0 text-xs text-anac-muted hover:text-anac-danger"

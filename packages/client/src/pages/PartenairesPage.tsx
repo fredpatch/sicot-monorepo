@@ -15,10 +15,14 @@ import {
 } from './partenaires/hooks/usePartenairesQueries';
 import { usePartenairesMutations } from './partenaires/hooks/usePartenairesMutations';
 import { PartenairesFiltres } from './partenaires/components/PartenairesFiltres';
-import { PartenairesPagination } from './partenaires/components/PartenairesPagination';
 import { OrganisationDialog } from './partenaires/components/OrganisationDialog';
 import { ContactsDialog } from './partenaires/components/ContactsDialog';
-import type { Organisation, OrganisationSortField, OrganisationTypeFiltre } from './partenaires/partenaires.types';
+import type {
+  Organisation,
+  OrganisationSortField,
+  OrganisationTypeFiltre,
+} from './partenaires/partenaires.types';
+import { DataTablePagination } from '@/components/table/data-table-pagination';
 
 export default function PartenairesPage() {
   const { t } = useTranslation();
@@ -42,7 +46,15 @@ export default function PartenairesPage() {
   const [voirContacts, setVoirContacts] = useState<Organisation | null>(null);
 
   // ── Requêtes ──────────────────────────────────────────────────────────
-  const { data, isLoading } = useOrganisationsQuery({ search, pays, region, type, page, sortBy, sortOrder });
+  const { data, isLoading } = useOrganisationsQuery({
+    search,
+    pays,
+    region,
+    type,
+    page,
+    sortBy,
+    sortOrder,
+  });
   const { data: paysDisponibles } = usePaysDisponiblesQuery();
   const { data: regionsDisponibles } = useRegionsDisponiblesQuery();
   const { data: contactsOrg } = useContactsOrganisationQuery(voirContacts?.id);
@@ -142,7 +154,7 @@ export default function PartenairesPage() {
       />
 
       {/* ── Pagination ────────────────────────────────────────────────── */}
-      <PartenairesPagination
+      <DataTablePagination
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
