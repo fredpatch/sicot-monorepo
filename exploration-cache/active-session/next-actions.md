@@ -1,10 +1,21 @@
 # ⚡ Next Actions
 
-Last updated: 2026-07-04
+Last updated: 2026-07-05
 
 ## 🔥 Immediate (start here next session)
 
-1. **Fix the exceljs dependency regression — do this first**
+1. **Fix `tsc --noEmit` being broken client-wide (found 2026-07-05)**
+   - `packages/client/tsconfig.json` sets `"ignoreDeprecations": "6.0"`,
+     but the installed `typescript` is `5.9.3` (declared `^5.4.5` in
+     `package.json`), which rejects that value with `TS5103`
+   - Either bump `typescript` to a version that accepts `"6.0"`, or
+     adjust/remove the flag — confirmed via `git stash` this is
+     pre-existing drift, not caused by any recent session
+   - `eslint` was used as a substitute verification this session; once
+     fixed, re-run `tsc --noEmit` on both packages to catch anything
+     eslint can't
+
+2. **Fix the exceljs dependency regression**
    - `packages/server/package.json` currently pins `exceljs` to `^3.4.0`,
      down from `^4.4.0` — confirmed installed as 3.4.0. Restore to
      `^4.4.0` in both `packages/server/package.json` and remove the
@@ -17,7 +28,7 @@ Last updated: 2026-07-04
      `nodemailer` email sending given the multi-major version jumps
      (`^3.0.3`→`^4.5.0` and `^6.9.13`→`^9.0.3` respectively)
 
-2. **Verify Sprint 11's Gemini rapports-IA add-on**
+3. **Verify Sprint 11's Gemini rapports-IA add-on**
    - Run `tsc --noEmit` in both packages
    - Manually generate an on-demand report, then generate its AI analysis,
      open the review dialog, validate it, confirm the frozen
@@ -28,7 +39,7 @@ Last updated: 2026-07-04
    - Confirm `GEMINI_API_KEY` is set only in a test environment, never in
      any production-bound `.env`
 
-3. **Clean up remaining Sprint 11 loose ends**
+4. **Clean up remaining Sprint 11 loose ends**
    - Delete `packages/server/src/modules/report/routes/rapports.route.ts`
      (still an empty, unused stub — the real routes live in
      `analytics.route.ts`)
@@ -41,30 +52,30 @@ Last updated: 2026-07-04
      `documentCategorieEnum`'s `'rapport'` value — this gap has now
      persisted three sessions running
 
-4. **Clear the Sprint 9 backlog**
+5. **Clear the Sprint 9 backlog**
    - Fix `href="/portail"` → `/portal` in `DocumentsPage.tsx` (404 today)
    - Manual end-to-end test: expose a document → `/portal` → consult →
      request download → redeem token link
 
-5. **Manually verify Sprint 10's parameter-driven behaviors**
+6. **Manually verify Sprint 10's parameter-driven behaviors**
    - Trigger account lockout, confirm parameters apply; confirm OTP
      expiry; export the audit journal as PDF and Excel (after the exceljs
      fix above); toggle `deepl_fallback_actif`
 
-6. **Re-enable auth rate limiter** (commented out in `index.ts`)
+7. **Re-enable auth rate limiter** (commented out in `index.ts`)
 
 ## 📅 Later
 
-7. **Decide on export PDF/DOCX of the validated AI narrative** — PDF is
+8. **Decide on export PDF/DOCX of the validated AI narrative** — PDF is
    trivial (reuse `utils/pdf.ts`), DOCX needs a new `docx` library (same
    gap noted since Sprint 4)
 
-8. **Taille max upload et formats acceptés configurables** (Sprint 10,
+9. **Taille max upload et formats acceptés configurables** (Sprint 10,
    deliberately deferred)
 
-9. **Sprint 6 — Tests & Recette** (postponed until after 9/10/11)
+10. **Sprint 6 — Tests & Recette** (postponed until after 9/10/11)
 
-10. **Sprint 7 — Déploiement SERV-APPI** (postponed until after 9/10/11)
+11. **Sprint 7 — Déploiement SERV-APPI** (postponed until after 9/10/11)
 
 ## 📋 Definition of "Sprint 11 Done" (including the Gemini add-on)
 
