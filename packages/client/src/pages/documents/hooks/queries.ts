@@ -10,7 +10,7 @@ interface UseDocumentsQueryParams {
   page: number;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function useDocumentsQuery({ search, categorie, statutOCR, page }: UseDocumentsQueryParams) {
   return useQuery({

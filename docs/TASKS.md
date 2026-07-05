@@ -513,7 +513,7 @@ Les rapports générés par M11 puisent dans les agrégats analytics — analyti
 ### Client React
 
 - [x] ~~**`analytics.api.ts`**~~
-- [x] ~~**`AnalyticsPage.tsx`**~~ - 8 onglets (7 modules + vue globale) + 9ème onglet Rapports. Tabs faits maison (pas de `@radix-ui/react-tabs` installé) — à migrer vers shadcn/ui lors du sprint de durcissement UI prévu
+- [x] ~~**`AnalyticsPage.tsx`**~~ - 8 onglets (7 modules + vue globale) + 9ème onglet Rapports. Tabs faits maison migrés vers shadcn/ui (voir section dédiée "Sprint de durcissement UI" ci-dessous)
 - [x] ~~**Sélecteur de période global**~~ - 5 préréglages + personnalisé
 - [x] ~~**Export CSV/Excel par section**~~ - Un seul endpoint générique `/analytics/export?module=X&format=Y` plutôt que dupliqué par module, réutilisable pour tout futur module analytics
 - [x] ~~**Vue globale cross-modules**~~ - Réutilise les 7 fonctions service existantes plutôt que dupliquer les requêtes SQL
@@ -558,6 +558,26 @@ Non planifié dans le périmètre initial de Sprint 11 — proposé et scopé en
 
 - [x] ~~**Écran de suivi Gemini dans `AdminParametresPage.tsx`**~~ - Barres d'usage par modèle vs plafond (15/jour), compteur global rapports IA (X/10), dernier rapport mensuel auto, cumul tokens de réflexion. Rafraîchissement automatique toutes les 60s (juillet 2026)
 - [ ] **Export PDF/DOCX du narratif IA validé** - PDF réutilise `utils/pdf.ts` ; DOCX nécessiterait la lib `docx` (aucune génération DOCX n'existe encore dans le projet, même gap que Sprint 4). Décision à prendre : narratif seul ou fusionné avec les tableaux numériques ?
+
+### Ajout post-clôture — Sprint de durcissement UI (shadcn/ui)
+
+Planifié dans Sprint 11 comme suivi ("à migrer plus tard"), réalisé en session dédiée juillet 2026.
+
+- [x] ~~**`components/ui/table.tsx`**~~ - Composant Table shadcn générique (via CLI shadcn, style `data-slot`), remplace les balises `<table>` HTML brutes
+- [x] ~~**`components/table/data-table.tsx`**~~ - Wrapper générique sur `@tanstack/react-table` : sorting/pagination/filtering en mode manuel (serveur), rendu via les primitives `table.tsx`. Pas de filtrage colonne générique — chaque page garde sa propre barre de filtres métier
+- [x] ~~**`components/table/data-table-pagination.tsx`**~~ - Composant de pagination extrait et partagé (initialement dupliqué sur PartenairesPage puis Audit, extrait dès la 2ème occurrence identique)
+- [x] ~~**`components/ui/tabs.tsx`**~~ - Nouveau composant Tabs shadcn sur `@radix-ui/react-tabs` (nouvellement installé), remplace les tabs faits maison (`role="tab"` + state manuel) d'AnalyticsPage
+- [x] ~~**Migration des 7 pages à tableaux HTML bruts**~~ - PartenairesPage, AuditPage, DocumentsPage, GlossairePage, DemandesPage, TraductionsPage, AnalyticsPage — toutes basculées sur `Table`/`DataTable`
+- [x] ~~**Éclatement en sous-dossiers `pages/{module}/`**~~ - Chaque page refactorée avec colonnes (`{module}.columns.tsx`), hooks (`hooks/queries.ts` + `hooks/mutations.ts`), types, constants, et composants (filtres, dialogs) séparés du fichier page (devenu un simple orchestrateur)
+- [x] ~~**`pages/analytics/` — éclatement complet**~~ - Le plus gros morceau (2150 lignes, 9 onglets) : un fichier par onglet sous `onglets/`, dialog IA extrait (`AnalyseIADialog.tsx`), sélecteur de période extrait (`PeriodeSelector.tsx`)
+- [x] ~~**PartenairesPage — tri serveur ajouté**~~ - Colonnes triables (`sortBy`/`sortOrder`) branchées jusqu'au service Drizzle, profitant du passage à `DataTable`/TanStack Table — extension au-delà du périmètre initial du ticket
+- [x] ~~**Bug corrigé gratuitement — `colSpan` incorrect**~~ - AuditPage et DocumentsPage avaient un `colSpan` désynchronisé du nombre réel de colonnes sur les lignes vide/chargement ; `DataTable` le calcule automatiquement depuis `columns.length`
+- [x] ~~**`sonner` + `confirmToast`**~~ - Remplacement de `window.confirm`/`alert` par des toasts sonner non bloquants, adopté en cours de route sur Documents/Demandes/Traductions (`lib/confirm-toast.ts`)
+
+**Décisions de scope prises pendant l'implémentation** :
+
+- Pas de composant `DataTable` générique avec props `data`/`columns`/`filters`/`extra` construit à la main : `@tanstack/react-table` (bibliothèque mûre) utilisé à la place, évite de réinventer un moteur de tri/pagination/filtrage
+- Les 6 tableaux d'AnalyticsPage (petits, statiques, sans pagination ni actions par ligne au-delà d'un bouton) utilisent les primitives `Table` simples, pas `DataTable` — `DataTable` réservé aux tableaux avec état serveur réel (pagination/tri/filtres)
 
 ### Dette technique identifiée (voir aussi Notion, tâches différées)
 
