@@ -1,5 +1,41 @@
 # 📝 SICOT – Changelog
 
+## [f06ed6d] — 2026-07-06 — feat(client): UI hardening sprint — shadcn Table/Tabs migration + full feature-folder split
+
+### Added
+- `components/ui/tabs.tsx` — shadcn Tabs wrapper on newly-installed
+  `@radix-ui/react-tabs`, replaces `AnalyticsPage.tsx`'s hand-rolled
+  `role="tab"` implementation
+- Feature-folder split for `GlossairePage.tsx`, `DemandesPage.tsx`,
+  `TraductionsPage.tsx` (columns/types/constants/schemas/utils/hooks/
+  components), mirroring the pattern already applied to
+  partenaires/documents/audit
+- `pages/analytics/` — full split of the 2150-line, 9-tab
+  `AnalyticsPage.tsx`: one file per tab under `components/tabs/`
+  (`AgreementsTab`, `CourriersTab`, `DocumentsTab`, `GlobalTab`,
+  `GlossaryTab`, `MissionsTab`, `ReportsTab`, `RequestsTab`,
+  `TraductionsTab`), plus `AnalyticsAIDialog.tsx`, `PeriodSelector.tsx`
+- `docs/TASKS.md` — new "Sprint de durcissement UI (shadcn/ui)" section
+  documenting the whole 2026-07-05/06 effort and its scope decisions
+
+### Changed
+- All 7 pages that used raw HTML `<table>` (Partenaires, Audit, Documents,
+  Glossaire, Demandes, Traductions, Analytics) now use `Table`/`DataTable`
+
+### Fixed (found for free, not hunted for)
+- `AuditPage.tsx`/`DocumentsPage.tsx` had a hand-written `colSpan` on
+  empty/loading rows that had drifted out of sync with the real column
+  count — `DataTable` computes it from `columns.length` automatically,
+  eliminating the failure mode entirely
+
+### Scope decisions (documented in `docs/TASKS.md`)
+- No generic `DataTable` column-filter prop surface — each page keeps its
+  own bespoke filter bar
+- AnalyticsPage's 6 small static tables use plain `Table` primitives, not
+  `DataTable` (no pagination/sorting/per-row actions to justify it)
+
+Full detail: `sessions/2026-07-06.md`.
+
 ## [6ea082a] — 2026-07-05 — feat(client): replace browser alert/confirm with sonner toasts
 
 ### Added

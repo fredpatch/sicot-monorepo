@@ -1,7 +1,33 @@
 # 🎯 Current Task
 
-**Session date**: 2026-07-05
-**Status**: ✅ Two cross-cutting client UI tasks done, no sprint scope: PartenairesPage server-side sorting + feature-folder refactor (`169f725`), and a client-wide sonner toast migration replacing `alert()`/`confirm()` (`6ea082a`, also picked up an in-progress Documents/Audit feature-folder split found in the working tree). ⚠️ `tsc --noEmit` is broken client-wide (pre-existing, unrelated to this session) and the exceljs dependency regression from 2026-07-04 is still unfixed.
+**Session date**: 2026-07-06
+**Status**: ✅ "Sprint de durcissement UI" (no formal sprint number, own `docs/TASKS.md` section) now complete across both days: 2026-07-05 covered PartenairesPage + Documents/Audit; 2026-07-06 (`f06ed6d`) finished the remaining 3 raw-`<table>` pages (Glossaire, Demandes, Traductions) plus a shadcn Tabs migration on the 9-tab `AnalyticsPage.tsx`. ⚠️ `tsc --noEmit` is still broken client-wide (pre-existing, found 2026-07-05) and the exceljs dependency regression from 2026-07-04 is still unfixed.
+
+## ✅ Done (2026-07-06): remaining pages migrated to shadcn Table/Tabs
+
+Full detail in `sessions/2026-07-06.md`. Summary:
+
+- **`components/ui/tabs.tsx`** (new) — shadcn Tabs on `@radix-ui/react-tabs`,
+  replaces `AnalyticsPage.tsx`'s hand-rolled `role="tab"` implementation
+- **`GlossairePage.tsx`, `DemandesPage.tsx`, `TraductionsPage.tsx`** split
+  into `pages/<module>/` feature folders (same pattern as partenaires/
+  documents/audit)
+- **`AnalyticsPage.tsx`** (2150 lines, 9 tabs) — heaviest split: one file
+  per tab under `components/tabs/`, `AnalyticsAIDialog.tsx` and
+  `PeriodSelector.tsx` extracted
+- **Found for free**: `DataTable` computes `colSpan` from
+  `columns.length` automatically — incidentally fixes a pre-existing
+  colSpan/column-count desync on `AuditPage`/`DocumentsPage`'s
+  empty/loading rows
+- `docs/TASKS.md` gained a dedicated "Sprint de durcissement UI" section
+  covering both days, with scope decisions documented (no generic
+  DataTable column-filter prop surface; AnalyticsPage's 6 small static
+  tables use plain `Table`, not `DataTable`)
+- `eslint` across the whole client `src`: 0 errors, only 3 pre-existing
+  warnings (down from 11 — some `no-explicit-any` spots got real types as
+  a byproduct of the refactor)
+
+---
 
 ## ✅ Done (2026-07-05): PartenairesPage sorting + refactor, sonner migration
 
