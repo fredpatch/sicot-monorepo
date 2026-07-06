@@ -1,7 +1,7 @@
 {
   "name": "sicot",
   "version": "1.0.0",
-  "description": "Système Intégré de Coopération Internationale et de Traduction – ANAC Gabon",
+  "description": "Système Intégré de Coopération Internationale et de Traduction - ANAC Gabon",
   "private": true,
   "workspaces": [
     "packages/*"

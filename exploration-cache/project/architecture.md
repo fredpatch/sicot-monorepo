@@ -1,4 +1,4 @@
-# 🏗️ SICOT – Architecture
+# 🏗️ SICOT - Architecture
 
 ## Monorepo Layout
 

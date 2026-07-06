@@ -1,7 +1,7 @@
-# SICOT – Système Intégré de Coopération Internationale et de Traduction
+# SICOT - Système Intégré de Coopération Internationale et de Traduction
 
-**ANAC Gabon – Cellule CCIT / Service Informatique**  
-Version 1.0 – Juin 2026
+**ANAC Gabon - Cellule CCIT / Service Informatique**  
+Version 1.0 - Juin 2026
 
 ---
 
@@ -79,10 +79,10 @@ npm run dev
 
 | Phase                         | Sprints     | Durée      |
 | ----------------------------- | ----------- | ---------- |
-| Phase 0 – Initialisation      | –           | 2 semaines |
-| Phase 1 – Beta opérationnelle | Sprints 1–4 | 9 semaines |
-| Phase 2 – Version 1.0         | Sprints 5–6 | 4 semaines |
-| Phase 3 – Déploiement         | Sprint 7    | 2 semaines |
+| Phase 0 - Initialisation      | -           | 2 semaines |
+| Phase 1 - Beta opérationnelle | Sprints 1-4 | 9 semaines |
+| Phase 2 - Version 1.0         | Sprints 5-6 | 4 semaines |
+| Phase 3 - Déploiement         | Sprint 7    | 2 semaines |
 
 ## Modules (10)
 

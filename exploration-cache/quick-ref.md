@@ -1,4 +1,4 @@
-# ⚡ SICOT – Quick Reference
+# ⚡ SICOT - Quick Reference
 
 > One-page overview. For deeper detail see `technical/cheat-sheet.md`.
 

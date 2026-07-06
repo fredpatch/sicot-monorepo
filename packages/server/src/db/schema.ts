@@ -133,7 +133,7 @@ export const statutRelectureIAEnum = pgEnum('statut_relecture_ia', [
   'rejete',
 ]);
 
-// ── M10 – Notifications ───────────────────────────────────────────────────
+// ── M10 - Notifications ───────────────────────────────────────────────────
 export const notifications = pgTable(
   'notifications',
   {
@@ -156,7 +156,7 @@ export const notifications = pgTable(
   ]
 );
 
-// ── M10 – Paramètres de configuration ─────────────────────────────────────
+// ── M10 - Paramètres de configuration ─────────────────────────────────────
 export const parametres = pgTable('parametres', {
   id: serial('id').primaryKey(),
   cle: varchar('cle', { length: 100 }).notNull().unique(),
@@ -169,7 +169,7 @@ export const parametres = pgTable('parametres', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// ── M10 – Utilisateurs ─────────────────────────────────────────────────────
+// ── M10 - Utilisateurs ─────────────────────────────────────────────────────
 export const users = pgTable(
   'users',
   {
@@ -193,7 +193,7 @@ export const users = pgTable(
   (t) => [uniqueIndex('users_matricule_idx').on(t.matricule)]
 );
 
-// ── M10 – Journal d'audit ──────────────────────────────────────────────────
+// ── M10 - Journal d'audit ──────────────────────────────────────────────────
 export const auditLogs = pgTable(
   'audit_logs',
   {
@@ -213,7 +213,7 @@ export const auditLogs = pgTable(
   ]
 );
 
-// ── M2 – Organisations ─────────────────────────────────────────────────────
+// ── M2 - Organisations ─────────────────────────────────────────────────────
 export const organisations = pgTable('organisations', {
   id: serial('id').primaryKey(),
   nom: varchar('nom', { length: 255 }).notNull(),
@@ -226,7 +226,7 @@ export const organisations = pgTable('organisations', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// ── M2 – Contacts ──────────────────────────────────────────────────────────
+// ── M2 - Contacts ──────────────────────────────────────────────────────────
 export const contacts = pgTable('contacts', {
   id: serial('id').primaryKey(),
   organisationId: integer('organisation_id')
@@ -242,7 +242,7 @@ export const contacts = pgTable('contacts', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// ── M8 – Documents ─────────────────────────────────────────────────────────
+// ── M8 - Documents ─────────────────────────────────────────────────────────
 export const documents = pgTable(
   'documents',
   {
@@ -275,7 +275,7 @@ export const documents = pgTable(
   ]
 );
 
-// ── M1 – Accords ───────────────────────────────────────────────────────────
+// ── M1 - Accords ───────────────────────────────────────────────────────────
 export const accords = pgTable('accords', {
   id: serial('id').primaryKey(),
   reference: varchar('reference', { length: 20 }).notNull().unique(),
@@ -291,7 +291,7 @@ export const accords = pgTable('accords', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// ── M1 – Relation many-to-many accords ↔ organisations ────────────────────
+// ── M1 - Relation many-to-many accords ↔ organisations ────────────────────
 export const accordsOrganisations = pgTable('accords_organisations', {
   accordId: integer('accord_id')
     .notNull()
@@ -301,7 +301,7 @@ export const accordsOrganisations = pgTable('accords_organisations', {
     .references(() => organisations.id),
 });
 
-// ── M4 – Courriers ─────────────────────────────────────────────────────────
+// ── M4 - Courriers ─────────────────────────────────────────────────────────
 export const courriers = pgTable(
   'courriers',
   {
@@ -334,7 +334,7 @@ export const courriers = pgTable(
   ]
 );
 
-// ── M3 – Missions ──────────────────────────────────────────────────────────
+// ── M3 - Missions ──────────────────────────────────────────────────────────
 export const missions = pgTable('missions', {
   id: serial('id').primaryKey(),
   titre: varchar('titre', { length: 255 }).notNull(),
@@ -353,7 +353,7 @@ export const missions = pgTable('missions', {
   contactSurPlaceId: integer('contact_sur_place_id').references(() => contacts.id),
 });
 
-// ── M3 – Participants a une mission ─────────────────────────────────────
+// ── M3 - Participants a une mission ─────────────────────────────────────
 export const missionParticipants = pgTable('mission_participants', {
   missionId: integer('mission_id')
     .notNull()
@@ -363,7 +363,7 @@ export const missionParticipants = pgTable('mission_participants', {
     .references(() => users.id),
 });
 
-// ── M3 – Recommandations ───────────────────────────────────────────────────
+// ── M3 - Recommandations ───────────────────────────────────────────────────
 export const recommandations = pgTable('recommandations', {
   id: serial('id').primaryKey(),
   missionId: integer('mission_id')
@@ -377,7 +377,7 @@ export const recommandations = pgTable('recommandations', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// ── M7 – Glossaire ─────────────────────────────────────────────────────────
+// ── M7 - Glossaire ─────────────────────────────────────────────────────────
 export const glossaire = pgTable(
   'glossaire',
   {
@@ -397,7 +397,7 @@ export const glossaire = pgTable(
   ]
 );
 
-// ── M7 – Historique glossaire ──────────────────────────────────────────────
+// ── M7 - Historique glossaire ──────────────────────────────────────────────
 export const glossaireHistorique = pgTable('glossaire_historique', {
   id: serial('id').primaryKey(),
   termeId: integer('terme_id')
@@ -409,7 +409,7 @@ export const glossaireHistorique = pgTable('glossaire_historique', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// ── M6 – Traductions ───────────────────────────────────────────────────────
+// ── M6 - Traductions ───────────────────────────────────────────────────────
 export const traductions = pgTable('traductions', {
   id: serial('id').primaryKey(),
   documentId: integer('document_id').references(() => documents.id),
@@ -426,7 +426,7 @@ export const traductions = pgTable('traductions', {
   deletedAt: timestamp('deleted_at'),
 });
 
-// ── M5 – Demandes de traduction ────────────────────────────────────────────
+// ── M5 - Demandes de traduction ────────────────────────────────────────────
 export const demandesTraduction = pgTable(
   'demandes_traduction',
   {
@@ -474,7 +474,7 @@ export const portailTokens = pgTable(
   ]
 );
 
-// ── M4/M11 – Historique quotidien de criticité des courriers ──────────────
+// ── M4/M11 - Historique quotidien de criticité des courriers ──────────────
 // Une ligne par jour : la criticité n'étant jamais persistée sur le courrier
 // lui-même (calculée à la volée depuis parametres), ceci est le seul moyen
 // d'observer une évolution dans le temps. S'accumule à partir du déploiement.
@@ -488,7 +488,7 @@ export const courriersCriticiteSnapshots = pgTable('courriers_criticite_snapshot
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// ── M11 – Historique des rapports générés ──────────────────────────────────
+// ── M11 - Historique des rapports générés ──────────────────────────────────
 export const rapports = pgTable('rapports', {
   id: serial('id').primaryKey(),
   type: rapportTypeEnum('type').notNull(),
@@ -513,7 +513,7 @@ export const rapports = pgTable('rapports', {
   relusLeIA: timestamp('relus_le_ia'),
 });
 
-// ── M11 – Quota journalier auto-imposé par modèle Gemini ───────────────────
+// ── M11 - Quota journalier auto-imposé par modèle Gemini ───────────────────
 export const geminiUsageQuotidien = pgTable(
   'gemini_usage_quotidien',
   {
@@ -526,7 +526,7 @@ export const geminiUsageQuotidien = pgTable(
   (t) => [uniqueIndex('gemini_usage_modele_date_idx').on(t.modele, t.date)]
 );
 
-// ── M11 – Limite globale quotidienne de rapports IA à la demande ──────────
+// ── M11 - Limite globale quotidienne de rapports IA à la demande ──────────
 export const rapportsIAQuotidien = pgTable('rapports_ia_quotidien', {
   id: serial('id').primaryKey(),
   date: date('date').notNull().unique(),

@@ -1,4 +1,4 @@
-# ⚡ SICOT – Cheat Sheet
+# ⚡ SICOT - Cheat Sheet
 
 ## Commands
 

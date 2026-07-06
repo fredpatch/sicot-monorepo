@@ -54,7 +54,7 @@ export async function sendOTPEmail(params: {
 
   await sendEmail({
     to,
-    subject: 'SICOT – Activation de votre compte',
+    subject: 'SICOT - Activation de votre compte',
     html: otpEmailTemplate(templateParams),
   });
 }
@@ -71,7 +71,7 @@ export async function sendAccordEcheanceEmail(params: {
 
   await sendEmail({
     to,
-    subject: `SICOT – Accord ${reference} expire dans ${joursRestants} jours`,
+    subject: `SICOT - Accord ${reference} expire dans ${joursRestants} jours`,
     html: accordEcheanceEmailTemplate({ ...templateParams, reference, joursRestants }),
   });
 }
@@ -88,7 +88,7 @@ export async function sendRecommandationEmail(params: {
 
   await sendEmail({
     to,
-    subject: `SICOT – Recommandation en attente : ${missionTitre}`,
+    subject: `SICOT - Recommandation en attente : ${missionTitre}`,
     html: recommandationEmailTemplate({ ...templateParams, missionTitre }),
   });
 }

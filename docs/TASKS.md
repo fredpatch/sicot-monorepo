@@ -1,6 +1,6 @@
-# SICOT – Task List / Plan de Développement
+# SICOT - Task List / Plan de Développement
 
-## Phase 0 – Initialisation (2 semaines)
+## Phase 0 - Initialisation (2 semaines)
 
 - [ ] **Kick-off : validation CDC, affectation ressources** - CR de kick-off signé par toute l'équipe
 - [ ] **Audit de l'existant** - Collecter et analyser les fichiers Excel CCIT actuels, documenter les process manuels
@@ -11,7 +11,7 @@
 - [ ] **Import glossaire initial** - Si fichier fourni par CCIT, script import CSV/Excel → seed BDD
 - [x] ~~**Modélisation BDD complète**~~ - Schéma Drizzle de toutes les entités (10 modules) créé et migré (juin 2026)
 
-## Sprint 1 – Administration & Auth (M10) | ✅ COMPLÉTÉ
+## Sprint 1 - Administration & Auth (M10) | ✅ COMPLÉTÉ
 
 - [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
 - [ ] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel
@@ -52,7 +52,7 @@
 - [x] ~~`src/components/Layout.tsx`~~ - sidebar rétractable, header, toggle FR/EN, filtrage nav par rôle (juin 2026)
 - [x] ~~`src/App.tsx`~~ - AuthContext, ProtectedRoute, AdminRoute, vérification session au démarrage (juin 2026)
 
-## Sprint 2 – Documentaire & Partenaires (M8 + M2) | ✅ COMPLÉTÉ
+## Sprint 2 - Documentaire & Partenaires (M8 + M2) | ✅ COMPLÉTÉ
 
 - [x] ~~**Module upload fichiers**~~ - PDF, Word, Doc, Txt, Excel, images — Multer memoryStorage, stockage structuré /sicot/documents/ par catégorie (juin 2026)
 - [ ] **Dossier surveillé /temp/** - Détection auto nouveaux fichiers, import sans action utilisateur
@@ -102,7 +102,7 @@
 - [x] ~~`src/routes/bootstrap.ts`~~ - GET /status, POST /init, routes publiques (juin 2026)
 - [x] ~~`src/pages/BootstrapPage.tsx`~~ - formulaire Super Admin, indicateur force mot de passe, redirection login (juin 2026)
 
-## Sprint 3 – Accords, Correspondances & Missions (M1 + M4 + M3) | ✅ COMPLÉTÉ
+## Sprint 3 - Accords, Correspondances & Missions (M1 + M4 + M3) | ✅ COMPLÉTÉ
 
 - [x] ~~**Fiche Accord (M1)**~~ - Champs complets, statuts, référence auto ACC-YYYY-XXXX, many-to-many partenaires (juin 2026)
 - [x] ~~**Relation many-to-many accords-partenaires**~~ - accordsOrganisations, mise à jour complète (juin 2026)
@@ -160,7 +160,7 @@
 - [x] ~~`/courriers`, `/courriers/:id`, `/courriers/new`, `/courriers/:id/edit`~~ (juin 2026)
 - [x] ~~`/missions`, `/missions/:id`, `/missions/new`, `/missions/:id/edit`~~ (juin 2026)
 
-## Sprint 4 – Traduction IA, Glossaire & Demandes (M6 + M7 + M5) | ✅ COMPLÉTÉ
+## Sprint 4 - Traduction IA, Glossaire & Demandes (M6 + M7 + M5) | ✅ COMPLÉTÉ
 
 - [x] ~~**Base glossaire (M7)**~~ - Termes FR↔EN, domaines, historique modifications, gestion termes inactifs (juin 2026)
 - [x] ~~**Script import glossaire CSV/Excel**~~ - Route POST /glossaire/import, détection doublons, log audit (juin 2026)
@@ -210,7 +210,7 @@
 - [x] ~~`/traductions`, `/traductions/:id`~~ (juin 2026)
 - [x] ~~`/demandes`~~ (juin 2026)
 
-## Sprint 5 – Dashboard & Statistiques (M9) | ✅ COMPLÉTÉ (V1 — gaps identifiés, voir Sprint 8)
+## Sprint 5 - Dashboard & Statistiques (M9) | ✅ COMPLÉTÉ (V1 — gaps identifiés, voir Sprint 8)
 
 - [x] ~~**Dashboard général (8 KPI cards)**~~ - Accords actifs / Courriers sans réponse / Missions en cours / Traductions à réviser / Documents archivés / Termes glossaire / Demandes ouvertes / Recommandations en attente (juin 2026)
 - [x] ~~**Courriers sans réponse flagués**~~ - Bloc dédié avec jours d'attente, lien direct vers le courrier (juin 2026)
@@ -248,7 +248,7 @@
 
 Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier exprimé : rappels ciblés actionnables, seuils configurables, traçabilité des relances, suivi logistique missions, contact partenaire lié aux missions, portail externe documentaire. Détail complet dans Sprint 8, 9, 10 ci-dessous.
 
-## Sprint 6 – Tests, Recette & Corrections | ⬜ À FAIRE (repoussé après Sprint 8/9/10)
+## Sprint 6 - Tests, Recette & Corrections | ⬜ À FAIRE (repoussé après Sprint 8/9/10)
 
 - [ ] **Tests fonctionnels complets** - 10 modules, scénarios utilisateur réels (Mme NGO MYTOULOU + M. NDONG)
 - [ ] **Tests de charge LAN ANAC** - Accès multi-utilisateurs simultanés
@@ -259,7 +259,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Rédaction manuel utilisateur complet** - Tous profils (M. NDONG N'NANG)
 - [ ] **Rapport de recette v1.0 signé** - Mme NGO MYTOULOU
 
-## Sprint 7 – Déploiement Production & Formation | ⬜ À FAIRE
+## Sprint 7 - Déploiement Production & Formation | ⬜ À FAIRE
 
 - [ ] **Installation SICOT v1.0 sur SERV-APPI** - Environnement production
 - [ ] **Configuration réseau LAN ANAC** - Accès postes clients toutes directions
@@ -271,7 +271,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Remise manuels utilisateurs et guide administrateur**
 - [ ] **Plan de maintenance évolutive et corrective** - Documenté par le Service Informatique
 
-## Sprint 8 – Centre de Notifications & Rappels CCIT (transverse M1+M3+M4+M9) | ✅ COMPLÉTÉ
+## Sprint 8 - Centre de Notifications & Rappels CCIT (transverse M1+M3+M4+M9) | ✅ COMPLÉTÉ
 
 ### Principe directeur — validé avec CCIT (juin 2026)
 
@@ -361,7 +361,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 - [x] ~~`/admin/parametres`~~ - protégé AdminRoute (juillet 2026)
 
-## Sprint 9 – Portail Documentaire Externe (module M8-bis) | ✅ COMPLÉTÉ
+## Sprint 9 - Portail Documentaire Externe (module M8-bis) | ✅ COMPLÉTÉ
 
 ### Architecture retenue (juillet 2026)
 
@@ -430,7 +430,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 - [x] ~~`/portail`~~ - route publique hors ProtectedRoute (juillet 2026)
 
-## Sprint 10 – Paramètres Système Élargis | ✅ COMPLÉTÉ (upload max reporté volontairement)
+## Sprint 10 - Paramètres Système Élargis | ✅ COMPLÉTÉ (upload max reporté volontairement)
 
 ### Reporté du Sprint 8 — chantier de fond distinct, hors urgence rappels CCIT
 
@@ -445,7 +445,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [x] ~~**Journal d'audit — interface de consultation**~~ - Non planifiée dans Sprint 10, mais chantier ouvert depuis Sprint 1 (backend fait, UI restée en `ComingSoon`). `AuditPage.tsx` : filtres Module/Action/Date, tableau paginé, modal détails JSON. Filtre `search` du type `AuditFilters` constaté déclaré mais jamais utilisé côté service — volontairement exclu de l'UI plutôt que branché sur un filtre inopérant (juillet 2026)
 - [x] ~~**Journal d'audit — export PDF/Excel**~~ - Première utilisation de `puppeteer`/`exceljs` dans le projet (dépendances présentes depuis le début, jamais câblées). `utils/pdf.ts` conçu générique et réutilisable pour les futurs exports (Accords/Courriers/Missions, cf. Sprint 3/11). Export plafonné à 10 000 lignes avec détection de troncature ; l'export lui-même est audité (`AUDIT_EXPORT_PDF` / `AUDIT_EXPORT_EXCEL`) (juillet 2026)
 
-## Sprint 11 – Module Analytics & Rapports (M11) | ✅ COMPLÉTÉ
+## Sprint 11 - Module Analytics & Rapports (M11) | ✅ COMPLÉTÉ
 
 ### Positionnement — distinction claire avec le Dashboard M9
 

@@ -22,7 +22,7 @@ const fr = {
   },
   // Auth
   auth: {
-    title: 'SICOT – Connexion',
+    title: 'SICOT - Connexion',
     matricule: 'Matricule',
     otp: 'Code OTP',
     motDePasse: 'Mot de passe',
@@ -116,7 +116,7 @@ const en = {
     analytics: 'Analytics & Reports',
   },
   auth: {
-    title: 'SICOT – Sign In',
+    title: 'SICOT - Sign In',
     matricule: 'Staff ID',
     otp: 'OTP Code',
     motDePasse: 'Password',

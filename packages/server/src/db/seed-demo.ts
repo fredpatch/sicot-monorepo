@@ -85,7 +85,7 @@ async function main() {
 
   const mois12 = moisDerniers(12);
 
-  // ── M2 – Organisations ───────────────────────────────────────────────────
+  // ── M2 - Organisations ───────────────────────────────────────────────────
   const orgsSeed = [
     { nom: 'DGCA France', pays: 'France', region: 'Europe', type: 'anac_etrangere' as const },
     {
@@ -137,7 +137,7 @@ async function main() {
     .returning({ id: organisations.id, type: organisations.type });
   console.log(`✅ ${orgsInsertees.length} organisations créées`);
 
-  // ── M1 – Accords ─────────────────────────────────────────────────────────
+  // ── M1 - Accords ─────────────────────────────────────────────────────────
   const statutsAccord = [
     'actif',
     'actif',
@@ -177,7 +177,7 @@ async function main() {
   await db.insert(accordsOrganisations).values(liaisonsAccords);
   console.log(`✅ ${liaisonsAccords.length} liaisons accords-organisations créées\n`);
 
-  // ── M8 – Documents (créés avant courriers/missions/traductions qui en dépendent) ─
+  // ── M8 - Documents (créés avant courriers/missions/traductions qui en dépendent) ─
   const categories = [
     'accord',
     'correspondance',
@@ -211,7 +211,7 @@ async function main() {
     .returning({ id: documents.id });
   console.log(`✅ ${documentsInseres.length} documents créés`);
 
-  // ── M4 – Courriers ───────────────────────────────────────────────────────
+  // ── M4 - Courriers ───────────────────────────────────────────────────────
   const directions = ['entrant', 'sortant'] as const;
   const suivisStatut = ['en_attente', 'repondu', 'repondu', 'archive'] as const;
   let refCourrier = 1;
@@ -241,7 +241,7 @@ async function main() {
   await db.insert(courriers).values(courriersAInserer);
   console.log(`✅ ${courriersAInserer.length} courriers créés\n`);
 
-  // ── M3 – Missions + recommandations ─────────────────────────────────────
+  // ── M3 - Missions + recommandations ─────────────────────────────────────
   const paysMission = ['France', 'Cameroun', 'Sénégal', 'Maroc', 'Canada', 'Émirats Arabes Unis'];
   const statutsMission = ['terminee', 'terminee', 'terminee', 'en_cours', 'planifiee'] as const;
   const missionsAInserer = mois12.flatMap((mois) =>
@@ -309,7 +309,7 @@ async function main() {
   await db.insert(recommandations).values(recosAInserer);
   console.log(`✅ ${recosAInserer.length} recommandations créées\n`);
 
-  // ── M6 – Traductions ─────────────────────────────────────────────────────
+  // ── M6 - Traductions ─────────────────────────────────────────────────────
   const statutsTraduction = [
     'approuvee',
     'approuvee',
@@ -346,7 +346,7 @@ async function main() {
   await db.insert(traductions).values(traductionsAInserer);
   console.log(`✅ ${traductionsAInserer.length} traductions créées\n`);
 
-  // ── M5 – Demandes de traduction ─────────────────────────────────────────
+  // ── M5 - Demandes de traduction ─────────────────────────────────────────
   const statutsDemande = ['validee', 'validee', 'archivee', 'en_cours', 'soumise'] as const;
   const demandesAInserer = mois12.flatMap((mois) =>
     Array.from({ length: 1 + Math.floor(Math.random() * 2) }, () => {
@@ -376,7 +376,7 @@ async function main() {
   await db.insert(demandesTraduction).values(demandesAInserer);
   console.log(`✅ ${demandesAInserer.length} demandes de traduction créées\n`);
 
-  // ── M7 – Glossaire ───────────────────────────────────────────────────────
+  // ── M7 - Glossaire ───────────────────────────────────────────────────────
   const domaines = ['Navigabilité', 'Sûreté', 'Licences', 'Réglementation', 'Formation'];
   const termesBase = [
     ['aéronef', 'aircraft'],

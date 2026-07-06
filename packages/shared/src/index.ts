@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────
-// SICOT – Shared Types
+// SICOT - Shared Types
 // Utilisés par le client React ET le serveur Express
 // ─────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ export interface User {
   updatedAt: string;
 }
 
-// ── M10 – Audit ────────────────────────────────────────────────────────────
+// ── M10 - Audit ────────────────────────────────────────────────────────────
 export interface AuditLog {
   id: number;
   userId: number;
@@ -31,7 +31,7 @@ export interface AuditLog {
   createdAt: string;
 }
 
-// ── M2 – Partenaires ───────────────────────────────────────────────────────
+// ── M2 - Partenaires ───────────────────────────────────────────────────────
 export type OrganisationType = 'anac_etrangere' | 'organisation_internationale' | 'autre';
 
 export interface Organisation {
@@ -58,7 +58,7 @@ export interface Contact {
   createdAt: string;
 }
 
-// ── M1 – Accords ───────────────────────────────────────────────────────────
+// ── M1 - Accords ───────────────────────────────────────────────────────────
 export type AccordStatut = 'actif' | 'expire' | 'suspendu' | 'en_renouvellement';
 
 export interface Accord {
@@ -75,7 +75,7 @@ export interface Accord {
   updatedAt: string;
 }
 
-// ── M4 – Correspondances ───────────────────────────────────────────────────
+// ── M4 - Correspondances ───────────────────────────────────────────────────
 export type CourrierDirection = 'entrant' | 'sortant';
 export type CourrierReponseStatut = 'oui' | 'non' | 'pour_information';
 export type CourrierSuiviStatut = 'en_attente' | 'repondu' | 'archive';
@@ -99,7 +99,7 @@ export interface Courrier {
   updatedAt: string;
 }
 
-// ── M3 – Missions ──────────────────────────────────────────────────────────
+// ── M3 - Missions ──────────────────────────────────────────────────────────
 export type MissionStatut = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
 export type RecommandationStatut = 'en_attente' | 'en_cours' | 'realisee';
 
@@ -127,7 +127,7 @@ export interface Recommandation {
   updatedAt: string;
 }
 
-// ── M8 – Documents ─────────────────────────────────────────────────────────
+// ── M8 - Documents ─────────────────────────────────────────────────────────
 export type DocumentCategorie =
   | 'accord'
   | 'correspondance'
@@ -155,7 +155,7 @@ export interface Document {
   createdAt: string;
 }
 
-// ── M7 – Glossaire ─────────────────────────────────────────────────────────
+// ── M7 - Glossaire ─────────────────────────────────────────────────────────
 export interface TermeGlossaire {
   id: number;
   termeFr: string;
@@ -167,7 +167,7 @@ export interface TermeGlossaire {
   updatedAt: string;
 }
 
-// ── M6 – Traduction ────────────────────────────────────────────────────────
+// ── M6 - Traduction ────────────────────────────────────────────────────────
 export type TraductionStatut =
   | 'a_reviser'
   | 'en_relecture'
@@ -191,7 +191,7 @@ export interface Traduction {
   updatedAt: string;
 }
 
-// ── M5 – Demandes de traduction ────────────────────────────────────────────
+// ── M5 - Demandes de traduction ────────────────────────────────────────────
 export type DemandeStatut =
   | 'soumise'
   | 'en_cours'
@@ -215,7 +215,7 @@ export interface DemandTraduction {
   updatedAt: string;
 }
 
-// ── M9 – Dashboard ─────────────────────────────────────────────────────────
+// ── M9 - Dashboard ─────────────────────────────────────────────────────────
 export interface DashboardStats {
   traductions: {
     total: number;

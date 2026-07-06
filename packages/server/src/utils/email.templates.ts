@@ -3,14 +3,14 @@ function layout(contentHtml: string): string {
   return `
     <div style="font-family: Candara, Calibri, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: #1B2A5E; padding: 24px; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 20px;">SICOT – ANAC Gabon</h1>
+        <h1 style="color: white; margin: 0; font-size: 20px;">SICOT - ANAC Gabon</h1>
       </div>
       <div style="padding: 32px; background: #f4f6fa;">
         ${contentHtml}
       </div>
       <div style="background: #1B2A5E; padding: 16px; text-align: center;">
         <p style="color: #d1d9e6; margin: 0; font-size: 11px;">
-          ANAC Gabon – Usage interne uniquement
+          ANAC Gabon - Usage interne uniquement
         </p>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# 🧩 SICOT – Code Patterns
+# 🧩 SICOT - Code Patterns
 
 ## Server-Side Patterns
 
