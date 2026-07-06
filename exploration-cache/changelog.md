@@ -1,4 +1,4 @@
-# 📝 SICOT – Changelog
+# 📝 SICOT - Changelog
 
 ## [f06ed6d] — 2026-07-06 — feat(client): UI hardening sprint — shadcn Table/Tabs migration + full feature-folder split
 

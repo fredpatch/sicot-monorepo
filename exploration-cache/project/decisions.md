@@ -1,4 +1,4 @@
-# ⚖️ SICOT – Key Technical Decisions
+# ⚖️ SICOT - Key Technical Decisions
 
 A permanent log of non-obvious choices. "Why" is the critical part — without it, future sessions will undo decisions that had good reasons.
 

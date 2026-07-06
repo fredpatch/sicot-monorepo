@@ -1,4 +1,4 @@
-# 📐 SICOT – Conventions
+# 📐 SICOT - Conventions
 
 ## Naming
 

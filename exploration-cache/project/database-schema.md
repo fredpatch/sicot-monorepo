@@ -1,4 +1,4 @@
-# 🗄️ SICOT – Database Schema
+# 🗄️ SICOT - Database Schema
 
 All defined in `packages/server/src/db/schema.ts` (Drizzle ORM).
 

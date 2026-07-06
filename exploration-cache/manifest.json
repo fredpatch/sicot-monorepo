@@ -1,5 +1,5 @@
 {
-  "project": "SICOT – Système Intégré de Coopération Internationale et de Traduction",
+  "project": "SICOT - Système Intégré de Coopération Internationale et de Traduction",
   "client": "ANAC Gabon",
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
@@ -7,7 +7,7 @@
   "lastCommit": "f06ed6d",
   "currentSprint": 11,
   "currentSprintFocus": "No active sprint work — this is a standalone 'Sprint de durcissement UI' (UI hardening), now documented as its own section in docs/TASKS.md. 2026-07-05 (169f725, 6ea082a): PartenairesPage server-side sorting + feature-folder split, sonner toast migration, Documents/Audit feature-folder split. 2026-07-06 (f06ed6d): the same shadcn Table/DataTable + feature-folder pattern extended to the 3 remaining raw-<table> pages (GlossairePage, DemandesPage, TraductionsPage) plus AnalyticsPage (9-tab page, its own hand-rolled tabs replaced by a new components/ui/tabs.tsx on @radix-ui/react-tabs). Sprint 11 (Analytics & Rapports, M11) itself is still fully COMPLÉTÉ per docs/TASKS.md as of 2026-07-04, untouched by this UI work. ⚠️ The exceljs/node-cron/nodemailer/uuid dependency regression flagged 2026-07-04 is still unfixed, and the tsc --noEmit breakage flagged 2026-07-05 is still unfixed.",
-  "status": "Sprints 1–5 + 8 + 9 + 10 + 11 COMPLETE ✅ per docs/TASKS.md (7a1de70, 47ef8b8, 6aaa354, f3547d4+f27d58f+Gemini add-on). Server refactor pass COMPLETE ✅ (dd2809d). 2026-07-05/06 UI hardening sprint COMPLETE ✅ — every page with a raw HTML <table> or hand-rolled tabs now uses shadcn Table/DataTable/Tabs, and every page is split into a pages/<module>/ feature folder. None of Sprints 9/10/11 has had a full manual end-to-end verification pass yet; exceljs downgrade (2026-07-04) and tsc --noEmit breakage (2026-07-05) both still unfixed.",
+  "status": "Sprints 1-5 + 8 + 9 + 10 + 11 COMPLETE ✅ per docs/TASKS.md (7a1de70, 47ef8b8, 6aaa354, f3547d4+f27d58f+Gemini add-on). Server refactor pass COMPLETE ✅ (dd2809d). 2026-07-05/06 UI hardening sprint COMPLETE ✅ — every page with a raw HTML <table> or hand-rolled tabs now uses shadcn Table/DataTable/Tabs, and every page is split into a pages/<module>/ feature folder. None of Sprints 9/10/11 has had a full manual end-to-end verification pass yet; exceljs downgrade (2026-07-04) and tsc --noEmit breakage (2026-07-05) both still unfixed.",
 
   "activeSession": {
     "task": "Continuation of the 2026-07-05 UI hardening work — no new sprint scope. Commit f06ed6d (2026-07-06) extends the shadcn Table/DataTable + feature-folder pattern (established 2026-07-05 on partenaires/documents/audit) to the 3 remaining pages still using raw HTML <table>: GlossairePage, DemandesPage, TraductionsPage — each split into pages/<module>/{module.columns.tsx, module.types.ts, module.constants.ts, module.schemas.ts, module.utils.ts, hooks/{queries,mutations}.ts, components/*}. AnalyticsPage (2150 lines, 9 tabs, the largest page in the app) got the heaviest treatment: one file per tab under analytics/components/tabs/, plus AnalyticsAIDialog and PeriodSelector extracted, and its hand-rolled role=\"tab\" implementation replaced by a new components/ui/tabs.tsx wrapping the newly-installed @radix-ui/react-tabs. Found and fixed for free: DataTable computes colSpan from columns.length automatically, which incidentally fixes a pre-existing desync between colSpan and actual column count on AuditPage/DocumentsPage's empty/loading rows (that bug wasn't hunted for, DataTable's design just doesn't have the failure mode). Scope decisions made and documented in docs/TASKS.md's new 'Sprint de durcissement UI' section: no generic DataTable column-filter prop surface (each page keeps its own filter bar); AnalyticsPage's 6 small static tables use plain Table primitives, not DataTable, since DataTable is reserved for tables with real server-driven sorting/pagination/filtering. Verified via eslint across the whole client src — 0 errors, down to just 3 pre-existing warnings (fewer than before this session, since some no-explicit-any spots got real types during the refactor). tsc --noEmit still can't run (see the 2026-07-05 finding below, unfixed).",
@@ -62,7 +62,7 @@
       "path": "project/overview.md",
       "type": "project",
       "tags": ["sicot", "anac", "modules", "stakeholders", "sprint-status"],
-      "summary": "What SICOT is, 10 modules table (M1–M10), stakeholders, current status, repository info"
+      "summary": "What SICOT is, 10 modules table (M1-M10), stakeholders, current status, repository info"
     },
     {
       "path": "project/architecture.md",
@@ -86,7 +86,7 @@
       "path": "tasks/backlog.md",
       "type": "tasks",
       "tags": ["backlog", "sprint2", "sprint3", "sprint4", "sprint5", "sprint6", "sprint7"],
-      "summary": "Full backlog Sprint 2–7, 40+ tasks organized by sprint. Includes pending/waiting-on table."
+      "summary": "Full backlog Sprint 2-7, 40+ tasks organized by sprint. Includes pending/waiting-on table."
     },
     {
       "path": "tasks/sprint-1.md",

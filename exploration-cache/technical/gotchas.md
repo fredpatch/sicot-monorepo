@@ -1,4 +1,4 @@
-# ⚠️ SICOT – Known Gotchas
+# ⚠️ SICOT - Known Gotchas
 
 ## G1 — framer-motion: transition prop, NOT inside Variants
 

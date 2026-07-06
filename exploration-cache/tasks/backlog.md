@@ -1,4 +1,4 @@
-# 📋 SICOT – Full Backlog
+# 📋 SICOT - Full Backlog
 
 Last updated: 2026-06-29
 

@@ -22,7 +22,7 @@ This folder is the living knowledge base for the SICOT project. Update it as the
 
 | File | Purpose |
 |------|---------|
-| [`tasks/backlog.md`](tasks/backlog.md) | All future work (Sprint 2–7), 40+ items |
+| [`tasks/backlog.md`](tasks/backlog.md) | All future work (Sprint 2-7), 40+ items |
 | [`tasks/sprint-1.md`](tasks/sprint-1.md) | Sprint 1 — completed ✅ |
 | [`tasks/completed/sprint-1-done.md`](tasks/completed/sprint-1-done.md) | Done items + lessons learned |
 

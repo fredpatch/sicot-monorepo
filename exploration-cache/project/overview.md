@@ -1,4 +1,4 @@
-# 🏛️ SICOT – Project Overview
+# 🏛️ SICOT - Project Overview
 
 ## What is SICOT?
 
