@@ -200,7 +200,7 @@ export default function BootstrapPage() {
                 <p className="text-amber-800 font-semibold text-[11px]">
                   {t('bootstrap.bannerTitle')}
                 </p>
-                <p className="text-amber-700 text-[10px] mt-0.5 leading-relaxed">
+                <p className="text-amber-700 text-[11px] mt-0.5 leading-relaxed">
                   {t('bootstrap.bannerDescription')}
                 </p>
               </div>
@@ -351,7 +351,7 @@ export default function BootstrapPage() {
         </div>
 
         <p className="text-center text-anac-muted text-[10px] mt-4 tracking-wide uppercase">
-          ANAC Gabon — Usage interne uniquement
+          ANAC Gabon - Usage interne uniquement
         </p>
       </motion.div>
     </div>

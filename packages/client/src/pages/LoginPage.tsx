@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
@@ -47,6 +47,13 @@ export default function LoginPage() {
   const motDePasseId = useId();
   const newPassId = useId();
   const confirmId = useId();
+
+  useEffect(() => {
+    if (sessionStorage.getItem('session_expiree')) {
+      sessionStorage.removeItem('session_expiree');
+      setServerError('Votre session a expiré. Veuillez vous reconnecter.');
+    }
+  }, []);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -377,6 +384,12 @@ function LoginStep({
         </AnimatePresence>
 
         <ServerError message={serverError} />
+
+        {serverError === 'Code OTP expiré.' && (
+          <p className="text-[11px] text-red-700 -mt-2">
+            Contactez votre administrateur pour recevoir un nouveau code par email.
+          </p>
+        )}
 
         <Button type="submit" className="w-full" disabled={loginForm.formState.isSubmitting}>
           {loginForm.formState.isSubmitting ? (

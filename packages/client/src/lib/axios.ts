@@ -31,15 +31,19 @@ api.interceptors.response.use(
   (response) => response,
 
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
+   const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
 
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    const estRequeteAuth =
+      originalRequest.url?.includes('/auth/')
+
+
+   if (error.response?.status !== 401 || originalRequest._retry || estRequeteAuth) {
       return Promise.reject(error);
     }
 
-    if (isRefreshing) {
+     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
@@ -56,7 +60,10 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError as AxiosError);
-      window.location.href = '/login';
+     if (window.location.pathname !== '/login') {
+      sessionStorage.setItem('session_expiree', '1');
+        window.location.href = '/login';
+      }
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

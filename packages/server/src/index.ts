@@ -26,6 +26,7 @@ import notificationsRoutes from './modules/notifications/routes/notifications.ro
 import jobsRoutes from './modules/jobs/routes/jobs.route';
 import portalRoutes from './modules/portal/routes/portal.route';
 import analyticsRoutes from './modules/analytics/routes/analytics.route';
+import personnelAnacRoutes from './modules/personnel-anac/routes/personnel-anac.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email';
@@ -58,7 +59,7 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+// app.use(limiter);
 
 // Rate limit strict pour l'auth
 const authLimiter = rateLimit({
@@ -104,6 +105,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/personnel-anac', personnelAnacRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -141,7 +143,7 @@ app.listen(PORT, async () => {
   if (ocrAvailable) {
     console.log('✅ Service OCR disponible');
   } else {
-    console.warn('⚠️  Service OCR indisponible — démarrez packages/ocr-service/main.py');
+    console.warn('⚠️  Service OCR indisponible - démarrez packages/ocr-service/main.py');
   }
 
   // Démarrage des jobs de sauvegarde et d'alertes

@@ -4,7 +4,7 @@ import { users, auditLogs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { signAccessToken, verifyRefreshToken } from '@/utils/jwt';
 import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
-import { sendOTPEmail } from '@/utils/email.js';
+import { sendCompteActiveEmail, sendOTPEmail } from '@/utils/email.js';
 import { SALT_ROUNDS } from './auth.constants';
 import {
   handleEchecConnexion,
@@ -133,6 +133,20 @@ export async function setPassword(params: {
     .returning();
 
   await logAudit({ userId: user.id, action: 'MOT_DE_PASSE_DEFINI', module: 'M10', ip });
+
+   try {
+    await sendCompteActiveEmail({
+      to: user.email,
+      nom: user.nom,
+      prenom: user.prenom,
+      matricule: user.matricule,
+      dateHeure: new Date().toLocaleString('fr-FR'),
+      ip,
+    });
+  } catch (error) {
+    console.error('[email] Échec envoi confirmation activation:', error);
+  }
+
 
   return {
     tokens: buildTokens(user),

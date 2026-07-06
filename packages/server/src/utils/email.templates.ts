@@ -116,3 +116,27 @@ export function notificationManuelleTemplate(params: {
     </div>
   `;
 }
+
+// ── Email de confirmation d'activation (après définition du mot de passe) ─
+export function compteActiveEmailTemplate(params: {
+  nom: string;
+  prenom: string;
+  matricule: string;
+  dateHeure: string;
+  ip?: string;
+}): string {
+  const { nom, prenom, matricule, dateHeure, ip } = params;
+
+  return layout(`
+    <p>Bonjour <strong>${prenom} ${nom}</strong>,</p>
+    <p>Votre compte SICOT (matricule <strong>${matricule}</strong>) vient d'être activé avec succès.</p>
+    <div style="background: white; border: 1px solid #d1d9e6; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <p style="margin: 0 0 6px 0;"><strong>Date :</strong> ${dateHeure}</p>
+      ${ip ? `<p style="margin: 0;"><strong>Adresse IP :</strong> ${ip}</p>` : ''}
+    </div>
+    <p style="color: #6b7a99; font-size: 12px;">
+      Si vous n'êtes pas à l'origine de cette activation, contactez immédiatement
+      le Service Informatique — votre compte peut avoir été activé par une autre personne.
+    </p>
+  `);
+}

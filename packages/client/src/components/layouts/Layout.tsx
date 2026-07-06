@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   ExternalLink,
   BarChart3,
+  Users,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -37,16 +38,22 @@ interface NavItem {
 
 // ── Items de navigation ───────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
-  { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
-  { to: '/accords', labelKey: 'nav.accords', icon: FileText },
-  { to: '/partenaires', labelKey: 'nav.partenaires', icon: Globe2 },
-  { to: '/missions', labelKey: 'nav.missions', icon: Plane },
-  { to: '/courriers', labelKey: 'nav.courriers', icon: Mail },
-  { to: '/traductions', labelKey: 'nav.traductions', icon: Languages },
+  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, roles: ['admin', 'super_admin'], },
+  { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3, roles: ['admin', 'super_admin'], },
+  { to: '/accords', labelKey: 'nav.accords', icon: FileText, roles: ['admin', 'super_admin'], },
+  { to: '/partenaires', labelKey: 'nav.partenaires', icon: Globe2, roles: ['admin', 'super_admin'], },
+  { to: '/missions', labelKey: 'nav.missions', icon: Plane, roles: ['admin', 'super_admin'], },
+  { to: '/courriers', labelKey: 'nav.courriers', icon: Mail, roles: ['admin', 'super_admin'], },
+  { to: '/traductions', labelKey: 'nav.traductions', icon: Languages, roles: ['admin', 'super_admin'], },
   { to: '/demandes', labelKey: 'nav.demandes', icon: Inbox },
   { to: '/glossaire', labelKey: 'nav.glossaire', icon: BookOpen },
   { to: '/documents', labelKey: 'nav.documents', icon: FolderOpen },
+  {
+    to: '/utilisateurs',
+    labelKey: 'nav.utilisateurs',
+    icon: Users,
+    roles: ['admin', 'super_admin'],
+  },
   {
     to: '/admin',
     labelKey: 'nav.administration',

@@ -12,6 +12,7 @@ export interface CreateUserParams {
 export interface UpdateUserParams {
   role?: UserRole;
   actif?: boolean;
+  email?: string;
   updatedByUserId: number;
 }
 
