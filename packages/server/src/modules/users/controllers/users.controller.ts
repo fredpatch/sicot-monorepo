@@ -58,7 +58,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const user = await usersService.creerUtilisateur({
+    const {user, emailEnvoye} = await usersService.creerUtilisateur({
       matricule,
       nom,
       prenom,
@@ -67,7 +67,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
       createdByUserId: req.user!.userId,
     });
 
-    res.status(201).json(user);
+    res.status(201).json({ ...user, emailEnvoye });
   } catch (error) {
     handleUsersError(res, error);
   }
@@ -82,17 +82,23 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { role, actif } = req.body;
+    const { role, actif, email } = req.body;
 
     // Au moins un champ à modifier
-    if (role === undefined && actif === undefined) {
+    if (role === undefined && actif === undefined && email === undefined) {
       res.status(400).json({ message: 'Aucun champ à modifier.' });
+      return;
+    }
+
+     if (email !== undefined && !/^\S+@\S+\.\S+$/.test(email)) {
+      res.status(400).json({ message: 'Email invalide.' });
       return;
     }
 
     const user = await usersService.mettreAJourUtilisateur(id, {
       role,
       actif,
+      email,
       updatedByUserId: req.user!.userId,
     });
 
@@ -139,8 +145,13 @@ export async function reinitialiserOTP(req: Request, res: Response): Promise<voi
       return;
     }
 
-    await usersService.reinitialiserOTP(id, req.user!.userId);
-    res.json({ message: 'OTP réinitialisé et envoyé par email.' });
+    const { emailEnvoye } = await usersService.reinitialiserOTP(id, req.user!.userId);
+    res.json({
+      message: emailEnvoye
+        ? 'OTP réinitialisé et envoyé par email.'
+        : "OTP réinitialisé, mais l'email n'a pas pu être envoyé - vérifiez la configuration SMTP.",
+      emailEnvoye,
+    });
   } catch (error) {
     handleUsersError(res, error);
   }

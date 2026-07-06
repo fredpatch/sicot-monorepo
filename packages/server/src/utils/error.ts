@@ -58,8 +58,9 @@ export const handleAuthError = createErrorHandler(
 
 export const handleUsersError = createErrorHandler(
   {
-    UTILISATEUR_INTROUVABLE: { status: 404, message: 'Utilisateur introuvable.' },
+   UTILISATEUR_INTROUVABLE: { status: 404, message: 'Utilisateur introuvable.' },
     MATRICULE_EXISTANT: { status: 409, message: 'Ce matricule est déjà utilisé.' },
+    EMAIL_EXISTANT: { status: 409, message: 'Cet email est déjà utilisé par un autre compte.' },
     COMPTE_INACTIF: { status: 400, message: 'Le compte est inactif.' },
     SUPER_ADMIN_INDESACTIVABLE: {
       status: 403,
@@ -195,3 +196,30 @@ export const handleTraductionError = createErrorHandler(
 );
 
 export const handleAnalyticsError = createErrorHandler({}, '[analytics.controller]');
+
+// packages/server/src/utils/error.ts  (append after handleAnalyticsError)
+export const handlePersonnelAnacError = createErrorHandler(
+  {
+    RECHERCHE_TROP_COURTE: { status: 400, message: 'Saisissez au moins 2 caractères.' },
+    MATRICULE_INVALIDE: { status: 400, message: 'Matricule invalide.' },
+    PERSONNEL_INTROUVABLE: { status: 404, message: 'Aucun agent trouvé avec ce matricule.' },
+    PERSONNEL_ANAC_INDISPONIBLE: {
+      status: 503,
+      message: 'Service Personnel ANAC injoignable. Saisissez les informations manuellement.',
+    },
+    PERSONNEL_ANAC_AUTH_INVALIDE: {
+      status: 500,
+      message: 'Configuration invalide côté serveur (clé API Personnel ANAC).',
+    },
+    PERSONNEL_ANAC_LIMITE_ATTEINTE: {
+      status: 429,
+      message: 'Trop de requêtes vers le service Personnel ANAC. Réessayez dans un instant.',
+    },
+    PERSONNEL_ANAC_ERREUR_INCONNUE: {
+      status: 502,
+      message: 'Erreur du service Personnel ANAC.',
+    },
+  },
+  '[personnel-anac.controller]'
+);
+

@@ -16,3 +16,4 @@ export { notificationsApi } from './notifications.api';
 export { jobsApi } from './jobs.api';
 export { portalApi } from './portal.api';
 export { analyticsApi } from './analytics.api';
+export { personnelAnacApi } from './personnel-anac.api';

@@ -23,6 +23,7 @@ import PortailPage from './pages/PortalPage';
 import AuditPage from './pages/AuditPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import { Toaster } from './components/ui/sonner';
+import AdminUsersPage from './pages/AdminUsersPage';
 
 // function ComingSoon({ module }: { module: string }) {
 //   return (
@@ -187,6 +188,15 @@ export default function App() {
           <Route path="/glossaire" element={<GlossairePage />} />
           <Route path="/documents" element={<DocumentsPage />} />
 
+          <Route
+            path="/utilisateurs"
+            element={
+              <AdminRoute>
+                <AdminUsersPage />
+              </AdminRoute>
+            }
+          />
+          
           <Route
             path="/admin/*"
             element={

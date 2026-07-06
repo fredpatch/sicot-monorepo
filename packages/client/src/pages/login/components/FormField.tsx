@@ -19,7 +19,7 @@ export function FormField({ id, label, error, hint, required, children }: FormFi
       <div className="flex items-center justify-between">
         <Label htmlFor={id}>{label}</Label>
         {required && (
-          <span className="inline-flex items-center px-1.5 py-px rounded text-[9px] font-semibold bg-red-50 text-red-500 border border-red-100 leading-none select-none">
+          <span className="inline-flex items-center px-1.5 py-px rounded text-[10px] font-semibold bg-red-50 text-red-500 border border-red-100 leading-none select-none">
             {t('common.required')}
           </span>
         )}
@@ -40,7 +40,7 @@ export function FormField({ id, label, error, hint, required, children }: FormFi
             {error}
           </motion.p>
         ) : hint ? (
-          <p key="hint" className="text-[11px] text-anac-muted">
+          <p key="hint" className="text-[10px] text-anac-muted">
             {hint}
           </p>
         ) : null}

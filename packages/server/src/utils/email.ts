@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import {
   otpEmailTemplate,
+  compteActiveEmailTemplate,
   accordEcheanceEmailTemplate,
   recommandationEmailTemplate,
   notificationManuelleTemplate,
@@ -104,5 +105,23 @@ export async function sendNotificationManuelle(params: {
     to: params.to,
     subject: params.objet,
     html: notificationManuelleTemplate(params),
+  });
+}
+
+// ── Email de confirmation d'activation ────────────────────────────────────
+export async function sendCompteActiveEmail(params: {
+  to: string;
+  nom: string;
+  prenom: string;
+  matricule: string;
+  dateHeure: string;
+  ip?: string;
+}): Promise<void> {
+  const { to, ...templateParams } = params;
+
+  await sendEmail({
+    to,
+    subject: 'SICOT - Confirmation d\'activation de votre compte',
+    html: compteActiveEmailTemplate(templateParams),
   });
 }

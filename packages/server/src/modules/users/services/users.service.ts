@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { eq, ilike, or, desc } from 'drizzle-orm';
+import { eq, ilike, or, desc, and } from 'drizzle-orm';
 import { generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendOTPEmail } from '@/utils/email';
 import { logAudit } from '@/modules/auth/services/auth.service';
@@ -39,16 +39,21 @@ export async function listerUtilisateurs(filters: UserFilters): Promise<{
     conditions.push(eq(users.actif, filters.actif));
   }
 
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
   const allUsers = await db
     .select()
     .from(users)
+    .where(where)
     .orderBy(desc(users.createdAt))
     .limit(pageSize)
     .offset(offset);
 
+    const total =  await db.$count(users, where)
+
   return {
     data: allUsers.map(toUserView),
-    total: allUsers.length,
+    total
   };
 }
 
@@ -60,7 +65,7 @@ export async function getUtilisateur(id: number): Promise<UserView> {
 }
 
 // ── SERVICE : Créer un utilisateur et envoyer son OTP ────────────────────
-export async function creerUtilisateur(params: CreateUserParams): Promise<UserView> {
+export async function creerUtilisateur(params: CreateUserParams): Promise<{user:UserView, emailEnvoye: boolean}> {
   // Vérifier si le matricule existe déjà
   const [existant] = await db.select().from(users).where(eq(users.matricule, params.matricule));
 
@@ -69,10 +74,10 @@ export async function creerUtilisateur(params: CreateUserParams): Promise<UserVi
   // Générer l'OTP
   const otp = generateOTP();
   const otpHash = await hashOTP(otp);
-  const expiresAt = otpExpiresAt();
+  const expiresAt = otpExpiresAt(15); // OTP valable 15 minutes
 
   // Créer l'utilisateur
-  const [newUser] = await db
+ const [newUser] = await db
     .insert(users)
     .values({
       matricule: params.matricule,
@@ -87,14 +92,21 @@ export async function creerUtilisateur(params: CreateUserParams): Promise<UserVi
     })
     .returning();
 
-  // Envoyer l'OTP par email
-  await sendOTPEmail({
-    to: newUser.email,
-    nom: newUser.nom,
-    prenom: newUser.prenom,
-    matricule: newUser.matricule,
-    otp,
-  });
+ // Envoyer l'OTP par email
+  let emailEnvoye = true;
+  try {
+    await sendOTPEmail({
+      to: newUser.email,
+      nom: newUser.nom,
+      prenom: newUser.prenom,
+      matricule: newUser.matricule,
+      otp,
+    });
+  } catch (error) {
+      emailEnvoye = false;
+    console.error('[email] Échec envoi OTP (création utilisateur):', error);
+ 
+  }
 
   await logAudit({
     userId: params.createdByUserId,
@@ -104,7 +116,7 @@ export async function creerUtilisateur(params: CreateUserParams): Promise<UserVi
     details: { matricule: newUser.matricule, role: newUser.role },
   });
 
-  return toUserView(newUser);
+  return { user: toUserView(newUser), emailEnvoye };
 }
 
 // ── SERVICE : Mettre à jour un utilisateur ────────────────────────────────
@@ -115,9 +127,16 @@ export async function mettreAJourUtilisateur(
   const [existant] = await db.select().from(users).where(eq(users.id, id));
   if (!existant) throw new Error('UTILISATEUR_INTROUVABLE');
 
-  const updates: Partial<typeof users.$inferInsert> = {};
+  if (params.email !== undefined && params.email !== existant.email) {
+    const [emailPris] = await db.select().from(users).where(eq(users.email, params.email));
+    if (emailPris) throw new Error('EMAIL_EXISTANT');
+  }
+
+ const updates: Partial<typeof users.$inferInsert> = {};
   if (params.role !== undefined) updates.role = params.role;
   if (params.actif !== undefined) updates.actif = params.actif;
+  if (params.email !== undefined) updates.email = params.email;
+
 
   const [updated] = await db
     .update(users)
@@ -167,14 +186,14 @@ export async function toggleActivation(
 }
 
 // ── SERVICE : Réinitialiser l'OTP d'un utilisateur ───────────────────────
-export async function reinitialiserOTP(id: number, adminId: number): Promise<void> {
+export async function reinitialiserOTP(id: number, adminId: number): Promise<{emailEnvoye: boolean}> {
   const [user] = await db.select().from(users).where(eq(users.id, id));
   if (!user) throw new Error('UTILISATEUR_INTROUVABLE');
   if (!user.actif) throw new Error('COMPTE_INACTIF');
 
   const otp = generateOTP();
   const otpHash = await hashOTP(otp);
-  const expiresAt = otpExpiresAt();
+  const expiresAt = otpExpiresAt(15); // OTP valable 15 minutes
 
   await db
     .update(users)
@@ -189,13 +208,19 @@ export async function reinitialiserOTP(id: number, adminId: number): Promise<voi
     })
     .where(eq(users.id, id));
 
-  await sendOTPEmail({
-    to: user.email,
-    nom: user.nom,
-    prenom: user.prenom,
-    matricule: user.matricule,
-    otp,
-  });
+ let emailEnvoye = true;
+  try {
+    await sendOTPEmail({
+      to: user.email,
+      nom: user.nom,
+      prenom: user.prenom,
+      matricule: user.matricule,
+      otp,
+    });
+  } catch (error) {
+    emailEnvoye = false;
+    console.error('[email] Échec envoi OTP (réinitialisation):', error);
+  }
 
   await logAudit({
     userId: adminId,
@@ -203,4 +228,6 @@ export async function reinitialiserOTP(id: number, adminId: number): Promise<voi
     module: 'M10',
     entiteId: id,
   });
+
+  return { emailEnvoye };
 }
