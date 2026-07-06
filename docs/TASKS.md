@@ -11,10 +11,10 @@
 - [ ] **Import glossaire initial** - Si fichier fourni par CCIT, script import CSV/Excel → seed BDD
 - [x] ~~**Modélisation BDD complète**~~ - Schéma Drizzle de toutes les entités (10 modules) créé et migré (juin 2026)
 
-## Sprint 1 - Administration & Auth (M10) | ✅ COMPLÉTÉ
+## Sprint 1 - Administration & Auth (M10) | ✅ COMPLÉTÉ (Personnel ANAC API integration IN PROGRESS)
 
 - [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
-- [ ] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel
+- [🔄] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel (IMPLEMENTATION IN PROGRESS — 2026-07-06: AdminUsersPage.tsx, personnel-anac.api.ts, personnel-anac server module + utils created)
 - [x] ~~**Flux bootstrap admin**~~ - Page BootstrapPage.tsx + service/controller/route, création Super Admin sans API Personnel ANAC (juin 2026)
 - [x] ~~**Page connexion**~~ - LoginPage.tsx avec OTP + mot de passe, indicateur de force, 2 étapes (juin 2026)
 - [x] ~~**Gestion des rôles**~~ - Middleware requireRole avec hiérarchie agent/traducteur/relecteur/admin/super_admin (juin 2026)

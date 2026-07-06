@@ -100,18 +100,27 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 
 ```
 ✅ Sprint 0 — Init
-✅ Sprint 1 — Auth & Admin (M10)
-✅ Sprint 2 — Documents + Partenaires (M8 + M2) + UI/UX hardening
+✅ Sprint 1 — Auth & Admin (M10) + Personnel-ANAC API (IN PROGRESS)
+✅ Sprint 2 — Documents + Partenaires (M8 + M2)
 ✅ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)
 ✅ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)
-⏳ Sprint 5 — Dashboard (M9)  ← CURRENT
-⏳ Sprint 6 — Tests & Recette
-⏳ Sprint 7 — Déploiement + Formation
+✅ Sprint 5 — Dashboard (M9)
+✅ Sprint 8 — Notifications & Rappels CCIT
+✅ Sprint 9 — Portail Documentaire Externe
+✅ Sprint 10 — Paramètres Système Élargis
+✅ Sprint 11 — Analytics & Rapports (M11)
+🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
+⏳ Sprint 6 — Tests & Recette (deferred)
+⏳ Sprint 7 — Déploiement + Formation (deferred)
 ```
 
-## 🔴 Active Blockers
+## 🔴 Active Blockers & Pending Fixes
 
-- **API Personnel ANAC** — not received (blocks bootstrap admin flow)
-- **SERV-APPI access** — IT dept pending
-- **CCIT Glossaire Excel** — awaiting file from CCIT
-- **DeepL approval** — DG + RGPD decision pending
+- **Personnel ANAC API** — INTEGRATION IN PROGRESS (resolves Sprint 1 blocker)
+- **SERV-APPI access** — IT dept pending (prod deployment)
+- **CCIT Glossaire Excel** — awaiting file from CCIT (M7 seed)
+- **DeepL approval** — DG + RGPD decision pending (fallback toggle ready)
+- **⚠️ tsc --noEmit** — broken client-wide (pre-existing: ignoreDeprecations vs TS 5.9.3)
+- **⚠️ exceljs version** — downgraded 4.x→3.x (2026-07-04), needs restore + re-test
+- **Pending Drizzle migration** — aggregates all schema changes from Sprints 9/10/11
+- **Portal route bug** — `/portail` href → `/portal` in DocumentsPage.tsx
