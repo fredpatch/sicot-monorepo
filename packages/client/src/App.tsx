@@ -5,6 +5,8 @@ import Layout from './components/layouts/Layout';
 import LoginPage from './pages/LoginPage';
 import DocumentsPage from './pages/DocumentsPage';
 import PartenairesPage from './pages/PartenairesPage';
+import PartenaireDetailPage from './pages/partenaires/components/PartenaireDetailPage';
+import PartenaireFormPage from './pages/partenaires/components/PartenaireFormPage';
 import BootstrapPage from './pages/BootstrapPage';
 import axios from 'axios';
 import AccordsPage from './pages/AccordsPage';
@@ -173,7 +175,10 @@ export default function App() {
           <Route path="/accords/:id" element={<AccordsPage />} />
           <Route path="/accords/new" element={<AccordFormPage />} />
           <Route path="/accords/:id/edit" element={<AccordFormPage />} />
-          <Route path="/partenaires/*" element={<PartenairesPage />} />
+          <Route path="/partenaires" element={<PartenairesPage />} />
+          <Route path="/partenaires/new" element={<PartenaireFormPage />} />
+          <Route path="/partenaires/:id" element={<PartenaireDetailPage />} />
+          <Route path="/partenaires/:id/edit" element={<PartenaireFormPage />} />
           <Route path="/missions" element={<MissionsPage />} />
           <Route path="/missions/:id" element={<MissionsPage />} />
           <Route path="/missions/new" element={<MissionFormPage />} />

@@ -37,6 +37,7 @@ export function FormulaireOrganisation({
       pays: initial?.pays ?? '',
       region: initial?.region ?? '',
       type: initial?.type ?? 'autre',
+      actif: initial?.actif ?? true,
       notes: initial?.notes ?? '',
     },
   });
@@ -98,6 +99,22 @@ export function FormulaireOrganisation({
           <Input id="org-region" {...register('region')} placeholder="Ex: Afrique Centrale" />
         </div>
       </div>
+
+      <Controller
+        name="actif"
+        control={control}
+        render={({ field }) => (
+          <label className="flex items-center gap-2 text-sm text-anac-text">
+            <input
+              type="checkbox"
+              checked={field.value}
+              onChange={(event) => field.onChange(event.target.checked)}
+              className="size-4 rounded border-anac-border text-anac-blue focus:ring-anac-sky"
+            />
+            Organisation active
+          </label>
+        )}
+      />
 
       {/* Notes */}
       <div className="space-y-1.5">

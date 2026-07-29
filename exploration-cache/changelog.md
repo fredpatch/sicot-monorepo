@@ -1,6 +1,6 @@
 # 📝 SICOT - Changelog
 
-## [Unreleased] — 2026-07-29 — feat(client): dashboard and Accords UX hardening
+## [Unreleased] — 2026-07-29 — feat(client/server): Dashboard, Accords, and Partenaires UX hardening
 
 ### Added
 - `packages/client/src/pages/dashboard/` — dashboard split into focused
@@ -11,6 +11,18 @@
 - Accords table country indicators now use deterministic CSS-rendered mini
   flags instead of emoji flags, avoiding Windows/browser fallbacks such as
   `CM` or `FR`.
+- `packages/client/src/pages/partenaires/components/PartenaireFormPage.tsx`
+  — guided create/edit flow for organisations, with optional principal
+  contact creation handled after the organisation is saved.
+- `packages/client/src/pages/partenaires/components/PartenaireDetailPage.tsx`
+  — detail workspace with overview, contacts, organisation information,
+  linked accords, and system metadata.
+- `packages/client/src/pages/partenaires/components/PartenairesRegistryTable.tsx`
+  — desktop registry table plus mobile cards, tooltipped actions, contact
+  health, linked accord counts, and deterministic CSS country marks.
+- Server-side Partenaires list metadata and aggregates: principal contact,
+  active/total contact counts, linked accord counts, contact-quality filters,
+  status filtering, and summary metrics.
 
 ### Changed
 - `ChartCanvas.tsx` now imports `chart.js` from npm and registers Chart.js
@@ -27,6 +39,11 @@
 - `AccordFormPage.tsx` now follows a stepped creation/editing flow with
   structured general information, partner selection, scope, validity,
   document attachment, and review.
+- `PartenairesPage.tsx` now uses a dense operational registry pattern with
+  URL-backed filters/search/sort, summary cards, 8 rows per page, and direct
+  navigation to create/detail/edit pages instead of modal-first workflows.
+- `organisations.service.ts` now batches row metadata for the current page
+  instead of requiring client-side contact fetches per organisation.
 
 ### Fixed
 - Accords table action buttons now expose hover/focus tooltips and use a
@@ -36,13 +53,22 @@
   stable action footer.
 - Validity timeline connector rendering no longer drifts or leaves a dangling
   line when an agreement has no following timeline items.
+- Partenaires country indicators no longer rely on emoji flags, so Windows
+  fallback labels such as `CM`/`FR` are avoided in the registry and detail
+  views.
+- Partenaires rows now show clear contact availability and linked-accord
+  counts without hiding critical state behind the actions menu.
 
 ### Verification
 - `npm run lint` passes with one unrelated existing warning in
   `AdminParametresPage.tsx` (`no-explicit-any`).
-- `npx tsc --noEmit` passes.
-- `npm run build` passes; Vite/esbuild requires running outside the sandbox on
-  this Windows environment because sandboxed builds hit `spawn EPERM`.
+- `npx tsc --noEmit` passes for `packages/client`.
+- `npm run build` passes for `packages/client`; Vite/esbuild requires running
+  outside the sandbox on this Windows environment because sandboxed builds hit
+  `spawn EPERM`.
+- `packages/server` TypeScript/build validation is still blocked by existing
+  `src/db/seed-demo.ts` typing errors; filtering the compiler output for the
+  modified Partenaires server files produced no Partenaires-specific errors.
 
 ## [f06ed6d] — 2026-07-06 — feat(client): UI hardening sprint — shadcn Table/Tabs migration + full feature-folder split
 

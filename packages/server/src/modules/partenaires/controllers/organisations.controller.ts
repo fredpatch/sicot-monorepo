@@ -5,9 +5,25 @@ import { handleOrganisationsError } from '@/utils/error.js';
 // ── GET /api/organisations ────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { search, pays, region, type, actif, page, pageSize, sortBy, sortOrder } = req.query;
+    const {
+      search,
+      pays,
+      region,
+      type,
+      actif,
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+      contactQuality,
+    } = req.query;
 
     const SORTABLE_FIELDS = ['nom', 'type', 'pays', 'region', 'actif', 'createdAt'];
+    const CONTACT_QUALITY_FIELDS = [
+      'avec_principal',
+      'avec_contact_sans_principal',
+      'sans_contact_actif',
+    ];
 
     const result = await organisationsService.listerOrganisations({
       search: search as string | undefined,
@@ -21,6 +37,9 @@ export async function lister(req: Request, res: Response): Promise<void> {
         ? (sortBy as organisationsService.OrganisationSortBy)
         : undefined,
       sortOrder: sortOrder === 'asc' ? 'asc' : sortOrder === 'desc' ? 'desc' : undefined,
+      contactQuality: CONTACT_QUALITY_FIELDS.includes(contactQuality as string)
+        ? (contactQuality as organisationsService.ContactQualityFilter)
+        : undefined,
     });
 
     res.json(result);
@@ -68,7 +87,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
 // ── POST /api/organisations ───────────────────────────────────────────────
 export async function creer(req: Request, res: Response): Promise<void> {
   try {
-    const { nom, pays, region, type, notes } = req.body;
+    const { nom, pays, region, type, actif, notes } = req.body;
 
     if (!nom || !pays || !type) {
       res.status(400).json({ message: 'Champs requis : nom, pays, type.' });
@@ -86,6 +105,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
       pays,
       region,
       type,
+      actif: actif === undefined ? undefined : actif === true,
       notes,
       createdByUserId: req.user!.userId,
     });
