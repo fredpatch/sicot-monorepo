@@ -1,111 +1,71 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
+  AlertCircle,
+  ArrowLeft,
+  Bell,
+  CalendarDays,
+  Download,
+  ExternalLink,
+  FileText,
+  FolderOpen,
+  History,
+  Info,
+  Link2,
   Loader2,
   Pencil,
   RefreshCw,
-  FileText,
   Send,
-  ExternalLink,
-  Building2,
-  Calendar,
+  Users,
 } from 'lucide-react';
 
-import ModalRelance from '@/components/ModalRelance';
-
-import { Button } from '@/components/ui/button';
-import { accordsApi, type AccordStatut } from '@/lib/accords.api';
-import { documentsApi } from '@/lib/documents.api';
-import { useState } from 'react';
-import { notificationsApi } from '@/lib/notifications.api';
 import HistoriqueNotifications from '@/pages/HistoriqueNotifications';
+import ModalRelance from '@/components/ModalRelance';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { accordsApi } from '@/lib/accords.api';
+import { documentsApi } from '@/lib/documents.api';
+import { notificationsApi } from '@/lib/notifications.api';
+import type { Accord } from '../accord.types';
+import {
+  formatAccordDate,
+  formatExpiryLabel,
+  getExpiryTone,
+  isRenewable,
+} from '../accord.utils';
+import { AccordExpiryBadge } from './AccordExpiryBadge';
+import { AccordStatusBadge } from './AccordStatusBadge';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-interface OrganisationResume {
-  id: number;
-  nom: string;
-  pays: string;
-  type: string;
-  contactPrincipal?: {
-    nom: string;
-    prenom: string;
-    email?: string;
-    telephone?: string;
-  };
-}
-
-interface Accord {
-  id: number;
-  reference: string;
-  titre: string;
-  statut: AccordStatut;
-  dateSignature: string;
-  dateExpiration?: string;
-  parentId?: number;
-  documentId?: number;
-  partenaires: OrganisationResume[];
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ── Props ──────────────────────────────────────────────────────────────────
 interface AccordDetailProps {
   accordId: number;
   onModifier: () => void;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-function formaterDate(iso?: string) {
-  if (!iso) return '-';
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-function LigneInfo({ label, valeur }: { label: string; valeur: React.ReactNode }) {
-  return (
-    <div className="flex gap-3">
-      <span className="text-xs text-anac-muted w-36 shrink-0 pt-0.5">{label}</span>
-      <span className="text-sm text-anac-navy">{valeur}</span>
-    </div>
-  );
-}
-
-// ── Badge statut ───────────────────────────────────────────────────────────
-function BadgeStatut({ statut }: { statut: AccordStatut }) {
-  const config: Record<AccordStatut, { label: string; classe: string }> = {
-    actif: { label: 'Actif', classe: 'badge-actif' },
-    expire: { label: 'Expiré', classe: 'badge-expire' },
-    suspendu: { label: 'Suspendu', classe: 'badge-warning' },
-    en_renouvellement: { label: 'En renouvellement', classe: 'badge-info' },
-  };
-  const { label, classe } = config[statut] ?? { label: statut, classe: 'badge-info' };
-  return <span className={classe}>{label}</span>;
-}
-
-// ── Composant principal ────────────────────────────────────────────────────
 export default function AccordDetail({ accordId, onModifier }: AccordDetailProps) {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  const [modalRelance, setModalRelance] = useState(false);
-
-  // State pour le statut de l'envoi groupé
-  const [envoiGroupe, setEnvoiGroupe] = useState(false);
-  const [resultatGroupe, setResultatGroupe] = useState<{
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [section, setSection] = useState(searchParams.get('section') ?? 'overview');
+  const [relanceOpen, setRelanceOpen] = useState(false);
+  const [renewOpen, setRenewOpen] = useState(searchParams.get('action') === 'renew');
+  const [groupResult, setGroupResult] = useState<{
     envoyes: number;
     ignores: number;
-    ignoredRaisons: string[];
+    raisons: string[];
   } | null>(null);
 
-  // ── Requête accord ────────────────────────────────────────────────────
-  const { data: accord, isLoading } = useQuery({
+  const accordQuery = useQuery({
     queryKey: ['accord', accordId],
     queryFn: async () => {
       const res = await accordsApi.getById(accordId);
@@ -113,404 +73,690 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
     },
   });
 
-  // ── Requête document lié ──────────────────────────────────────────────
-  const { data: documentLie } = useQuery({
+  const accord = accordQuery.data;
+
+  const documentQuery = useQuery({
     queryKey: ['document', accord?.documentId],
     queryFn: async () => {
       const res = await documentsApi.getById(accord!.documentId!);
-      return res.data as { id: number; nomOriginal: string; mimeType: string };
+      return res.data as { id: number; nomOriginal: string; mimeType: string; createdAt?: string };
     },
-    enabled: !!accord?.documentId,
+    enabled: Boolean(accord?.documentId),
   });
 
-  // ── Requête accord parent (si renouvellement) ─────────────────────────
-  const { data: accordParent } = useQuery({
+  const parentQuery = useQuery({
     queryKey: ['accord', accord?.parentId],
     queryFn: async () => {
       const res = await accordsApi.getById(accord!.parentId!);
       return res.data as Accord;
     },
-    enabled: !!accord?.parentId,
+    enabled: Boolean(accord?.parentId),
   });
 
-  // ── Requête versions liées (renouvellements de cet accord) ───────────
-  const { data: versionsData } = useQuery({
+  const versionsQuery = useQuery({
     queryKey: ['accords-versions', accordId],
     queryFn: async () => {
-      // Lister les accords dont parentId = accordId
       const res = await accordsApi.lister({ pageSize: 50 });
-      const tous = res.data as { data: Accord[] };
-      return tous.data.filter((a) => a.parentId === accordId);
+      const all = res.data as { data: Accord[] };
+      return all.data.filter((item) => item.parentId === accordId);
     },
-    enabled: !!accord,
+    enabled: Boolean(accord),
   });
 
-  // Construire les destinataires suggérés à partir des partenaires + DG
-  const destinatairesSuggeres = (accord?.partenaires ?? [])
-    .filter((p) => p.contactPrincipal?.email)
-    .map((p) => ({
-      label: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom} — ${p.nom}`,
-      email: p.contactPrincipal!.email!,
-      nom: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom}`,
-    }));
+  useEffect(() => {
+    const nextSection = searchParams.get('section');
+    if (nextSection) setSection(nextSection);
+    setRenewOpen(searchParams.get('action') === 'renew');
+  }, [searchParams]);
 
-  // Mutation envoi groupé
-  const notifierTousMutation = useMutation({
+  function chooseSection(next: string) {
+    setSection(next);
+    const params = new URLSearchParams(searchParams);
+    params.set('section', next);
+    params.delete('action');
+    setSearchParams(params, { replace: true });
+  }
+
+  function closeRenewal() {
+    setRenewOpen(false);
+    const params = new URLSearchParams(searchParams);
+    params.delete('action');
+    setSearchParams(params, { replace: true });
+  }
+
+  const recipients = useMemo(
+    () =>
+      (accord?.partenaires ?? [])
+        .filter((partner) => partner.contactPrincipal?.email)
+        .map((partner) => ({
+          label: `${partner.contactPrincipal!.prenom} ${partner.contactPrincipal!.nom} - ${partner.nom}`,
+          email: partner.contactPrincipal!.email!,
+          nom: `${partner.contactPrincipal!.prenom} ${partner.contactPrincipal!.nom}`,
+        })),
+    [accord?.partenaires]
+  );
+
+  const notifyAllMutation = useMutation({
     mutationFn: async () => {
-      const partenairesAvecContact = accord!.partenaires.filter((p) => p.contactPrincipal?.email);
+      if (!accord) throw new Error('Accord indisponible.');
+      const withEmail = accord.partenaires.filter((partner) => partner.contactPrincipal?.email);
+      const withoutEmail = accord.partenaires.filter((partner) => !partner.contactPrincipal?.email);
+      let sent = 0;
+      const failed: string[] = [];
 
-      if (partenairesAvecContact.length === 0) {
-        throw new Error('Aucun partenaire avec contact principal email disponible.');
-      }
-
-      let envoyes = 0;
-      const ignores: string[] = [];
-
-      for (const p of partenairesAvecContact) {
+      for (const partner of withEmail) {
         try {
           await notificationsApi.envoyer({
             type: 'accord_echeance',
-            entiteId: accord!.id,
-            destinataireEmail: p.contactPrincipal!.email!,
-            destinataireNom: `${p.contactPrincipal!.prenom} ${p.contactPrincipal!.nom}`,
-            objet: `Rappel — Accord ${accord!.reference} (${accord!.titre})`,
+            entiteId: accord.id,
+            destinataireEmail: partner.contactPrincipal!.email!,
+            destinataireNom: `${partner.contactPrincipal!.prenom} ${partner.contactPrincipal!.nom}`,
+            objet: `Rappel - Accord ${accord.reference} (${accord.titre})`,
             message:
-              `L'accord "${accord!.titre}" (réf. ${accord!.reference}) ` +
-              (accord!.dateExpiration
-                ? `arrive à échéance le ${new Date(accord!.dateExpiration).toLocaleDateString('fr-FR')}.`
+              `L'accord "${accord.titre}" (réf. ${accord.reference}) ` +
+              (accord.dateExpiration
+                ? `arrive à échéance le ${formatAccordDate(accord.dateExpiration, 'long')}.`
                 : `nécessite votre attention.`) +
-              `\n\nNous vous remercions de bien vouloir vous positionner sur la suite à donner.`,
+              `\n\nMerci de bien vouloir vous positionner sur la suite à donner.`,
           });
-          envoyes++;
+          sent++;
         } catch {
-          ignores.push(p.nom);
+          failed.push(`${partner.nom} (échec envoi)`);
         }
       }
 
-      // Partenaires sans contact email — signaler
-      const sansContact = accord!.partenaires
-        .filter((p) => !p.contactPrincipal?.email)
-        .map((p) => p.nom);
-
       return {
-        envoyes,
-        ignores: ignores.length + sansContact.length,
-        ignoredRaisons: [
-          ...ignores.map((n) => `${n} (échec envoi)`),
-          ...sansContact.map((n) => `${n} (pas de contact email)`),
+        envoyes: sent,
+        ignores: failed.length + withoutEmail.length,
+        raisons: [
+          ...failed,
+          ...withoutEmail.map((partner) => `${partner.nom} (pas de contact email)`),
         ],
       };
     },
-    onSuccess: (resultat) => {
-      setResultatGroupe(resultat);
-      queryClient.invalidateQueries({
-        queryKey: ['notifications-historique', 'accord_echeance', accordId],
-      });
+    onSuccess: (result) => {
+      setGroupResult(result);
+      queryClient.invalidateQueries({ queryKey: ['notifications-historique', 'accord_echeance', accordId] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    },
-    onError: (err: unknown) => {
-      // setErreur((err as Error)?.message ?? "Erreur lors de l'envoi groupé.");
     },
   });
 
-  // ── Chargement ────────────────────────────────────────────────────────
-  if (isLoading) {
+  if (accordQuery.isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center text-anac-muted">
-        <Loader2 size={16} className="animate-spin mr-2" />
-        {t('common.loading')}
+      <div className="flex min-h-[55vh] items-center justify-center text-anac-muted">
+        <Loader2 size={17} className="mr-2 animate-spin" aria-hidden="true" />
+        Chargement...
       </div>
     );
   }
 
-  if (!accord) return null;
+  if (accordQuery.isError || !accord) {
+    return (
+      <div className="card mx-auto max-w-xl p-8 text-center">
+        <p className="font-semibold text-anac-navy">Accord introuvable.</p>
+        <p className="mt-1 text-sm text-anac-muted">L&apos;accord demandé n&apos;est pas disponible.</p>
+        <Button type="button" variant="outline" onClick={() => navigate('/accords')} className="mt-4">
+          Retour aux accords
+        </Button>
+      </div>
+    );
+  }
 
-  const expirationProche =
-    accord.dateExpiration &&
-    accord.statut === 'actif' &&
-    new Date(accord.dateExpiration) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  const expiryTone = getExpiryTone(accord);
 
-  const estExpire = accord.dateExpiration && new Date(accord.dateExpiration) < new Date();
-
-  // ── Rendu ─────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl mx-auto px-6 py-6 space-y-6 border border-anac-border rounded-lg">
-      {/* ── En-tête ──────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <BadgeStatut statut={accord.statut} />
+    <div className="mx-auto max-w-[1180px] space-y-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-anac-muted">
+            <Link to="/accords" className="inline-flex items-center gap-1 text-anac-blue hover:text-anac-navy">
+              <ArrowLeft size={13} aria-hidden="true" />
+              Accords
+            </Link>
+            <span>/</span>
+            <span>{accord.reference}</span>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <h2 className="text-2xl font-bold text-anac-navy">{accord.titre}</h2>
+            <AccordStatusBadge statut={accord.statut} />
             {accord.parentId && (
-              <span className="text-xs text-anac-muted bg-anac-gray rounded px-2 py-0.5">
-                Renouvellement
+              <span className="rounded border border-anac-border bg-anac-gray px-2 py-0.5 text-xs font-semibold text-anac-muted">
+                Version renouvelée
               </span>
             )}
           </div>
-          <h2 className="text-lg font-bold text-anac-navy leading-snug">{accord.titre}</h2>
-          <p className="font-mono text-xs text-anac-muted">{accord.reference}</p>
+          <p className="mt-1 text-sm text-anac-muted">{accord.reference} - {formatExpiryLabel(accord)}</p>
         </div>
 
-        <Button onClick={onModifier} variant="secondary" size="sm" className="gap-1.5 shrink-0">
-          <Pencil size={13} /> Modifier
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {documentQuery.data && (
+            <a href={documentsApi.getUrlTelechargement(documentQuery.data.id)} target="_blank" rel="noopener noreferrer">
+              <Button type="button" variant="outline" className="gap-2">
+                <Download size={14} aria-hidden="true" />
+                Télécharger
+              </Button>
+            </a>
+          )}
+          <Button type="button" variant="outline" onClick={onModifier} className="gap-2">
+            <Pencil size={14} aria-hidden="true" />
+            Modifier
+          </Button>
+          {isRenewable(accord) && (
+            <Button type="button" onClick={() => setRenewOpen(true)} className="gap-2 bg-anac-blue">
+              <RefreshCw size={14} aria-hidden="true" />
+              Renouveler l&apos;accord
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* ── Alerte expiration ─────────────────────────────────────────── */}
-      {expirationProche && !estExpire && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-3 text-sm font-medium">
-          ⚠ Cet accord expire le {formaterDate(accord.dateExpiration)} - pensez au renouvellement.
-        </div>
+      {expiryTone === 'critical' && (
+        <OperationalBanner tone="critical">
+          Cet accord a expiré le {formatAccordDate(accord.dateExpiration, 'long')}. Une décision est
+          requise : renouveler, suspendre ou clôturer le suivi.
+        </OperationalBanner>
+      )}
+      {expiryTone === 'warning' && (
+        <OperationalBanner tone="warning">
+          Cet accord expire dans {formatExpiryLabel(accord).replace('J-', '')} jours. Préparez le
+          renouvellement ou contactez les partenaires.
+        </OperationalBanner>
       )}
 
-      {estExpire && accord.statut !== 'en_renouvellement' && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm font-medium">
-          ✕ Cet accord a expiré le {formaterDate(accord.dateExpiration)}.
-        </div>
-      )}
-
-      {/* ── Informations générales ────────────────────────────────────── */}
-      <div className="card p-5 space-y-3">
-        <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide">Détails</p>
-
-        <LigneInfo
-          label="Date de signature"
-          valeur={
-            <span className="inline-flex items-center gap-1.5">
-              <Calendar size={12} className="text-anac-muted" />
-              {formaterDate(accord.dateSignature)}
-            </span>
-          }
-        />
-
-        <LigneInfo
+      <section className="grid grid-cols-2 gap-3 rounded-lg border border-anac-border bg-white p-4 md:grid-cols-4">
+        <SummaryItem label="Référence" value={accord.reference} />
+        <SummaryItem label="Statut" value={<AccordStatusBadge statut={accord.statut} />} />
+        <SummaryItem label="Date de signature" value={formatAccordDate(accord.dateSignature)} />
+        <SummaryItem
           label="Date d'expiration"
-          valeur={
+          value={
             accord.dateExpiration ? (
-              <span
-                className={
-                  estExpire
-                    ? 'text-red-600 font-semibold'
-                    : expirationProche
-                      ? 'text-amber-600 font-semibold'
-                      : ''
-                }
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <Calendar size={12} className="text-anac-muted" />
-                  {formaterDate(accord.dateExpiration)}
-                </span>
+              <span className="inline-flex items-center gap-2">
+                {formatAccordDate(accord.dateExpiration)}
+                <AccordExpiryBadge accord={accord} showDate={false} />
               </span>
             ) : (
-              <span className="text-anac-muted">Sans date d&apos;expiration</span>
+              'Sans date d’expiration'
             )
           }
         />
+      </section>
 
-        {accord.notes && (
-          <LigneInfo
-            label="Notes"
-            valeur={<span className="text-anac-text leading-relaxed">{accord.notes}</span>}
-          />
-        )}
-      </div>
+      <div className="grid gap-4 lg:grid-cols-[230px_1fr]">
+        <nav className="card h-fit p-3" aria-label="Sections de l'accord">
+          {[
+            { key: 'overview', label: 'Aperçu', icon: Info },
+            { key: 'partners', label: 'Partenaires', icon: Users },
+            { key: 'document', label: 'Document', icon: FileText },
+            { key: 'validity', label: 'Validité et versions', icon: History },
+            { key: 'notifications', label: 'Notifications', icon: Bell },
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => chooseSection(key)}
+              className={`flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-anac-sky ${
+                section === key ? 'bg-blue-50 text-anac-blue' : 'text-anac-muted hover:bg-anac-gray'
+              }`}
+            >
+              <Icon size={15} aria-hidden="true" />
+              {label}
+            </button>
+          ))}
+        </nav>
 
-      {/* ── Partenaires ───────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide">
-          Partenaires ({accord.partenaires.length})
-        </p>
-        <div className="space-y-2">
-          {accord.partenaires.map((p) => (
-            <div key={p.id} className="card p-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-anac-sky/10 flex items-center justify-center shrink-0">
-                <Building2 size={14} className="text-anac-sky" />
+        <main>
+          {section === 'overview' && (
+            <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+              <section className="card p-5">
+                <h3 className="font-bold text-anac-navy">Informations clés</h3>
+                <dl className="mt-4 grid gap-4 text-sm">
+                  <DetailRow label="Titre" value={accord.titre} />
+                  <DetailRow label="Statut" value={<AccordStatusBadge statut={accord.statut} />} />
+                  <DetailRow label="Signature" value={formatAccordDate(accord.dateSignature, 'long')} />
+                  <DetailRow label="Échéance" value={accord.dateExpiration ? formatAccordDate(accord.dateExpiration, 'long') : 'Sans date d’expiration'} />
+                  <DetailRow label="Notes" value={accord.notes || 'Aucune note'} />
+                  {parentQuery.data && (
+                    <DetailRow
+                      label="Accord parent"
+                      value={<Link to={`/accords/${parentQuery.data.id}`} className="text-anac-blue">{parentQuery.data.reference}</Link>}
+                    />
+                  )}
+                </dl>
+              </section>
+
+              <aside className="space-y-4">
+                <section className="card p-5">
+                  <h3 className="font-bold text-anac-navy">Cycle de validité</h3>
+                  <ol className="mt-4 text-sm">
+                    <TimelineItem
+                      label="Accord signé"
+                      date={formatAccordDate(accord.dateSignature)}
+                      first
+                      last={!accord.dateExpiration && !versionsQuery.data?.length}
+                    />
+                    {accord.dateExpiration && <TimelineItem label="Début de surveillance à 90 jours" date="J-90" />}
+                    {accord.dateExpiration && (
+                      <TimelineItem
+                        label="Échéance"
+                        date={formatAccordDate(accord.dateExpiration)}
+                        last={!versionsQuery.data?.length}
+                      />
+                    )}
+                    {versionsQuery.data && versionsQuery.data.length > 0 && (
+                      <TimelineItem
+                        label="Renouvellement créé"
+                        date={`${versionsQuery.data.length} version${versionsQuery.data.length > 1 ? 's' : ''}`}
+                        last
+                      />
+                    )}
+                  </ol>
+                </section>
+                <section className="card p-5">
+                  <h3 className="font-bold text-anac-navy">Dossier lié</h3>
+                  <div className="mt-4 space-y-3">
+                    <DossierLink
+                      icon={documentQuery.data ? FileText : FolderOpen}
+                      label={documentQuery.data ? documentQuery.data.nomOriginal : 'Aucun document lié'}
+                      helper="Document de référence"
+                    />
+                    <DossierLink
+                      icon={Users}
+                      label={`${accord.partenaires.length} partenaire${accord.partenaires.length > 1 ? 's' : ''}`}
+                      helper="Organisations associées"
+                    />
+                    {parentQuery.data && (
+                      <DossierLink icon={Link2} label={parentQuery.data.reference} helper="Accord parent" />
+                    )}
+                  </div>
+                </section>
+              </aside>
+            </div>
+          )}
+
+          {section === 'partners' && (
+            <section className="card p-5">
+              <h3 className="font-bold text-anac-navy">Partenaires</h3>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {accord.partenaires.map((partner) => (
+                  <div key={partner.id} className="rounded-md border border-anac-border p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex size-9 items-center justify-center rounded-full bg-blue-50 text-anac-blue">
+                        <Users size={17} aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-anac-navy">{partner.nom}</p>
+                        <p className="text-sm text-anac-muted">{partner.pays} - {partner.type}</p>
+                        {partner.contactPrincipal ? (
+                          <p className="mt-2 text-xs text-anac-muted">
+                            {partner.contactPrincipal.prenom} {partner.contactPrincipal.nom}
+                            {partner.contactPrincipal.email ? ` - ${partner.contactPrincipal.email}` : ' - sans email'}
+                          </p>
+                        ) : (
+                          <p className="mt-2 text-xs font-medium text-anac-warning">
+                            Aucun contact principal défini.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-anac-navy">{p.nom}</p>
-                <p className="text-xs text-anac-muted">{p.pays}</p>
-                {p.contactPrincipal ? (
-                  <p className="text-[11px] text-anac-muted mt-0.5">
-                    Contact : {p.contactPrincipal.prenom} {p.contactPrincipal.nom}
-                    {p.contactPrincipal.email && ` · ${p.contactPrincipal.email}`}
-                  </p>
+            </section>
+          )}
+
+          {section === 'document' && (
+            <section className="card p-5">
+              <h3 className="font-bold text-anac-navy">Document</h3>
+              {documentQuery.data ? (
+                <div className="mt-4 flex items-center justify-between rounded-md border border-anac-border p-4">
+                  <span className="flex items-center gap-3">
+                    <FileText size={18} className="text-anac-blue" aria-hidden="true" />
+                    <span>
+                      <span className="block font-semibold text-anac-navy">{documentQuery.data.nomOriginal}</span>
+                      <span className="text-xs text-anac-muted">{documentQuery.data.mimeType}</span>
+                    </span>
+                  </span>
+                  <a href={documentsApi.getUrlTelechargement(documentQuery.data.id)} target="_blank" rel="noopener noreferrer" className="text-anac-blue">
+                    <ExternalLink size={16} aria-label="Ouvrir le document" />
+                  </a>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-md border border-anac-border bg-anac-gray p-6 text-center">
+                  <p className="font-medium text-anac-navy">Aucun document de référence n&apos;est lié à cet accord.</p>
+                  <Button type="button" variant="outline" onClick={onModifier} className="mt-4">
+                    Modifier l&apos;accord pour lier un document
+                  </Button>
+                </div>
+              )}
+            </section>
+          )}
+
+          {section === 'validity' && (
+            <section className="card p-5">
+              <h3 className="font-bold text-anac-navy">Validité et versions</h3>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <InfoBox icon={<CalendarDays size={17} />} label="Signature" value={formatAccordDate(accord.dateSignature)} />
+                <InfoBox icon={<AlertCircle size={17} />} label="Échéance" value={accord.dateExpiration ? formatAccordDate(accord.dateExpiration) : 'Sans échéance'} />
+                <InfoBox icon={<RefreshCw size={17} />} label="État" value={formatExpiryLabel(accord)} />
+              </div>
+              {parentQuery.data && (
+                <Link to={`/accords/${parentQuery.data.id}`} className="mt-4 block rounded-md border border-anac-border p-4 hover:bg-anac-gray">
+                  Accord parent : {parentQuery.data.reference}
+                </Link>
+              )}
+              <div className="mt-4 space-y-2">
+                <p className="font-semibold text-anac-navy">Renouvellements</p>
+                {versionsQuery.data?.length ? (
+                  versionsQuery.data.map((version) => (
+                    <Link key={version.id} to={`/accords/${version.id}`} className="block rounded-md border border-anac-border px-4 py-3 hover:bg-anac-gray">
+                      {version.reference} - {formatAccordDate(version.dateSignature)}
+                    </Link>
+                  ))
                 ) : (
-                  <p className="text-[11px] text-amber-600 mt-0.5">
-                    ⚠ Aucun contact principal défini
-                  </p>
+                  <p className="text-sm text-anac-muted">Aucune version renouvelée trouvée.</p>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
+            </section>
+          )}
+
+          {section === 'notifications' && (
+            <section className="space-y-4">
+              <div className="card p-5">
+                <h3 className="font-bold text-anac-navy">Notifications</h3>
+                <p className="mt-1 text-sm text-anac-muted">
+                  {recipients.length} partenaire{recipients.length > 1 ? 's' : ''} avec email disponible.
+                  {accord.partenaires.length - recipients.length > 0 &&
+                    ` ${accord.partenaires.length - recipients.length} partenaire(s) seront ignorés faute d'email.`}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" onClick={() => setRelanceOpen(true)} className="gap-2">
+                    <Send size={14} aria-hidden="true" />
+                    Préparer une relance
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setGroupResult(null);
+                      notifyAllMutation.mutate();
+                    }}
+                    disabled={recipients.length === 0 || notifyAllMutation.isPending}
+                    className="gap-2 bg-anac-blue"
+                  >
+                    {notifyAllMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                    Notifier les partenaires
+                  </Button>
+                </div>
+                {groupResult && (
+                  <div className="mt-4 rounded-md border border-anac-border bg-anac-gray px-4 py-3 text-sm">
+                    <p className="font-semibold text-anac-navy">
+                      {groupResult.envoyes} notification(s) envoyée(s), {groupResult.ignores} ignorée(s).
+                    </p>
+                    {groupResult.raisons.length > 0 && (
+                      <ul className="mt-2 list-disc pl-5 text-xs text-anac-muted">
+                        {groupResult.raisons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+              <HistoriqueNotifications type="accord_echeance" entiteId={accordId} />
+            </section>
+          )}
+        </main>
       </div>
 
-      {/* ── Document lié ──────────────────────────────────────────────── */}
-      {documentLie && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide">
-            Document de référence
-          </p>
-          <div className="card p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText size={16} className="text-anac-muted shrink-0" />
+      <RenewalDialog accord={accord} open={renewOpen} onOpenChange={(open) => (open ? setRenewOpen(true) : closeRenewal())} />
+
+      <ModalRelance
+        open={relanceOpen}
+        onClose={() => setRelanceOpen(false)}
+        type="accord_echeance"
+        entiteId={accord.id}
+        objetParDefaut={`Rappel - Accord ${accord.reference} (${accord.titre})`}
+        messageParDefaut={
+          `L'accord "${accord.titre}" (réf. ${accord.reference}) ` +
+          (accord.dateExpiration
+            ? `arrive à échéance le ${formatAccordDate(accord.dateExpiration, 'long')}.`
+            : `nécessite votre attention.`) +
+          `\n\nMerci de bien vouloir vous positionner sur la suite à donner.`
+        }
+        destinatairesSuggeres={recipients}
+      />
+    </div>
+  );
+}
+
+function RenewalDialog({
+  accord,
+  open,
+  onOpenChange,
+}: {
+  accord: Accord;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [dateSignature, setDateSignature] = useState('');
+  const [dateExpiration, setDateExpiration] = useState('');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const renewalMutation = useMutation({
+    mutationFn: () =>
+      accordsApi.renouveler(accord.id, {
+        dateSignature,
+        dateExpiration: dateExpiration || undefined,
+        notes: notes || undefined,
+      }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['accords'] });
+      queryClient.invalidateQueries({ queryKey: ['accord', accord.id] });
+      const renewed = res.data.accord as Accord;
+      onOpenChange(false);
+      navigate(`/accords/${renewed.id}`);
+    },
+    onError: (err: unknown) => {
+      setError(
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+          'Le renouvellement a échoué.'
+      );
+    },
+  });
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    if (!dateSignature) {
+      setError('La date de signature est requise.');
+      return;
+    }
+    if (dateExpiration && new Date(dateExpiration) <= new Date(dateSignature)) {
+      setError("La date d'expiration doit être postérieure à la signature.");
+      return;
+    }
+    renewalMutation.mutate();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl overflow-hidden p-0">
+        <DialogHeader className="pr-12">
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-anac-blue">
+              <RefreshCw size={18} aria-hidden="true" />
+            </span>
+            <span>
+              <DialogTitle className="text-base">Renouveler l&apos;accord</DialogTitle>
+              <DialogDescription>
+                Créez une nouvelle version sans perdre l&apos;historique de suivi.
+              </DialogDescription>
+            </span>
+          </div>
+        </DialogHeader>
+        <form onSubmit={submit}>
+          <DialogBody className="space-y-5">
+            <div className="grid gap-3 rounded-lg border border-anac-border bg-anac-gray p-4 text-sm sm:grid-cols-[1fr_auto]">
               <div>
-                <p className="text-sm font-medium text-anac-navy">{documentLie.nomOriginal}</p>
-                <p className="text-xs text-anac-muted">
-                  {documentLie.mimeType.split('/')[1]?.toUpperCase()}
-                </p>
+                <p className="font-semibold text-anac-navy">{accord.reference}</p>
+                <p className="mt-1 text-anac-muted">{accord.titre}</p>
+              </div>
+              <div className="flex items-start sm:justify-end">
+                <AccordStatusBadge statut={accord.statut} />
               </div>
             </div>
 
-            <a
-              href={`/api/documents/${documentLie.id}/telecharger`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-anac-sky hover:text-anac-navy transition-colors inline-flex items-center gap-1"
-            >
-              <ExternalLink size={11} /> Consulter
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* ── Accord parent (si renouvellement) ────────────────────────── */}
-      {accordParent && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide">
-            Accord d&apos;origine
-          </p>
-          <button
-            onClick={() => navigate(`/accords/${accordParent.id}`)}
-            className="card p-4 w-full text-left hover:bg-anac-gray/50 transition-colors space-y-1"
-          >
-            <div className="flex items-center gap-2">
-              <BadgeStatut statut={accordParent.statut} />
-              <span className="font-mono text-xs text-anac-muted">{accordParent.reference}</span>
+            <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-anac-muted">
+              L&apos;accord actuel passera au statut « En renouvellement » et restera disponible dans
+              l&apos;historique des versions.
             </div>
-            <p className="text-sm font-medium text-anac-navy">{accordParent.titre}</p>
-            <p className="text-xs text-anac-muted">
-              Signé le {formaterDate(accordParent.dateSignature)}
-            </p>
-          </button>
-        </div>
-      )}
 
-      {/* ── Versions / renouvellements ────────────────────────────────── */}
-      {versionsData && versionsData.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-anac-muted uppercase tracking-wide">
-            Renouvellements ({versionsData.length})
-          </p>
-          <div className="space-y-2">
-            {versionsData.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => navigate(`/accords/${v.id}`)}
-                className="card p-4 w-full text-left hover:bg-anac-gray/50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <RefreshCw size={12} className="text-anac-muted" />
-                    <span className="font-mono text-xs text-anac-muted">{v.reference}</span>
-                    <BadgeStatut statut={v.statut} />
-                  </div>
-                  <span className="text-xs text-anac-muted">{formaterDate(v.dateSignature)}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Historique notifications ─────────────────────────────────── */}
-      <HistoriqueNotifications type="accord_echeance" entiteId={accordId} />
-
-      {/* ── Métadonnées ────────────────────────────────────────────────── */}
-      <div className="flex justify-between text-xs text-anac-muted space-y-1 pt-2 border-t border-anac-border">
-        <span className="flex flex-col gap-2">
-          <p>Créé le {formaterDate(accord.createdAt)}</p>
-          <p>Modifié le {formaterDate(accord.updatedAt)}</p>
-        </span>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setModalRelance(true)}
-          className="gap-1.5"
-        >
-          <Send size={13} /> Relancer
-        </Button>
-
-        {/* Bouton notifier tous - visible si au moins 2 partenaires avec email */}
-        {(accord?.partenaires.filter((p) => p.contactPrincipal?.email).length ?? 0) > 1 && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setResultatGroupe(null);
-              notifierTousMutation.mutate();
-            }}
-            disabled={notifierTousMutation.isPending || envoiGroupe}
-            className="gap-1.5"
-          >
-            {notifierTousMutation.isPending ? (
-              <>
-                <Loader2 size={13} className="animate-spin" /> Envoi...
-              </>
-            ) : (
-              <>
-                <Send size={13} /> Notifier tous (
-                {accord.partenaires.filter((p) => p.contactPrincipal?.email).length})
-              </>
+            {error && (
+              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-anac-danger">
+                {error}
+              </p>
             )}
-          </Button>
-        )}
-      </div>
 
-      {resultatGroupe && (
-        <div
-          className={`mx-6 mt-2 rounded-lg px-4 py-3 text-sm ${
-            resultatGroupe.envoyes > 0
-              ? 'bg-green-50 border border-green-200 text-green-700'
-              : 'bg-red-50 border border-red-200 text-red-700'
-          }`}
-        >
-          <p className="font-medium">
-            {resultatGroupe.envoyes} notification(s) envoyée(s)
-            {resultatGroupe.ignores > 0 && `, ${resultatGroupe.ignores} ignorée(s)`}.
-          </p>
-          {resultatGroupe.ignoredRaisons.length > 0 && (
-            <ul className="mt-1 text-xs space-y-0.5">
-              {resultatGroupe.ignoredRaisons.map((r, i) => (
-                <li key={i}>· {r}</li>
-              ))}
-            </ul>
-          )}
-          <button
-            onClick={() => setResultatGroupe(null)}
-            className="text-xs underline mt-1 opacity-70 hover:opacity-100"
-          >
-            Fermer
-          </button>
-        </div>
-      )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="renew-signature">Nouvelle date de signature *</Label>
+                <Input
+                  id="renew-signature"
+                  type="date"
+                  value={dateSignature}
+                  onChange={(event) => setDateSignature(event.target.value)}
+                  aria-invalid={Boolean(error && !dateSignature)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="renew-expiration">Nouvelle date d&apos;expiration</Label>
+                <Input
+                  id="renew-expiration"
+                  type="date"
+                  value={dateExpiration}
+                  onChange={(event) => setDateExpiration(event.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
 
-      {accord && (
-        <ModalRelance
-          open={modalRelance}
-          onClose={() => setModalRelance(false)}
-          type="accord_echeance"
-          entiteId={accord.id}
-          objetParDefaut={`Rappel - Accord ${accord.reference} (${accord.titre})`}
-          messageParDefaut={
-            `L'accord "${accord.titre}" (réf. ${accord.reference}) ` +
-            (accord.dateExpiration
-              ? `arrive à échéance le ${new Date(accord.dateExpiration).toLocaleDateString('fr-FR')}.`
-              : `nécessite votre attention.`) +
-            `\n\nMerci de bien vouloir vous positionner sur la suite à donner (renouvellement, suspension, ou clôture).`
-          }
-          destinatairesSuggeres={destinatairesSuggeres}
-        />
-      )}
+            <div>
+              <Label htmlFor="renew-notes">Notes de renouvellement</Label>
+              <textarea
+                id="renew-notes"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                rows={5}
+                className="input mt-1 min-h-28 resize-none"
+                placeholder="Décision, contexte, référence du courrier ou prochaine étape..."
+              />
+            </div>
+          </DialogBody>
+          <DialogFooter className="bg-slate-50">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Annuler
+            </Button>
+            <Button type="submit" disabled={renewalMutation.isPending} className="gap-2 bg-anac-blue">
+              {renewalMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+              Confirmer le renouvellement
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function OperationalBanner({ tone, children }: { tone: 'critical' | 'warning'; children: React.ReactNode }) {
+  return (
+    <div
+      className={`rounded-lg border px-4 py-3 text-sm font-medium ${
+        tone === 'critical'
+          ? 'border-red-200 bg-red-50 text-anac-danger'
+          : 'border-amber-200 bg-amber-50 text-anac-warning'
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0 border-r border-anac-border pr-3 last:border-r-0">
+      <p className="text-xs text-anac-muted">{label}</p>
+      <div className="mt-1 font-semibold text-anac-navy">{value}</div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[160px_1fr]">
+      <dt className="text-xs font-medium text-anac-muted">{label}</dt>
+      <dd className="text-anac-navy">{value}</dd>
+    </div>
+  );
+}
+
+function TimelineItem({
+  label,
+  date,
+  first = false,
+  last = false,
+}: {
+  label: string;
+  date: string;
+  first?: boolean;
+  last?: boolean;
+}) {
+  return (
+    <li className="grid grid-cols-[18px_1fr] gap-3">
+      <span className="relative flex justify-center">
+        {!first && <span className="absolute top-0 h-3 w-px bg-anac-border" />}
+        <span className="mt-3 size-2.5 rounded-full border-2 border-anac-blue bg-white" />
+        {!last && <span className="absolute bottom-0 top-5 w-px bg-anac-border" />}
+      </span>
+      <span className="pb-4">
+        <span className="block font-semibold text-anac-navy">{label}</span>
+        <span className="text-xs text-anac-muted">{date}</span>
+      </span>
+    </li>
+  );
+}
+
+function DossierLink({
+  icon: Icon,
+  label,
+  helper,
+}: {
+  icon: React.ElementType;
+  label: string;
+  helper: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-md border border-anac-border px-3 py-2.5">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-anac-blue">
+        <Icon size={16} aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-semibold text-anac-navy">{label}</span>
+        <span className="text-xs text-anac-muted">{helper}</span>
+      </span>
+    </div>
+  );
+}
+
+function InfoBox({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-anac-border p-4">
+      <div className="flex items-center gap-2 text-anac-blue">{icon}</div>
+      <p className="mt-2 text-xs text-anac-muted">{label}</p>
+      <p className="mt-1 font-semibold text-anac-navy">{value}</p>
     </div>
   );
 }

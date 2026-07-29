@@ -579,6 +579,28 @@ Planifié dans Sprint 11 comme suivi ("à migrer plus tard"), réalisé en sessi
 - Pas de composant `DataTable` générique avec props `data`/`columns`/`filters`/`extra` construit à la main : `@tanstack/react-table` (bibliothèque mûre) utilisé à la place, évite de réinventer un moteur de tri/pagination/filtrage
 - Les 6 tableaux d'AnalyticsPage (petits, statiques, sans pagination ni actions par ligne au-delà d'un bouton) utilisent les primitives `Table` simples, pas `DataTable` — `DataTable` réservé aux tableaux avec état serveur réel (pagination/tri/filtres)
 
+### Ajout post-clôture — Dashboard et Accords UX hardening
+
+Réalisé le 29 juillet 2026 dans la continuité du durcissement UI shadcn, avec
+un objectif terrain : rendre le tableau de bord opérationnel et le module M1
+plus lisibles, plus stables et plus rapides à parcourir.
+
+- [x] ~~**Dashboard M9 — refonte opérationnelle**~~ - `DashboardPage.tsx` extrait vers `pages/dashboard/` avec composants dédiés, en-tête de supervision, priorités du jour, actions rapides, KPI, suivi dossiers, activité récente et graphiques intégrés
+- [x] ~~**Graphiques — suppression du CDN Chart.js**~~ - `ChartCanvas.tsx` importe `chart.js` depuis npm et enregistre les `registerables`, ce qui restaure les animations et évite les pertes de rendu liées au chargement CDN au changement de section
+- [x] ~~**Accords M1 — registre complet**~~ - `AccordsPage.tsx` remplacé par une vue registre avec cartes de synthèse, filtres URL-backed, recherche débouncée, pagination à 8 lignes, table desktop et cartes mobiles
+- [x] ~~**Accords M1 — découpage feature-folder**~~ - Ajout de `accord.constants.ts`, `accord.types.ts`, `accord.utils.ts` et composants dédiés (`AccordFilters`, `AccordRegistryTable`, `AccordSummaryCards`, badges statut/échéance)
+- [x] ~~**Accords M1 — fiche détail durcie**~~ - Navigation latérale iconifiée, timeline de validité réalignée, dossier lié avec icônes, onglets métier (aperçu, partenaires, document, validité, notifications), relance et notification groupée
+- [x] ~~**Accords M1 — modal renouvellement shadcn**~~ - Dialog renouvellement restructuré avec header, résumé accord, message d'impact, validation dates, notes et footer d'actions stable
+- [x] ~~**Accords M1 — actions de table clarifiées**~~ - Tooltips hover/focus sur voir/modifier/renouveler/relancer, icône détail remplacée par `Eye`
+- [x] ~~**Accords M1 — pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS plutôt qu'en emoji, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
+- [x] ~~**Accords M1 — formulaire guidé**~~ - `AccordFormPage.tsx` restructuré en étapes : informations générales, partenaires, contenu/scope, validité, document, révision
+
+**Validation 29 juillet 2026** :
+
+- `npm run lint` OK côté client, avec un avertissement existant hors périmètre dans `AdminParametresPage.tsx` (`no-explicit-any`)
+- `npx tsc --noEmit` OK côté client
+- `npm run build` OK côté client ; sur Windows, Vite/esbuild doit être lancé hors sandbox car le build sandboxé échoue avec `spawn EPERM`
+
 ### Dette technique identifiée (voir aussi Notion, tâches différées)
 
 - Aucune colonne segments pour les traductions (M6 volume)

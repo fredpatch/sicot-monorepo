@@ -1,321 +1,254 @@
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Plus, ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { accordsApi, type AccordStatut } from '@/lib/accords.api';
+import { organisationsApi } from '@/lib/organisations.api';
 import AccordDetail from './accords/components/AccordDetail';
-import { organisationsApi } from '@/lib/api';
+import { ACCORD_EXPIRY_WARNING_DAYS, ACCORD_PAGE_SIZE } from './accords/accord.constants';
+import type { AccordListResponse, ExpiryFilter, OrganisationOption } from './accords/accord.types';
+import { AccordFilters } from './accords/components/AccordFilters';
+import {
+  AccordRegistryMobileCards,
+  AccordRegistryTable,
+} from './accords/components/AccordRegistryTable';
+import { AccordSummaryCards } from './accords/components/AccordSummaryCards';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-interface OrganisationResume {
-  id: number;
-  nom: string;
-  pays: string;
-  type: string;
+function useDebouncedValue<T>(value: T, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(handle);
+  }, [value, delay]);
+
+  return debounced;
 }
 
-interface Accord {
-  id: number;
-  reference: string;
-  titre: string;
-  statut: AccordStatut;
-  dateSignature: string;
-  dateExpiration?: string;
-  partenaires: OrganisationResume[];
-  parentId?: number;
-  createdAt: string;
+function getExpiryDateParam(expiry: ExpiryFilter) {
+  if (!expiry || expiry === 'expired') return undefined;
+  const date = new Date();
+  date.setDate(date.getDate() + parseInt(expiry, 10));
+  return date.toISOString();
 }
 
-// ── Badge statut ───────────────────────────────────────────────────────────
-function BadgeStatut({ statut }: { statut: AccordStatut }) {
-  const config: Record<AccordStatut, { label: string; classe: string }> = {
-    actif: { label: 'Actif', classe: 'badge-actif' },
-    expire: { label: 'Expiré', classe: 'badge-expire' },
-    suspendu: { label: 'Suspendu', classe: 'badge-warning' },
-    en_renouvellement: { label: 'En renouvellement', classe: 'badge-info' },
-  };
-  const { label, classe } = config[statut] ?? { label: statut, classe: 'badge-info' };
-  return <span className={classe}>{label}</span>;
-}
-
-const STATUTS: { value: string; label: string }[] = [
-  { value: '__all__', label: 'Tous les statuts' },
-  { value: 'actif', label: 'Actif' },
-  { value: 'expire', label: 'Expiré' },
-  { value: 'suspendu', label: 'Suspendu' },
-  { value: 'en_renouvellement', label: 'En renouvellement' },
-];
-
-// ── Composant principal ────────────────────────────────────────────────────
 export default function AccordsPage() {
-  const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const accordIdSelectionne = id ? parseInt(id) : null;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const accordIdSelectionne = id ? parseInt(id, 10) : null;
 
-  // ── Filtres ───────────────────────────────────────────────────────────
-  const [search, setSearch] = useState('');
-  const [statut, setStatut] = useState('');
-  const [partenaireId, setPartenaireId] = useState<number | undefined>(() => {
-    const param = searchParams.get('partenaireId');
-    return param ? parseInt(param) : undefined;
-  });
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
+  const debouncedSearch = useDebouncedValue(search);
+  const statut = searchParams.get('statut') ?? '';
+  const partenaireId = searchParams.get('partenaireId') ?? '';
+  const expiry = (searchParams.get('echeance') ?? '') as ExpiryFilter;
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
 
-  // ── Requête ───────────────────────────────────────────────────────────
-  const { data, isLoading } = useQuery({
-    queryKey: ['accords', search, statut, partenaireId, page],
+  const updateParams = useCallback((updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === '') next.delete(key);
+      else next.set(key, value);
+    }
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const current = searchParams.get('search') ?? '';
+    if (debouncedSearch === current) return;
+    updateParams({ search: debouncedSearch || null, page: null });
+  }, [debouncedSearch, searchParams, updateParams]);
+
+  const queryParams = useMemo(
+    () => ({
+      search: debouncedSearch || undefined,
+      statut: expiry === 'expired' ? ('expire' as AccordStatut) : statut ? (statut as AccordStatut) : undefined,
+      partenairesId: partenaireId ? parseInt(partenaireId, 10) : undefined,
+      expirantAvant: getExpiryDateParam(expiry),
+      page,
+      pageSize: ACCORD_PAGE_SIZE,
+    }),
+    [debouncedSearch, expiry, page, partenaireId, statut]
+  );
+
+  const accordsQuery = useQuery({
+    queryKey: ['accords', queryParams],
     queryFn: async () => {
-      const res = await accordsApi.lister({
-        search: search || undefined,
-        statut: statut ? (statut as AccordStatut) : undefined,
-        partenairesId: partenaireId,
-        page,
-        pageSize: 20,
-      });
-      return res.data as { data: Accord[]; total: number };
+      const res = await accordsApi.lister(queryParams);
+      return res.data as AccordListResponse;
     },
+    enabled: !accordIdSelectionne,
   });
-  const totalPages = data ? Math.ceil(data.total / 20) : 0;
 
-  const { data: orgsData } = useQuery({
+  const orgsQuery = useQuery({
     queryKey: ['organisations-filtre-accords'],
     queryFn: async () => {
       const res = await organisationsApi.lister({ actif: true, pageSize: 200 });
-      return res.data as { data: { id: number; nom: string; pays: string }[] };
+      return res.data as { data: OrganisationOption[]; total: number };
     },
   });
 
-  const organisations = orgsData?.data ?? [];
+  const totalQuery = useAccordCount({});
+  const activeQuery = useAccordCount({ statut: 'actif' });
+  const expiredQuery = useAccordCount({ statut: 'expire' });
+  const suspendedQuery = useAccordCount({ statut: 'suspendu' });
+  const renewalQuery = useQuery({
+    queryKey: ['accords-summary-renewal', ACCORD_EXPIRY_WARNING_DAYS],
+    queryFn: async () => {
+      const res = await accordsApi.expirantBientot(ACCORD_EXPIRY_WARNING_DAYS);
+      return Array.isArray(res.data) ? res.data.length : 0;
+    },
+    enabled: !accordIdSelectionne,
+  });
 
-  useEffect(() => {
-    const param = searchParams.get('partenaireId');
-    setPartenaireId(param ? parseInt(param) : undefined);
-  }, [searchParams]);
+  if (accordIdSelectionne) {
+    return (
+      <AccordDetail
+        accordId={accordIdSelectionne}
+        onModifier={() => navigate(`/accords/${accordIdSelectionne}/edit`)}
+      />
+    );
+  }
 
-  // ── Rendu ─────────────────────────────────────────────────────────────
+  const accords = accordsQuery.data?.data ?? [];
+  const totalPages = accordsQuery.data ? Math.ceil(accordsQuery.data.total / ACCORD_PAGE_SIZE) : 0;
+  const hasFilters = Boolean(debouncedSearch || statut || partenaireId || expiry);
+
+  function resetFilters() {
+    setSearch('');
+    setSearchParams({}, { replace: true });
+  }
+
+  function setFilter(key: string, value: string) {
+    updateParams({ [key]: value || null, page: null });
+  }
+
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-0 overflow-hidden">
-      {/* ── Colonne gauche ────────────────────────────────────────────── */}
-      <div
-        className={`
-        flex flex-col border-r border-anac-border bg-white
-        w-full md:w-80 lg:w-96 shrink-0
-        ${accordIdSelectionne ? 'hidden md:flex' : 'flex'}
-      `}
-      >
-        {/* En-tête */}
-        <div className="p-4 border-b border-anac-border space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-anac-navy">Accords</h2>
+    <div className="mx-auto max-w-[1280px] space-y-5">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold leading-tight text-anac-navy">Accords</h2>
+          <p className="mt-1 text-sm text-anac-muted">
+            Gérez les accords et conventions de coopération internationale.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" onClick={() => navigate('/accords/new')} className="gap-2 bg-anac-blue">
+            <Plus size={14} aria-hidden="true" />
+            Nouvel accord
+          </Button>
+        </div>
+      </header>
+
+      <AccordSummaryCards
+        total={totalQuery.data}
+        actifs={activeQuery.data}
+        renouveler={renewalQuery.data}
+        expires={expiredQuery.data}
+        suspendus={suspendedQuery.data}
+      />
+
+      <AccordFilters
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          updateParams({ page: null });
+        }}
+        statut={statut}
+        onStatutChange={(value) => setFilter('statut', value)}
+        partenaireId={partenaireId}
+        onPartenaireChange={(value) => setFilter('partenaireId', value)}
+        expiry={expiry}
+        onExpiryChange={(value) => setFilter('echeance', value)}
+        organisations={orgsQuery.data?.data ?? []}
+        resultCount={accordsQuery.data?.total ?? 0}
+        onReset={resetFilters}
+      />
+
+      {accordsQuery.isLoading ? (
+        <div className="card flex min-h-64 items-center justify-center text-anac-muted">
+          <Loader2 size={17} className="mr-2 animate-spin" aria-hidden="true" />
+          Chargement des accords...
+        </div>
+      ) : accordsQuery.isError ? (
+        <div className="card flex min-h-64 flex-col items-center justify-center gap-3 text-center">
+          <p className="font-semibold text-anac-navy">Impossible de charger les accords.</p>
+          <p className="text-sm text-anac-muted">Vérifiez la connexion au serveur puis réessayez.</p>
+          <Button type="button" variant="outline" onClick={() => accordsQuery.refetch()} className="gap-2">
+            <RefreshCw size={14} aria-hidden="true" />
+            Réessayer
+          </Button>
+        </div>
+      ) : accords.length === 0 ? (
+        <div className="card flex min-h-64 flex-col items-center justify-center gap-2 text-center">
+          <p className="font-semibold text-anac-navy">
+            {hasFilters ? 'Aucun accord ne correspond aux filtres sélectionnés' : 'Aucun accord enregistré'}
+          </p>
+          <p className="text-sm text-anac-muted">
+            {hasFilters
+              ? 'Modifiez les filtres ou réinitialisez la recherche.'
+              : 'Créez le premier accord de coopération internationale.'}
+          </p>
+          {hasFilters ? (
+            <Button type="button" variant="outline" onClick={resetFilters}>
+              Réinitialiser les filtres
+            </Button>
+          ) : (
+            <Button type="button" onClick={() => navigate('/accords/new')} className="gap-2 bg-anac-blue">
+              <Plus size={14} aria-hidden="true" />
+              Nouvel accord
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          <AccordRegistryTable accords={accords} />
+          <AccordRegistryMobileCards accords={accords} />
+        </>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-lg border border-anac-border bg-white px-4 py-3">
+          <p className="text-sm text-anac-muted">
+            Page <strong className="text-anac-navy">{page}</strong> sur {totalPages}
+          </p>
+          <div className="flex gap-2">
             <Button
+              type="button"
+              variant="outline"
               size="sm"
-              onClick={() => navigate('/accords/new')}
-              className="gap-1.5 h-8 text-xs"
+              onClick={() => updateParams({ page: Math.max(1, page - 1).toString() })}
+              disabled={page <= 1}
+              aria-label="Page précédente"
             >
-              <Plus size={12} /> Nouveau
+              <ChevronLeft size={14} aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => updateParams({ page: Math.min(totalPages, page + 1).toString() })}
+              disabled={page >= totalPages}
+              aria-label="Page suivante"
+            >
+              <ChevronRight size={14} aria-hidden="true" />
             </Button>
           </div>
-
-          {partenaireId && (
-            <div className="flex items-center gap-2 bg-anac-sky/8 border border-anac-sky/20 rounded-lg px-3 py-2 text-xs text-anac-navy">
-              <span>
-                Filtré sur :{' '}
-                <strong>
-                  {organisations.find((o) => o.id === partenaireId)?.nom ??
-                    `Partenaire #${partenaireId}`}
-                </strong>
-              </span>
-              <button
-                onClick={() => {
-                  setPartenaireId(undefined);
-                  navigate('/accords');
-                }}
-                className="ml-auto text-anac-sky hover:text-anac-navy"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          <Input
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="h-8 text-sm"
-          />
-
-          <div className="flex items-center gap-2">
-            <Select
-              value={statut || '__all__'}
-              onValueChange={(v) => {
-                setStatut(v === '__all__' ? '' : v);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUTS.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={partenaireId?.toString() ?? '__all__'}
-              onValueChange={(v) => {
-                setPartenaireId(v === '__all__' ? undefined : parseInt(v));
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Filtrer par partenaire" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">Tous les partenaires</SelectItem>
-                {organisations.map((org) => (
-                  <SelectItem key={org.id} value={org.id.toString()}>
-                    {org.nom} <span className="text-anac-muted">· {org.pays}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {(search || statut || partenaireId) && (
-            <button
-              onClick={() => {
-                setSearch('');
-                setStatut('');
-                setPartenaireId(undefined);
-                setPage(1);
-              }}
-              className="text-xs text-anac-sky hover:text-anac-navy transition-colors"
-            >
-              Réinitialiser les filtres
-            </button>
-          )}
         </div>
-
-        {/* Liste */}
-        <div className="flex-1 overflow-y-auto divide-y divide-anac-border/60">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16 text-anac-muted">
-              <Loader2 size={16} className="animate-spin mr-2" />
-              {t('common.loading')}
-            </div>
-          ) : data?.data.length === 0 ? (
-            <div className="text-center py-16 text-anac-muted text-sm">{t('common.noData')}</div>
-          ) : (
-            data?.data.map((accord) => {
-              const estSelectionne = accord.id === accordIdSelectionne;
-              const estExpire =
-                accord.dateExpiration && new Date(accord.dateExpiration) < new Date();
-              const expireProche =
-                accord.dateExpiration &&
-                accord.statut === 'actif' &&
-                new Date(accord.dateExpiration) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
-
-              return (
-                <button
-                  key={accord.id}
-                  onClick={() => navigate(estSelectionne ? '/accords' : `/accords/${accord.id}`)}
-                  className={`
-                    w-full text-left px-4 py-3 transition-colors hover:bg-anac-gray/60
-                    ${estSelectionne ? 'bg-anac-sky/8 border-l-2 border-anac-sky' : ''}
-                  `}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-[11px] text-anac-sky">{accord.reference}</span>
-                    <BadgeStatut statut={accord.statut} />
-                  </div>
-                  <div className="text-sm font-medium text-anac-navy truncate">{accord.titre}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-anac-muted truncate max-w-[60%]">
-                      {accord.partenaires.map((p) => p.nom).join(', ') || '—'}
-                    </span>
-                    {accord.dateExpiration && (
-                      <span
-                        className={`text-[11px] ${estExpire ? 'text-red-600 font-medium' : expireProche ? 'text-amber-600' : 'text-anac-muted'}`}
-                      >
-                        {new Date(accord.dateExpiration).toLocaleDateString('fr-FR')}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="p-3 border-t border-anac-border flex items-center justify-between">
-            <span className="text-xs text-anac-muted">
-              {page} / {totalPages}
-            </span>
-            <div className="flex gap-1">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="h-7 w-7 p-0"
-              >
-                <ChevronLeft size={13} />
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="h-7 w-7 p-0"
-              >
-                <ChevronRight size={13} />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Colonne droite — détail ───────────────────────────────────── */}
-      <div className={`flex-1 overflow-y-auto ${accordIdSelectionne ? 'flex' : 'hidden md:flex'}`}>
-        {accordIdSelectionne ? (
-          <AccordDetail
-            accordId={accordIdSelectionne}
-            onModifier={() => navigate(`/accords/${accordIdSelectionne}/edit`)}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-anac-muted gap-3">
-            <div className="w-12 h-12 rounded-full bg-anac-gray flex items-center justify-center">
-              <FileText size={20} className="text-anac-muted" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-anac-navy">Sélectionnez un accord</p>
-              <p className="text-xs mt-0.5">Cliquez sur un accord pour voir les détails</p>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
+}
+
+function useAccordCount(params: { statut?: AccordStatut }) {
+  return useQuery({
+    queryKey: ['accords-summary-count', params],
+    queryFn: async () => {
+      const res = await accordsApi.lister({ ...params, page: 1, pageSize: 1 });
+      return (res.data as AccordListResponse).total;
+    },
+  });
 }

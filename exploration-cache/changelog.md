@@ -1,5 +1,49 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-07-29 — feat(client): dashboard and Accords UX hardening
+
+### Added
+- `packages/client/src/pages/dashboard/` — dashboard split into focused
+  components/helpers so the operational home page is easier to maintain.
+- `packages/client/src/pages/accords/` — Accords feature split with shared
+  constants, types, utilities, filters, summary cards, status/expiry badges,
+  registry table, and mobile cards.
+- Accords table country indicators now use deterministic CSS-rendered mini
+  flags instead of emoji flags, avoiding Windows/browser fallbacks such as
+  `CM` or `FR`.
+
+### Changed
+- `ChartCanvas.tsx` now imports `chart.js` from npm and registers Chart.js
+  locally instead of loading it from a CDN at runtime. This restores chart
+  animation/reliability when navigating to Analytics and removes the network
+  dependency.
+- `AccordsPage.tsx` moved from the old inbox layout to a dense registry view:
+  URL-backed search/filters, summary KPI cards, responsive table/cards,
+  renewal shortcut, and 8 rows per page.
+- `AccordDetail.tsx` now uses section navigation, shadcn Dialog structure for
+  renewal, clearer validity timeline alignment, document/partner dossier
+  rows with icons, renewal query-state handling, and grouped notification
+  actions.
+- `AccordFormPage.tsx` now follows a stepped creation/editing flow with
+  structured general information, partner selection, scope, validity,
+  document attachment, and review.
+
+### Fixed
+- Accords table action buttons now expose hover/focus tooltips and use a
+  clearer detail icon (`Eye`) instead of the previous ambiguous action.
+- The renewal modal no longer renders as an edge-to-edge raw form; it uses
+  header/body/footer spacing, status context, validation feedback, and a
+  stable action footer.
+- Validity timeline connector rendering no longer drifts or leaves a dangling
+  line when an agreement has no following timeline items.
+
+### Verification
+- `npm run lint` passes with one unrelated existing warning in
+  `AdminParametresPage.tsx` (`no-explicit-any`).
+- `npx tsc --noEmit` passes.
+- `npm run build` passes; Vite/esbuild requires running outside the sandbox on
+  this Windows environment because sandboxed builds hit `spawn EPERM`.
+
 ## [f06ed6d] — 2026-07-06 — feat(client): UI hardening sprint — shadcn Table/Tabs migration + full feature-folder split
 
 ### Added
