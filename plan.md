@@ -1,6 +1,6 @@
 You are acting as a Senior Frontend Engineer, UX/UI Architect, and Product Usability Specialist.
 
-Your task is to redesign and implement the complete “Accords” module of SICOT.
+Your task is to redesign and implement the complete “Partenaires” module of SICOT.
 
 Repository:
 https://github.com/fredpatch/sicot-monorepo.git
@@ -8,27 +8,40 @@ https://github.com/fredpatch/sicot-monorepo.git
 Primary frontend location:
 packages/client
 
-The attached image is the visual reference for the target direction. Use it to understand the expected information hierarchy, density, layout, guided creation flow, and operational detail workspace.
+The attached image is the visual reference for the target direction.
+
+Use it to understand:
+
+- The normalized SICOT visual language
+- Registry density
+- Operational summary cards
+- Guided creation flow
+- Three-column partner overview
+- Contacts management
+- Related agreements visibility
+- Responsive behavior
 
 Do not reproduce the mockup blindly.
 
-First inspect the existing implementation and adapt the design to:
+First inspect the current implementation and adapt the design to:
 
-- The current API contracts
+- Existing API contracts
 - Existing business fields
 - Existing routes
-- Existing permissions
+- Existing role rules
 - Existing shadcn components
 - Existing Tailwind tokens
-- Existing SICOT layout
-- Existing responsive conventions
 - Existing React Query architecture
+- The new Dashboard and Accords patterns already implemented in the repository
 
-The target covers three related experiences:
+The task covers:
 
-1. Accords registry and list
-2. Guided creation of a new accord
-3. Accord detail and operational management
+1. Partners registry
+2. Guided partner creation
+3. Partner editing
+4. Partner detail workspace
+5. Contact management
+6. Related agreements visibility
 
 Do not modify unrelated modules.
 
@@ -49,19 +62,19 @@ Use this status format:
 Follow this sequence:
 
 1. Audit the current implementation
-2. Report the existing architecture and constraints
-3. Propose the implementation plan
+2. Report existing architecture and constraints
+3. Propose an implementation plan
 4. Implement incrementally
 5. Validate the result
 6. Return a final report
 
-Do not start implementation before returning the initial audit report.
+Do not start implementation before returning the Phase 1 audit report.
 
-Do not generate one large replacement file.
+Do not produce one monolithic replacement file.
 
 Do not introduce a second design system.
 
-Do not invent backend data.
+Do not invent backend data or relationships.
 
 ---
 
@@ -71,37 +84,46 @@ SICOT means:
 
 Système Intégré de Coopération Internationale et de Traduction
 
-The Accords module manages international agreements and conventions involving ANAC Gabon and one or more partner organisations.
+The Partenaires module manages external organisations involved in ANAC Gabon cooperation activities.
 
-An accord currently includes at least:
+A partner organisation currently includes at least:
 
-- Reference
-- Title
-- Status
-- Signature date
-- Optional expiration date
-- One or more partners
-- Optional linked document
-- Optional notes
-- Renewal relationships
-- Reminder notifications
-- Creation and update metadata
+- Name
+- Country
+- Region
+- Organisation type
+- Active status
+- Notes
+- Contacts
+- Main contact
+- Related agreements
+- Creation metadata
 
-Known statuses:
+Known organisation types:
 
-- actif
-- expire
-- suspendu
-- en_renouvellement
+- anac_etrangere
+- organisation_internationale
+- autre
+
+Known contact fields:
+
+- First name
+- Last name
+- Email
+- Phone
+- Position
+- Principal contact flag
+- Active status
 
 The module must help users answer:
 
-- Which agreements are active?
-- Which agreements need attention?
-- Which agreements are expired?
-- Which agreements are being renewed?
-- What is the next action for a selected agreement?
-- Which partner, document, or renewal belongs to an agreement?
+- Which partners are active?
+- Which partners have no contact?
+- Who is the main contact?
+- Which countries and regions are represented?
+- Which agreements are linked to a partner?
+- Which partners require contact data cleanup?
+- What is the relationship history with that organisation?
 
 ---
 
@@ -109,33 +131,43 @@ The module must help users answer:
 
 Inspect at least:
 
-packages/client/src/pages/AccordsPage.tsx
-packages/client/src/pages/accords/components/AccordFormPage.tsx
-packages/client/src/pages/accords/components/AccordDetail.tsx
-packages/client/src/lib/accords.api.ts
+packages/client/src/pages/PartenairesPage.tsx
+packages/client/src/pages/partenaires/partenaires.columns.tsx
+packages/client/src/pages/partenaires/partenaires.types.ts
+packages/client/src/pages/partenaires/partenaires.schemas.ts
+packages/client/src/pages/partenaires/components/PartenairesFiltres.tsx
+packages/client/src/pages/partenaires/components/OrganisationDialog.tsx
+packages/client/src/pages/partenaires/components/ContactsDialog.tsx
+packages/client/src/pages/partenaires/components/FormulaireOrganisation.tsx
+packages/client/src/pages/partenaires/components/FormulaireContact.tsx
+packages/client/src/pages/partenaires/components/BadgeType.tsx
+packages/client/src/pages/partenaires/hooks/usePartenairesQueries.ts
+packages/client/src/pages/partenaires/hooks/usePartenairesMutations.ts
 packages/client/src/lib/organisations.api.ts
-packages/client/src/lib/documents.api.ts
-packages/client/src/lib/notifications.api.ts
+packages/client/src/lib/accords.api.ts
 packages/client/src/App.tsx
 packages/client/src/components/layouts/Layout.tsx
+packages/client/src/components/table
 packages/client/src/components/ui
 packages/client/src/index.css
 packages/client/tailwind.config.*
 packages/client/package.json
 
-Also inspect the relevant server module for:
+Also inspect the relevant server modules for:
 
-- Accord payloads
-- Create request
-- Update request
-- Renewal behavior
-- List filters
+- Organisation payloads
+- Contact payloads
+- Create and update operations
+- Contact creation
+- Main contact assignment
+- Organisation filters
+- Sorting
 - Pagination
-- Parent-child version relationships
-- Partner relationships
-- Notification behavior
+- Country and region lookups
+- Related agreements
+- Active/inactive behavior
 
-Confirm the exact server paths rather than assuming their location.
+Confirm actual paths rather than assuming them.
 
 ---
 
@@ -144,25 +176,23 @@ Confirm the exact server paths rather than assuming their location.
 The current module already supports:
 
 - Search
-- Status filtering
-- Partner filtering
+- Country filtering
+- Region filtering
+- Organisation-type filtering
+- Sorting
 - Pagination
-- Split list/detail layout
-- Mobile selection behavior
-- Accord creation
-- Accord editing
-- Partner multi-selection
-- Document upload
-- Linking an existing document
-- Renewal creation
-- Parent agreement relationship
-- Related agreement versions
-- Expiration warnings
-- Partner contacts
-- Reminder notifications
-- Notification history
+- Organisation creation
+- Organisation editing
+- Contact listing
+- Contact creation
+- Main contact assignment
+- Active/inactive organisation state
+- Active/inactive contact state
+- Filtering agreements by partner
+- Shared DataTable components
+- Dedicated query and mutation hooks
 
-Preserve these capabilities unless the audit proves one is broken or obsolete.
+Preserve these capabilities unless the audit shows one is broken or obsolete.
 
 Do not remove working business behavior for visual simplicity.
 
@@ -170,87 +200,90 @@ Do not remove working business behavior for visual simplicity.
 
 # 5. Main UX problems to solve
 
-The redesign should address these current weaknesses:
+The redesign should address these weaknesses:
 
-- The list panel is too narrow for long titles, partners, status, and expiry information.
-- The selected agreement is visually separated from the broader registry context.
-- Filters are functional but weakly prioritised.
-- The page lacks top-level operational summaries.
-- Expiration and renewal risk are not easy to scan across the registry.
-- Creation uses one long form with little progression or grouping.
-- Partner selection creates substantial vertical scrolling.
-- Document attachment competes visually with essential fields.
-- Renewal is mixed into the standard edit form.
-- The detail view is a stack of cards rather than a coherent workspace.
-- Important actions are scattered.
-- Renewal history, reminders, partners, and documents compete for attention.
-- Some files contain disabled ESLint rules and unused imports.
-- Loading or missing-data cases sometimes return null rather than a useful state.
+- The registry is a plain table with no operational overview.
+- Organisation status and contact quality are difficult to scan.
+- Contact availability is not visible in the registry.
+- The main contact is not visible in the registry.
+- Related agreement count is not visible.
+- Creation and editing are limited to a modal.
+- The organisation form is not structured for future extension.
+- Contacts are managed in a separate modal detached from partner context.
+- There is no dedicated partner detail page.
+- Actions are distributed across inline text links.
+- Users cannot see identity, contacts, agreements, and activity together.
+- Empty contact data is not treated as an operational issue.
+- The current page does not fully follow the normalized Dashboard and Accords style.
 
 ---
 
 # 6. Target information architecture
 
-Implement three coherent screens.
+Implement three coherent experiences.
 
-## Screen A — Accords registry
+## Screen A — Partners registry
 
 Route:
 
-/accords
+/partenaires
 
 Primary goal:
 
-Give users a searchable, filterable operational registry of agreements.
+Provide a searchable and operational registry of partner organisations.
 
 ## Screen B — Guided creation
 
-Route:
+Suggested route:
 
-/accords/new
-
-Primary goal:
-
-Guide users through agreement creation without presenting all fields at once.
-
-## Screen C — Accord detail
-
-Route:
-
-/accords/:id
+/partenaires/new
 
 Primary goal:
 
-Provide a complete operational view of an agreement and its related actions.
+Guide users through the creation of an organisation and its initial contact.
 
-The edit route may reuse the guided structure where appropriate:
+## Screen C — Partner detail
 
-/accords/:id/edit
+Suggested route:
 
-However, creation and editing must not be forced into exactly the same UX when their business purpose differs.
+/partenaires/:id
+
+Primary goal:
+
+Provide a complete operational workspace for the selected partner.
+
+The edit route may be:
+
+/partenaires/:id/edit
+
+Reuse current routing conventions where practical.
+
+If routes do not yet exist, update App.tsx minimally.
+
+Do not break existing `/partenaires/*` behavior.
 
 ---
 
-# 7. Screen A — Accords registry
+# 7. Screen A — Partners registry
 
-## 7.1 Page header
+## 7.1 Header
 
 Display:
 
-Accords
+Partenaires
 
 Subtitle:
 
-Gérez les accords et conventions de coopération internationale.
+Gérez les organisations et partenaires de coopération internationale.
 
 Right-side actions:
 
-- Exporter, only if already supported or easy to implement from existing data
-- Nouvel accord
+- Exporter, only if genuinely supported
+- Nouveau partenaire
 
-Do not invent a fake export action.
+Do not create a non-functional export button.
 
-If export is not currently supported, omit it and report it as a future enhancement.
+If export is unavailable, omit it and report it as a future enhancement.
 
 ---
 
@@ -260,57 +293,52 @@ Add a compact summary row.
 
 Suggested cards:
 
-- Total accords
-- Actifs
-- À renouveler
-- Expirés
-- Suspendus
+- Total partenaires
+- Organisations actives
+- Avec contact
+- Sans contact
+- Pays représentés
 
-Use the existing list or an existing aggregation endpoint.
+Optional:
 
-Do not perform inaccurate aggregation from only the current paginated page.
+- Organisations inactives
 
-Choose one of these approaches:
+Only display metrics that can be computed accurately.
 
-1. Use an existing backend aggregate endpoint.
-2. Extend the list response minimally with status counts.
-3. Fetch counts with explicit filtered requests only if the API reliably returns total counts.
-4. Omit summary cards that cannot be computed correctly.
+Do not calculate totals from only the current page.
 
-Report the chosen approach.
+Choose one of these strategies:
+
+1. Existing aggregate endpoint
+2. Minimal backend aggregate endpoint
+3. Filtered list requests using server-provided total counts
+4. Omit unavailable metrics
 
 Suggested wording:
 
-Total accords
-56
-Tous statuts confondus
+Total partenaires
+78
+Tous pays confondus
 
-Actifs
-19
-En cours de validité
+Organisations actives
+62
+Partenaires actifs
 
-À renouveler
-8
-Dans les 90 prochains jours
+Avec contact
+45
+Au moins un contact actif
 
-Expirés
-12
-Nécessitent une action
+Sans contact
+17
+Action requise
 
-Suspendus
-5
-Temporairement inactifs
+Pays représentés
+32
+Couverture internationale
 
-“À renouveler” is not a stored status.
+“Sans contact” should mean no active contact or no contact according to an explicit shared rule.
 
-Derive it only from:
-
-- statut === actif
-- dateExpiration exists
-- expiration is within the agreed warning threshold
-- expiration is still in the future
-
-Use one shared utility for this rule.
+Do not use ambiguous logic.
 
 ---
 
@@ -320,152 +348,190 @@ Provide a horizontal toolbar on desktop.
 
 Search placeholder:
 
-Rechercher un accord, un partenaire ou une référence…
+Rechercher un partenaire, un pays ou une organisation…
 
 Filters:
 
+- Pays
+- Région
+- Type d’organisation
 - Statut
-- Partenaire
-- Date d’échéance or risk
-- Additional filters only when supported by actual data
+- Qualité des contacts
 
-Suggested expiry filter values:
+Suggested contact-quality filter:
 
 - Tous
-- Expirés
-- Moins de 30 jours
-- Moins de 90 jours
-- Sans date d’expiration
+- Avec contact principal
+- Avec contact mais aucun principal
+- Sans contact actif
 
-Do not add “Type d’accord” or “Catégorie” unless the backend actually supports those fields.
+Only implement this if supported by list data or the backend.
 
 Provide:
 
 - Active filter chips
-- Clear individual filter
-- Réinitialiser les filtres
+- Individual filter removal
+- Reset filters
 - Result count
+- URL search-parameter persistence
 
-Synchronise meaningful filters with URL search parameters so the filtered view can be shared and restored.
-
-Debounce text search if the current API is queried on every keystroke.
+Debounce search if it triggers remote requests on every keystroke.
 
 Reset pagination when filters change.
 
 ---
 
-## 7.4 Registry presentation
+## 7.4 Registry table
 
-Use a full-width table on desktop rather than a permanently narrow list panel.
+Use a full-width desktop table.
 
 Suggested columns:
 
-- Référence
-- Intitulé
-- Partenaire principal or partner summary
+- Organisation
+- Type
 - Pays
+- Région
+- Contact principal
 - Statut
-- Date de signature
-- Échéance
+- Contacts
+- Accords liés
 - Actions
 
-Use only fields available from the current API.
+Use only available fields.
 
-When several partners exist:
+Organisation cell:
 
-- Show the first partner
-- Add “+2” or an equivalent summary
-- Provide the full list through tooltip, accessible text, or the detail page
+- Organisation name
+- Optional short note
+- Optional acronym only if such a field exists
 
-Expiry display must include useful context:
+Do not invent acronyms from organisation names.
 
-- Expiré depuis 29 j
-- J-76
-- Dans 8 mois
-- Sans échéance
+Contact principal:
 
-Do not rely on date color alone.
+- Full name
+- Email
+- “Aucun contact principal” when missing
 
-Row click:
+Contacts:
 
-- Opens `/accords/:id`
+- Active contact count
+- Explicit warning when zero
 
-Actions menu:
+Accords liés:
+
+- Number of agreements
+- Link to `/accords?partenaireId={id}`
+
+If agreement counts are not returned, identify the minimum backend change.
+
+Do not execute one agreements request per row.
+
+Row action menu:
 
 - Voir
 - Modifier
-- Renouveler, where appropriate
-- Préparer une relance, where supported
+- Gérer les contacts
+- Voir les accords
 
-Do not place destructive actions in the row unless an actual delete capability and policy exist.
+Avoid multiple inline text links.
+
+The whole row may navigate to the partner detail page, but do not create invalid nested interactions.
 
 ---
 
-## 7.5 Mobile and tablet behavior
+## 7.5 Status and health indicators
+
+Use explicit indicators:
+
+- Actif
+- Inactif
+- Contact principal disponible
+- Contact incomplet
+- Aucun contact
+
+Do not communicate state through color only.
+
+Suggested risk logic:
+
+Warning:
+
+- Organisation active but no active contact
+- Contacts exist but none is principal
+- Main contact has neither email nor phone
+
+Critical status is not necessary unless a real business rule exists.
+
+Do not overuse red.
+
+---
+
+## 7.6 Responsive behavior
 
 Desktop:
 
-- Full-width data table
+- Full-width table
 
 Tablet:
 
-- Reduced columns
-- Hide lower-priority metadata
-- Keep reference, title, status, and expiry visible
+- Hide region and lower-priority counts where necessary
+- Preserve organisation, country, contact, status
 
 Mobile:
 
-- Convert rows into compact agreement cards
-- Do not force horizontal table scrolling
-- Keep search and primary filters accessible
-- Show the create action prominently
+- Partner cards
+- Organisation name
+- Type
+- Country
+- Main contact
+- Status
+- Contact health
+- Related agreement count
+- Actions menu
 
-The current split list/detail behavior may be removed on desktop if the separate detail route provides a better workspace.
-
-Preserve browser navigation behavior.
+Do not require horizontal page scrolling.
 
 ---
 
-## 7.6 Loading, error, and empty states
+## 7.7 States
 
 Implement:
 
-- Table skeleton or structured loading state
+- Structured loading state
 - API error state with retry
-- No agreements state
+- No partners state
 - No filtered results state
 
 Differentiate:
 
-Aucun accord enregistré
+Aucun partenaire enregistré.
 
 from:
 
-Aucun accord ne correspond aux filtres sélectionnés
+Aucun partenaire ne correspond aux filtres sélectionnés.
 
 ---
 
-# 8. Screen B — Guided accord creation
+# 8. Screen B — Guided partner creation
 
 Route:
 
-/accords/new
+/partenaires/new
 
-Use a guided stepper.
+Replace organisation creation in a modal with a guided full-page flow.
 
-The stepper must reflect current real data and business rules.
-
-Do not implement fields from the visual reference that do not exist in the current data model.
+The guided process should use real current fields only.
 
 Recommended steps:
 
 1. Informations générales
-2. Partenaires
-3. Validité
-4. Document
-5. Notes et vérification
+2. Contact principal
+3. Informations complémentaires
+4. Vérification
 
-The mockup contains more conceptual steps, but the implementation must remain aligned with the existing model.
+Do not add address, documents, website, acronym, or other fields unless they exist in the actual schema or are explicitly added as a backend extension.
+
+The visual mockup contains future-facing ideas. Implement only supported fields.
 
 ---
 
@@ -473,194 +539,128 @@ The mockup contains more conceptual steps, but the implementation must remain al
 
 Fields:
 
-- Titre de l’accord
-
-Reference behavior:
-
-- Confirm whether the backend generates the reference.
-- If generated automatically, show an informational read-only preview or note.
-- Do not ask users to manually type a reference when the backend owns it.
-
-Suggested helper:
-
-La référence sera générée automatiquement lors de l’enregistrement.
-
-Do not add type, category, summary, or initial status unless these fields really exist.
-
-For a new accord, preserve the backend’s default status behavior.
-
-Do not expose an unnecessary status selector during creation.
-
----
-
-## 8.2 Step 2 — Partenaires
-
-Requirement:
-
-At least one partner is mandatory.
-
-Improve the existing checkbox list.
-
-Provide:
-
-- Search input
-- Organisation name
-- Country
-- Organisation type when available
-- Selected count
-- Selected partner summary
-- Clear validation message
-
-Suggested layout:
-
-Left:
-
-- Searchable organisation list
-
-Right:
-
-- Partenaires sélectionnés
-- Remove action per selected partner
-
-On smaller screens, stack these sections.
-
-Do not fetch all organisations repeatedly between steps.
-
-Reuse React Query cache.
-
-Provide a contextual action:
-
-Ajouter un partenaire
-
-Only link to the existing partner creation route if it exists and the user has access.
-
-Do not build partner creation inside this task.
-
----
-
-## 8.3 Step 3 — Validité
-
-Fields:
-
-- Date de signature
-- Date d’expiration, optional
-
-Validation:
-
-- Signature date required
-- Expiration must be after signature when provided
-- Show clear inline error messages
-- Do not silently accept an invalid date range
-
-Provide an explicit choice:
-
-- Accord avec date d’expiration
-- Accord sans date d’expiration
-
-This may be represented as a checkbox or radio choice.
-
-When “sans date d’expiration” is selected:
-
-- Disable or hide the expiration input
-- Clear stale expiration values safely
-
-Display an informational preview:
-
-Validité estimée
-13 octobre 2023 — 13 octobre 2026
-Durée : 3 ans
-
-Use a date utility.
-
-Do not store the calculated duration.
-
----
-
-## 8.4 Step 4 — Document
-
-Preserve both existing capabilities:
-
-- Uploader un nouveau fichier
-- Lier un document existant
-
-The interface should make these two paths explicit.
-
-Suggested tabs or segmented choice:
-
-- Nouveau fichier
-- Document existant
-
-For upload:
-
-- Show accepted file types
-- Show upload progress
-- Show success state
-- Show duplicate warning
-- Show failure with retry
-- Do not submit the agreement until upload state is resolved
-
-For existing document:
-
-- Search or filter the existing accord documents
-- Display filename and creation date
-- Allow one document to be selected
-
-Current schema supports one `documentId`.
-
-Do not redesign this as multi-document attachment unless the backend is changed explicitly.
-
-Provide a “Passer cette étape” option because the document is optional.
-
----
-
-## 8.5 Step 5 — Notes et vérification
-
-Fields:
-
-- Notes, optional
-
-Provide a final review summary:
-
-- Title
-- Partners
-- Signature date
-- Expiration date or “Sans expiration”
-- Linked document
-- Notes presence
-
-Allow users to return to any previous step.
-
-Primary action:
-
-Créer l’accord
-
-Secondary action:
-
-Enregistrer is not appropriate unless a draft capability exists.
-
-Do not invent drafts.
-
-Cancel action:
-
-- Return to `/accords`
-- Warn about unsaved changes when appropriate
-
----
-
-## 8.6 Stepper behavior
+- Nom de l’organisation
+- Type d’organisation
+- Pays
+- Région
+- Statut actif/inactif
 
 Requirements:
 
-- Current step clearly identified
-- Completed steps marked
-- Future steps visually distinct
-- Previous steps remain accessible
-- Invalid future steps cannot be skipped arbitrarily
-- Validation runs per step
-- Form values remain intact when navigating between steps
-- Browser refresh behavior should not unexpectedly create partial records
-- Keyboard navigation supported
-- Stepper has accessible labels
+- Name required
+- Type required
+- Country required if current schema requires it
+- Region optional unless current validation says otherwise
+- Active state should default consistently with current backend behavior
+
+Provide helper text for organisation types.
+
+Suggested labels:
+
+ANAC étrangère
+
+Organisation internationale
+
+Autre organisation
+
+Keep raw enum values out of visible UI.
+
+---
+
+## 8.2 Step 2 — Contact principal
+
+Allow the user to create the first contact during organisation setup.
+
+Fields:
+
+- Prénom
+- Nom
+- Poste
+- Email
+- Téléphone
+
+Contact is optional only if current business rules allow creating organisations without contacts.
+
+Provide explicit choice:
+
+- Ajouter un contact principal maintenant
+- Continuer sans contact
+
+If continuing without contact, show a warning:
+
+Cette organisation sera enregistrée sans contact principal.
+
+Do not force fake contact values.
+
+When a contact is created in this flow:
+
+- Mark it as principal
+- Mark it active
+- Create the organisation first only when necessary
+- Handle partial failure safely
+
+Avoid leaving an organisation silently created when contact creation fails without informing the user.
+
+Design the mutation flow explicitly.
+
+---
+
+## 8.3 Step 3 — Informations complémentaires
+
+Current supported field:
+
+- Notes
+
+Display a review of:
+
+- Organisation identity
+- Country and region
+- Organisation type
+- Active status
+- Contact principal status
+
+Do not add unsupported descriptive fields.
+
+If the backend is extended later, this step can host:
+
+- Website
+- Address
+- Acronym
+- Description
+
+Do not implement them now unless confirmed.
+
+---
+
+## 8.4 Step 4 — Vérification
+
+Display a final summary:
+
+- Organisation name
+- Type
+- Country
+- Region
+- Active status
+- Main contact or “Aucun contact”
+- Notes presence
+
+Allow users to return to previous steps.
+
+Primary action:
+
+Créer le partenaire
+
+Secondary action:
+
+Annuler
+
+Do not add draft behavior unless it exists.
+
+Warn about unsaved changes when appropriate.
+
+---
+
+## 8.5 Stepper behavior
 
 Desktop:
 
@@ -669,16 +669,26 @@ Desktop:
 
 Tablet/mobile:
 
-- Horizontal compact progress indicator
-- One form section at a time
+- Compact horizontal progress
+- One section at a time
+
+Requirements:
+
+- Current step identified
+- Completed steps marked
+- Validation per step
+- Values preserved
+- Previous steps accessible
+- Future steps not arbitrarily accessible
+- Focus moves to step heading
+- Accessible step labels
+- Stable actions at bottom
 
 Suggested actions:
 
 Précédent
 Suivant
-Créer l’accord
-
-Place navigation actions consistently at the bottom of the form workspace.
+Créer le partenaire
 
 ---
 
@@ -686,504 +696,572 @@ Place navigation actions consistently at the bottom of the form workspace.
 
 Route:
 
-/accords/:id/edit
+/partenaires/:id/edit
 
-Use the same visual system but adapt the flow.
+Do not force users through all creation steps for a minor edit.
 
-Recommended approach:
+Use a grouped edit workspace with sections:
 
-- Use grouped edit sections
-- Do not force the user through all creation steps for a small modification
-- A compact stepper or section navigation may still be used
-- Display the accord reference
-- Allow status editing only according to existing business rules
-- Preserve partner, date, document, and notes editing
+- Informations générales
+- Statut
+- Notes
 
-Renewal must not be treated as a normal edit.
+Contacts should be managed from the detail page, not mixed into the standard organisation edit form.
 
-Keep renewal as a distinct business action.
+Preserve current organisation update behavior.
 
----
-
-# 10. Renewal flow
-
-The current implementation creates a new related version and changes the current agreement to `en_renouvellement`.
-
-Preserve this rule.
-
-Move renewal into a dedicated action initiated from the detail page:
-
-Renouveler l’accord
-
-Use a dialog, side sheet, or dedicated compact page.
-
-Required fields currently supported:
-
-- New signature date
-- Optional new expiration date
-- Optional notes
-
-Before confirmation, explain:
-
-- A new accord version will be created
-- The existing accord will remain in history
-- The current accord will move to “En renouvellement”
-
-Display a confirmation summary.
-
-Do not mix renewal fields into the normal edit page.
+Show unsaved-change protection.
 
 ---
 
-# 11. Screen C — Accord detail workspace
+# 10. Screen C — Partner detail workspace
 
 Route:
 
-/accords/:id
+/partenaires/:id
 
-Replace the current vertically stacked detail with a structured workspace.
+Use the confirmed three-column overview layout.
+
+The detail page should become the primary relationship workspace.
 
 ---
 
-## 11.1 Breadcrumb and header
+## 10.1 Breadcrumb and header
 
 Breadcrumb:
 
-Accords / {reference}
+Partenaires / {organisation name}
 
-Header content:
+Header:
 
-- Agreement title
-- Reference
-- Status badge
-- Renewal/version badge where relevant
-- Short expiry state
+- Organisation name
+- Type badge
+- Active/inactive badge
+- Country and region
+- Optional “Partenaire depuis” using createdAt, clearly labelled as system registration date rather than real-world partnership start date
+
+Do not label `createdAt` as “Partenaire depuis” unless that meaning is valid.
+
+Safer wording:
+
+Enregistré dans SICOT le {date}
 
 Primary actions:
 
 - Modifier
-- Renouveler l’accord, when allowed
-- Télécharger le document, when available
+- Ajouter un contact
+- Voir les accords
 - Plus d’actions
 
-Only show actions that are valid and supported.
-
-Suggested overflow actions:
-
-- Préparer une relance
-- Notifier les partenaires
-- Voir l’historique des notifications
-- Ouvrir le document
-- Voir l’accord précédent
-
-Do not hide the main expected action inside the overflow menu.
+Do not add “Notifier” unless a real organisation-level notification flow exists.
 
 ---
 
-## 11.2 Summary strip
+## 10.2 Summary strip
 
-Create a compact summary strip containing:
+Display:
 
-- Référence
+- Type
+- Pays
+- Région
+- Contacts actifs
+- Accords liés
 - Statut
-- Date de signature
-- Date d’expiration
-- Countdown or overdue duration
 
-Examples:
+Use accurate counts.
 
-13 octobre 2026
-J-76
-
-or:
-
-13 juin 2025
-Expiré depuis 411 j
-
-If no expiration exists:
-
-Sans date d’expiration
+Do not perform one query per summary metric where a consolidated endpoint is possible.
 
 ---
 
-## 11.3 Detail navigation
-
-Use local tabs or a vertical section navigation.
-
-Base sections on real functionality.
+## 10.3 Local navigation
 
 Recommended sections:
 
 - Aperçu
+- Contacts
 - Informations
-- Partenaires
-- Document
-- Validité et versions
-- Notifications
+- Accords liés
 - Historique
 
-Do not add missions, correspondence, audit, signatories, or multiple document sections unless those relationships truly exist in the API.
+Add Documents only if partner-specific documents exist in the current model.
 
-The visual mockup includes future-facing sections. Implement only what is supported now.
+Do not add address or activity types that are not supported.
 
-Structure components so new related modules can be added later.
+Use tabs or vertical local navigation depending on the implemented Accords pattern.
+
+Normalize the style with Accord detail.
 
 ---
 
-## 11.4 Aperçu section
+# 11. Three-column overview
 
-Use a three-column layout on large desktop.
+Large desktop layout:
 
-Main column:
-
-Informations clés
+## Column 1 — Informations clés
 
 Display:
 
-- Title
-- Status
-- Signature date
-- Expiration date
-- Notes
-- Parent agreement, where relevant
-- Current version context
-
-Middle column:
-
-Cycle de validité
-
-Use a lightweight timeline based on real events:
-
-- Signature
-- Entry into validity, only if a separate field exists
-- Reminder threshold
-- Expiration
-- Renewal created
-
-Do not invent “entry into validity” when only `dateSignature` exists.
-
-A valid timeline using current data may contain:
-
-- Accord signé
-- Début de surveillance à 90 jours
-- Échéance
-- Renouvellement créé
-
-Right column:
-
-- Linked document
-- Partners summary
-- Notification status or recent reminders
-- Related versions
-
----
-
-## 11.5 Partners section
-
-For each partner display:
-
-- Organisation name
-- Country
+- Full organisation name
 - Type
-- Main contact
+- Country
+- Region
+- Status
+- Notes
+- Registration date
+
+Do not display unsupported acronym, website, address, or description.
+
+Use a compact key/value layout.
+
+## Column 2 — Contacts principaux
+
+Display:
+
+- Principal contact first
+- Other active contacts after
+- Name
+- Position
 - Email
-- Phone when available
+- Phone
+- Main contact badge
+- Inactive badge where relevant
 
 Actions:
 
-- Open partner
-- Prepare reminder
-- Send notification, when email exists
+- View all contacts
+- Add contact
+- Set as principal
+- Edit contact if supported
 
-Clearly identify partners without a valid contact email.
+Clearly display:
 
-Do not silently exclude them.
+Aucun contact principal défini
 
-For group notification:
+or:
 
-- Show how many partners will be contacted
-- Show how many will be skipped
-- Explain why
-- Show result after sending
+Aucun contact enregistré
 
-Preserve the existing notification behavior.
+Do not silently hide contact gaps.
 
----
-
-## 11.6 Document section
-
-Display the linked document when available:
-
-- Filename
-- MIME type
-- Upload or creation date where available
-- Open
-- Download
-
-Empty state:
-
-Aucun document de référence n’est lié à cet accord.
-
-Action:
-
-Modifier l’accord pour lier un document
-
-Do not imply multiple documents when the current model supports one.
-
----
-
-## 11.7 Validity and versions section
+## Column 3 — Relationship summary
 
 Display:
 
-- Current validity dates
-- Expiration state
-- Renewal warning
-- Parent agreement
-- Child renewal versions
-- Version sequence
+- Recent or linked agreements
+- Agreement status
+- Expiration state where available
+- Link to all filtered agreements
+- Recent partner-related activity only if such activity exists
 
-Avoid fetching all agreements and filtering on the client if the server can expose a targeted versions endpoint.
+Do not invent generic activity events.
 
-During audit, evaluate the current implementation:
+If no activity API exists, use:
 
-accordsApi.lister({ pageSize: 50 })
-then filter parentId === accordId
+- Accords liés
+- Contact health
+- Organisation metadata
 
-Report whether this is reliable.
-
-If not reliable, propose the minimum backend endpoint:
-
-GET /accords/:id/versions
-
-Do not make a broad backend redesign.
+Do not create a fake recent activity panel.
 
 ---
 
-## 11.8 Notifications section
+# 12. Contacts section
 
-Preserve:
+Replace the current modal-only contact management with a full detail section.
 
-- Prepare individual reminder
-- Notify all eligible partner contacts
-- Suggested recipients
-- Notification history
-- Sending result
-- Skipped-recipient reasons
+Display contacts in a table or responsive card list.
 
-Use a clear operation panel.
+Suggested columns:
 
-Do not send immediately from an ambiguous button.
+- Contact
+- Poste
+- Email
+- Téléphone
+- Statut
+- Principal
+- Actions
 
-Require review before final sending when practical.
+Actions:
 
-Show:
+- Modifier, only if supported
+- Définir comme principal
+- Activer/désactiver, only if supported
+- Send email using mailto link
+- Copy email or phone where useful
 
-- Recipient
-- Subject
-- Message preview
-- Related agreement
-- Send status
+Preserve existing create-contact and set-main-contact behavior.
 
----
+If contact editing or status changes are not supported, do not create fake actions.
 
-## 11.9 Expiration warnings
+Use a side sheet or dialog for:
 
-Use explicit operational banners.
+- Adding a contact
+- Editing a contact
 
-Examples:
+A modal remains appropriate for this small sub-resource.
 
-Critical:
-
-Cet accord a expiré le 13 juin 2025.
-Une décision est requise : renouveler, suspendre ou clôturer le suivi.
-
-Warning:
-
-Cet accord expire dans 29 jours.
-Préparez le renouvellement ou contactez les partenaires.
-
-Normal:
-
-No large banner.
-
-Do not show both an expiration banner and duplicate warning cards containing the same message.
+The organisation itself should no longer be managed primarily in a modal.
 
 ---
 
-# 12. Component architecture
+# 13. Main contact rules
 
-Refactor into focused components.
+Create explicit utilities or business rules.
+
+Rules to confirm:
+
+- Can there be only one principal contact?
+- Must the principal contact be active?
+- Can an inactive contact remain principal?
+- Does assigning a new principal automatically unset the previous one?
+- Can an organisation exist without a principal contact?
+
+Do not infer these silently.
+
+Read the backend behavior.
+
+Show a warning if data violates expected rules.
+
+Suggested health statuses:
+
+- Complet
+- Sans contact principal
+- Sans contact actif
+- Contact principal sans email
+
+Do not store health status unless necessary.
+
+Derive it from current contact data.
+
+---
+
+# 14. Agreements section
+
+Display agreements related to the organisation.
+
+Use the existing partner filter:
+
+/accords?partenaireId={organisationId}
+
+The detail page may show a compact preview:
+
+- Reference
+- Title
+- Status
+- Expiration
+- Open action
+
+Maximum five items.
+
+Add:
+
+Voir tous les accords
+
+Do not fetch the entire agreements registry.
+
+Use a filtered endpoint with a small page size.
+
+If the agreements API does not return a reliable total, report the limitation.
+
+Do not create one query per agreement.
+
+---
+
+# 15. History section
+
+Only implement history using real data.
+
+Possible sources:
+
+- Organisation createdAt
+- Contact creation dates, only if returned
+- Organisation updates, only if audit logs are accessible
+- Main contact changes, only if tracked
+- Related agreements, only if dates and relationships are available
+
+Do not invent an activity timeline.
+
+If no partner history endpoint exists, provide a limited “Informations système” section instead:
+
+- Created date
+- Last updated date, if available
+- Record ID
+- Active status
+
+Report a future recommendation for audit integration.
+
+---
+
+# 16. Component architecture
 
 Suggested structure:
 
-packages/client/src/pages/accords/
+packages/client/src/pages/partenaires/
 ├── components/
-│ ├── AccordStatusBadge.tsx
-│ ├── AccordExpiryBadge.tsx
-│ ├── AccordRegistryTable.tsx
-│ ├── AccordRegistryCard.tsx
-│ ├── AccordFilters.tsx
-│ ├── AccordSummaryCards.tsx
-│ ├── AccordDetailHeader.tsx
-│ ├── AccordSummaryStrip.tsx
-│ ├── AccordOverview.tsx
-│ ├── AccordPartnersSection.tsx
-│ ├── AccordDocumentSection.tsx
-│ ├── AccordVersionsSection.tsx
-│ ├── AccordNotificationsSection.tsx
-│ ├── AccordRenewalDialog.tsx
+│ ├── OrganisationTypeBadge.tsx
+│ ├── OrganisationStatusBadge.tsx
+│ ├── ContactHealthBadge.tsx
+│ ├── PartenairesSummaryCards.tsx
+│ ├── PartenairesFilters.tsx
+│ ├── PartenairesRegistryTable.tsx
+│ ├── PartenaireRegistryCard.tsx
+│ ├── PartenaireDetailHeader.tsx
+│ ├── PartenaireSummaryStrip.tsx
+│ ├── PartenaireOverview.tsx
+│ ├── PartenaireContactsSection.tsx
+│ ├── PartenaireAgreementsSection.tsx
+│ ├── ContactFormDialog.tsx
 │ └── form/
-│ ├── AccordFormStepper.tsx
+│ ├── PartenaireFormStepper.tsx
 │ ├── GeneralInformationStep.tsx
-│ ├── PartnersStep.tsx
-│ ├── ValidityStep.tsx
-│ ├── DocumentStep.tsx
+│ ├── PrimaryContactStep.tsx
+│ ├── AdditionalInformationStep.tsx
 │ └── ReviewStep.tsx
-├── accord.types.ts
-├── accord.utils.ts
-├── accord.constants.ts
-├── AccordsPage.tsx
-├── AccordDetailPage.tsx
-└── AccordFormPage.tsx
+├── hooks/
+│ ├── usePartenairesQueries.ts
+│ ├── usePartenairesMutations.ts
+│ └── usePartenaireDetailQueries.ts
+├── partenaire.types.ts
+├── partenaire.schemas.ts
+├── partenaire.utils.ts
+├── partenaire.constants.ts
+├── PartenairesPage.tsx
+├── PartenaireDetailPage.tsx
+└── PartenaireFormPage.tsx
 
-Adapt this structure to current conventions.
+Adapt to current naming conventions.
 
-Do not create components that are only one wrapper element with no reusable value.
+Do not rename all existing files without a clear benefit.
 
-Centralise:
+Reuse current hooks where possible.
 
-- Status labels
-- Status appearance
-- Expiry calculations
-- Countdown formatting
+Avoid trivial components.
+
+---
+
+# 17. Shared normalization with Accords
+
+Inspect the updated Accords implementation first.
+
+Reuse its patterns for:
+
+- Page header
+- Breadcrumbs
+- Summary cards
+- Filter toolbar
+- Full-width registry
+- Mobile cards
+- Stepper
+- Detail local navigation
+- Summary strip
+- Error states
+- Empty states
+- Action menus
 - Date formatting
-- Step definitions
-- Route mapping
-- Partner summary formatting
+- Responsive breakpoints
+- Accessible table behavior
 
-Avoid duplicating status logic between list, detail, and dashboard.
+Do not copy and paste entire Accord components.
 
-Consider moving shared accord utilities to an appropriate shared domain folder if the dashboard already needs the same rules.
+Extract shared primitives only where they genuinely apply to multiple domains.
 
----
+Possible shared components:
 
-# 13. Data rules
+- EntityPageHeader
+- SummaryMetricCard
+- FilterToolbar
+- DetailSummaryStrip
+- GuidedFormLayout
+- DetailSectionNavigation
+- ResponsiveRegistryContainer
+- EmptyState
+- ErrorState
 
-Create explicit utilities for:
-
-- `isExpired`
-- `isExpiringSoon`
-- `daysUntilExpiration`
-- `daysSinceExpiration`
-- `formatExpiryLabel`
-- `formatPartnersSummary`
-
-Use calendar-safe date handling.
-
-Avoid repeated expressions such as:
-
-new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-
-Define the warning threshold in one place.
-
-Suggested constant:
-
-ACCORD_EXPIRY_WARNING_DAYS = 90
-
-Avoid timezone errors where a date-only value changes calendar day after parsing.
-
-Inspect the actual API date format.
+Do not overgeneralize domain-specific UI.
 
 ---
 
-# 14. Accessibility
+# 18. Data and backend dependencies
+
+Audit whether the registry API returns:
+
+- Contacts
+- Main contact
+- Active contact count
+- Agreement count
+- Last update
+- Country and region aggregates
+
+If not, identify the minimum backend change.
+
+Suggested list response shape:
+
+{
+data: Organisation[],
+total: number,
+aggregates?: {
+total: number,
+active: number,
+inactive: number,
+withActiveContact: number,
+withoutActiveContact: number,
+representedCountries: number
+}
+}
+
+Suggested organisation list row extension:
+
+{
+contactPrincipal?: Contact,
+activeContactsCount?: number,
+accordsCount?: number
+}
+
+Do not make multiple frontend requests per table row.
+
+If needed, add a lightweight server projection or aggregate query.
+
+Do not redesign the entire backend.
+
+---
+
+# 19. Mutation strategy for guided creation
+
+The current backend likely creates organisations and contacts separately.
+
+Design the flow safely.
+
+Preferred options:
+
+1. Add a transactional backend endpoint that creates organisation plus optional principal contact.
+2. Create organisation, then create contact, with explicit partial-success handling.
+
+If using option 2:
+
+- Show when the organisation was created but the contact failed.
+- Provide a retry path.
+- Do not create duplicate organisations when retrying.
+- Return the user to the created organisation detail page.
+
+Do not pretend the operation is atomic when it is not.
+
+Report the chosen strategy.
+
+---
+
+# 20. URL and routing requirements
+
+Suggested routes:
+
+/partenaires
+/partenaires/new
+/partenaires/:id
+/partenaires/:id/edit
+
+Preserve:
+
+/accords?partenaireId={id}
+
+Synchronize registry filters with URL parameters.
+
+Handle invalid IDs and missing organisations.
+
+Browser back/forward navigation must work correctly.
+
+---
+
+# 21. Accessibility
 
 Requirements:
 
-- Table rows must remain keyboard accessible.
-- Do not use nested interactive controls incorrectly.
-- Row action menus must have accessible names.
-- Stepper must expose current and completed state.
-- Every form field must have a visible label.
-- Required fields must be communicated textually.
-- Validation errors must be associated with fields.
-- Status must not rely on colour alone.
-- Icon-only controls need `aria-label`.
-- Modal focus must be trapped and restored.
-- Upload progress must be announced appropriately.
-- Keyboard users must be able to complete all creation steps.
-- Focus should move to the step heading after step navigation.
-- Error summary should focus or announce when final submission fails.
+- Full keyboard access
+- Semantic table or card links
+- No invalid nested buttons
+- Accessible action menus
+- Stepper exposes current and completed state
+- Fields have visible labels
+- Validation errors associated with fields
+- Required fields communicated textually
+- Contact health not conveyed by color alone
+- Icon-only controls have accessible names
+- Dialog focus trapped and restored
+- Focus moves to step heading
+- Error summary announced
+- Email and phone links have meaningful accessible text
+- Mobile cards preserve logical reading order
 
 ---
 
-# 15. Responsive behavior
+# 22. Responsive behavior
 
 Desktop:
 
-- Registry uses full-width table
-- Creation uses vertical stepper plus form workspace
-- Detail uses section navigation and multi-column content
+- Full-width partner table
+- Vertical creation stepper
+- Three-column detail overview
 
 Tablet:
 
-- Registry hides secondary columns
-- Creation stepper becomes more compact
-- Detail cards stack into two columns or one column
+- Reduced table columns
+- Two-column detail layout
+- Compact stepper
 
 Mobile:
 
-- Registry becomes agreement cards
-- Filters open in a sheet or stacked panel
-- Creation uses one step at a time
-- Detail uses tabs or collapsible sections
-- Header actions collapse into a menu
+- Partner cards
+- Filters in sheet or stacked panel
+- One form step at a time
+- Detail sections stacked
+- Actions collapsed into menu
+- Contacts displayed as cards
 - No horizontal page overflow
 
-Test narrow widths.
+Test actual narrow widths.
 
 ---
 
-# 16. Error handling
+# 23. Error and empty states
 
 Implement meaningful states for:
 
-- Accord list fetch failure
-- Accord detail missing
-- Invalid accord ID
-- Organisation fetch failure
-- Document list failure
-- Upload failure
-- Duplicate document
-- Create failure
-- Update failure
-- Renewal failure
-- Notification failure
-- Partial group-notification success
+- Organisation list failure
+- Organisation detail failure
+- Invalid ID
+- Missing organisation
+- Country list failure
+- Region list failure
+- Contact list failure
+- Organisation creation failure
+- Organisation update failure
+- Contact creation failure
+- Main-contact assignment failure
+- Partial create success
+- Related agreements failure
+- Empty contacts
+- Empty agreements
+- Empty filtered registry
 
-Do not return null for an expected error or missing record.
+Do not return null for expected errors.
 
-Use existing toast or alert patterns consistently.
-
----
-
-# 17. Performance
-
-- Debounce registry search.
-- Avoid refetching organisations unnecessarily.
-- Avoid loading the existing document list until requested.
-- Avoid loading notification history until the section is opened, if appropriate.
-- Do not fetch every agreement to derive versions when a targeted endpoint is available.
-- Preserve React Query cache usage.
-- Invalidate only relevant query keys after mutations.
-- Consider prefetching detail on row hover only if the repository already follows this pattern.
-
-Do not overengineer performance for the expected small internal user base.
+Use existing toast and alert patterns consistently.
 
 ---
 
-# 18. Testing and validation
+# 24. Performance
+
+- Debounce search
+- Reuse country and region query cache
+- Avoid repeated organisation requests
+- Lazy-load agreements or history sections where useful
+- Avoid one contact or agreement request per registry row
+- Invalidate only relevant query keys
+- Preserve server-side pagination and sorting
+- Do not overengineer for a small internal user base
+
+---
+
+# 25. Testing and validation
 
 Run the relevant repository commands using the existing package manager.
 
@@ -1192,29 +1270,33 @@ At minimum validate:
 - TypeScript
 - ESLint
 - Production build
-- `/accords`
-- `/accords/new`
-- `/accords/:id`
-- `/accords/:id/edit`
+- `/partenaires`
+- `/partenaires/new`
+- `/partenaires/:id`
+- `/partenaires/:id/edit`
 - Search
+- Country filter
+- Region filter
+- Type filter
 - Status filter
-- Partner filter
-- URL filter restoration
+- Contact-quality filter if implemented
+- Sorting
 - Pagination
-- Accord creation
+- URL filter restoration
+- Organisation creation
 - Step validation
-- Back and next navigation
-- Partner selection
-- Expiration date validation
-- Document upload
-- Existing document linking
-- Accord update
-- Renewal flow
-- Expired agreement display
-- Expiring agreement display
-- No-expiration agreement display
-- Group reminders
-- Partial reminder failures
+- Contact creation during onboarding
+- Creation without contact
+- Partial create failure
+- Organisation edit
+- Contact creation from detail
+- Main contact assignment
+- Related agreements preview
+- Link to filtered agreements
+- Active organisation
+- Inactive organisation
+- Organisation without contacts
+- Organisation without principal contact
 - Loading states
 - Error states
 - Empty states
@@ -1225,11 +1307,11 @@ At minimum validate:
 - No horizontal overflow
 - No console errors
 
-Do not claim a check passed unless it was executed.
+Do not claim a check passed unless executed.
 
 ---
 
-# 19. Expected implementation sequence
+# 26. Expected implementation sequence
 
 ## Phase 1 — Audit
 
@@ -1238,13 +1320,14 @@ Return:
 1. Current file structure
 2. Current routes
 3. Current API payloads
-4. Current business rules
-5. Existing reusable UI
-6. Current UX problems
-7. Data limitations
-8. Backend dependencies
-9. Proposed file changes
-10. Risks
+4. Current organisation rules
+5. Current contact rules
+6. Existing reusable UI
+7. Updated Accords patterns to reuse
+8. Data limitations
+9. Backend dependencies
+10. Proposed file changes
+11. Risks
 
 Do not implement yet.
 
@@ -1253,15 +1336,17 @@ Do not implement yet.
 Return:
 
 1. Registry component map
-2. Creation stepper design
-3. Detail workspace design
-4. Renewal flow
-5. Shared utility plan
-6. Data-fetching plan
-7. Responsive strategy
-8. Accessibility strategy
-9. Backend changes, if unavoidable
-10. Implementation order
+2. Summary metrics strategy
+3. Guided creation steps
+4. Detail workspace design
+5. Contacts management design
+6. Related agreements strategy
+7. Shared normalization strategy
+8. Data-fetching plan
+9. Responsive strategy
+10. Accessibility strategy
+11. Backend changes if unavoidable
+12. Implementation order
 
 ## Phase 3 — Registry implementation
 
@@ -1269,12 +1354,12 @@ Implement:
 
 1. Shared types and utilities
 2. Page header
-3. Search and filters
-4. Summary cards
+3. Summary cards
+4. Search and filters
 5. Desktop table
 6. Mobile cards
 7. Pagination
-8. States
+8. Loading/error/empty states
 
 Validate before continuing.
 
@@ -1284,11 +1369,11 @@ Implement:
 
 1. Stepper shell
 2. General information
-3. Partners
-4. Validity
-5. Document
-6. Review
-7. Submission
+3. Primary contact
+4. Additional information
+5. Review
+6. Submission strategy
+7. Partial-failure handling
 8. Unsaved-change handling
 9. Responsive behavior
 
@@ -1298,14 +1383,14 @@ Validate before continuing.
 
 Implement:
 
-1. Header and actions
+1. Breadcrumb and header
 2. Summary strip
-3. Overview
-4. Partners
-5. Document
-6. Validity and versions
-7. Notifications
-8. Renewal flow
+3. Three-column overview
+4. Contacts section
+5. Agreement preview
+6. Information section
+7. History or system information
+8. Edit flow
 9. States
 10. Responsive behavior
 
@@ -1324,72 +1409,74 @@ Return:
 3. Files modified
 4. Registry changes
 5. Guided form changes
-6. Detail changes
-7. Renewal behavior
-8. Shared utilities
-9. Accessibility decisions
-10. Responsive behavior
-11. API or backend changes
-12. Validation commands
-13. Validation results
-14. Remaining recommendations
+6. Detail workspace changes
+7. Contacts changes
+8. Agreement integration
+9. Shared components introduced
+10. Backend/API changes
+11. Accessibility decisions
+12. Responsive behavior
+13. Validation commands
+14. Validation results
+15. Remaining recommendations
 
 ---
 
-# 20. Acceptance criteria
+# 27. Acceptance criteria
 
 The task is complete when:
 
-- The Accords registry follows the attached visual direction.
-- The registry is full-width and easier to scan.
-- Filters and search work with pagination.
-- Expiry risks are explicit.
+- The Partenaires module follows the normalized SICOT style.
+- The registry is full-width and operationally useful.
 - Summary metrics are accurate.
-- Mobile uses agreement cards rather than a compressed table.
-- New accord creation uses a guided stepper.
-- The stepper uses only real current fields.
-- Form values persist between steps.
-- Each step validates appropriately.
-- Partner selection is searchable and manageable.
-- Date range validation is implemented.
-- Document upload and linking remain supported.
-- The final step provides a review before creation.
-- Accord detail is a structured operational workspace.
-- Main actions are easy to find.
-- Renewal is a distinct workflow.
-- Parent and child agreement versions remain visible.
-- Notification behavior remains supported.
-- Loading, error, empty, and missing-record states exist.
-- Status and expiry utilities are not duplicated.
-- The design uses the current SICOT design system.
-- The pages are responsive.
-- The pages are keyboard accessible.
+- Main contact and contact health are visible.
+- Related agreement counts are available without per-row requests.
+- Search, filters, sorting, and pagination continue to work.
+- Filters are restorable from the URL.
+- Mobile uses partner cards.
+- Organisation creation uses a guided stepper.
+- The stepper uses only real fields.
+- Initial principal-contact creation is supported safely.
+- Creation without a contact remains possible when allowed.
+- Partial creation failure is handled transparently.
+- Partner detail uses the confirmed three-column overview.
+- Contacts are managed from the partner detail workspace.
+- Related agreements are visible.
+- Organisation editing is separated from contact management.
+- Missing contacts are treated as an explicit operational state.
+- Loading, error, empty, and missing-record states are implemented.
+- Existing query and mutation behavior remains correct.
+- Shared styles align with Dashboard and Accords.
+- The module is responsive.
+- The module is keyboard accessible.
 - TypeScript, lint, and build checks pass.
 - No unrelated modules are changed.
 - A final implementation report is returned.
 
 ---
 
-# 21. Restrictions
+# 28. Restrictions
 
 Do not:
 
 - Rewrite the entire application.
 - Replace React Query.
-- Replace React Hook Form.
-- Replace Zod.
+- Replace TanStack Table.
+- Replace React Hook Form or Zod if already used.
 - Replace Tailwind.
 - Introduce another UI library.
-- Add mock production data.
-- Add fields absent from the real domain model.
-- Turn one linked document into a multi-document model without approval.
-- Mix renewal with standard editing.
-- Fetch all records only to derive summary data when a better endpoint is available.
-- Duplicate accord status and expiry rules.
-- Leave disabled ESLint rules without investigating them.
-- Commit or push changes.
+- Add production mock data.
+- Invent organisation fields.
+- Invent partner documents.
+- Invent partner activity events.
+- Create one request per registry row.
+- Store derived contact-health statuses unnecessarily.
+- Mix organisation editing and contact management into one oversized form.
+- Keep organisation creation solely in a modal.
+- Duplicate the normalized Accords layout through copy-paste.
 - Modify unrelated pages.
+- Commit or push changes.
 
 Start with Phase 1 only.
 
-Inspect the codebase and return the audit report before writing implementation code.
+Inspect the updated codebase and return the audit report before writing implementation code.

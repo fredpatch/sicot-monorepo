@@ -594,12 +594,19 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - [x] ~~**Accords M1 — actions de table clarifiées**~~ - Tooltips hover/focus sur voir/modifier/renouveler/relancer, icône détail remplacée par `Eye`
 - [x] ~~**Accords M1 — pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS plutôt qu'en emoji, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
 - [x] ~~**Accords M1 — formulaire guidé**~~ - `AccordFormPage.tsx` restructuré en étapes : informations générales, partenaires, contenu/scope, validité, document, révision
+- [x] ~~**Partenaires M2 — registre opérationnel complet**~~ - `PartenairesPage.tsx` remplacé par une vue registre dense avec cartes de synthèse, filtres URL-backed, tri/recherche, pagination à 8 lignes, table desktop et cartes mobiles
+- [x] ~~**Partenaires M2 — indicateurs serveur**~~ - `organisations.service.ts` enrichit la liste avec contact principal, compteurs contacts actif/total, nombre d'accords liés, agrégats de synthèse et filtre qualité de contact
+- [x] ~~**Partenaires M2 — pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS dans la liste et la fiche détail, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
+- [x] ~~**Partenaires M2 — formulaire guidé**~~ - `PartenaireFormPage.tsx` ajoute un parcours création/édition par étapes, avec création optionnelle du contact principal après sauvegarde de l'organisation
+- [x] ~~**Partenaires M2 — fiche détail durcie**~~ - `PartenaireDetailPage.tsx` ajoute une fiche workspace avec aperçu, contacts, informations, accords liés et métadonnées système, sans données factices de documents/activité
+- [x] ~~**Partenaires M2 — actions de table clarifiées**~~ - Tooltips hover/focus sur consulter/modifier/contacts/accords, icônes plus explicites et état contact visible directement dans les lignes
 
 **Validation 29 juillet 2026** :
 
 - `npm run lint` OK côté client, avec un avertissement existant hors périmètre dans `AdminParametresPage.tsx` (`no-explicit-any`)
 - `npx tsc --noEmit` OK côté client
 - `npm run build` OK côté client ; sur Windows, Vite/esbuild doit être lancé hors sandbox car le build sandboxé échoue avec `spawn EPERM`
+- `npx tsc --noEmit` / `npm run build` côté serveur restent bloqués par des erreurs existantes dans `src/db/seed-demo.ts`; aucun fichier Partenaires modifié n'apparaît dans la sortie filtrée du compilateur
 
 ### Dette technique identifiée (voir aussi Notion, tâches différées)
 

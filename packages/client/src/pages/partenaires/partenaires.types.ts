@@ -19,7 +19,12 @@ export interface Organisation {
   actif: boolean;
   notes?: string;
   contacts?: Contact[];
+  contactPrincipal?: Contact;
+  contactsActifsCount?: number;
+  contactsTotalCount?: number;
+  accordsCount?: number;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type OrganisationTypeFiltre =
@@ -29,3 +34,26 @@ export type OrganisationTypeFiltre =
   | 'autre';
 
 export type OrganisationSortField = 'nom' | 'type' | 'pays' | 'region' | 'actif';
+
+export type OrganisationStatusFilter = 'tous' | 'actif' | 'inactif';
+
+export type ContactQualityFilter =
+  | ''
+  | 'avec_principal'
+  | 'avec_contact_sans_principal'
+  | 'sans_contact_actif';
+
+export interface OrganisationsAggregates {
+  total: number;
+  active: number;
+  inactive: number;
+  withActiveContact: number;
+  withoutActiveContact: number;
+  representedCountries: number;
+}
+
+export interface OrganisationsListResponse {
+  data: Organisation[];
+  total: number;
+  aggregates?: OrganisationsAggregates;
+}

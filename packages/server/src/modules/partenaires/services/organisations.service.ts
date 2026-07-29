@@ -1,6 +1,6 @@
 import { db } from '@/db/index';
-import { organisations, contacts } from '@/db/schema';
-import { eq, ilike, and, or, asc, desc } from 'drizzle-orm';
+import { organisations, contacts, accordsOrganisations } from '@/db/schema';
+import { eq, ilike, and, or, asc, desc, inArray, count } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { toOrganisationView, toContactView } from './organisations.helpers';
@@ -11,10 +11,12 @@ import type {
   OrganisationFilters,
   OrganisationSortBy,
   OrganisationSortOrder,
+  ContactQualityFilter,
   CreateContactParams,
   UpdateContactParams,
   OrganisationView,
   ContactView,
+  OrganisationsAggregates,
 } from './organisations.types';
 
 export type {
@@ -24,10 +26,12 @@ export type {
   OrganisationFilters,
   OrganisationSortBy,
   OrganisationSortOrder,
+  ContactQualityFilter,
   CreateContactParams,
   UpdateContactParams,
   OrganisationView,
   ContactView,
+  OrganisationsAggregates,
 } from './organisations.types';
 
 const SORTABLE_COLUMNS = {
@@ -47,7 +51,7 @@ function buildOrderBy(sortBy?: OrganisationSortBy, sortOrder?: OrganisationSortO
 // ── SERVICE : Lister les organisations ────────────────────────────────────
 export async function listerOrganisations(
   filters: OrganisationFilters
-): Promise<{ data: OrganisationView[]; total: number }> {
+): Promise<{ data: OrganisationView[]; total: number; aggregates: OrganisationsAggregates }> {
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 20;
   const offset = (page - 1) * pageSize;
@@ -79,6 +83,14 @@ export async function listerOrganisations(
     conditions.push(eq(organisations.actif, filters.actif));
   }
 
+  if (filters.contactQuality) {
+    const ids = await getOrganisationIdsForContactQuality(filters.contactQuality);
+    if (ids.length === 0) {
+      return { data: [], total: 0, aggregates: await getOrganisationsAggregates() };
+    }
+    conditions.push(inArray(organisations.id, ids));
+  }
+
   const rows = await db
     .select()
     .from(organisations)
@@ -92,10 +104,117 @@ export async function listerOrganisations(
     conditions.length > 0 ? and(...conditions) : undefined
   );
 
-  return { data: rows.map((o) => toOrganisationView(o)), total };
+  const rowMeta = await getOrganisationListMeta(rows.map((row) => row.id));
+  const aggregates = await getOrganisationsAggregates();
+
+  return {
+    data: rows.map((org) => toOrganisationView(org, undefined, rowMeta.get(org.id))),
+    total,
+    aggregates,
+  };
+}
+
+async function getOrganisationIdsForContactQuality(filter: ContactQualityFilter) {
+  const activeContactRows = await db
+    .selectDistinct({ organisationId: contacts.organisationId })
+    .from(contacts)
+    .where(eq(contacts.actif, true));
+  const principalRows = await db
+    .selectDistinct({ organisationId: contacts.organisationId })
+    .from(contacts)
+    .where(and(eq(contacts.actif, true), eq(contacts.principal, true)));
+
+  const activeIds = new Set(activeContactRows.map((row) => row.organisationId));
+  const principalIds = new Set(principalRows.map((row) => row.organisationId));
+
+  if (filter === 'avec_principal') return [...principalIds];
+
+  if (filter === 'avec_contact_sans_principal') {
+    return [...activeIds].filter((organisationId) => !principalIds.has(organisationId));
+  }
+
+  const allRows = await db.select({ id: organisations.id }).from(organisations);
+  return allRows.map((row) => row.id).filter((organisationId) => !activeIds.has(organisationId));
 }
 
 // ── SERVICE : Récupérer une organisation avec ses contacts ────────────────
+async function getOrganisationListMeta(organisationIds: number[]) {
+  const meta = new Map<
+    number,
+    {
+      contactPrincipal?: ContactView;
+      contactsActifsCount: number;
+      contactsTotalCount: number;
+      accordsCount: number;
+    }
+  >();
+
+  for (const organisationId of organisationIds) {
+    meta.set(organisationId, {
+      contactsActifsCount: 0,
+      contactsTotalCount: 0,
+      accordsCount: 0,
+    });
+  }
+
+  if (organisationIds.length === 0) return meta;
+
+  const contactRows = await db
+    .select()
+    .from(contacts)
+    .where(inArray(contacts.organisationId, organisationIds))
+    .orderBy(desc(contacts.principal), desc(contacts.actif));
+
+  for (const row of contactRows) {
+    const current = meta.get(row.organisationId);
+    if (!current) continue;
+    const view = toContactView(row);
+    current.contactsTotalCount += 1;
+    if (view.actif) current.contactsActifsCount += 1;
+    if (view.principal && !current.contactPrincipal) current.contactPrincipal = view;
+  }
+
+  const accordRows = await db
+    .select({
+      organisationId: accordsOrganisations.organisationId,
+      total: count(),
+    })
+    .from(accordsOrganisations)
+    .where(inArray(accordsOrganisations.organisationId, organisationIds))
+    .groupBy(accordsOrganisations.organisationId);
+
+  for (const row of accordRows) {
+    const current = meta.get(row.organisationId);
+    if (current) current.accordsCount = row.total;
+  }
+
+  return meta;
+}
+
+async function getOrganisationsAggregates(): Promise<OrganisationsAggregates> {
+  const total = await db.$count(organisations);
+  const active = await db.$count(organisations, eq(organisations.actif, true));
+  const inactive = await db.$count(organisations, eq(organisations.actif, false));
+  const countries = await db
+    .selectDistinct({ pays: organisations.pays })
+    .from(organisations)
+    .orderBy(organisations.pays);
+  const withActiveContactRows = await db
+    .selectDistinct({ organisationId: contacts.organisationId })
+    .from(contacts)
+    .where(eq(contacts.actif, true));
+  const withActiveContact = withActiveContactRows.length;
+
+  return {
+    total,
+    active,
+    inactive,
+    withActiveContact,
+    withoutActiveContact: Math.max(0, total - withActiveContact),
+    representedCountries: countries.length,
+  };
+}
+
 export async function getOrganisation(id: number): Promise<OrganisationView> {
   const [org] = await db.select().from(organisations).where(eq(organisations.id, id));
 
@@ -104,10 +223,21 @@ export async function getOrganisation(id: number): Promise<OrganisationView> {
   const contactsList = await db
     .select()
     .from(contacts)
-    .where(and(eq(contacts.organisationId, id), eq(contacts.actif, true)))
+    .where(eq(contacts.organisationId, id))
     .orderBy(desc(contacts.principal));
 
-  return toOrganisationView(org, contactsList.map(toContactView));
+  const contactsView = contactsList.map(toContactView);
+  const accordsCount = await db.$count(
+    accordsOrganisations,
+    eq(accordsOrganisations.organisationId, id)
+  );
+
+  return toOrganisationView(org, contactsView, {
+    contactPrincipal: contactsView.find((contact) => contact.principal),
+    contactsActifsCount: contactsView.filter((contact) => contact.actif).length,
+    contactsTotalCount: contactsView.length,
+    accordsCount,
+  });
 }
 
 // ── SERVICE : Créer une organisation ──────────────────────────────────────
@@ -129,7 +259,7 @@ export async function creerOrganisation(
       region: params.region,
       type: params.type,
       notes: params.notes,
-      actif: true,
+      actif: params.actif ?? true,
     })
     .returning();
 

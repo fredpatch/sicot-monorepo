@@ -25,10 +25,12 @@ export function usePartenairesMutations({
         pays: data.pays,
         region: data.region,
         type: data.type,
+        actif: data.actif,
         notes: data.notes,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organisations'] });
+      queryClient.invalidateQueries({ queryKey: ['organisation'] });
       onOrganisationCreee();
     },
   });
@@ -36,8 +38,9 @@ export function usePartenairesMutations({
   const modifierOrgMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: OrgFormData }) =>
       organisationsApi.mettreAJour(id, data),
-    onSuccess: () => {
+    onSuccess: (_response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['organisations'] });
+      queryClient.invalidateQueries({ queryKey: ['organisation', variables.id] });
       onOrganisationModifiee();
     },
   });
@@ -54,6 +57,8 @@ export function usePartenairesMutations({
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts', voirContactsId] });
+      queryClient.invalidateQueries({ queryKey: ['organisation', voirContactsId] });
+      queryClient.invalidateQueries({ queryKey: ['organisations'] });
       onContactCree();
     },
   });
@@ -62,6 +67,8 @@ export function usePartenairesMutations({
     mutationFn: (contactId: number) => organisationsApi.definirContactPrincipal(contactId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts', voirContactsId] });
+      queryClient.invalidateQueries({ queryKey: ['organisation', voirContactsId] });
+      queryClient.invalidateQueries({ queryKey: ['organisations'] });
     },
   });
 

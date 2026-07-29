@@ -5,6 +5,7 @@ export const orgSchema = z.object({
   pays: z.string().min(1, 'Le pays est requis'),
   region: z.string().optional(),
   type: z.string().min(1, 'Le type est requis'),
+  actif: z.boolean(),
   notes: z.string().optional(),
 });
 

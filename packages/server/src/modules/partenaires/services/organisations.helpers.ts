@@ -3,7 +3,13 @@ import type { OrganisationType, OrganisationView, ContactView } from './organisa
 
 export function toOrganisationView(
   org: typeof organisations.$inferSelect,
-  contactsList?: ContactView[]
+  contactsList?: ContactView[],
+  meta?: {
+    contactPrincipal?: ContactView;
+    contactsActifsCount?: number;
+    contactsTotalCount?: number;
+    accordsCount?: number;
+  }
 ): OrganisationView {
   return {
     id: org.id,
@@ -14,6 +20,10 @@ export function toOrganisationView(
     actif: org.actif,
     notes: org.notes ?? undefined,
     contacts: contactsList,
+    contactPrincipal: meta?.contactPrincipal,
+    contactsActifsCount: meta?.contactsActifsCount,
+    contactsTotalCount: meta?.contactsTotalCount,
+    accordsCount: meta?.accordsCount,
     createdAt: org.createdAt,
     updatedAt: org.updatedAt,
   };

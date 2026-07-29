@@ -1,9 +1,12 @@
+import { Search, X } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { TYPES_FILTER } from '../partenaires.constants';
-import type { OrganisationTypeFiltre } from '../partenaires.types';
+import { CONTACT_QUALITY_OPTIONS, STATUS_FILTER, TYPES_FILTER } from '../partenaires.constants';
+import type { ContactQualityFilter, OrganisationStatusFilter, OrganisationTypeFiltre } from '../partenaires.types';
+import { getContactQualityLabel } from '../partenaires.utils';
 
 interface PartenairesFiltresProps {
   search: string;
@@ -16,8 +19,12 @@ interface PartenairesFiltresProps {
   region: string;
   onRegionChange: (value: string) => void;
   regionsDisponibles?: string[];
+  statut: OrganisationStatusFilter;
+  onStatutChange: (value: OrganisationStatusFilter) => void;
+  contactQuality: ContactQualityFilter;
+  onContactQualityChange: (value: ContactQualityFilter) => void;
+  resultCount: number;
   onReset: () => void;
-  searchPlaceholder: string;
 }
 
 export function PartenairesFiltres({
@@ -31,70 +38,157 @@ export function PartenairesFiltres({
   region,
   onRegionChange,
   regionsDisponibles,
+  statut,
+  onStatutChange,
+  contactQuality,
+  onContactQualityChange,
+  resultCount,
   onReset,
-  searchPlaceholder,
 }: PartenairesFiltresProps) {
-  const aUnFiltreActif = search || type !== 'tous' || pays || region;
+  const hasFilters = Boolean(search || type !== 'tous' || pays || region || statut !== 'tous' || contactQuality);
 
   return (
-    <div className="card p-4 flex flex-wrap gap-3">
-      <Input
-        type="text"
-        placeholder={searchPlaceholder}
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        className="w-52"
-      />
+    <section className="card p-4">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+        <div className="relative min-w-[260px] flex-1">
+          <Search
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted"
+            aria-hidden="true"
+          />
+          <Input
+            type="text"
+            placeholder="Rechercher un partenaire, un pays ou une organisation..."
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            className="h-9 pl-9"
+          />
+        </div>
 
-      {/* Filtre type */}
-      <Select value={type} onValueChange={(v) => onTypeChange(v as OrganisationTypeFiltre)}>
-        <SelectTrigger className="w-52">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {TYPES_FILTER.map((t) => (
-            <SelectItem key={t.value} value={t.value}>
-              {t.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:w-[760px] xl:grid-cols-5">
+          <Select value={pays || '__all__'} onValueChange={(value) => onPaysChange(value === '__all__' ? '' : value)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Pays" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Tous les pays</SelectItem>
+              {paysDisponibles?.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {/* Filtre pays */}
-      <Select value={pays || '__all__'} onValueChange={(v) => onPaysChange(v === '__all__' ? '' : v)}>
-        <SelectTrigger className="w-44">
-          <SelectValue placeholder="Tous les pays" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__all__">Tous les pays</SelectItem>
-          {paysDisponibles?.map((p) => (
-            <SelectItem key={p} value={p}>
-              {p}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <Select value={region || '__all__'} onValueChange={(value) => onRegionChange(value === '__all__' ? '' : value)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Région" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Toutes les régions</SelectItem>
+              {regionsDisponibles?.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {/* Filtre région */}
-      <Select value={region || '__all__'} onValueChange={(v) => onRegionChange(v === '__all__' ? '' : v)}>
-        <SelectTrigger className="w-44">
-          <SelectValue placeholder="Toutes les régions" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__all__">Toutes les régions</SelectItem>
-          {regionsDisponibles?.map((r) => (
-            <SelectItem key={r} value={r}>
-              {r}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <Select value={type} onValueChange={(value) => onTypeChange(value as OrganisationTypeFiltre)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {TYPES_FILTER.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {aUnFiltreActif && (
-        <Button variant="secondary" size="sm" onClick={onReset}>
-          Réinitialiser
-        </Button>
-      )}
-    </div>
+          <Select value={statut} onValueChange={(value) => onStatutChange(value as OrganisationStatusFilter)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_FILTER.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={contactQuality || '__all__'}
+            onValueChange={(value) => onContactQualityChange(value === '__all__' ? '' : (value as ContactQualityFilter))}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Qualité contacts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Tous les contacts</SelectItem>
+              {CONTACT_QUALITY_OPTIONS.filter((option) => option.value).map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-anac-muted">
+          <span className="font-medium text-anac-navy">
+            {resultCount} résultat{resultCount > 1 ? 's' : ''}
+          </span>
+          {pays && <FilterChip label={`Pays : ${pays}`} onRemove={() => onPaysChange('')} />}
+          {region && <FilterChip label={`Région : ${region}`} onRemove={() => onRegionChange('')} />}
+          {type !== 'tous' && (
+            <FilterChip
+              label={`Type : ${TYPES_FILTER.find((option) => option.value === type)?.label ?? type}`}
+              onRemove={() => onTypeChange('tous')}
+            />
+          )}
+          {statut !== 'tous' && (
+            <FilterChip
+              label={`Statut : ${statut === 'actif' ? 'Actifs' : 'Inactifs'}`}
+              onRemove={() => onStatutChange('tous')}
+            />
+          )}
+          {contactQuality && (
+            <FilterChip
+              label={`Contacts : ${getContactQualityLabel(contactQuality)}`}
+              onRemove={() => onContactQualityChange('')}
+            />
+          )}
+          {search && <FilterChip label={`Recherche : ${search}`} onRemove={() => onSearchChange('')} />}
+        </div>
+
+        {hasFilters && (
+          <Button type="button" variant="ghost" size="sm" onClick={onReset} className="h-8 text-anac-muted">
+            Réinitialiser les filtres
+          </Button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded border border-anac-border bg-white px-2 py-1">
+      {label}
+      <button
+        type="button"
+        onClick={onRemove}
+        className="rounded text-anac-muted outline-none hover:text-anac-danger focus-visible:ring-2 focus-visible:ring-anac-sky"
+        aria-label={`Retirer le filtre ${label}`}
+      >
+        <X size={12} aria-hidden="true" />
+      </button>
+    </span>
   );
 }

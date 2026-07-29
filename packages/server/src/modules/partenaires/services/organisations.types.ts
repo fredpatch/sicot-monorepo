@@ -5,6 +5,7 @@ export interface CreateOrganisationParams {
   pays: string;
   region?: string;
   type: OrganisationType;
+  actif?: boolean;
   notes?: string;
   createdByUserId: number;
 }
@@ -21,6 +22,10 @@ export interface UpdateOrganisationParams {
 
 export type OrganisationSortBy = 'nom' | 'type' | 'pays' | 'region' | 'actif' | 'createdAt';
 export type OrganisationSortOrder = 'asc' | 'desc';
+export type ContactQualityFilter =
+  | 'avec_principal'
+  | 'avec_contact_sans_principal'
+  | 'sans_contact_actif';
 
 export interface OrganisationFilters {
   search?: string;
@@ -32,6 +37,7 @@ export interface OrganisationFilters {
   pageSize?: number;
   sortBy?: OrganisationSortBy;
   sortOrder?: OrganisationSortOrder;
+  contactQuality?: ContactQualityFilter;
 }
 
 export interface CreateContactParams {
@@ -64,6 +70,10 @@ export interface OrganisationView {
   actif: boolean;
   notes?: string;
   contacts?: ContactView[];
+  contactPrincipal?: ContactView;
+  contactsActifsCount?: number;
+  contactsTotalCount?: number;
+  accordsCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,4 +89,13 @@ export interface ContactView {
   principal: boolean;
   actif: boolean;
   createdAt: Date;
+}
+
+export interface OrganisationsAggregates {
+  total: number;
+  active: number;
+  inactive: number;
+  withActiveContact: number;
+  withoutActiveContact: number;
+  representedCountries: number;
 }

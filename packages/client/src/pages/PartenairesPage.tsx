@@ -1,204 +1,244 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
-import type { SortingState } from '@tanstack/react-table';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/table/data-table';
-
-import { usePartenairesColumns } from './partenaires/partenaires.columns';
-import {
-  useOrganisationsQuery,
-  usePaysDisponiblesQuery,
-  useRegionsDisponiblesQuery,
-  useContactsOrganisationQuery,
-} from './partenaires/hooks/usePartenairesQueries';
-import { usePartenairesMutations } from './partenaires/hooks/usePartenairesMutations';
-import { PartenairesFiltres } from './partenaires/components/PartenairesFiltres';
-import { OrganisationDialog } from './partenaires/components/OrganisationDialog';
-import { ContactsDialog } from './partenaires/components/ContactsDialog';
+import { organisationsApi } from '@/lib/organisations.api';
+import { PARTENAIRES_PAGE_SIZE } from './partenaires/partenaires.constants';
 import type {
-  Organisation,
-  OrganisationSortField,
+  ContactQualityFilter,
+  OrganisationsListResponse,
+  OrganisationStatusFilter,
   OrganisationTypeFiltre,
 } from './partenaires/partenaires.types';
-import { DataTablePagination } from '@/components/table/data-table-pagination';
+import { PartenairesFiltres } from './partenaires/components/PartenairesFiltres';
+import {
+  PartenairesRegistryMobileCards,
+  PartenairesRegistryTable,
+} from './partenaires/components/PartenairesRegistryTable';
+import { PartenairesSummaryCards } from './partenaires/components/PartenairesSummaryCards';
+
+function useDebouncedValue<T>(value: T, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(handle);
+  }, [value, delay]);
+
+  return debounced;
+}
 
 export default function PartenairesPage() {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
+  const debouncedSearch = useDebouncedValue(search);
+  const type = (searchParams.get('type') ?? 'tous') as OrganisationTypeFiltre;
+  const pays = searchParams.get('pays') ?? '';
+  const region = searchParams.get('region') ?? '';
+  const statut = (searchParams.get('statut') ?? 'tous') as OrganisationStatusFilter;
+  const contactQuality = (searchParams.get('contacts') ?? '') as ContactQualityFilter;
+  const sortBy = searchParams.get('sortBy') as 'nom' | 'type' | 'pays' | 'region' | 'actif' | null;
+  const sortOrder = (searchParams.get('sortOrder') ?? 'asc') as 'asc' | 'desc';
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
 
-  // ── Filtres ───────────────────────────────────────────────────────────
-  const [search, setSearch] = useState('');
-  const [pays, setPays] = useState('');
-  const [region, setRegion] = useState('');
-  const [type, setType] = useState<OrganisationTypeFiltre>('tous');
-  const [page, setPage] = useState(1);
-
-  // ── Tri ───────────────────────────────────────────────────────────────
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const sortBy = sorting[0]?.id as OrganisationSortField | undefined;
-  const sortOrder = sorting[0] ? (sorting[0].desc ? 'desc' : 'asc') : undefined;
-
-  // ── État modals ───────────────────────────────────────────────────────
-  const [modalOrg, setModalOrg] = useState<'creer' | 'modifier' | null>(null);
-  const [orgSelectionnee, setOrgSelectionnee] = useState<Organisation | null>(null);
-  const [modalContact, setModalContact] = useState(false);
-  const [voirContacts, setVoirContacts] = useState<Organisation | null>(null);
-
-  // ── Requêtes ──────────────────────────────────────────────────────────
-  const { data, isLoading } = useOrganisationsQuery({
-    search,
-    pays,
-    region,
-    type,
-    page,
-    sortBy,
-    sortOrder,
-  });
-  const { data: paysDisponibles } = usePaysDisponiblesQuery();
-  const { data: regionsDisponibles } = useRegionsDisponiblesQuery();
-  const { data: contactsOrg } = useContactsOrganisationQuery(voirContacts?.id);
-
-  // ── Mutations ─────────────────────────────────────────────────────────
-  const { creerOrgMutation, modifierOrgMutation, creerContactMutation, definirPrincipalMutation } =
-    usePartenairesMutations({
-      voirContactsId: voirContacts?.id,
-      onOrganisationCreee: () => setModalOrg(null),
-      onOrganisationModifiee: () => {
-        setModalOrg(null);
-        setOrgSelectionnee(null);
-      },
-      onContactCree: () => setModalContact(false),
-    });
-
-  const totalPages = data ? Math.ceil(data.total / 20) : 0;
-
-  const colonnes = usePartenairesColumns({
-    t,
-    onEdit: (org) => {
-      setOrgSelectionnee(org);
-      setModalOrg('modifier');
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const next = new URLSearchParams(searchParams);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === '') next.delete(key);
+        else next.set(key, value);
+      }
+      setSearchParams(next, { replace: true });
     },
-    onViewContacts: (org) => setVoirContacts(org),
+    [searchParams, setSearchParams]
+  );
+
+  useEffect(() => {
+    const current = searchParams.get('search') ?? '';
+    if (debouncedSearch === current) return;
+    updateParams({ search: debouncedSearch || null, page: null });
+  }, [debouncedSearch, searchParams, updateParams]);
+
+  const queryParams = useMemo(
+    () => ({
+      search: debouncedSearch || undefined,
+      type: type !== 'tous' ? type : undefined,
+      pays: pays || undefined,
+      region: region || undefined,
+      actif: statut === 'tous' ? undefined : statut === 'actif',
+      contactQuality: contactQuality || undefined,
+      page,
+      pageSize: PARTENAIRES_PAGE_SIZE,
+      sortBy: sortBy ?? undefined,
+      sortOrder: sortBy ? sortOrder : undefined,
+    }),
+    [contactQuality, debouncedSearch, page, pays, region, sortBy, sortOrder, statut, type]
+  );
+
+  const partenairesQuery = useQuery({
+    queryKey: ['organisations-registry', queryParams],
+    queryFn: async () => {
+      const response = await organisationsApi.lister(queryParams);
+      return response.data as OrganisationsListResponse;
+    },
   });
+
+  const paysQuery = useQuery({
+    queryKey: ['organisations-pays'],
+    queryFn: async () => {
+      const response = await organisationsApi.getPays();
+      return response.data as string[];
+    },
+  });
+
+  const regionsQuery = useQuery({
+    queryKey: ['organisations-regions'],
+    queryFn: async () => {
+      const response = await organisationsApi.getRegions();
+      return response.data as string[];
+    },
+  });
+
+  const organisations = partenairesQuery.data?.data ?? [];
+  const totalPages = partenairesQuery.data
+    ? Math.ceil(partenairesQuery.data.total / PARTENAIRES_PAGE_SIZE)
+    : 0;
+  const hasFilters = Boolean(debouncedSearch || type !== 'tous' || pays || region || statut !== 'tous' || contactQuality);
+
+  function resetFilters() {
+    setSearch('');
+    setSearchParams({}, { replace: true });
+  }
+
+  function setFilter(key: string, value: string) {
+    updateParams({ [key]: value || null, page: null });
+  }
+
+  function sortRegistry(field: 'nom' | 'type' | 'pays' | 'region' | 'actif') {
+    const nextOrder = sortBy === field && sortOrder === 'asc' ? 'desc' : 'asc';
+    updateParams({ sortBy: field, sortOrder: nextOrder, page: null });
+  }
 
   return (
-    <div className="space-y-6">
-      {/* ── En-tête ──────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-[1280px] space-y-5">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-anac-navy">Partenaires Internationaux</h2>
-          <p className="text-anac-muted text-sm mt-0.5">
-            {data?.total ?? 0} organisation{(data?.total ?? 0) > 1 ? 's' : ''}
+          <h2 className="text-2xl font-bold leading-tight text-anac-navy">Partenaires</h2>
+          <p className="mt-1 text-sm text-anac-muted">
+            Gérez les organisations et partenaires de coopération internationale.
           </p>
         </div>
-
-        <Button
-          onClick={() => {
-            setOrgSelectionnee(null);
-            setModalOrg('creer');
-          }}
-          className="gap-2"
-        >
-          <Plus size={13} />
-          Nouvelle organisation
+        <Button type="button" onClick={() => navigate('/partenaires/new')} className="gap-2 bg-anac-blue">
+          <Plus size={14} aria-hidden="true" />
+          Nouveau partenaire
         </Button>
-      </div>
+      </header>
 
-      {/* ── Filtres ───────────────────────────────────────────────────── */}
+      <PartenairesSummaryCards aggregates={partenairesQuery.data?.aggregates} />
+
       <PartenairesFiltres
         search={search}
-        onSearchChange={(v) => {
-          setSearch(v);
-          setPage(1);
+        onSearchChange={(value) => {
+          setSearch(value);
+          updateParams({ page: null });
         }}
         type={type}
-        onTypeChange={(v) => {
-          setType(v);
-          setPage(1);
-        }}
+        onTypeChange={(value) => setFilter('type', value === 'tous' ? '' : value)}
         pays={pays}
-        onPaysChange={(v) => {
-          setPays(v);
-          setPage(1);
-        }}
-        paysDisponibles={paysDisponibles}
+        onPaysChange={(value) => setFilter('pays', value)}
+        paysDisponibles={paysQuery.data}
         region={region}
-        onRegionChange={(v) => {
-          setRegion(v);
-          setPage(1);
-        }}
-        regionsDisponibles={regionsDisponibles}
-        onReset={() => {
-          setSearch('');
-          setType('tous');
-          setPays('');
-          setRegion('');
-          setPage(1);
-        }}
-        searchPlaceholder={t('common.search') + '...'}
+        onRegionChange={(value) => setFilter('region', value)}
+        regionsDisponibles={regionsQuery.data}
+        statut={statut}
+        onStatutChange={(value) => setFilter('statut', value === 'tous' ? '' : value)}
+        contactQuality={contactQuality}
+        onContactQualityChange={(value) => setFilter('contacts', value)}
+        resultCount={partenairesQuery.data?.total ?? 0}
+        onReset={resetFilters}
       />
 
-      {/* ── Tableau ───────────────────────────────────────────────────── */}
-      <DataTable
-        columns={colonnes}
-        data={data?.data ?? []}
-        isLoading={isLoading}
-        loadingMessage={t('common.loading')}
-        emptyMessage={t('common.noData')}
-        sorting={sorting}
-        onSortingChange={(updater) => {
-          setSorting(updater);
-          setPage(1);
-        }}
-      />
+      {partenairesQuery.isLoading ? (
+        <div className="card flex min-h-64 items-center justify-center text-anac-muted">
+          <Loader2 size={17} className="mr-2 animate-spin" aria-hidden="true" />
+          Chargement des partenaires...
+        </div>
+      ) : partenairesQuery.isError ? (
+        <div className="card flex min-h-64 flex-col items-center justify-center gap-3 text-center">
+          <p className="font-semibold text-anac-navy">Impossible de charger les partenaires.</p>
+          <p className="text-sm text-anac-muted">Vérifiez la connexion au serveur puis réessayez.</p>
+          <Button type="button" variant="outline" onClick={() => partenairesQuery.refetch()} className="gap-2">
+            <RefreshCw size={14} aria-hidden="true" />
+            Réessayer
+          </Button>
+        </div>
+      ) : organisations.length === 0 ? (
+        <div className="card flex min-h-64 flex-col items-center justify-center gap-2 text-center">
+          <p className="font-semibold text-anac-navy">
+            {hasFilters
+              ? 'Aucun partenaire ne correspond aux filtres sélectionnés'
+              : 'Aucun partenaire enregistré'}
+          </p>
+          <p className="text-sm text-anac-muted">
+            {hasFilters
+              ? 'Modifiez les filtres ou réinitialisez la recherche.'
+              : 'Créez la première organisation partenaire.'}
+          </p>
+          {hasFilters ? (
+            <Button type="button" variant="outline" onClick={resetFilters}>
+              Réinitialiser les filtres
+            </Button>
+          ) : (
+            <Button type="button" onClick={() => navigate('/partenaires/new')} className="gap-2 bg-anac-blue">
+              <Plus size={14} aria-hidden="true" />
+              Nouveau partenaire
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          <PartenairesRegistryTable
+            organisations={organisations}
+            sortBy={sortBy ?? undefined}
+            sortOrder={sortOrder}
+            onSort={sortRegistry}
+          />
+          <PartenairesRegistryMobileCards organisations={organisations} />
+        </>
+      )}
 
-      {/* ── Pagination ────────────────────────────────────────────────── */}
-      <DataTablePagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        pageLabel={t('common.page')}
-        ofLabel={t('common.of')}
-      />
-
-      {/* ── Dialog : Organisation ─────────────────────────────────────── */}
-      <OrganisationDialog
-        mode={modalOrg}
-        organisation={orgSelectionnee}
-        onOpenChange={(open) => {
-          if (!open) {
-            setModalOrg(null);
-            setOrgSelectionnee(null);
-          }
-        }}
-        onSubmit={(data) => {
-          if (modalOrg === 'creer') {
-            creerOrgMutation.mutate(data);
-          } else if (orgSelectionnee) {
-            modifierOrgMutation.mutate({ id: orgSelectionnee.id, data });
-          }
-        }}
-        chargement={creerOrgMutation.isPending || modifierOrgMutation.isPending}
-      />
-
-      {/* ── Dialog : Contacts ─────────────────────────────────────────── */}
-      <ContactsDialog
-        organisation={voirContacts}
-        contacts={contactsOrg}
-        modeAjout={modalContact}
-        onOpenChange={(open) => {
-          if (!open) {
-            setVoirContacts(null);
-            setModalContact(false);
-          }
-        }}
-        onDemarrerAjout={() => setModalContact(true)}
-        onAnnulerAjout={() => setModalContact(false)}
-        onSubmitContact={(data) => creerContactMutation.mutate(data)}
-        onDefinirPrincipal={(contactId) => definirPrincipalMutation.mutate(contactId)}
-        chargementAjout={creerContactMutation.isPending}
-      />
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-lg border border-anac-border bg-white px-4 py-3">
+          <p className="text-sm text-anac-muted">
+            Page <strong className="text-anac-navy">{page}</strong> sur {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => updateParams({ page: Math.max(1, page - 1).toString() })}
+              disabled={page <= 1}
+              aria-label="Page précédente"
+            >
+              <ChevronLeft size={14} aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => updateParams({ page: Math.min(totalPages, page + 1).toString() })}
+              disabled={page >= totalPages}
+              aria-label="Page suivante"
+            >
+              <ChevronRight size={14} aria-hidden="true" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

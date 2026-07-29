@@ -7,6 +7,7 @@ export const organisationsApi = {
     region?: string;
     type?: string;
     actif?: boolean;
+    contactQuality?: 'avec_principal' | 'avec_contact_sans_principal' | 'sans_contact_actif';
     page?: number;
     pageSize?: number;
     sortBy?: 'nom' | 'type' | 'pays' | 'region' | 'actif' | 'createdAt';
@@ -15,7 +16,7 @@ export const organisationsApi = {
 
   getById: (id: number) => api.get(`/organisations/${id}`),
 
-  creer: (data: { nom: string; pays: string; region?: string; type: string; notes?: string }) =>
+  creer: (data: { nom: string; pays: string; region?: string; type: string; actif?: boolean; notes?: string }) =>
     api.post('/organisations', data),
 
   mettreAJour: (
