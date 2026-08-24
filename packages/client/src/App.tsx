@@ -1,45 +1,9 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
-import { authApi } from './lib/auth.api';
-import Layout from './components/layouts/Layout';
-import LoginPage from './pages/LoginPage';
-import DocumentsPage from './pages/DocumentsPage';
-import PartenairesPage from './pages/PartenairesPage';
-import PartenaireDetailPage from './pages/partenaires/components/PartenaireDetailPage';
-import PartenaireFormPage from './pages/partenaires/components/PartenaireFormPage';
-import BootstrapPage from './pages/BootstrapPage';
 import axios from 'axios';
-import AccordsPage from './pages/AccordsPage';
-import AccordFormPage from './pages/accords/components/AccordFormPage';
-import CourriersPage from './pages/CourriersPage';
-import CourrierDetailPage from './pages/courriers/CourrierDetailPage';
-import CourrierFormPage from './pages/courriers/CourrierFormPage';
-import MissionsPage from './pages/MissionsPage';
-import MissionDetailPage from './pages/missions/MissionDetailPage';
-import MissionFormPage from './pages/missions/components/MissionFormPage';
-import GlossairePage from './pages/GlossairePage';
-import TraductionsPage from './pages/TraductionsPage';
-import TraductionEditeur from './pages/traductions/components/TraductionEditeur';
-import DemandesPage from './pages/DemandesPage';
-import DashboardPage from './pages/DashboardPage';
-import AdminParametresPage from './pages/AdminParametresPage';
-import PortailPage from './pages/PortalPage';
-import AuditPage from './pages/AuditPage';
-import AnalyticsPage from './pages/AnalyticsPage';
+import { authApi } from './lib/auth.api';
 import { Toaster } from './components/ui/sonner';
-import AdminUsersPage from './pages/AdminUsersPage';
-
-// function ComingSoon({ module }: { module: string }) {
-//   return (
-//     <div className="flex items-center justify-center h-64">
-//       <div className="text-center">
-//         <div className="text-4xl mb-4">🚧</div>
-//         <h2 className="text-xl font-semibold text-anac-navy">{module}</h2>
-//         <p className="text-anac-muted mt-2 text-sm">En cours de développement...</p>
-//       </div>
-//     </div>
-//   );
-// }
+import { ConfirmDialogProvider } from './components/ui/confirm-dialog';
 
 interface AuthUser {
   id: number;
@@ -66,7 +30,7 @@ export function useAuth() {
 }
 
 // ── Route protégée ────────────────────────────────────────────────────────
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, chargement } = useAuth();
 
   if (chargement) {
@@ -85,7 +49,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 // ── Route réservée aux admins ─────────────────────────────────────────────
-function AdminRoute({ children }: { children: React.ReactNode }) {
+export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
 
   if (!user || !['admin', 'super_admin'].includes(user.role)) {
@@ -95,19 +59,14 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// ── Route bootstrap — redirige si déjà initialisé ────────────────────────
-function BootstrapRoute({ bootstrapNeeded }: { bootstrapNeeded: boolean }) {
-  if (!bootstrapNeeded) {
-    return <Navigate to="/login" replace />;
-  }
-  return <BootstrapPage />;
-}
-
 // ── Composant racine ──────────────────────────────────────────────────────
+// Root element of the data router (see router.tsx) — owns the auth session
+// check and the bootstrap redirect, wraps every route via <Outlet />.
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [chargement, setChargement] = useState(true);
   const [bootstrapNeeded, setBootstrapNeeded] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     async function verifierSession() {
@@ -150,85 +109,21 @@ export default function App() {
     );
   }
 
+  // Redirections liées au bootstrap — remplace l'ancienne route catch-all
+  // conditionnelle, plus possible avec un data router (arbre de routes statique).
+  if (bootstrapNeeded && location.pathname !== '/bootstrap') {
+    return <Navigate to="/bootstrap" replace />;
+  }
+  if (!bootstrapNeeded && location.pathname === '/bootstrap') {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <AuthContext.Provider value={{ user, setUser, chargement }}>
-      <Toaster />
-      <Routes>
-        {/* ── Bootstrap — premier démarrage ─────────────────────────── */}
-        <Route path="/bootstrap" element={<BootstrapRoute bootstrapNeeded={bootstrapNeeded} />} />
-
-        {/* ── Redirection automatique si bootstrap nécessaire ───────── */}
-        {bootstrapNeeded && <Route path="*" element={<Navigate to="/bootstrap" replace />} />}
-
-        {/* ── Routes publiques ──────────────────────────────────────── */}
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* ── Routes protégées dans le Layout ───────────────────────── */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Layout userRole={user?.role} userNom={user?.nom} userPrenom={user?.prenom} />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/accords" element={<AccordsPage />} />
-          <Route path="/accords/:id" element={<AccordsPage />} />
-          <Route path="/accords/new" element={<AccordFormPage />} />
-          <Route path="/accords/:id/edit" element={<AccordFormPage />} />
-          <Route path="/partenaires" element={<PartenairesPage />} />
-          <Route path="/partenaires/new" element={<PartenaireFormPage />} />
-          <Route path="/partenaires/:id" element={<PartenaireDetailPage />} />
-          <Route path="/partenaires/:id/edit" element={<PartenaireFormPage />} />
-          <Route path="/missions" element={<MissionsPage />} />
-          <Route path="/missions/new" element={<MissionFormPage />} />
-          <Route path="/missions/:id/edit" element={<MissionFormPage />} />
-          <Route path="/missions/:id" element={<MissionDetailPage />} />
-          <Route path="/courriers" element={<CourriersPage />} />
-          <Route path="/courriers/new" element={<CourrierFormPage />} />
-          <Route path="/courriers/:id/edit" element={<CourrierFormPage />} />
-          <Route path="/courriers/:id" element={<CourrierDetailPage />} />
-          <Route path="/traductions" element={<TraductionsPage />} />
-          <Route path="/traductions/:id" element={<TraductionEditeur />} />
-          <Route path="/demandes" element={<DemandesPage />} />
-          <Route path="/glossaire" element={<GlossairePage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-
-          <Route
-            path="/utilisateurs"
-            element={
-              <AdminRoute>
-                <AdminUsersPage />
-              </AdminRoute>
-            }
-          />
-          
-          <Route
-            path="/admin/*"
-            element={
-              <AdminRoute>
-                <AdminParametresPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/audit"
-            element={
-              <AdminRoute>
-                <AuditPage />
-              </AdminRoute>
-            }
-          />
-        </Route>
-
-        {/* ── Redirections ──────────────────────────────────────────── */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-
-        {/* ── Portail documentaire ───────────────────────────────────── */}
-        <Route path="/portal" element={<PortailPage />} />
-      </Routes>
+      <ConfirmDialogProvider>
+        <Toaster />
+        <Outlet />
+      </ConfirmDialogProvider>
     </AuthContext.Provider>
   );
 }

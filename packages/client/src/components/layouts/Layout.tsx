@@ -27,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { authApi } from '../../lib/auth.api';
+import { useAuth } from '@/App';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface NavItem {
@@ -69,15 +70,12 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/portal', labelKey: 'nav.portail', icon: ExternalLink },
 ];
 
-// ── Props ─────────────────────────────────────────────────────────────────
-interface LayoutProps {
-  userRole?: string;
-  userNom?: string;
-  userPrenom?: string;
-}
-
 // ── Composant principal ───────────────────────────────────────────────────
-export default function Layout({ userRole, userNom, userPrenom }: LayoutProps) {
+export default function Layout() {
+  const { user } = useAuth();
+  const userRole = user?.role;
+  const userNom = user?.nom;
+  const userPrenom = user?.prenom;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [sidebarOuverte, setSidebarOuverte] = useState(true);

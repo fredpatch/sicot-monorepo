@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, FileText, Loader2, Plus, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -41,6 +42,7 @@ const STEPS: { key: StepKey; label: string; fields: (keyof CourrierCreateFormDat
 
 export default function CourrierCreateStepper() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -156,8 +158,8 @@ export default function CourrierCreateStepper() {
     await goToStep(Math.min(STEPS.length - 1, stepIndex + 1));
   }
 
-  function cancel() {
-    if (!isDirty || window.confirm('Quitter sans enregistrer ce courrier ?')) {
+  async function cancel() {
+    if (!isDirty || (await confirm({ title: 'Quitter sans enregistrer ce courrier ?' }))) {
       navigate('/courriers');
     }
   }

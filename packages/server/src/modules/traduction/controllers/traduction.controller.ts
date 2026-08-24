@@ -6,15 +6,28 @@ import { handleTraductionError } from '@/utils/error.js';
 // ── GET /api/traductions ──────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { statut, direction, page, pageSize } = req.query;
+    const { search, statut, direction, vue, source, page, pageSize } = req.query;
 
     const result = await traductionService.listerTraductions({
+      search: search as string | undefined,
       statut: statut as traductionService.TraductionStatut | undefined,
       direction: direction as TraductionDirection | undefined,
+      vue: vue === 'supprimees' ? 'supprimees' : undefined,
+      source: source === 'libre' || source === 'document' ? source : undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
     });
 
+    res.json(result);
+  } catch (error) {
+    handleTraductionError(res, error);
+  }
+}
+
+// ── GET /api/traductions/aggregates ───────────────────────────────────────
+export async function aggregates(_req: Request, res: Response): Promise<void> {
+  try {
+    const result = await traductionService.getTraductionsAggregates();
     res.json(result);
   } catch (error) {
     handleTraductionError(res, error);
@@ -70,6 +83,22 @@ export async function lancer(req: Request, res: Response): Promise<void> {
     });
 
     res.status(201).json(traduction);
+  } catch (error) {
+    handleTraductionError(res, error);
+  }
+}
+
+// ── PATCH /api/traductions/:id/relancer ───────────────────────────────────
+export async function relancer(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const traduction = await traductionService.relancerTraduction(id, req.user!.userId);
+    res.json(traduction);
   } catch (error) {
     handleTraductionError(res, error);
   }
@@ -143,14 +172,21 @@ export async function suggestions(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { texte } = req.query;
+    const { texte, origine } = req.query;
     if (!texte || typeof texte !== 'string') {
       res.status(400).json({ message: 'Paramètre texte requis.' });
       return;
     }
 
     const traduction = await traductionService.getTraduction(id);
-    const resultats = await traductionService.getSuggestionsGlossaire(texte, traduction.direction);
+    // origine=source → langue de départ de la traduction ; origine=traduction (défaut) →
+    // langue d'arrivée. Le texte sélectionné n'est jamais dans la langue "direction" globale
+    // quand il vient du panneau traduction.
+    const langueSource = traduction.direction === 'fr_en' ? 'fr' : 'en';
+    const langueCible = traduction.direction === 'fr_en' ? 'en' : 'fr';
+    const langue = origine === 'source' ? langueSource : langueCible;
+
+    const resultats = await traductionService.getSuggestionsGlossaire(texte, langue);
 
     res.json(resultats);
   } catch (error) {

@@ -11,14 +11,18 @@ export function useLancerTraduction({ onSuccess, onRefetchListe }: UseLancerTrad
   const [lancement, setLancement] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
 
-  async function lancer(texteOriginal: string, direction: TraductionDirection) {
+  async function lancer(
+    texteOriginal: string,
+    direction: TraductionDirection,
+    documentId?: number
+  ) {
     if (!texteOriginal.trim()) return;
 
     setLancement(true);
     setErreur(null);
 
     try {
-      const res = await traductionsApi.lancer({ texteOriginal, direction });
+      const res = await traductionsApi.lancer({ texteOriginal, direction, documentId });
       onSuccess(res.data.id);
     } catch (err: unknown) {
       console.error('[traduction] Erreur lancement:', err);

@@ -345,3 +345,93 @@ redesign, same normalized shape. What matters for future sessions:
   endpoint's `enDepassement` count share one threshold-computation helper
   (`calculerLimiteCritique()`) — keep them sharing it if the threshold
   logic ever changes, don't let them drift apart.
+
+## App-Wide Router Migration & Confirm Dialog (2026-08-24)
+
+Two decisions that reach beyond any single module, made while redoing
+Traductions:
+
+- **Data router**: `main.tsx`/`App.tsx` moved from `<BrowserRouter>` +
+  `<Routes>` to `createBrowserRouter`/`<RouterProvider>` (route tree now
+  lives in `router.tsx`). This was **required** to use `useBlocker`
+  (Traductions workshop's unsaved-changes guard) — it doesn't work with a
+  plain `BrowserRouter`. `App` is now the router's root element: it owns
+  the auth-session check and the bootstrap redirect, and wraps every route
+  via `<Outlet />`. `Layout` no longer receives `userRole`/`userNom`/
+  `userPrenom` as props (it couldn't — the route tree is built once at
+  module load, outside `App`'s local state) — it reads them from
+  `useAuth()` itself now. Side effect: the bootstrap-needed redirect is
+  now uniformly enforced for *every* route (previously only unmatched
+  ones were caught by a conditional catch-all, so e.g. `/login` was
+  reachable directly even mid-bootstrap) — a behavior tightening, not a
+  regression, but worth knowing if bootstrap flow ever looks different
+  than before.
+- **`useConfirm()`** (`components/ui/confirm-dialog.tsx`): replaces every
+  `window.confirm()` in the client (there were 6, across Accords/
+  Courriers/Missions forms and headers, not just Traductions) with a
+  Promise-returning hook backed by the existing `Dialog` primitive — no
+  new Radix dependency. `confirmToast` (sonner-based) is a **separate,
+  pre-existing, already-non-native pattern** and was deliberately left
+  alone; only literal `window.confirm()` calls were migrated. Any new
+  "are you sure?" flow anywhere in the app should use `useConfirm()`, not
+  `window.confirm()`.
+
+## Traductions Module (M6) Redesign (2026-08-24)
+
+Full detail in `changelog.md`. Notable, non-obvious things for future
+sessions:
+
+- **`documentId` OCR-prefill bug, fixed**: `DocumentsPage`'s "Traduire"
+  action always included `documentId` in the `sessionStorage` prefill
+  payload, but `useTraductionPrefill` only ever read `texte` out of it,
+  and `useLancerTraduction`'s `lancer()` had no `documentId` parameter at
+  all — so every translation launched from a document silently lost its
+  document link, even though the column, the API param, and the backend
+  all supported it correctly. Fixed end-to-end
+  (`useTraductionPrefill` → `TraductionsPage` → `useLancerTraduction` →
+  `traductionsApi.lancer`). If a future change touches this prefill path,
+  keep `documentId` threaded through all four hops.
+- **Glossary suggestion bug, fixed**: `getSuggestionsGlossaire` searched
+  the *source*-language glossary column purely based on the translation's
+  overall `direction`, regardless of which panel the user actually
+  selected text in. For the common `fr_en` case, selecting text in the
+  **translation** panel (English) searched French terms — always zero
+  matches. Fixed by having the client tell the server which panel
+  triggered the selection (`?origine=source|traduction` on
+  `GET /:id/suggestions`); the server derives the correct language to
+  search from `origine` + the traduction's `direction`. Applying a
+  suggestion still always writes the **target**-language term into
+  `texteFinal`, regardless of origin — that part was already correct.
+- **Manual-translation retry**: `PATCH /:id/relancer`, only valid when
+  `statut === 'manuelle_requise'`. Re-runs the engine on the stored
+  `texteOriginal` and updates `texteIA` + `statut` (→ `a_reviser` on
+  success). **Never touches `texteFinal`** — a manual draft already typed
+  is never overwritten. The client additionally disables the button while
+  there are unsaved local edits (`modifie === true`), since a query
+  invalidation after retry re-syncs the local editor state from the
+  server and would otherwise silently clobber an in-progress edit that
+  was never protected by that safety net.
+- **Supprimées view**: `restaurer` (undo soft-delete) existed server-side
+  since the module's original build but was completely unreachable from
+  the UI (deleted records were filtered out of every list query with no
+  way back in). Added `?vue=actives|supprimees` to `GET /api/traductions`
+  and a matching tab in the registry — same shape as the `vue` param
+  pattern, reusable if another soft-deletable module needs the same fix.
+- **`en_relecture` still has no producer** — defined in the status enum,
+  shown correctly wherever statuses are rendered, but nothing transitions
+  a record into it. Per the original task brief, no fake "submit for
+  review" button was added; this remains a real backend gap, not a UI
+  oversight.
+- Workshop (`/traductions/:id`) split from one 628-line file into
+  `components/editor/` (`WorkshopHeader`, `SourceTextPanel`,
+  `TranslationPanel`, `AssistancePanel` wrapping `EngineStatusBlock` +
+  `GlossarySuggestions` + `SourceInfoBlock`). Responsive: 12-col grid
+  desktop, stacked 2-col medium, tabs mobile (`components/ui/tabs.tsx`).
+- **Microservices are Docker-managed, not part of `npm run dev`** —
+  `libretranslate`/`translate-service`/`ocr-service` are meant to run
+  continuously on the real server. `npm run services:up/down/restart/
+  logs/status` wrap `docker compose` for exactly those 3 services. If the
+  engine ever shows "hors ligne" locally, check `npm run services:status`
+  before assuming a code regression — most likely they're just not
+  running (no `.env` needed for these 3 specifically, only for DB/JWT-
+  dependent services in the same compose file).

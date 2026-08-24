@@ -8,6 +8,11 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=packages/server\" \"npm run dev --workspace=packages/client\"",
+    "services:up": "docker compose up -d libretranslate translate-service ocr-service",
+    "services:down": "docker compose stop libretranslate translate-service ocr-service",
+    "services:restart": "docker compose restart libretranslate translate-service ocr-service",
+    "services:logs": "docker compose logs -f libretranslate translate-service ocr-service",
+    "services:status": "docker compose ps libretranslate translate-service ocr-service",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/server && npm run build --workspace=packages/client",
     "lint": "eslint packages/*/src --ext .ts,.tsx",
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",

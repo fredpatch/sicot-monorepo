@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -79,6 +80,7 @@ const STEPS: { key: StepKey; label: string; fields: (keyof AccordFormData)[] }[]
 
 export default function AccordFormPage() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
@@ -232,8 +234,8 @@ export default function AccordFormPage() {
     await goToStep(Math.min(STEPS.length - 1, stepIndex + 1));
   }
 
-  function cancel() {
-    if (!isDirty || window.confirm('Quitter sans enregistrer les modifications ?')) {
+  async function cancel() {
+    if (!isDirty || (await confirm({ title: 'Quitter sans enregistrer les modifications ?' }))) {
       navigate('/accords');
     }
   }

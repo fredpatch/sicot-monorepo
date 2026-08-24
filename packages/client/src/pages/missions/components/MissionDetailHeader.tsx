@@ -3,6 +3,7 @@ import { ArrowLeft, FileDown, MoreHorizontal, Pencil, Printer, XCircle } from 'l
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { PdfPreviewDialog } from '@/components/PdfPreviewDialog';
 import { missionsApi } from '@/lib/missions.api';
 import type { Mission } from '../mission.types';
@@ -18,6 +19,7 @@ export function MissionDetailHeader({
   onEdit: () => void;
   onCancelMission: () => void;
 }) {
+  const confirm = useConfirm();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const isCancelled = mission.statut === 'annulee';
@@ -89,9 +91,16 @@ export function MissionDetailHeader({
               {!isCancelled && (
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     setMenuOpen(false);
-                    if (window.confirm('Annuler cette mission ? Elle ne pourra plus être modifiée.')) {
+                    if (
+                      await confirm({
+                        title: 'Annuler cette mission ?',
+                        description: 'Elle ne pourra plus être modifiée.',
+                        confirmLabel: 'Annuler la mission',
+                        variant: 'destructive',
+                      })
+                    ) {
                       onCancelMission();
                     }
                   }}

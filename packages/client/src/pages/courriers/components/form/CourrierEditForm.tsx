@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Loader2, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -45,6 +46,7 @@ interface Organisation {
 // (real add/remove endpoints), not here.
 export default function CourrierEditForm() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const courrierId = id ? parseInt(id, 10) : undefined;
@@ -152,8 +154,8 @@ export default function CourrierEditForm() {
     },
   });
 
-  function cancel() {
-    if (!isDirty || window.confirm('Quitter sans enregistrer les modifications ?')) {
+  async function cancel() {
+    if (!isDirty || (await confirm({ title: 'Quitter sans enregistrer les modifications ?' }))) {
       navigate(courrierId ? `/courriers/${courrierId}` : '/courriers');
     }
   }

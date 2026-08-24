@@ -1,8 +1,8 @@
-# SICOT — Courriers Module Redesign Implementation Task
+# SICOT — Traductions Production Workspace Redesign Task
 
 You are acting as a Senior Frontend Engineer, UX/UI Architect, and Product Usability Specialist.
 
-Your task is to redesign and implement the complete “Courriers” module of SICOT.
+Your task is to redesign and implement the SICOT **Traductions production module**.
 
 Repository:
 
@@ -18,57 +18,48 @@ packages/client
 
 The attached image is the visual reference for the target direction.
 
-Use it to understand:
+This task is **not** about the separate “Demandes de traduction” workflow.
 
-- The normalized SICOT visual language
-- Registry density
-- Operational summary cards
-- Search and filtering hierarchy
-- Guided courrier creation
-- Courrier lifecycle visualization
-- Follow-up and response tracking
-- Document visibility
-- Reminder workflow
-- Detail workspace structure
+This module is the internal workspace where operators:
+
+- Receive extracted text from documents/OCR
+- Launch machine translation
+- Create translations from free text
+- Review machine translation
+- Correct translated content manually
+- Work manually when the translation engine fails
+- Use glossary suggestions
+- Save corrections
+- Approve translations
+- Archive translations
+
+Use the attached visual reference to understand:
+
+- Queue layout
+- Workload hierarchy
+- Engine-health visibility
+- New-translation dialog
+- Source/document context
+- Side-by-side translation editor
+- Glossary assistance
+- Review and approval actions
 - Responsive behavior
 
-Do not reproduce the mockup blindly.
+Do not reproduce the image blindly.
 
-First inspect the current implementation and adapt the design to:
+First inspect the current implementation and adapt it to the actual architecture, API contracts, and business logic.
 
-- Existing API contracts
-- Existing business fields
-- Existing routes
-- Existing role rules
-- Existing shadcn components
-- Existing Tailwind tokens
-- Existing React Query architecture
-- Existing Dashboard, Accords, Partenaires, and Missions patterns already normalized in the repository
-
-The task covers:
-
-1. Courriers registry
-2. Guided courrier creation
-3. Courrier editing
-4. Courrier detail workspace
-5. Incoming and outgoing correspondence
-6. Response tracking
-7. Related courrier threads
-8. Documents
-9. Reminder / relance workflow
-10. Courrier operational status
-
-Do not modify unrelated modules.
+Do not modify the separate Demandes module.
 
 Do not commit or push changes unless explicitly requested.
 
 ---
 
-# 1. Working mode
+# 1. Collaboration mode
 
-Work collaboratively and incrementally.
+Work incrementally.
 
-Use this status format:
+Use:
 
 ```text
 ✅ Done
@@ -76,1228 +67,1384 @@ Use this status format:
 🔜 Next
 ```
 
-Follow this sequence:
+Follow:
 
-1. Audit the current implementation
-2. Report existing architecture and constraints
-3. Propose an implementation plan
+1. Audit current implementation
+2. Report actual workflow
+3. Propose implementation plan
 4. Implement incrementally
-5. Validate the result
-6. Return a final implementation report
+5. Validate
+6. Return final report
 
-Do not start implementation before returning the Phase 1 audit report.
+Do not implement before returning Phase 1.
 
-Do not produce one large replacement file.
+Do not replace working translation logic merely for visual consistency.
 
-Do not introduce another design system.
-
-Do not invent backend data.
+The bilingual editor is the core product experience and must remain central.
 
 ---
 
-# 2. Product context
+# 2. Current real translation workflow
 
-SICOT means:
+The current flow is approximately:
 
 ```text
-Système Intégré de Coopération Internationale et de Traduction
+Text source
+      ↓
+Translation job created
+      ↓
+Translation engine attempted
+      ↓
+┌─────────────────────┬──────────────────────────┐
+│ Engine succeeds     │ Engine unavailable/fails│
+│                     │                          │
+│ texteIA generated   │ statut = manuelle_requise
+│ statut = a_reviser  │ editable target starts  │
+└───────────┬─────────┴──────────────┬───────────┘
+            ↓                        ↓
+       Human correction / manual translation
+                    ↓
+             Save correction
+                    ↓
+               Human review
+                    ↓
+                Approval
+                    ↓
+                Archive
 ```
 
-The Courriers module manages official incoming and outgoing correspondence handled by the cooperation and translation workflow.
-
-A courrier may involve:
-
-- Reference
-- Subject
-- Incoming or outgoing type
-- Sender
-- Recipient
-- Date
-- Status
-- Priority
-- Response expectation
-- Response deadline
-- Related correspondence
-- Attachments
-- Reminder notifications
-- Internal notes
-- Creation/update metadata
-
-The module must help users answer:
-
-- Which courriers require action?
-- Which are waiting for a response?
-- Which are overdue?
-- Which outgoing messages have been sent?
-- Which incoming messages still require handling?
-- What response is expected?
-- Which courriers belong to the same conversation/thread?
-- Which documents are attached?
-- What is the next action?
+Preserve this behavior.
 
 ---
 
-# 3. Important mockup constraint
-
-The visual reference contains some fields that may not exist in the current domain.
-
-Examples may include:
-
-- Explicit priority
-- Response type
-- Automatic reminders
-- Workflow stage
-- Receipt confirmation
-- Internal criticality
-- Detailed lifecycle events
-
-Do NOT implement these unless the repository audit confirms they exist.
-
-The mockup is primarily a reference for:
-
-- Layout
-- density
-- hierarchy
-- workflow
-- navigation
-- interaction design
-
-If a useful field is absent from the current domain model, report it as a future enhancement.
-
----
-
-# 4. Files to inspect first
+# 3. Files to inspect first
 
 Inspect at least:
 
 ```text
-packages/client/src/pages/CourriersPage.tsx
-packages/client/src/pages/courriers/components/CourrierFormPage.tsx
-packages/client/src/pages/courriers/components/*
-packages/client/src/lib/courriers.api.ts
+packages/client/src/pages/TraductionsPage.tsx
+
+packages/client/src/pages/traductions/
+packages/client/src/pages/traductions/components/
+packages/client/src/pages/traductions/hooks/
+packages/client/src/pages/traductions/traductions.columns.tsx
+packages/client/src/pages/traductions/traductions.types.ts
+packages/client/src/pages/traductions/traductions.utils.ts
+
+packages/client/src/pages/traductions/components/NewTraductionDialog.tsx
+packages/client/src/pages/traductions/hooks/useLaunchTraduction.ts
+packages/client/src/pages/traductions/hooks/useTraductionPrefill.ts
+
+packages/client/src/lib/traductions.api.ts
 packages/client/src/lib/documents.api.ts
-packages/client/src/lib/notifications.api.ts
+
 packages/client/src/App.tsx
-packages/client/src/components/layouts/Layout.tsx
 packages/client/src/components/table
 packages/client/src/components/ui
 packages/client/src/index.css
-packages/client/tailwind.config.*
-packages/client/package.json
 ```
 
-Also inspect the normalized implementations of:
+Also inspect the actual translation editor page/component.
 
-```text
-packages/client/src/pages/accords
-packages/client/src/pages/partenaires
-packages/client/src/pages/missions
-```
+The current editor supports:
 
-Reuse their shared patterns where appropriate.
+- `texteOriginal`
+- `texteIA`
+- `texteFinal`
+- direction
+- status
+- engine used
+- glossary suggestions
+- save correction
+- approve
+- archive
+- delete
+- manual translation fallback
 
-Inspect the server-side correspondence module for:
+Find the exact current file before changing anything.
 
-- List payload
-- Detail payload
-- Create payload
-- Update payload
-- Filters
-- Pagination
-- Status model
-- Incoming/outgoing type
-- Sender and recipient representation
-- Related correspondence
-- Attachments
-- Reply/response relationships
-- Notifications
-- Reminder rules
-- Deadline rules
+Also inspect the server-side translation module for:
 
-Confirm real backend behavior rather than inferring it.
+- OCR/document integration
+- translation creation
+- machine translation execution
+- engine fallback
+- status transitions
+- glossary suggestions
+- correction persistence
+- archive/restore behavior
 
 ---
 
-# 5. Existing functionality to preserve
+# 4. Existing real domain model
 
-Preserve all currently working capabilities, including where available:
+Known statuses:
 
-- Search
-- Incoming/outgoing filtering
-- Status filtering
-- Pagination
-- Courrier creation
-- Courrier editing
-- Sender/recipient data
-- Document attachment
-- Existing document linking
-- Related courrier/reply relationship
-- Response tracking
-- Reminder actions
-- Notification history
-- Waiting-response alerts
-- Dashboard integration
-- Detail navigation
+```text
+a_reviser
+en_relecture
+approuvee
+archivee
+manuelle_requise
+```
 
-Do not remove working business behavior for visual simplicity.
+Visible labels:
+
+```text
+À réviser
+En relecture
+Approuvée
+Archivée
+Manuelle requise
+```
+
+Known translation directions:
+
+```text
+fr_en
+en_fr
+```
+
+Current API supports at least:
+
+```text
+GET    /traductions
+GET    /traductions/:id
+GET    /traductions/moteur/status
+
+POST   /traductions
+
+PATCH  /traductions/:id/correction
+PATCH  /traductions/:id/approuver
+PATCH  /traductions/:id/archiver
+PATCH  /traductions/:id/restaurer
+
+GET    /traductions/:id/suggestions
+
+DELETE /traductions/:id
+```
+
+Creation accepts:
+
+```text
+texteOriginal
+direction
+documentId?
+```
+
+Preserve these contracts unless a backend change is genuinely necessary.
 
 ---
 
-# 6. Current UX problems to solve
+# 5. OCR / Documents integration
 
-Audit and address these likely weaknesses:
-
-- Registry still follows an older dense or split pattern.
-- Incoming and outgoing flows may not be immediately distinguishable.
-- Status and response health are not prominent enough.
-- Waiting-response risk is hard to scan.
-- Creation may expose too many fields at once.
-- Sender/recipient logic can be confusing.
-- Response expectations are not presented as a clear workflow.
-- Related correspondence may feel disconnected.
-- Documents and reminders compete visually.
-- Detail may show data without clearly communicating the next action.
-- Operational overdue state should be explicit.
-- The module should follow the normalized SICOT patterns already established.
-
----
-
-# 7. Target information architecture
-
-Implement three coherent experiences.
-
-## Screen A — Courriers registry
-
-Route:
+The current Documents module can send extracted OCR text to Traductions using:
 
 ```text
-/courriers
+sessionStorage['traduction_prefill']
 ```
 
-Primary goal:
+`useTraductionPrefill` reads that value and opens the new translation interface with text already populated.
 
-Provide an operational register of incoming and outgoing correspondence.
+Preserve this capability.
 
-## Screen B — Guided courrier creation
-
-Route:
+The new UI must distinguish:
 
 ```text
-/courriers/new
-```
-
-Primary goal:
-
-Guide users through creation depending on whether the courrier is incoming or outgoing.
-
-## Screen C — Courrier detail workspace
-
-Route:
-
-```text
-/courriers/:id
-```
-
-Primary goal:
-
-Provide a complete operational view of the courrier, related correspondence, response state, documents, and reminders.
-
-Editing may use:
-
-```text
-/courriers/:id/edit
-```
-
----
-
-# 8. Screen A — Courriers registry
-
-## 8.1 Header
-
-Display:
-
-```text
-Courriers
-```
-
-Subtitle:
-
-```text
-Gérez les courriers entrants et sortants ainsi que leur suivi.
-```
-
-Right-side action:
-
-```text
-Nouveau courrier
-```
-
-Optional:
-
-```text
-Exporter
-```
-
-only if genuinely supported.
-
-Do not create a fake export action.
-
----
-
-# 8.2 Operational summary cards
-
-Suggested metrics:
-
-- Total courriers
-- À traiter
-- En attente de réponse
-- Envoyés
-- Critiques / en dépassement
-
-Only display metrics that can be computed accurately.
-
-Suggested wording:
-
-```text
-Total courriers
-142
-Tous types confondus
-```
-
-```text
-À traiter
-23
-Nécessitent une action
-```
-
-```text
-En attente de réponse
-37
-12 en dépassement
-```
-
-```text
-Envoyés
-186
-Courriers sortants transmis
-```
-
-```text
-Critiques
-7
-À traiter en priorité
-```
-
-Do not calculate global metrics from only the current page.
-
-If needed, propose a lightweight aggregate endpoint.
-
----
-
-# 8.3 Search and filters
-
-Search placeholder:
-
-```text
-Rechercher par référence, objet, expéditeur ou destinataire…
-```
-
-Filters:
-
-- Type
-- Statut
-- Priorité, only if real
-- Période
-- Réponse attendue
-- En dépassement
-- Expéditeur/destinataire where practical
-
-Suggested type filter:
-
-```text
-Tous
-Entrants
-Sortants
-```
-
-Suggested response filter:
-
-```text
-Tous
-Réponse attendue
-En attente
-En dépassement
-Répondu
-```
-
-Suggested period filters:
-
-```text
-Ce mois
-30 derniers jours
-Cette année
-Personnalisée
-```
-
-Synchronize meaningful filters with URL search parameters.
-
-Debounce remote search.
-
-Reset pagination on filter change.
-
----
-
-# 8.4 Registry table
-
-Use full-width desktop table.
-
-Suggested columns:
-
-- Référence
-- Objet
-- Type
-- Expéditeur / Destinataire
-- Date
-- Statut
-- Priorité, if real
-- Échéance / Délai
-- Actions
-
-Type should be explicit:
-
-```text
-Entrant
-Sortant
-```
-
-Use text + badge, not color alone.
-
-Sender/recipient cell:
-
-For incoming:
-
-```text
-Expéditeur
-B2Fly Gabon
-```
-
-For outgoing:
-
-```text
-Destinataire
-OACI
-```
-
-Do not confuse direction.
-
-Deadline cell:
-
-Examples:
-
-```text
-23/05/2026
-J+3
-```
-
-```text
-Dans 5 jours
-```
-
-```text
-Aucune échéance
-```
-
-Overdue state must be explicit.
-
-Row click opens:
-
-```text
-/courriers/:id
-```
-
-Actions menu:
-
-- Voir
-- Modifier
-- Préparer une relance
-- Voir la réponse
-- Voir les pièces jointes
-
-Only show actions valid for the specific courrier.
-
----
-
-# 8.5 Courrier health rules
-
-Centralize operational health.
-
-Possible states:
-
-### Critical
-
-- Response deadline exceeded
-- Incoming courrier requires action and is overdue
-
-### Warning
-
-- Response expected soon
-- Courrier remains unprocessed
-
-### Normal
-
-- Sent
-- Treated
-- Replied
-
-Do not introduce a stored “health” field unless necessary.
-
-Derive it.
-
-Suggested utilities:
-
-```text
-isCourrierOverdue
-daysUntilResponseDeadline
-daysSinceResponseDeadline
-getCourrierHealth
-formatResponseDeadline
-```
-
-Use one configured threshold.
-
----
-
-# 8.6 Responsive behavior
-
-Desktop:
-
-- Full-width table
-
-Tablet:
-
-- Hide secondary columns
-- Preserve reference, subject, type, status, deadline
-
-Mobile:
-
-- Courrier cards
-- Reference
-- Type
-- Subject
-- Sender/recipient
-- Date
-- Status
-- Response health
-- Actions menu
-
-No horizontal page overflow.
-
----
-
-# 8.7 States
-
-Implement:
-
-- Loading skeleton
-- API error with retry
-- Empty registry
-- Empty filtered results
-
-Differentiate:
-
-```text
-Aucun courrier enregistré.
+Source : Texte libre
 ```
 
 from:
 
 ```text
-Aucun courrier ne correspond aux filtres sélectionnés.
+Source : Document #23
+Texte extrait par OCR
 ```
 
----
+If source metadata beyond `documentId` is needed for a better display, inspect whether it can be fetched from the document API.
 
-# 9. Screen B — Guided courrier creation
+Do not duplicate OCR logic inside Traductions.
 
-Use a stepper.
-
-Recommended steps based on real domain fields:
-
-1. Informations générales
-2. Expéditeur / Destinataire
-3. Contenu
-4. Documents
-5. Vérification
-
-Do not add unsupported fields.
+OCR remains the responsibility of Documents.
 
 ---
 
-# 9.1 Step 1 — Informations générales
+# 6. Translation engine behavior
 
-Fields may include:
-
-- Type de courrier
-- Objet
-- Date du courrier
-- Priority, only if real
-- Status only when necessary
-
-Type is critical:
+Current engine health is checked through:
 
 ```text
-Entrant
-Sortant
+traductionsApi.moteurStatus()
 ```
 
-The rest of the flow may change based on type.
+The engine may be unavailable.
 
-Reference behavior:
+Current expected behavior:
 
-Confirm whether reference is backend-generated.
-
-If yes, show:
+If engine is available:
 
 ```text
-La référence sera générée automatiquement lors de l’enregistrement.
+Launch translation
+→ machine result generated
+→ open editor
+→ user reviews/corrects
 ```
 
-Do not ask users to manually enter generated identifiers.
-
----
-
-# 9.2 Step 2 — Expéditeur / Destinataire
-
-For incoming:
-
-Focus on:
-
-- Expéditeur
-- Organisation
-- Contact
-- Reference sender, if supported
-- Reception mode, if supported
-
-For outgoing:
-
-Focus on:
-
-- Destinataire
-- Organisation
-- Contact
-- Transmission mode, if supported
-
-Use current Partenaires/Contacts data where practical.
-
-Do not duplicate partner data models.
-
-If the domain stores free-text sender/recipient instead, preserve it.
-
-Do not force partner selection if external free-text recipients are valid.
-
----
-
-# 9.3 Step 3 — Contenu
-
-Fields may include:
-
-- Summary
-- Content
-- Notes
-
-Use the actual schema.
-
-If only an object/subject exists and full body content is not stored, do not invent a content field.
-
-If body content exists:
-
-Provide a large textarea.
-
-Suggested helper:
+If unavailable:
 
 ```text
-Résumez le contenu ou les éléments nécessitant un suivi.
+Create translation record
+→ status = manuelle_requise
+→ source text remains available
+→ target editor becomes manual input workspace
 ```
+
+Do not block creation merely because the engine is offline.
+
+This manual fallback is an important SICOT feature.
 
 ---
 
-# 9.4 Step 4 — Documents
-
-Preserve current attachment behavior.
-
-Support:
-
-- Upload new document
-- Link existing document
-
-If current model supports multiple documents:
-
-Show list.
-
-If current model supports only one document:
-
-Do not redesign as multi-attachment.
-
-Show:
-
-- Filename
-- Type
-- Upload state
-- Remove action
-
-Handle duplicates using existing document rules.
-
----
-
-# 9.5 Step 5 — Vérification
-
-Display summary:
-
-- Type
-- Subject
-- Date
-- Sender/recipient
-- Status
-- Response expectation
-- Deadline
-- Attachments
-
-Primary action:
-
-```text
-Créer le courrier
-```
-
-or if current business vocabulary uses registration:
-
-```text
-Enregistrer le courrier
-```
-
-Prefer the wording already established in SICOT.
-
-Allow users to return to previous steps.
-
-Do not invent drafts unless supported.
-
----
-
-# 9.6 Stepper behavior
-
-Desktop:
-
-- Vertical stepper on left
-- Form workspace on right
-
-Tablet/mobile:
-
-- Compact horizontal progress
-
-Requirements:
-
-- Current step clearly identified
-- Completed steps marked
-- Per-step validation
-- Values preserved
-- Future invalid steps blocked
-- Previous steps accessible
-- Focus moves to heading
-- Accessible labels
-- Stable navigation controls
-
-Actions:
-
-```text
-Précédent
-Suivant
-Enregistrer le courrier
-```
-
----
-
-# 10. Editing behavior
+# 7. Screen A — Translation work queue
 
 Route:
 
 ```text
-/courriers/:id/edit
+/traductions
 ```
 
-Do not force users through full creation steps for minor changes.
+This is not a generic translation request registry.
 
-Use grouped sections.
+It is the operator’s working queue.
 
-Possible edit sections:
+Header:
 
-- Informations
-- Expéditeur/destinataire
-- Dates
-- Response tracking
-- Documents
+```text
+Traductions
+```
+
+Subtitle:
+
+```text
+Traitez les traductions automatiques et manuelles.
+```
+
+Primary action:
+
+```text
+Nouvelle traduction
+```
+
+---
+
+# 8. Engine status
+
+Show engine health near the header.
+
+Example:
+
+```text
+LibreTranslate
+● Opérationnel
+```
+
+or:
+
+```text
+LibreTranslate
+● Hors ligne
+```
+
+When offline, show a compact operational message:
+
+```text
+LibreTranslate est indisponible.
+Les nouvelles traductions pourront être réalisées manuellement.
+```
+
+Do not turn the entire page red.
+
+Engine failure is a system condition, not necessarily a failed user workflow.
+
+---
+
+# 9. Queue summary cards
+
+Suggested operational metrics:
+
+- Total
+- À réviser
+- En relecture
+- Manuelle requise
+- Approuvées
+
+Optional:
+
+- Archivées
+
+Only calculate accurate global totals.
+
+Do not calculate them from the current page.
+
+Suggested UI:
+
+```text
+Total
+128
+Toutes traductions
+
+À réviser
+34
+À corriger
+
+En relecture
+12
+En contrôle
+
+Manuelle requise
+8
+Traduction automatique indisponible
+
+Approuvées
+74
+Validées
+```
+
+Do not invent deadlines, priorities, requesters, or assignments.
+
+---
+
+# 10. Queue search and filters
+
+Current filtering already supports:
+
 - Status
+- Direction
 
-Do not mix reminders into the normal edit form.
+Improve this with search if backend support exists.
+
+Suggested filters:
+
+```text
+Recherche
+Statut
+Direction
+Source
+```
+
+Source filter:
+
+```text
+Toutes
+Texte libre
+Document
+```
+
+Implement only if `documentId` makes this reliable.
+
+Potential search fields:
+
+- Original text
+- Document name
+- ID
+
+Do not add requester/service/deadline filters.
 
 ---
 
-# 11. Screen C — Courrier detail workspace
+# 11. Queue table
 
-Use a normalized operational workspace.
+Suggested desktop columns:
+
+- Source / aperçu
+- Direction
+- Statut
+- Source
+- Moteur
+- Date
+- Actions
+
+Example:
+
+```text
+PROFORMA INVOICE - NON-ACCOUNTING DOCUMENT
+Document #23
+
+FR → EN
+
+À réviser
+
+Document #23
+
+LibreTranslate
+
+10/08/2026 09:24
+```
+
+For free text:
+
+```text
+Bonjour, ceci est un test...
+Texte libre
+```
+
+Moteur should remain visible but secondary.
+
+Actions:
+
+- Réviser
+- Consulter
+- Restaurer, where appropriate
+- Supprimer, where allowed
+- Archive-related action where appropriate
+
+Prefer action menu over multiple inline links.
+
+Do not expose destructive actions prominently.
 
 ---
 
-# 11.1 Header
+# 12. Queue row behavior
+
+Row click should open:
+
+```text
+/traductions/:id
+```
+
+Primary action label depends on status:
+
+```text
+À réviser            → Réviser
+En relecture         → Relire
+Manuelle requise     → Traduire manuellement
+Approuvée            → Consulter
+Archivée             → Consulter
+```
+
+Use real existing transitions.
+
+Do not create fake workflow statuses.
+
+---
+
+# 13. Mobile queue behavior
+
+Desktop:
+
+- Full table
+
+Tablet:
+
+- Hide engine/date if needed
+
+Mobile:
+
+Use cards showing:
+
+- Source preview
+- Direction
+- Status
+- Source type
+- Engine state
+- Date
+- Primary action
+
+No horizontal overflow.
+
+---
+
+# 14. New translation interface
+
+Keep this interaction lightweight.
+
+Do NOT use a multi-step wizard.
+
+A dialog or side sheet is appropriate because the operation only requires:
+
+- Direction
+- Source text
+- Launch action
+
+Current supported languages:
+
+```text
+Français → Anglais
+Anglais → Français
+```
+
+Do not add arbitrary languages unless backend actually supports them.
+
+---
+
+# 15. New translation dialog
+
+Title:
+
+```text
+Nouvelle traduction
+```
+
+Fields:
+
+```text
+Direction
+Texte à traduire
+```
+
+Show:
+
+- Character count
+- Source context
+- Engine status
+
+When launched from free text:
+
+```text
+Source : Texte libre
+```
+
+When launched from OCR:
+
+```text
+Texte prérempli depuis OCR
+Document #23
+```
+
+If document metadata is available:
+
+```text
+PROFORMA-INVOICE.pdf
+Page(s) OCR : 1
+```
+
+Do not invent page metadata if unavailable.
+
+---
+
+# 16. New translation engine-online state
+
+If engine is online:
+
+```text
+LibreTranslate opérationnel
+```
+
+Primary action:
+
+```text
+Lancer la traduction
+```
+
+During processing:
+
+```text
+Traduction en cours...
+```
+
+The current timeout is intentionally long for large documents.
+
+Preserve the long-running behavior.
+
+Do not assume a slow request means failure.
+
+---
+
+# 17. New translation engine-offline state
+
+If engine is unavailable:
+
+Display:
+
+```text
+LibreTranslate est actuellement hors ligne.
+
+La traduction sera créée avec le statut
+“Manuelle requise”.
+
+Vous pourrez saisir entièrement la traduction
+dans l’éditeur.
+```
+
+Primary action may still be:
+
+```text
+Créer la traduction
+```
+
+or:
+
+```text
+Continuer en traduction manuelle
+```
+
+Choose the wording that best matches backend behavior.
+
+Do not falsely say machine translation will run.
+
+---
+
+# 18. Timeout behavior
+
+Current launch hook handles timeouts by telling the user that translation may already be running.
+
+Preserve this defensive behavior.
+
+Improve UX if useful:
+
+```text
+La traduction prend plus de temps que prévu.
+
+Elle peut continuer côté serveur.
+Actualisez la liste avant de relancer l’opération.
+```
+
+Avoid accidental duplicate jobs.
+
+---
+
+# 19. Screen B — Translation workshop
+
+Route:
+
+```text
+/traductions/:id
+```
+
+This is the core screen.
+
+Do NOT redesign it into a generic entity detail page.
+
+The translation editor must dominate the viewport.
+
+Use the normalized SICOT shell around it, but optimize this screen for focused production work.
+
+---
+
+# 20. Workshop header
 
 Breadcrumb:
 
 ```text
-Courriers / {reference}
+Traductions / #38
 ```
 
-Header:
+Header should show:
 
-- Subject
-- Reference
-- Type badge
 - Status
-- Deadline health
-
-Primary actions:
-
-- Modifier
-- Imprimer
-- Préparer une relance
-- Plus d’actions
-
-Only show valid actions.
-
-Possible overflow:
-
-- Mark as treated
-- Register response
-- Link related courrier
-- Open/download document
-- View notification history
-
-Do not invent unsupported transitions.
-
----
-
-# 11.2 Summary strip
-
-Display:
-
-- Type
-- Statut
+- Translation ID
+- Direction
+- Source
+- Engine
 - Date
-- Sender/recipient
-- Response deadline
-- Priority if real
+- Optional document reference
 
 Example:
 
 ```text
-Type
-Entrant
+#38
+FR → EN
+À réviser
+Document #23
+LibreTranslate
 ```
 
-```text
-Statut
-En attente de réponse
-```
-
-```text
-Date
-20/05/2026
-```
-
-```text
-Échéance
-23/05/2026
-J+3
-```
+Primary actions depend on status.
 
 ---
 
-# 11.3 Local navigation
+# 21. Main editor layout
 
-Recommended sections:
+Desktop layout:
 
-- Aperçu
-- Suivi
-- Documents
-- Réponse / Courriers liés
-- Notifications
-- Historique
+```text
+┌──────────────────────────┬──────────────────────────┬──────────────┐
+│ Texte original           │ Traduction               │ Assistance   │
+│                          │                          │              │
+│ read-only                │ editable                 │ État         │
+│                          │                          │ Glossaire    │
+│                          │                          │ Source       │
+│                          │                          │ Moteur       │
+└──────────────────────────┴──────────────────────────┴──────────────┘
+```
 
-Only implement sections supported by the real domain.
+Suggested grid:
 
-Normalize style with Accords, Partenaires, and Missions.
+- Original: 5 columns
+- Translation: 5 columns
+- Assistance: 2 columns
+
+Do not overcompress the editor.
 
 ---
 
-# 12. Three-column overview
-
-Large desktop layout:
-
-## Column 1 — Informations clés
+# 22. Original text panel
 
 Display:
 
-- Reference
-- Subject
-- Direction
-- Sender
-- Recipient
-- Date
-- Status
-- Notes/content
+```text
+Texte original
+Français
+```
 
-## Column 2 — Suivi / Lifecycle
+or:
 
-Display a lightweight timeline based on real events.
+```text
+Original text
+English
+```
 
-Possible events:
-
-- Créé
-- Reçu
-- Envoyé
-- En attente de réponse
-- Répondu
-- Traité
-
-Do not invent events.
-
-Show current stage prominently.
-
-If response deadline exists:
+Current source panel should remain read-only.
 
 Show:
 
-```text
-Délai : 23/05/2026
-J+3
-```
+- Character count
+- Optional line count
+- Source type
+- Document information where relevant
 
-## Column 3 — Documents / Response
+Allow text selection for glossary lookup.
+
+Do not allow accidental source modification.
+
+---
+
+# 23. Translation panel
 
 Display:
 
-- Linked documents
-- Expected response
-- Related courrier
-- Reminder status
-
-If there is no response tracking field, use available related correspondence instead.
-
-Do not invent “response expected” if not stored.
-
----
-
-# 13. Courrier lifecycle
-
-Audit the real status model.
-
-Centralize labels and order.
-
-Do not scatter status mapping across components.
-
-Suggested utility:
-
 ```text
-getCourrierLifecycleState
-getCourrierStatusLabel
-getCourrierStatusTone
+Traduction
+Anglais
 ```
 
-If incoming and outgoing use different lifecycle states, model that explicitly.
-
-Do not force one workflow if domain behavior differs.
-
----
-
-# 14. Response tracking
-
-This is one of the most important operational areas.
-
-Audit whether current model supports:
-
-- Response expected
-- Response deadline
-- Response received
-- Related response courrier
-- Response status
-
-If available, expose clearly.
-
-Suggested states:
+or:
 
 ```text
-Aucune réponse attendue
-Réponse attendue
-En attente
-Réponse reçue
-En dépassement
+Traduction
+Français
 ```
 
-Do not invent stored statuses if derived values are enough.
+This panel is editable when status permits.
 
-Show overdue state explicitly.
+Initialization logic must remain:
+
+```text
+texteFinal ?? texteIA ?? ''
+```
+
+Meaning:
+
+- Existing human correction wins
+- Otherwise machine output is used
+- Otherwise editor starts blank
+
+This is especially important for `manuelle_requise`.
 
 ---
 
-# 15. Related courrier / Thread
+# 24. Manual translation mode
 
-If the domain supports correspondence threads or reply links:
+When:
 
-Display:
+```text
+statut === manuelle_requise
+```
 
-- Parent courrier
-- Response courrier
-- Related courriers
+show a clear banner:
 
-Use a small timeline or linked list.
+```text
+Traduction manuelle requise
+
+Le moteur de traduction n’a pas pu produire de résultat.
+Le texte source est conservé.
+
+Saisissez la traduction dans le panneau de droite,
+puis sauvegardez et approuvez-la.
+```
+
+The editor must remain fully functional.
+
+Do not disable approval merely because the engine failed.
+
+Approval should depend on valid translated content and real backend rules.
+
+---
+
+# 25. Save behavior
+
+Preserve:
+
+```text
+PATCH /traductions/:id/correction
+```
+
+Show dirty state clearly.
+
+Possible states:
+
+```text
+Modifications non sauvegardées
+Sauvegarde...
+Sauvegardé
+```
+
+Avoid excessive toast notifications for routine save actions.
+
+A subtle inline status is better.
+
+---
+
+# 26. Approval behavior
+
+Preserve current approval behavior.
+
+When user clicks:
+
+```text
+Approuver
+```
+
+If local corrections are unsaved:
+
+1. Save correction
+2. Wait for successful save
+3. Approve
+
+Do not approve stale text.
+
+Current behavior already attempts this.
+
+Keep or improve it safely.
+
+---
+
+# 27. Review status
+
+Audit actual behavior for:
+
+```text
+en_relecture
+```
+
+Determine how an item becomes `en_relecture`.
+
+If there is currently no explicit transition endpoint:
+
+Do not invent a button that cannot persist.
+
+Report the limitation.
+
+If workflow exists:
+
+Use action:
+
+```text
+Soumettre en relecture
+```
+
+or equivalent.
+
+---
+
+# 28. Archive behavior
+
+Only approved translations should expose archive according to existing logic.
+
+Preserve:
+
+```text
+PATCH /traductions/:id/archiver
+```
+
+Archived translations are read-only.
+
+Provide restore where existing API supports:
+
+```text
+PATCH /traductions/:id/restaurer
+```
+
+Do not allow normal editing while archived.
+
+---
+
+# 29. Delete behavior
+
+Current deletion is available only before approval/archive.
+
+Preserve business restrictions.
+
+Use an overflow action:
+
+```text
+Supprimer
+```
+
+with confirmation.
+
+Do not make Delete a primary button.
+
+---
+
+# 30. Glossary assistance
+
+The current editor already supports querying:
+
+```text
+GET /traductions/:id/suggestions?texte=...
+```
+
+Preserve this.
+
+Workflow:
+
+1. User selects source/target expression
+2. Query glossary suggestions
+3. Show FR/EN match
+4. Allow applying suggestion
 
 Example:
 
 ```text
-COU-2026-020
-Demande d’information
-↓
-COU-2026-030
-Réponse reçue
+Glossaire
+
+facture pro-forma
+→ proforma invoice
+
+document non comptable
+→ non-accounting document
 ```
 
-Do not infer relationships from subject text.
+Do not make glossary lookup block editing.
 
-Use explicit IDs/relations only.
+Failures remain non-blocking.
 
 ---
 
-# 16. Documents section
+# 31. Applying glossary suggestions
 
-Display attachments with:
+Current implementation replaces the selected expression in `texteFinal`.
 
-- Filename
-- MIME type
-- Upload date when available
-- Open
-- Download
+Audit this behavior.
 
-If multiple attachments are supported:
+Ensure:
 
-Use compact list/table.
+- Exact selected text is handled safely
+- Special regex characters are escaped
+- Replacement does not accidentally change every unrelated occurrence unless intentional
+- User can undo changes naturally
 
-If no document exists:
+If the current replacement-all behavior is risky, improve it.
 
-```text
-Aucun document joint.
-```
-
-Action:
-
-```text
-Ajouter un document
-```
-
-only if current update flow supports it.
+Report any behavior change.
 
 ---
 
-# 17. Reminder / relance workflow
+# 32. Source information panel
 
-Preserve existing reminder behavior.
-
-Action:
+For text source:
 
 ```text
-Préparer une relance
+Source
+Texte libre
 ```
 
-Do not send immediately.
+For document source:
 
-Use a review dialog.
+```text
+Source
+Document #23
+```
 
-Display:
+If document API can provide metadata:
 
-- Recipient
-- Subject
-- Related courrier
-- Response deadline
-- Message preview
+```text
+Nom
+Type
+Pages
+OCR effectué le
+```
+
+Do not display fake OCR metadata.
+
+Add:
+
+```text
+Ouvrir le document
+```
+
+only if a valid route/download exists.
+
+---
+
+# 33. Engine information
+
+Right sidebar:
+
+```text
+Moteur de traduction
+
+LibreTranslate
+● Opérationnel
+
+Dernière vérification...
+```
+
+When translation was generated by another engine:
+
+```text
+Moteur utilisé
+DeepL
+```
+
+Separate:
+
+- engine used for this translation
+- current engine health
+
+Do not imply that a previously translated record changes when engine health changes later.
+
+---
+
+# 34. Status/actions panel
+
+Suggested:
+
+```text
+État et actions
+
+Statut actuel
+À réviser
+
+[ Sauvegarder ]
+
+[ Approuver ]
+
+[ Soumettre en relecture ]
+if supported
+
+[ Archiver ]
+only when approved
+```
+
+Actions must be state-dependent.
+
+Avoid displaying impossible actions.
+
+---
+
+# 35. Editor metadata
+
+Show compact metadata:
+
+- Direction
+- Source
+- Engine used
+- Created date
+- Updated date
+
+Do not invent:
+
+- Requester
+- Service
+- Priority
+- Deadline
+- Assignment
+- Progress percentage
+
+unless they genuinely exist in the updated repository.
+
+---
+
+# 36. Document source workflow
+
+A translation launched from Documents should keep its `documentId`.
+
+Use that relationship to provide context in the editor.
+
+Do not copy the source document itself into another module.
+
+The translation record should reference the document.
+
+---
+
+# 37. Free-text workflow
+
+User can click:
+
+```text
+Nouvelle traduction
+```
 
 Then:
 
+1. Enter source text
+2. Choose FR→EN or EN→FR
+3. Launch
+4. Open generated translation
+5. Review
+6. Approve
+
+This must remain fast.
+
+Do not require unnecessary metadata.
+
+---
+
+# 38. Error states
+
+Handle:
+
+- Translation queue fetch failure
+- Translation detail failure
+- Invalid translation ID
+- Engine status failure
+- Launch failure
+- Launch timeout
+- Save failure
+- Approval failure
+- Archive failure
+- Restore failure
+- Delete failure
+- Glossary suggestion failure
+- Document metadata failure
+
+Do not return null for expected errors.
+
+Glossary failure should remain non-blocking.
+
+---
+
+# 39. Loading states
+
+Queue:
+
+- Skeleton table/cards
+
+Editor:
+
+- Structured loading state
+
+Launch:
+
 ```text
-Envoyer la relance
+Traduction en cours...
 ```
 
-Show success/failure state.
+Large documents may take minutes.
 
-Keep notification history visible.
+Do not use an aggressive spinner-only experience.
 
----
-
-# 18. Internal notes
-
-If internal notes exist:
-
-Provide a dedicated compact section.
-
-Do not mix internal notes with the official courrier content.
-
-If no notes model exists, do not add one.
-
----
-
-# 19. Print / report generation integration
-
-The Courrier detail should expose:
+Where useful show:
 
 ```text
-Imprimer
+Cette opération peut prendre plusieurs minutes pour les documents volumineux.
 ```
-
-This action should generate or open the official courrier report view.
-
-Use the previously designed ANAC report visual system:
-
-- ANAC header
-- Official title
-- Generated timestamp
-- Courrier reference
-- Summary
-- Sender/recipient
-- Status
-- Documents
-- Lifecycle
-- Response state
-- Footer with SICOT
-
-Do not implement the full report system inside this task unless the reporting infrastructure already exists.
-
-If reporting is not yet implemented:
-
-- Wire the action to a clearly isolated future report route or placeholder interface only if appropriate
-- Report the dependency
-
-Do not create a fake downloadable PDF.
 
 ---
 
-# 20. Component architecture
+# 40. Unsaved changes
+
+Protect edited `texteFinal`.
+
+If user attempts to:
+
+- Return to list
+- Navigate away
+- Archive
+- Delete
+- Close browser route
+
+while unsaved corrections exist:
+
+Provide appropriate warning.
+
+Do not lose translation work silently.
+
+Use the normalized unsaved-changes pattern already introduced elsewhere if available.
+
+---
+
+# 41. Keyboard productivity
+
+This is a production editor.
+
+Support efficient keyboard usage.
+
+At minimum:
+
+- Tab order logical
+- Source remains selectable
+- Target editor accessible
+- Buttons keyboard reachable
+- Glossary results keyboard usable
+
+Consider shortcuts only if they can be implemented cleanly:
+
+```text
+Ctrl/Cmd + S → Save
+```
+
+Do not introduce many custom shortcuts.
+
+---
+
+# 42. Accessibility
+
+Requirements:
+
+- Clear language labels
+- Status not color-only
+- Editor panels have accessible names
+- Character counts not disruptive
+- Engine health has textual state
+- Glossary results keyboard accessible
+- Error messages announced appropriately
+- Focus preserved after save
+- Modal focus trapped/restored
+- Archived state clearly communicated
+
+---
+
+# 43. Responsive behavior
+
+Desktop:
+
+- Side-by-side editor
+- Assistance sidebar
+
+Medium screens:
+
+- Source and translation remain side-by-side where viable
+- Assistance moves below or into sheet
+
+Small tablet/mobile:
+
+Use tabs:
+
+```text
+Original
+Traduction
+Assistance
+```
+
+Do not squeeze two large text editors into unusably narrow columns.
+
+Preserve source context when switching tabs.
+
+---
+
+# 44. Registry responsive behavior
+
+Desktop:
+
+- Table
+
+Mobile:
+
+Translation cards showing:
+
+```text
+Source preview
+FR → EN
+À réviser
+Document #23
+10/08/2026
+
+[ Réviser ]
+```
+
+---
+
+# 45. Architecture
 
 Suggested structure:
 
 ```text
-packages/client/src/pages/courriers/
+packages/client/src/pages/traductions/
 ├── components/
-│   ├── CourrierTypeBadge.tsx
-│   ├── CourrierStatusBadge.tsx
-│   ├── CourrierHealthBadge.tsx
-│   ├── CourriersSummaryCards.tsx
-│   ├── CourriersFilters.tsx
-│   ├── CourriersRegistryTable.tsx
-│   ├── CourrierRegistryCard.tsx
-│   ├── CourrierDetailHeader.tsx
-│   ├── CourrierSummaryStrip.tsx
-│   ├── CourrierOverview.tsx
-│   ├── CourrierLifecycle.tsx
-│   ├── CourrierDocumentsSection.tsx
-│   ├── CourrierResponseSection.tsx
-│   ├── CourrierRelatedSection.tsx
-│   ├── CourrierNotificationsSection.tsx
-│   ├── RelanceDialog.tsx
-│   └── form/
-│       ├── CourrierFormStepper.tsx
-│       ├── GeneralInformationStep.tsx
-│       ├── SenderRecipientStep.tsx
-│       ├── ContentStep.tsx
-│       ├── DocumentsStep.tsx
-│       └── ReviewStep.tsx
+│   ├── TraductionStatusBadge.tsx
+│   ├── TraductionDirectionBadge.tsx
+│   ├── TranslationEngineStatus.tsx
+│   ├── TraductionsSummaryCards.tsx
+│   ├── TraductionsFilters.tsx
+│   ├── TraductionsRegistryTable.tsx
+│   ├── TraductionRegistryCard.tsx
+│   ├── NewTraductionDialog.tsx
+│   └── editor/
+│       ├── TranslationEditorHeader.tsx
+│       ├── TranslationMetadataStrip.tsx
+│       ├── SourceTextPanel.tsx
+│       ├── TargetTextPanel.tsx
+│       ├── TranslationActionsPanel.tsx
+│       ├── GlossaryAssistancePanel.tsx
+│       ├── TranslationSourcePanel.tsx
+│       └── TranslationEnginePanel.tsx
 ├── hooks/
-│   ├── useCourriersQueries.ts
-│   ├── useCourrierDetailQueries.ts
-│   └── useCourriersMutations.ts
-├── courrier.types.ts
-├── courrier.schemas.ts
-├── courrier.utils.ts
-├── courrier.constants.ts
-├── CourriersPage.tsx
-├── CourrierDetailPage.tsx
-└── CourrierFormPage.tsx
+│   ├── useTraductionsQueries.ts
+│   ├── useTranslationDetailQuery.ts
+│   ├── useTranslationMutations.ts
+│   ├── useLaunchTranslation.ts
+│   ├── useTranslationPrefill.ts
+│   └── useGlossarySuggestions.ts
+├── traduction.types.ts
+├── traduction.utils.ts
+├── traduction.constants.ts
+├── TraductionsPage.tsx
+└── TraductionEditorPage.tsx
 ```
 
-Adapt to current conventions.
+Adapt to the actual existing structure.
 
-Do not rename everything unless useful.
+Do not rename everything just to match this proposal.
 
 ---
 
-# 21. Shared normalization
+# 46. Shared normalization
 
-Inspect the updated implementations of:
-
-- Accords
-- Partenaires
-- Missions
-
-Reuse shared patterns for:
+Reuse visual primitives from updated SICOT modules:
 
 - Page headers
-- Breadcrumbs
 - Summary cards
-- Filter toolbars
-- Full-width tables
-- Mobile cards
-- Stepper layouts
-- Detail summary strips
-- Section navigation
+- Filter toolbar
+- Table shell
+- Pagination
+- Status badges
 - Error states
 - Empty states
-- Action menus
-- Responsive spacing
+- Breadcrumbs
+- Mobile cards
 
-Extract shared primitives only where genuinely reusable.
+But do NOT force the translation editor into generic detail-page abstractions that hurt usability.
 
-Do not copy-paste large components.
+Translation editing is specialized.
 
 ---
 
-# 22. Business utilities
+# 47. Business utilities
 
-Create centralized utilities where appropriate:
+Centralize:
 
 ```text
-isCourrierOverdue
-daysUntilCourrierDeadline
-daysSinceCourrierDeadline
-getCourrierHealth
-getCourrierDirectionLabel
-formatCourrierDeadline
-getCourrierLifecycleState
+getTranslationStatusLabel
+getTranslationDirectionLabel
+isTranslationEditable
+canApproveTranslation
+canArchiveTranslation
+canDeleteTranslation
+getTranslationSourceType
 ```
 
-Centralize thresholds.
-
-Do not repeat date arithmetic in JSX.
-
-Handle date-only values carefully.
+Avoid repeating status condition chains in multiple components.
 
 ---
 
-# 23. Registry aggregates
+# 48. Queue aggregates
 
-Audit whether list API returns:
+Audit whether global status counts exist.
 
-- Total
-- Incoming count
-- Outgoing count
-- Waiting-response count
-- Overdue count
-- To-process count
-
-If not, propose the smallest aggregate response.
+If not, propose the minimum backend addition.
 
 Example:
 
@@ -1307,170 +1454,133 @@ Example:
   total,
   aggregates: {
     total,
-    incoming,
-    outgoing,
-    waitingResponse,
-    overdue,
-    toProcess
+    toReview,
+    inReview,
+    manualRequired,
+    approved,
+    archived
   }
 }
 ```
 
-Do not calculate global KPIs from the current page.
+Do not derive full counts from the current page.
 
 ---
 
-# 24. Accessibility
+# 49. Search backend
 
-Requirements:
+If queue search is not supported, do not fake it by searching only the current page.
 
-- Full keyboard access
-- Semantic rows/cards
-- No invalid nested interactive controls
-- Accessible action menus
-- Stepper exposes current/completed state
-- Visible form labels
-- Validation errors linked to fields
-- Direction/status not conveyed by color alone
-- Icon-only controls have accessible labels
-- Dialog focus trapped/restored
-- Focus moves to step heading
-- Deadline state readable without color
-- Attachment actions accessible
-- Mobile cards preserve reading order
+Either:
+
+- Add server-side search
+- Or omit search and report it
+
+A lightweight search can cover:
+
+- texteOriginal
+- documentId
+- possibly document filename via safe join if supported
 
 ---
 
-# 25. Responsive behavior
-
-Desktop:
-
-- Full-width registry
-- Vertical creation stepper
-- Three-column detail overview
-
-Tablet:
-
-- Reduced registry columns
-- Compact stepper
-- Two-column detail layout
-
-Mobile:
-
-- Courrier cards
-- Filters stacked or in sheet
-- One creation step at a time
-- Detail sections stacked
-- Actions collapsed
-- Documents rendered as cards
-- No horizontal overflow
-
----
-
-# 26. Error handling
-
-Implement meaningful states for:
-
-- Courrier list failure
-- Courrier detail failure
-- Invalid ID
-- Missing courrier
-- Create failure
-- Update failure
-- Document upload failure
-- Existing-document linking failure
-- Response linking failure
-- Reminder failure
-- Notification history failure
-
-Do not return null for expected errors.
-
-Use existing toast and alert patterns.
-
----
-
-# 27. Performance
-
-- Debounce search
-- Preserve server-side pagination
-- Avoid per-row related-courrier queries
-- Avoid per-row document queries
-- Lazy-load notification history where useful
-- Reuse document/partner caches
-- Invalidate only relevant queries
-
-Do not overengineer for a small internal user base.
-
----
-
-# 28. Testing and validation
+# 50. Testing and validation
 
 At minimum validate:
 
 - TypeScript
 - ESLint
 - Production build
-- `/courriers`
-- `/courriers/new`
-- `/courriers/:id`
-- `/courriers/:id/edit`
-- Search
-- Type filter
-- Status filter
-- Period filter
-- Response filter
-- Pagination
-- URL restoration
-- Incoming courrier creation
-- Outgoing courrier creation
-- Step validation
-- Sender/recipient logic
-- Date validation
-- Document upload
-- Existing document linking
-- Courrier edit
-- Waiting-response state
-- Overdue state
-- Response-linked courrier
-- Reminder flow
-- Notification history
-- Print action integration
-- Loading states
-- Error states
-- Empty states
-- Keyboard navigation
-- Desktop
-- Tablet
-- Mobile
-- No horizontal overflow
-- No console errors
+- `/traductions`
+- `/traductions/:id`
 
-Do not claim a check passed unless executed.
+Queue:
+
+- Pagination
+- Status filter
+- Direction filter
+- Source filter if implemented
+- Search if implemented
+- Engine online state
+- Engine offline state
+
+Creation:
+
+- Free text FR→EN
+- Free text EN→FR
+- OCR-prefilled translation
+- Empty-text validation
+- Launch success
+- Engine offline fallback
+- Timeout handling
+- Network failure
+- Duplicate-launch risk
+
+Editor:
+
+- `texteIA` initialization
+- `texteFinal` initialization
+- Manual-required blank target
+- Edit target
+- Save correction
+- Dirty state
+- Navigation with unsaved changes
+- Approve saved text
+- Approve after unsaved edits
+- Archive
+- Restore
+- Delete restrictions
+- Archived read-only state
+
+Glossary:
+
+- Select expression
+- Suggestion lookup
+- Apply suggestion
+- No suggestions
+- Suggestion API failure
+
+Responsive:
+
+- Desktop queue
+- Mobile queue
+- Desktop editor
+- Tablet editor
+- Mobile editor
+- No horizontal page overflow
+
+Accessibility:
+
+- Keyboard navigation
+- Modal focus
+- Editor labels
+- Action labels
+
+Do not claim checks passed unless actually executed.
 
 ---
 
-# 29. Expected implementation sequence
+# 51. Expected implementation sequence
 
 ## Phase 1 — Audit
 
 Return:
 
-1. Current file structure
-2. Current routes
-3. Current API payloads
-4. Courrier type rules
-5. Status rules
-6. Sender/recipient rules
-7. Response tracking rules
-8. Related courrier behavior
-9. Document behavior
-10. Reminder behavior
-11. Existing reusable UI
-12. Normalized module patterns to reuse
-13. Data limitations
-14. Backend dependencies
-15. Proposed file changes
-16. Risks
+1. Current translation file structure
+2. Current queue behavior
+3. Current editor behavior
+4. Current statuses
+5. Current status transitions
+6. Machine translation flow
+7. Engine-offline behavior
+8. OCR/document prefill flow
+9. Glossary behavior
+10. Save/approval/archive behavior
+11. Existing shared SICOT components
+12. Data limitations
+13. Backend dependencies
+14. Proposed file changes
+15. Risks
 
 Do not implement yet.
 
@@ -1478,75 +1588,77 @@ Do not implement yet.
 
 Return:
 
-1. Registry component map
-2. Summary metrics strategy
-3. Guided creation steps
-4. Incoming/outgoing conditional flow
-5. Detail workspace design
-6. Lifecycle strategy
-7. Response tracking strategy
-8. Related correspondence strategy
-9. Reminder workflow
-10. Print/report integration
-11. Responsive strategy
-12. Accessibility strategy
-13. Backend changes if unavoidable
-14. Implementation order
+1. Queue design
+2. Queue metrics strategy
+3. New translation dialog redesign
+4. OCR prefill integration strategy
+5. Translation workshop architecture
+6. Manual fallback UX
+7. Glossary UX
+8. State/action matrix
+9. Unsaved-change strategy
+10. Responsive strategy
+11. Accessibility strategy
+12. Backend changes if unavoidable
+13. Implementation order
 
-## Phase 3 — Registry implementation
+## Phase 3 — Queue
 
 Implement:
 
 1. Shared types/utilities
 2. Header
-3. Summary cards
-4. Search/filters
-5. Desktop table
-6. Mobile cards
-7. Pagination
-8. Operational health
-9. Loading/error/empty states
+3. Engine health
+4. Summary cards
+5. Filters
+6. Registry table
+7. Mobile cards
+8. Pagination
+9. States
 
 Validate.
 
-## Phase 4 — Guided creation
+## Phase 4 — New translation
 
 Implement:
 
-1. Stepper
-2. General information
-3. Sender/recipient
-4. Content
-5. Documents
-6. Review
-7. Submission
-8. Unsaved-change protection
-9. Responsive behavior
+1. Dialog redesign
+2. Direction selector
+3. Text editor
+4. OCR-source context
+5. Engine status
+6. Launch
+7. Timeout UX
+8. Offline/manual fallback UX
 
 Validate.
 
-## Phase 5 — Detail workspace
+## Phase 5 — Translation workshop
 
 Implement:
 
 1. Header
-2. Summary strip
-3. Overview
-4. Lifecycle
-5. Documents
-6. Response tracking
-7. Related correspondence
-8. Reminders
-9. Notifications
-10. Print integration
-11. States
-12. Responsive behavior
+2. Metadata strip
+3. Original panel
+4. Editable translated panel
+5. Save behavior
+6. Manual-required mode
+7. Glossary assistance
+8. Source context
+9. Engine context
+10. Approval
+11. Review action if supported
+12. Archive/restore
+13. Unsaved-change protection
+14. Responsive behavior
 
 Validate.
 
 ## Phase 6 — Final validation
 
-Run project checks and fix regressions.
+Run all relevant checks.
+
+Fix regressions.
 
 ## Phase 7 — Final report
 
@@ -1555,81 +1667,84 @@ Return:
 1. Summary
 2. Files created
 3. Files modified
-4. Registry changes
-5. Guided form changes
-6. Detail workspace changes
-7. Lifecycle behavior
-8. Response tracking
-9. Related courrier handling
-10. Documents changes
-11. Reminder workflow
-12. Print/report integration
-13. Shared components
-14. Backend/API changes
-15. Accessibility decisions
-16. Responsive behavior
-17. Validation commands
-18. Validation results
-19. Remaining recommendations
+4. Queue changes
+5. New translation changes
+6. OCR integration
+7. Editor changes
+8. Manual translation fallback
+9. Glossary behavior
+10. Workflow transitions
+11. Engine health behavior
+12. Shared components
+13. Backend/API changes
+14. Accessibility
+15. Responsive behavior
+16. Validation commands
+17. Validation results
+18. Remaining recommendations
 
 ---
 
-# 30. Acceptance criteria
+# 52. Acceptance criteria
 
 The task is complete when:
 
-- Courriers follows the normalized SICOT style.
-- Registry is full-width and operationally useful.
-- Incoming and outgoing courriers are clearly distinguishable.
-- Operational KPIs are accurate.
-- Waiting-response and overdue courriers are explicit.
-- Search, filters, and pagination work.
-- URL filter persistence works.
-- Mobile uses courrier cards.
-- Creation uses a guided stepper.
-- Incoming/outgoing creation flows are context-aware.
-- Only real domain fields are used.
-- Documents remain supported.
-- Courrier detail uses a structured operational workspace.
-- Lifecycle is visible.
-- Response tracking is clear.
-- Related courriers are visible when supported.
-- Reminder workflow remains available.
-- Notification history remains available.
-- Print action is prepared for report generation.
-- Loading/error/empty/missing states exist.
-- Courrier business rules are centralized.
-- Design aligns with Dashboard, Accords, Partenaires, and Missions.
-- Module is responsive.
-- Module is keyboard accessible.
+- Traductions remains clearly separate from Demandes.
+- The page acts as a translation production queue.
+- Engine health is visible but not dominant.
+- Queue KPIs reflect translation workload.
+- Queue filters work correctly.
+- New translation remains lightweight.
+- Free text translation still works.
+- FR→EN and EN→FR still work.
+- OCR/document prefill still works.
+- Document relationship is preserved.
+- Engine success opens generated translation for review.
+- Engine failure still allows manual translation.
+- `manuelle_requise` is a fully usable workflow.
+- Source text remains read-only.
+- Target text is editable when appropriate.
+- Existing corrections remain highest-priority editor content.
+- Glossary suggestions remain available.
+- Corrections can be saved.
+- Approval saves pending correction first.
+- Archived translations are read-only.
+- Restore remains supported.
+- Delete restrictions remain correct.
+- Unsaved work is protected.
+- Editor remains usable on tablet/mobile.
+- Design aligns visually with normalized SICOT modules.
+- No unrelated module is changed.
 - TypeScript, lint, and build pass.
-- No unrelated modules are changed.
-- Final report is returned.
+- Final implementation report is returned.
 
 ---
 
-# 31. Restrictions
+# 53. Restrictions
 
 Do not:
 
-- Rewrite the entire application.
-- Replace React Query.
-- Replace React Hook Form or Zod.
-- Replace Tailwind.
-- Introduce another UI library.
-- Add production mock data.
-- Invent priority if absent.
-- Invent response deadlines if absent.
-- Invent automatic reminder states.
-- Invent courrier relationships from matching subject text.
-- Calculate global KPIs from one page.
-- Create per-row API requests.
-- Mix reminders into generic edit forms.
-- Create fake print/PDF output.
-- Duplicate normalized module components through copy-paste.
-- Modify unrelated pages.
+- Turn Traductions into Demandes de traduction.
+- Add requester management.
+- Add service ownership.
+- Add priority.
+- Add deadlines.
+- Add assignments.
+- Add fake progress percentages.
+- Add arbitrary languages unsupported by backend.
+- Replace the current translation engine logic unnecessarily.
+- Remove manual fallback.
+- Remove OCR prefill.
+- Remove glossary support.
+- Make source text editable.
+- Approve stale unsaved text.
+- Block translation creation only because the engine is offline.
+- Add a multi-step wizard for new free-text translation.
+- Rewrite Documents/OCR logic.
+- Derive global KPIs from the current page.
+- Modify unrelated modules.
 - Commit or push changes.
 
-Start with Phase 1 only.
+Start with **Phase 1 only**.
 
 Inspect the updated repository and return the audit report before writing implementation code.

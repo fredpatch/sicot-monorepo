@@ -32,6 +32,8 @@ interface NouvelleTraductionDialogProps {
   chargement: boolean;
   erreur: string | null;
   moteurAccessible?: boolean;
+  documentId?: number;
+  documentNom?: string;
 }
 
 export function NouvelleTraductionDialog({
@@ -45,6 +47,8 @@ export function NouvelleTraductionDialog({
   chargement,
   erreur,
   moteurAccessible,
+  documentId,
+  documentNom,
 }: NouvelleTraductionDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,6 +62,17 @@ export function NouvelleTraductionDialog({
         </DialogHeader>
 
         <DialogBody className="space-y-4">
+          <p className="text-xs text-anac-muted">
+            Source :{' '}
+            {documentId ? (
+              <span className="font-medium text-anac-navy">
+                {documentNom ? `Document #${documentId} · ${documentNom}` : `Document #${documentId}`}
+              </span>
+            ) : (
+              <span className="font-medium text-anac-navy">Texte libre</span>
+            )}
+          </p>
+
           <div className="space-y-1.5">
             <Label>Direction</Label>
             <Select

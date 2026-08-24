@@ -1,6 +1,6 @@
 import { db } from '@/db/index.js';
 import { traductions, glossaire, demandesTraduction } from '@/db/schema';
-import { eq, and, ilike, or, desc, isNull } from 'drizzle-orm';
+import { eq, and, ilike, or, desc, isNull, isNotNull } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import {
   traduireTexte,
@@ -85,6 +85,49 @@ export async function lancerTraduction(params: LancerTraductionParams): Promise<
   });
 
   return toTraductionView(traduction);
+}
+
+// ── SERVICE : Relancer une traduction en manuelle_requise ─────────────────
+// Ne touche jamais texteFinal — une correction manuelle déjà saisie n'est
+// jamais écrasée, seul texteIA (le résultat moteur) est (re)généré.
+export async function relancerTraduction(id: number, userId: number): Promise<TraductionView> {
+  const [existante] = await db.select().from(traductions).where(eq(traductions.id, id));
+
+  if (!existante) throw new Error('TRADUCTION_INTROUVABLE');
+  if (existante.statut !== 'manuelle_requise') throw new Error('RELANCE_NON_APPLICABLE');
+  if (!existante.texteOriginal) throw new Error('TEXTE_ORIGINAL_MANQUANT');
+
+  const { accessible } = await verifierLibreTranslate();
+  if (!accessible) throw new Error('MOTEUR_INACCESSIBLE');
+
+  const { texteFinal, succes, erreurs, moteur } = await traduireTexte(
+    existante.texteOriginal,
+    existante.direction as TraductionDirection
+  );
+
+  const moteurValide: MoteurTraduction =
+    moteur === 'deepL' ? 'deepl' : moteur === 'manuel' ? 'manuel' : 'libretranslate';
+
+  const [updated] = await db
+    .update(traductions)
+    .set({
+      texteIA: succes ? texteFinal : existante.texteIA,
+      statut: succes ? 'a_reviser' : 'manuelle_requise',
+      moteurUtilise: moteurValide,
+      updatedAt: new Date(),
+    })
+    .where(eq(traductions.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: 'TRADUCTION_RELANCEE',
+    module: 'M6',
+    entiteId: id,
+    details: { succes, erreurs, moteur },
+  });
+
+  return toTraductionView(updated);
 }
 
 // ── SERVICE : Sauvegarder la correction du traducteur ─────────────────────
@@ -180,10 +223,39 @@ export async function archiverTraduction(id: number, userId: number): Promise<Tr
   return toTraductionView(updated);
 }
 
+// ── SERVICE : Agrégats globaux (indépendants des filtres/page courants) ──
+export async function getTraductionsAggregates(): Promise<{
+  total: number;
+  aReviser: number;
+  enRelecture: number;
+  manuelleRequise: number;
+  approuvees: number;
+  archivees: number;
+  supprimees: number;
+}> {
+  const nonSupprimees = isNull(traductions.deletedAt);
+
+  const [total, aReviser, enRelecture, manuelleRequise, approuvees, archivees, supprimees] =
+    await Promise.all([
+      db.$count(traductions, nonSupprimees),
+      db.$count(traductions, and(nonSupprimees, eq(traductions.statut, 'a_reviser'))),
+      db.$count(traductions, and(nonSupprimees, eq(traductions.statut, 'en_relecture'))),
+      db.$count(traductions, and(nonSupprimees, eq(traductions.statut, 'manuelle_requise'))),
+      db.$count(traductions, and(nonSupprimees, eq(traductions.statut, 'approuvee'))),
+      db.$count(traductions, and(nonSupprimees, eq(traductions.statut, 'archivee'))),
+      db.$count(traductions, isNotNull(traductions.deletedAt)),
+    ]);
+
+  return { total, aReviser, enRelecture, manuelleRequise, approuvees, archivees, supprimees };
+}
+
 // ── SERVICE : Lister les traductions ──────────────────────────────────────
 export async function listerTraductions(filters: {
+  search?: string;
   statut?: TraductionStatut;
   direction?: TraductionDirection;
+  vue?: 'actives' | 'supprimees';
+  source?: 'libre' | 'document';
   page?: number;
   pageSize?: number;
 }): Promise<{ data: TraductionView[]; total: number }> {
@@ -192,11 +264,17 @@ export async function listerTraductions(filters: {
   const offset = (page - 1) * pageSize;
 
   const conditions = [];
-  // Toujours filtrer les supprimées par défaut
-  conditions.push(isNull(traductions.deletedAt));
+  // Par défaut : uniquement les traductions actives. La vue "supprimees" bascule
+  // sur les traductions soft-deleted (pour permettre leur restauration).
+  conditions.push(
+    filters.vue === 'supprimees' ? isNotNull(traductions.deletedAt) : isNull(traductions.deletedAt)
+  );
 
   if (filters.statut) conditions.push(eq(traductions.statut, filters.statut));
   if (filters.direction) conditions.push(eq(traductions.direction, filters.direction));
+  if (filters.source === 'libre') conditions.push(isNull(traductions.documentId));
+  if (filters.source === 'document') conditions.push(isNotNull(traductions.documentId));
+  if (filters.search) conditions.push(ilike(traductions.texteOriginal, `%${filters.search}%`));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -222,9 +300,13 @@ export async function getTraduction(id: number): Promise<TraductionView> {
 }
 
 // ── SERVICE : Suggestions glossaire pour l'éditeur ───────────────────────
+// `langue` est la langue du texte effectivement sélectionné par l'utilisateur
+// (déterminée côté client selon le panneau — original ou traduction — où la
+// sélection a eu lieu), PAS la direction globale de la traduction : sélectionner
+// dans le panneau traduction cherche dans la langue cible, pas la langue source.
 export async function getSuggestionsGlossaire(
   texte: string,
-  direction: TraductionDirection
+  langue: 'fr' | 'en'
 ): Promise<Array<{ termeFr: string; termeEn: string; domaine?: string }>> {
   const mots = texte
     .toLowerCase()
@@ -236,7 +318,7 @@ export async function getSuggestionsGlossaire(
   const conditions = mots
     .slice(0, 5)
     .map((mot) =>
-      direction === 'fr_en'
+      langue === 'fr'
         ? ilike(glossaire.termeFr, `%${mot}%`)
         : ilike(glossaire.termeEn, `%${mot}%`)
     );

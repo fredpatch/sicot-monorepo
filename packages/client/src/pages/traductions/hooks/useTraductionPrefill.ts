@@ -1,8 +1,13 @@
 // packages/client/src/pages/traductions/hooks/useTraductionPrefill.ts
 import { useEffect } from 'react';
 
+interface TraductionPrefill {
+  texte: string;
+  documentId?: number;
+}
+
 interface UseTraductionPrefillParams {
-  onPrefill: (texte: string) => void;
+  onPrefill: (prefill: TraductionPrefill) => void;
 }
 
 /** Reads a one-shot sessionStorage prefill (set by DocumentsPage's "Traduire" action) on mount. */
@@ -11,8 +16,8 @@ export function useTraductionPrefill({ onPrefill }: UseTraductionPrefillParams) 
     try {
       const prefill = sessionStorage.getItem('traduction_prefill');
       if (prefill) {
-        const { texte } = JSON.parse(prefill);
-        onPrefill(texte);
+        const { texte, documentId } = JSON.parse(prefill);
+        onPrefill({ texte, documentId });
         sessionStorage.removeItem('traduction_prefill');
       }
     } catch {

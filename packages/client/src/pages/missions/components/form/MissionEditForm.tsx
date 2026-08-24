@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -29,6 +30,7 @@ import { MissionLogisticsBadge } from '../MissionLogisticsBadge';
 // detail workspace (Phase 5), not mixed into general edit.
 export default function MissionEditForm() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const missionId = id ? parseInt(id, 10) : undefined;
@@ -86,8 +88,8 @@ export default function MissionEditForm() {
     },
   });
 
-  function cancel() {
-    if (!isDirty || window.confirm('Quitter sans enregistrer les modifications ?')) {
+  async function cancel() {
+    if (!isDirty || (await confirm({ title: 'Quitter sans enregistrer les modifications ?' }))) {
       navigate(missionId ? `/missions/${missionId}` : '/missions');
     }
   }

@@ -7,9 +7,13 @@
 ```bash
 npm run dev        # both server :3001 + client :5173
 npm run db:studio  # Drizzle Studio (DB browser)
-# Microservices (run separately):
-cd packages/ocr-service && python main.py        # OCR :5001
-cd packages/translate-service && python main.py  # Traduction :5002
+
+# Microservices (LibreTranslate + translate-service + OCR) — always-on on the
+# real server, but not started by `npm run dev` locally. Docker-based:
+npm run services:up       # start all 3
+npm run services:status   # check state
+npm run services:logs     # tail logs
+npm run services:down     # stop all 3
 
 # OR: everything containerized (see project/architecture.md § Deployment Infrastructure)
 cp .env.example .env && docker compose up --build -d
@@ -79,8 +83,13 @@ GET  /api/missions/recommandations/en-attente  Pending recommandations
 GET  /api/accords/:id/export/pdf    Individual PDF fiche (add ?apercu=1 for inline preview)
 GET  /api/courriers/:id/export/pdf  Individual PDF fiche (add ?apercu=1 for inline preview)
 GET  /api/missions/:id/export/pdf   Mission report PDF fiche (add ?apercu=1 for inline preview)
+GET  /api/traductions/aggregates    Global KPI counts, independent of current filters
+GET  /api/traductions          List (filter: statut, direction, vue=actives|supprimees, source=libre|document)
+PATCH /api/traductions/:id/relancer  Retry engine on a manuelle_requise translation (never overwrites texteFinal)
+GET  /api/traductions/:id/suggestions?texte=…&origine=source|traduction  Glossary suggestions — origine picks which panel's language to search
 GET  /api/glossaire            List terms (filter: search, domaine, actif)
 GET  /api/glossaire/suggestions?q=…  Glossaire suggestions for editor
+POST /api/glossaire/import     Bulk import (JSON {termeFr,termeEn,domaine?,contexte?}[]) — no client UI wired to it yet
 POST /api/traductions          Launch translation (texteOriginal + direction)
 GET  /api/traductions/moteur/status  LibreTranslate health check
 PATCH /api/traductions/:id/correction  Save human correction
@@ -120,7 +129,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) redesigns + individual PDF export
+🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) redesigns + individual PDF export + services:up scripts
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -154,4 +163,9 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
   accord type/durée/renouvelable, mission organisateur/objectif/résumé
   d'activités, per-mission participant role, multi-level correspondence
   threads — Notion Sprint 12, À faire
+- **Glossaire import UI** — `POST /api/glossaire/import` works, no client
+  button/dialog calls it yet; blocked on the CCIT seed file (see below).
+  Building a document-based auto-extraction pipeline (raw ANAC PDFs →
+  glossary) is a separate, bigger recommendation, not yet started — Notion
+  Sprint 12, À faire
 - **No automated test suite** — CI is lint + build only

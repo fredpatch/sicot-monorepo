@@ -15,6 +15,7 @@ router.use((req, res, next) => {
 
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
 router.get('/moteur/status', traductionController.moteurStatus);
+router.get('/aggregates', traductionController.aggregates);
 
 // ── Lecture ───────────────────────────────────────────────────────────────
 router.get('/', traductionController.lister);
@@ -27,6 +28,7 @@ router.get('/:id/suggestions', traductionController.suggestions);
 router.post('/', requireRole('traducteur'), traductionController.lancer);
 
 // ── Workflow traduction ────────────────────────────────────────────────────
+router.patch('/:id/relancer', requireRole('traducteur'), traductionController.relancer);
 router.patch(
   '/:id/correction',
   requireRole('traducteur'),

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { missionsApi } from '@/lib/missions.api';
@@ -28,6 +29,7 @@ const STEPS: { key: StepKey; label: string; fields: (keyof MissionCreateFormData
 
 export default function MissionCreateStepper() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -93,8 +95,8 @@ export default function MissionCreateStepper() {
     await goToStep(Math.min(STEPS.length - 1, stepIndex + 1));
   }
 
-  function cancel() {
-    if (!isDirty || window.confirm('Quitter sans enregistrer cette mission ?')) {
+  async function cancel() {
+    if (!isDirty || (await confirm({ title: 'Quitter sans enregistrer cette mission ?' }))) {
       navigate('/missions');
     }
   }

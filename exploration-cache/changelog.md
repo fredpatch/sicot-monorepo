@@ -1,5 +1,88 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-24 — feat(client/server): Traductions module (M6) redesign + app-wide router/confirm-dialog
+
+Full redesign of the Traductions production workspace (queue + workshop),
+following the same audit → plan → implement → validate process as
+Missions/Courriers, plus two real bugs found and fixed, a new retry
+capability, and two decisions that reach beyond this module: migrating
+the app to a data router (to enable `useBlocker`) and replacing every
+`window.confirm()` client-wide with a shadcn-style dialog.
+
+### Added — Queue (`/traductions`)
+- `GET /api/traductions/aggregates` — global KPI counts, independent of
+  filters/pagination (mirrors Missions/Courriers aggregates pattern).
+- `?vue=actives|supprimees` on `GET /api/traductions` — surfaces
+  soft-deleted translations in a "Supprimées" tab, making the existing
+  `restaurer` endpoint reachable from the UI for the first time.
+- `?source=libre|document` and `?search=` (server-side `ilike` on
+  `texteOriginal`) filters.
+- `TraductionsRegistryTable`/`TraductionsRegistryMobileCards` — hand-built
+  table + mobile cards replacing the shared `DataTable` component (whose
+  `TableHeader` is dark `bg-anac-navy` and whose `TableRow` — reused for
+  header rows too — applies `hover:bg-anac-gray` universally, producing a
+  visibly broken light-patch-under-white-text hover on the header). Same
+  shape as `CourriersRegistryTable`/`MissionsRegistryTable`.
+- `TraductionsFiltres` rebuilt to the same shape as `MissionsFilters`/
+  `CourriersFilters` — debounced search input, Statut select, "Plus de
+  filtres" expandable (Direction/Source), filter chips, reset — instead
+  of the older bare Select-row layout. The Supprimées/Traductions toggle
+  is a small segmented control at the top of the same filter card (no
+  equivalent existed in Missions/Courriers to match, since neither has a
+  soft-delete browsing view).
+- `TraductionsSummaryCards`, compact `TranslationEngineStatus` badge.
+- Page size aligned to 8 (`TRADUCTION_PAGE_SIZE`).
+
+### Fixed
+- **OCR-prefill `documentId` loss** — `DocumentsPage`'s "Traduire" action
+  always included `documentId` in its `sessionStorage` payload, but
+  `useTraductionPrefill` only read `texte` out of it, and
+  `useLancerTraduction`/`traductionsApi.lancer` had no `documentId`
+  parameter — every translation launched from a document silently lost
+  its link, even though the column/API/backend all supported it. Fixed
+  end-to-end across all four hops.
+- **Glossary suggestions never matched when selecting the target-language
+  panel** — `getSuggestionsGlossaire` always searched the glossary column
+  for the translation's *source* language, regardless of which panel
+  (original vs translation) the user actually selected text in. For the
+  common `fr_en` case, selecting English text in the translation panel —
+  the natural thing to do while reviewing — searched French terms and
+  always returned zero matches. Client now sends `?origine=source|
+  traduction` on `GET /:id/suggestions`; server derives the language to
+  search from `origine` + the record's `direction`.
+
+### Added — Workshop (`/traductions/:id`)
+- Split `TraductionEditeur.tsx` (628 lines) into `components/editor/`
+  (`WorkshopHeader`, `SourceTextPanel`, `TranslationPanel`,
+  `AssistancePanel` wrapping `EngineStatusBlock`/`GlossarySuggestions`/
+  `SourceInfoBlock`). Responsive: 12-col grid desktop, stacked 2-col
+  medium, tabs mobile.
+- **`PATCH /:id/relancer`** — retries the engine on a `manuelle_requise`
+  translation's stored `texteOriginal`. Never touches `texteFinal` (a
+  manual draft in progress is never overwritten); the client additionally
+  disables the button while there are unsaved local edits, since a query
+  invalidation after retry re-syncs the editor from the server.
+- `useBlocker`-based unsaved-changes guard (see router migration below),
+  routed through the new `useConfirm()` dialog, plus a `beforeunload`
+  listener for actual browser close/refresh.
+
+### Added — App-wide
+- **Data router migration**: `<BrowserRouter>`/`<Routes>` →
+  `createBrowserRouter`/`<RouterProvider>` (route tree moved to new
+  `router.tsx`). Required for `useBlocker`. `App` is now the router's root
+  element (owns the auth-session check + bootstrap redirect, renders
+  `<Outlet />`); `Layout` reads the user from `useAuth()` instead of
+  props. Side effect: the bootstrap-needed redirect now applies uniformly
+  to every route instead of only unmatched ones (a tightening, not a
+  regression).
+- **`useConfirm()`** (`components/ui/confirm-dialog.tsx`) — Promise-based
+  hook on the existing `Dialog` primitive (no new dependency), replacing
+  all 6 `window.confirm()` call sites app-wide (Accords/Courriers/
+  Missions forms and headers, not just Traductions).
+- `npm run services:up/down/restart/logs/status` — wrap `docker compose`
+  for `libretranslate`/`translate-service`/`ocr-service`, meant to run
+  continuously on the real server, independent of `npm run dev`.
+
 ## [Unreleased] — 2026-08-24 — feat(client/server): Courriers module (M4) redesign
 
 Full redesign of the Courriers module, following the exact process and

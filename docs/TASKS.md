@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
 
 Sprint non planifié, réalisé le même jour — voir `exploration-cache/changelog.md`
 pour le détail complet et `docs/deployment/production-guide.md` pour le runbook.
@@ -654,13 +654,27 @@ pour le détail complet et `docs/deployment/production-guide.md` pour le runbook
 - [x] ~~**Création rapide organisation/contact**~~ - `QuickCreateOrganisationDialog` + `QuickCreateContactDialog`, réutilisent FormulaireOrganisation/FormulaireContact existants
 - [x] ~~**Champs débloqués en édition**~~ - Expéditeur/destinataire, date, réponse requise (direction reste immuable) — étaient silencieusement ignorés par le serveur avant
 
+### Refonte Traductions (M6)
+
+- [x] ~~**Registre plein écran**~~ - Cartes de synthèse (GET /api/traductions/aggregates), badge moteur compact (remplace la bannière rouge pleine largeur), filtre Source (texte libre/document, server-side), recherche plein texte server-side (`ilike` sur `texteOriginal`), onglet Supprimées (accès à `restaurer`, jusque-là inaccessible depuis l'UI), pagination alignée à 8
+- [x] ~~**Alignement UI registre sur Courriers/Missions**~~ - Remplacement du `DataTable` générique (en-tête `bg-anac-navy` + `TableRow` réutilisé pour la ligne d'en-tête, provoquant un survol visuellement cassé — fond gris clair sous du texte blanc) par une table/cartes mobiles construites à la main (`TraductionsRegistryTable`), même filtre (recherche + Select + "Plus de filtres" + puces + reset) que `MissionsFilters`/`CourriersFilters`
+- [x] ~~**Correctif rattachement document OCR**~~ - `documentId` était silencieusement perdu entre le préremplissage OCR (Documents → Traductions) et le lancement de la traduction ; toute traduction lancée depuis un document perdait son lien. Corrigé de bout en bout (hook préremplissage → page → lancement → API)
+- [x] ~~**Atelier de traduction éclaté**~~ - `TraductionEditeur.tsx` (628 lignes) scindé en en-tête/panneaux/assistance (`components/editor/`), disposition responsive (grille 12 col. desktop / empilé medium / onglets mobile)
+- [x] ~~**Relance traduction manuelle**~~ - `PATCH /:id/relancer`, ré-exécute le moteur sur `texteOriginal` d'une traduction `manuelle_requise` sans jamais écraser une correction manuelle déjà saisie (bouton désactivé tant qu'il y a des modifications non sauvegardées)
+- [x] ~~**Correctif suggestions glossaire**~~ - la recherche cherchait toujours la langue source de la traduction quelle que soit la sélection ; sélectionner du texte dans le panneau traduction (langue cible) ne remontait donc jamais de suggestion. Le client indique désormais quel panneau a déclenché la sélection
+- [x] ~~**Migration routeur → `useBlocker`**~~ - `BrowserRouter` → `createBrowserRouter`/`RouterProvider` (app entière) pour permettre la protection des modifications non sauvegardées à la navigation dans l'atelier (+ `beforeunload` pour la fermeture/actualisation navigateur)
+- [x] ~~**`useConfirm()` app-wide**~~ - Remplace tous les `window.confirm()` du client (Accords/Courriers/Missions) par une dialog shadcn-style (`components/ui/confirm-dialog.tsx`), pas seulement dans Traductions
+- [x] ~~**Scripts microservices**~~ - `npm run services:up/down/restart/logs/status` (Docker Compose : libretranslate + translate-service + ocr-service), documentés comme devant tourner en continu sur le serveur
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)
-- [ ] **Composant SummaryCard partagé** - dupliqué 4× (Accords/Partenaires/Missions/Courriers)
+- [ ] **Composant SummaryCard partagé** - dupliqué 5× (Accords/Partenaires/Missions/Courriers/Traductions)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
 - [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
 - [ ] **Fils de correspondance multi-niveaux** - `getFilCorrespondance` ne remonte qu'un niveau de réponse
+- [ ] **Import CSV/Excel glossaire — interface** - `POST /api/glossaire/import` existe déjà côté serveur (JSON `{termeFr, termeEn, domaine?, contexte?}[]`) mais aucun bouton/dialog client ne l'appelle ; à construire une fois le fichier CCIT reçu (cf. Waiting On)
+- [ ] **Extraction glossaire depuis documents ANAC bruts** - Recommandation 2026-08-24 : alimenter le glossaire à partir de PDF/Word existants nécessiterait un pipeline d'extraction/alignement bilingue (au-delà d'un simple import structuré) — à évaluer séparément si le volume de terminologie non capturée le justifie
 
 ## Waiting On
 

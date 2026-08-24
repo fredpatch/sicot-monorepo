@@ -191,6 +191,18 @@ export const handleTraductionError = createErrorHandler(
     },
     TRADUCTION_DEJA_SUPPRIMEE: { status: 400, message: 'Cette traduction est déjà supprimée.' },
     TRADUCTION_NON_SUPPRIMEE: { status: 400, message: "Cette traduction n'est pas supprimée." },
+    RELANCE_NON_APPLICABLE: {
+      status: 400,
+      message: 'Seule une traduction en statut "Manuelle requise" peut être relancée.',
+    },
+    TEXTE_ORIGINAL_MANQUANT: {
+      status: 400,
+      message: 'Aucun texte source à traduire pour cette traduction.',
+    },
+    MOTEUR_INACCESSIBLE: {
+      status: 503,
+      message: 'Le moteur de traduction est actuellement hors ligne.',
+    },
   },
   '[traduction.controller]'
 );

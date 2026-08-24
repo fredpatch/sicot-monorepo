@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, FileText, Loader2, Upload, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { documentsApi } from '@/lib/documents.api';
 import { missionsApi } from '@/lib/missions.api';
 import type { Mission } from '../mission.types';
@@ -19,6 +20,7 @@ interface DocumentSummary {
 // existing mission document — as their own workflow, out of the general
 // edit form per the Phase 2 plan (§6).
 export function MissionReportSection({ mission }: { mission: Mission }) {
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<'upload' | 'existing'>('upload');
@@ -109,8 +111,15 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
               </a>
               <button
                 type="button"
-                onClick={() => {
-                  if (window.confirm('Retirer ce rapport ? Vous pourrez ensuite en déposer un autre.')) {
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      title: 'Retirer ce rapport ?',
+                      description: 'Vous pourrez ensuite en déposer un autre.',
+                      confirmLabel: 'Retirer',
+                      variant: 'destructive',
+                    })
+                  ) {
                     unlinkMutation.mutate();
                   }
                 }}
