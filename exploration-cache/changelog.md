@@ -1,5 +1,103 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-24 — feat(client/server): Missions module (M3) redesign
+
+Full redesign of the Missions module (`/missions`), replacing the old
+split-pane (email-client-style) list + a cramped inline detail panel with
+the same normalized registry/detail pattern already used by
+Dashboard/Accords/Partenaires. Delivered incrementally (audit → plan →
+registry → guided creation → detail workspace → feedback rounds), each
+phase validated with a real `docker compose` staging deploy against live
+data, not just `npm run build`.
+
+### Added — Registry (`/missions`)
+- `mission.types.ts` / `.constants.ts` / `.utils.ts` / `.schemas.ts` —
+  centralizes what used to be duplicated per-file (status labels, the
+  14-day logistics-risk threshold, page size, etc.).
+- `MissionsSummaryCards` (7 KPI cards) backed by a new
+  `GET /api/missions/aggregates` endpoint (global counts, independent of
+  the current filters — mirrors `OrganisationsAggregates`).
+- `MissionsFilters` (search, statut, progressive "Plus de filtres" for
+  pays/logistique/rapport) and `MissionsRegistryTable` +
+  `MissionsRegistryMobileCards`, reusing `CountryMark` from Partenaires
+  instead of a third copy.
+- `MissionHealthBadge` / `getMissionHealth()` — one derived signal folding
+  lifecycle + logistics risk + missing report + overdue recommendations
+  into a single "what needs attention" answer, shown consistently across
+  the registry row and the detail summary strip.
+- Server: `GET /api/missions` gained `confirmationLogistique` and
+  `rapportStatut` filters alongside the existing search/statut/pays.
+
+### Added — Guided creation & edit (`/missions/new`, `/missions/:id/edit`)
+- `MissionCreateStepper` — 5-step guided flow (informations générales,
+  dates/destination, participants, contact/logistique, vérification),
+  hand-rolled numbered-circle stepper matching `AccordFormPage`'s pattern.
+  Deliberately excludes every field the mockup implied but the schema
+  doesn't have (référence, priorité, type, programme, budget — see
+  Phase 1 audit).
+- `MissionEditForm` — grouped sections, not a stepper (a minor update
+  shouldn't force 5 create-style steps). Report and recommendations are
+  deliberately not here — separate workflows in the detail workspace.
+- `ParticipantsPicker` — two-panel searchable participant picker, **with
+  quick-create**: an admin/super_admin can create a new ANAC agent account
+  inline via the exact same `CreerUtilisateurDialog` the admin Users page
+  uses (same validation/OTP-dispatch/audit-log, zero duplicated logic),
+  hidden entirely for non-admins rather than shown disabled.
+- `ContactSurPlacePicker` — replaces the old N+1 fetch (all organisations
+  → all their contacts) with a live search against a new
+  `GET /api/contacts` endpoint. **Also quick-create**: `QuickCreateContactDialog`
+  handles the two-layer reality that a contact always belongs to an
+  organisation — search-or-create the organisation, then add the contact
+  under it, reusing `FormulaireOrganisation`/`FormulaireContact` from the
+  Partenaires module rather than a parallel creation path.
+- Backend role-gate changes (both narrowly scoped, not blanket): `GET
+  /api/users` is now agent-accessible for listing (create/update/etc. stay
+  admin-only), and `POST /api/notifications/envoyer` accepts `agent` only
+  for `recommandation_rappel` (other notification types stay admin-gated).
+
+### Added — Detail workspace (`/missions/:id`, now a real route)
+- `MissionDetailHeader` (breadcrumb, status, Modifier, "Plus d'actions"
+  overflow with Imprimer/Annuler), `MissionSummaryStrip`, and a two-column
+  shell (section nav synced to `?section=` + main), matching
+  Accords/Partenaires exactly.
+- `MissionOverview` — the three real columns (Informations clés /
+  Participants preview / Suivi opérationnel) in place of the mockup's
+  invented Programme column.
+- `MissionLogisticsSection` + `LogisticsDialog` — dedicated workflow, not
+  edit-form-only. Upgraded mid-session into a real checklist: `missions`
+  gained `logistiqueBilletReserve` / `logistiqueHebergementConfirme` /
+  `logistiqueFinancementValide` (migration `0012_opposite_tyrannus.sql`).
+  `confirmationLogistique` is no longer manually picked — it's derived
+  server-side from the checklist (none → à planifier, all → confirmée,
+  else → en cours). The checklist itself is always visible read-only in
+  the section (not just inside the edit dialog), per user feedback.
+- `MissionReportSection` — upload or link-existing, **plus remove/replace**
+  (an X button clears `rapportDocumentId`, added after user feedback that
+  a mistakenly-uploaded report couldn't be corrected).
+- `MissionRecommendationsSection` + `RecommendationDialog` — replaces the
+  old inline-expand add form (which visually broke the rest of the screen)
+  with a proper dialog; adds urgency sorting and filter chips (Toutes/À
+  traiter/Dépassées/Réalisées).
+- `MissionPeriod` component — replaces the `→` unicode character used
+  throughout with a real `ArrowRight` icon everywhere it's visually
+  rendered; `formatMissionPeriod()` now serves as the plain-text
+  `aria-label` instead of sitting unused.
+- Deleted the old `MissionDetails.tsx` (superseded, confirmed unused).
+
+### Fixed (found via live testing against real seeded data, not just typechecked)
+- `participantsIds: []`, `rapportDocumentId: null`, `contactSurPlaceId: null`
+  were all silently ignored by `mettreAJourMission` — "remove everything"
+  looked like it saved but did nothing. All three now actually clear.
+  Confirmed via live before/after API calls against real mission rows.
+
+### Backlog (flagged, not built — see Notion Sprint 12)
+- Période filter (à venir/en cours/30j/cette année/terminées) on the
+  registry — needs more date-range logic than this pass covered.
+- Shared `SummaryCard` extraction (still 3 copies across
+  Accords/Partenaires/Missions) — not touched to avoid modifying modules
+  outside this task's scope.
+- No automated test suite — CI is lint + build only.
+
 ## [Unreleased] — 2026-08-24 — feat(infra): Docker/Compose/CI-CD deployment infrastructure
 
 ### Added

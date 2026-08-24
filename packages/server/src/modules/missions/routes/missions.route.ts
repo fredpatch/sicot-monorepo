@@ -10,6 +10,7 @@ router.use(authenticate);
 
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
 router.get('/recommandations/en-attente', missionsController.recommandationsEnAttente);
+router.get('/aggregates', missionsController.aggregates);
 
 // ── Lecture — accessible à tous ───────────────────────────────────────────
 router.get('/', missionsController.lister);

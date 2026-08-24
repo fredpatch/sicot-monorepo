@@ -1,23 +1,29 @@
 import { Router } from 'express';
 import { authenticate } from '@/middleware/auth';
-import { requireAdmin } from '@/middleware/requiredRole';
+import { requireAdmin, requireRole } from '@/middleware/requiredRole';
 import * as usersController from '../controllers/users.controller';
 
 const router = Router();
 
-// Toutes les routes users nécessitent d'être connecté ET admin minimum
-router.use(authenticate, requireAdmin);
+// Toutes les routes users nécessitent d'être connecté ; le rôle minimum
+// est appliqué par route ci-dessous (pas au niveau du routeur), car la
+// LISTE (lecture seule) doit rester accessible à un agent — utilisée par
+// le sélecteur de participants du module Missions — alors que la création
+// et la gestion des comptes restent réservées admin+.
+router.use(authenticate);
 
-// ── Liste et création ─────────────────────────────────────────────────────
-router.get('/', usersController.lister);
-router.post('/', usersController.creer);
+// ── Liste — agent minimum (lecture seule) ─────────────────────────────────
+router.get('/', requireRole('agent'), usersController.lister);
 
-// ── Consultation et modification ──────────────────────────────────────────
-router.get('/:id', usersController.getById);
-router.patch('/:id', usersController.mettreAJour);
+// ── Création — admin minimum ──────────────────────────────────────────────
+router.post('/', requireAdmin, usersController.creer);
 
-// ── Actions spécifiques ───────────────────────────────────────────────────
-router.patch('/:id/activation', usersController.toggleActivation);
-router.post('/:id/reinitialiser-otp', usersController.reinitialiserOTP);
+// ── Consultation et modification — admin minimum ──────────────────────────
+router.get('/:id', requireAdmin, usersController.getById);
+router.patch('/:id', requireAdmin, usersController.mettreAJour);
+
+// ── Actions spécifiques — admin minimum ───────────────────────────────────
+router.patch('/:id/activation', requireAdmin, usersController.toggleActivation);
+router.post('/:id/reinitialiser-otp', requireAdmin, usersController.reinitialiserOTP);
 
 export default router;

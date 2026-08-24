@@ -347,9 +347,18 @@ export const missions = pgTable('missions', {
   createdPar: integer('cree_par').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  // confirmationLogistique is DERIVED (see missions.service.ts) from the
+  // three checklist items below — none checked → a_planifier, all checked
+  // → confirme, otherwise → en_cours. Kept as its own stored column (not
+  // computed on read) so it stays filterable/sortable/aggregatable exactly
+  // like the rest of the missions list — same tradeoff as every other
+  // enum column here.
   confirmationLogistique: logistiqueStatutEnum('confirmation_logistique')
     .notNull()
     .default('a_planifier'),
+  logistiqueBilletReserve: boolean('logistique_billet_reserve').notNull().default(false),
+  logistiqueHebergementConfirme: boolean('logistique_hebergement_confirme').notNull().default(false),
+  logistiqueFinancementValide: boolean('logistique_financement_valide').notNull().default(false),
   contactSurPlaceId: integer('contact_sur_place_id').references(() => contacts.id),
 });
 

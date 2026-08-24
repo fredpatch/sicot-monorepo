@@ -12,11 +12,16 @@ export const missionsApi = {
     statut?: MissionStatut;
     pays?: string;
     participantId?: number;
+    confirmationLogistique?: LogistiqueStatut;
+    rapportStatut?: 'disponible' | 'manquant';
     page?: number;
     pageSize?: number;
   }) => api.get('/missions', { params }),
 
   getById: (id: number) => api.get(`/missions/${id}`),
+
+  // Compteurs globaux, indépendants des filtres courants (cartes de synthèse)
+  aggregates: () => api.get('/missions/aggregates'),
 
   // Recommandations en attente avec date limite — dashboard M9
   recommandationsEnAttente: () => api.get('/missions/recommandations/en-attente'),
@@ -45,9 +50,11 @@ export const missionsApi = {
       dateFin?: string;
       statut?: MissionStatut;
       participantsIds?: number[];
-      rapportDocumentId?: number;
-      confirmationLogistique?: LogistiqueStatut;
-      contactSurPlaceId?: number;
+      rapportDocumentId?: number | null; // null clears a mistakenly-linked report
+      logistiqueBilletReserve?: boolean;
+      logistiqueHebergementConfirme?: boolean;
+      logistiqueFinancementValide?: boolean;
+      contactSurPlaceId?: number | null; // null clears a mistakenly-set contact
     }
   ) => api.patch(`/missions/${id}`, data),
 

@@ -26,6 +26,12 @@ function handleNotificationsError(res: Response, error: unknown): void {
 }
 
 // ── POST /api/notifications/envoyer ───────────────────────────────────────
+// Route ouverte à partir du rôle 'agent', mais un agent ne peut envoyer que
+// des relances de recommandation de mission ('recommandation_rappel') — les
+// autres types (échéance d'accord, relance de courrier) restent réservés
+// admin+, cette route n'étant pas admin-only au niveau du routeur.
+const TYPES_AUTORISES_AGENT = ['recommandation_rappel'];
+
 export async function envoyer(req: Request, res: Response): Promise<void> {
   try {
     const { type, entiteId, destinataireEmail, destinataireNom, objet, message } = req.body;
@@ -34,6 +40,12 @@ export async function envoyer(req: Request, res: Response): Promise<void> {
       res.status(400).json({
         message: 'Champs requis : type, entiteId, destinataireEmail, objet, message.',
       });
+      return;
+    }
+
+    const roleAppelant = req.user!.role;
+    if (roleAppelant !== 'admin' && roleAppelant !== 'super_admin' && !TYPES_AUTORISES_AGENT.includes(type)) {
+      res.status(403).json({ message: 'Accès refusé - droits insuffisants pour ce type de notification.' });
       return;
     }
 

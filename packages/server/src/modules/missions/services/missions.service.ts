@@ -1,6 +1,6 @@
 import { db } from '@/db/index';
 import { missions, missionParticipants, recommandations, users, contacts } from '@/db/schema';
-import { eq, ilike, and, or, desc, isNotNull } from 'drizzle-orm';
+import { eq, ilike, and, or, desc, isNotNull, isNull, ne, gte, lte } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { sendRecommandationEmail } from '@/utils/email';
 import {
@@ -19,6 +19,7 @@ import type {
   MissionFilters,
   RecommandationView,
   MissionView,
+  MissionsAggregates,
 } from './missions.types';
 
 export type {
@@ -34,7 +35,43 @@ export type {
   ParticipantResume,
   RecommandationView,
   MissionView,
+  MissionsAggregates,
 } from './missions.types';
+
+// Kept in sync with the client's mission.constants.ts LOGISTICS_RISK_DAYS —
+// a mission departing soon with logistics not yet confirmed.
+const LOGISTIQUE_RISQUE_JOURS = 14;
+
+// ── SERVICE : Agrégats globaux (indépendants des filtres courants) ───────
+export async function getMissionsAggregates(): Promise<MissionsAggregates> {
+  const now = new Date();
+  const dans30Jours = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const dansNJoursRisque = new Date(now.getTime() + LOGISTIQUE_RISQUE_JOURS * 24 * 60 * 60 * 1000);
+
+  const [total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque] =
+    await Promise.all([
+      db.$count(missions),
+      db.$count(missions, eq(missions.statut, 'planifiee')),
+      db.$count(missions, eq(missions.statut, 'en_cours')),
+      db.$count(missions, eq(missions.statut, 'terminee')),
+      db.$count(missions, eq(missions.statut, 'annulee')),
+      db.$count(
+        missions,
+        and(eq(missions.statut, 'planifiee'), gte(missions.dateDebut, now), lte(missions.dateDebut, dans30Jours))
+      ),
+      db.$count(
+        missions,
+        and(
+          eq(missions.statut, 'planifiee'),
+          ne(missions.confirmationLogistique, 'confirme'),
+          gte(missions.dateDebut, now),
+          lte(missions.dateDebut, dansNJoursRisque)
+        )
+      ),
+    ]);
+
+  return { total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque };
+}
 
 // ── SERVICE : Lister les missions ─────────────────────────────────────────
 export async function listerMissions(filters: MissionFilters): Promise<{
@@ -62,6 +99,16 @@ export async function listerMissions(filters: MissionFilters): Promise<{
 
   if (filters.pays) {
     conditions.push(ilike(missions.pays, `%${filters.pays}%`));
+  }
+
+  if (filters.confirmationLogistique) {
+    conditions.push(eq(missions.confirmationLogistique, filters.confirmationLogistique));
+  }
+
+  if (filters.rapportStatut === 'disponible') {
+    conditions.push(isNotNull(missions.rapportDocumentId));
+  } else if (filters.rapportStatut === 'manquant') {
+    conditions.push(isNull(missions.rapportDocumentId));
   }
 
   const rows = await db
@@ -171,7 +218,10 @@ export async function mettreAJourMission(
     throw new Error('MISSION_ANNULEE');
   }
 
-  if (params.contactSurPlaceId !== undefined) {
+  // A real id (not null/undefined) must reference an existing contact;
+  // null explicitly clears the link (removing a contact set by mistake)
+  // and skips the lookup entirely.
+  if (params.contactSurPlaceId !== undefined && params.contactSurPlaceId !== null) {
     const [contact] = await db
       .select()
       .from(contacts)
@@ -186,14 +236,34 @@ export async function mettreAJourMission(
   if (params.dateDebut !== undefined) updates.dateDebut = params.dateDebut;
   if (params.dateFin !== undefined) updates.dateFin = params.dateFin;
   if (params.statut !== undefined) updates.statut = params.statut;
+  // `!== undefined` so an explicit `null` clears the link (removing a
+  // mistakenly-uploaded report) while an omitted field leaves it untouched.
   if (params.rapportDocumentId !== undefined) {
     updates.rapportDocumentId = params.rapportDocumentId;
   }
-  if (params.confirmationLogistique !== undefined) {
-    updates.confirmationLogistique = params.confirmationLogistique;
-  }
   if (params.contactSurPlaceId !== undefined) {
     updates.contactSurPlaceId = params.contactSurPlaceId;
+  }
+
+  // confirmationLogistique is derived from the checklist, never set
+  // directly — recompute it whenever any checklist item changes, using the
+  // merged (existing + incoming) state so a partial update still lands on
+  // the correct overall status.
+  const checklistChanged =
+    params.logistiqueBilletReserve !== undefined ||
+    params.logistiqueHebergementConfirme !== undefined ||
+    params.logistiqueFinancementValide !== undefined;
+
+  if (checklistChanged) {
+    const billet = params.logistiqueBilletReserve ?? existante.logistiqueBilletReserve;
+    const hebergement = params.logistiqueHebergementConfirme ?? existante.logistiqueHebergementConfirme;
+    const financement = params.logistiqueFinancementValide ?? existante.logistiqueFinancementValide;
+
+    updates.logistiqueBilletReserve = billet;
+    updates.logistiqueHebergementConfirme = hebergement;
+    updates.logistiqueFinancementValide = financement;
+    updates.confirmationLogistique =
+      billet && hebergement && financement ? 'confirme' : !billet && !hebergement && !financement ? 'a_planifier' : 'en_cours';
   }
 
   const [updated] = await db
@@ -202,14 +272,20 @@ export async function mettreAJourMission(
     .where(eq(missions.id, id))
     .returning();
 
-  if (params.participantsIds && params.participantsIds.length > 0) {
+  // `!== undefined` (not truthy/`.length > 0`) — an explicit empty array
+  // means "remove all participants" and must actually clear the join
+  // table, not be silently ignored; `undefined` (field omitted from the
+  // PATCH body) correctly leaves participants untouched.
+  if (params.participantsIds !== undefined) {
     await db.delete(missionParticipants).where(eq(missionParticipants.missionId, id));
-    await db.insert(missionParticipants).values(
-      params.participantsIds.map((userId) => ({
-        missionId: id,
-        userId,
-      }))
-    );
+    if (params.participantsIds.length > 0) {
+      await db.insert(missionParticipants).values(
+        params.participantsIds.map((userId) => ({
+          missionId: id,
+          userId,
+        }))
+      );
+    }
   }
 
   await logAudit({

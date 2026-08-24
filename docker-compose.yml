@@ -8,17 +8,22 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432" # exposed for a local DB GUI — never do this in staging/prod
+      - '5432:5432' # exposed for a local DB GUI — never do this in staging/prod
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   libretranslate:
     image: libretranslate/libretranslate:latest
     environment:
       LT_LOAD_ONLY: fr,en
-      LT_DISABLE_WEB_UI: "true"
+      LT_DISABLE_WEB_UI: 'true'
     ports:
-      - "5000:5000"
+      - '5000:5000'
     volumes:
       - libretranslate_dev_data:/home/libretranslate/.local
 
@@ -29,7 +34,7 @@ services:
     volumes:
       - ./packages/translate-service/main.py:/app/main.py
     ports:
-      - "5002:5002"
+      - '5002:5002'
     environment:
       TRANSLATE_PORT: 5002
       LIBRETRANSLATE_URL: http://libretranslate:5000
@@ -45,7 +50,7 @@ services:
     volumes:
       - ./packages/ocr-service/main.py:/app/main.py
     ports:
-      - "5001:5001"
+      - '5001:5001'
     environment:
       OCR_PORT: 5001
 
@@ -54,12 +59,17 @@ services:
       context: .
       dockerfile: packages/server/Dockerfile
       target: dev
+    # Apply pending migrations before starting the dev server — a fresh DB
+    # has no tables yet, and the server seeds default `parametres` rows at
+    # boot, which crashes if `db:migrate` hasn't run. Idempotent: re-running
+    # against an already-migrated DB is a no-op.
+    command: sh -c "npm run db:migrate && npm run dev"
     volumes:
       - .:/app
       - /app/node_modules # anonymous volume: don't let the host bind-mount shadow the container's own node_modules
       - sicot_uploads:/sicot/documents
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       NODE_ENV: development
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
@@ -80,9 +90,12 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-}
     depends_on:
-      - postgres
-      - ocr-service
-      - translate-service
+      postgres:
+        condition: service_healthy
+      ocr-service:
+        condition: service_started
+      translate-service:
+        condition: service_started
 
   client:
     build:
@@ -93,7 +106,7 @@ services:
       - .:/app
       - /app/node_modules
     ports:
-      - "5173:5173"
+      - '5173:5173'
     environment:
       NODE_ENV: development
       VITE_API_PROXY_TARGET: http://api:3001 # dev server proxies /api to the api CONTAINER, not host localhost

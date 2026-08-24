@@ -5,17 +5,30 @@ import { handleMissionsError } from '@/utils/error.js';
 // ── GET /api/missions ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { search, statut, pays, participantId, page, pageSize } = req.query;
+    const { search, statut, pays, participantId, confirmationLogistique, rapportStatut, page, pageSize } =
+      req.query;
 
     const result = await missionsService.listerMissions({
       search: search as string | undefined,
       statut: statut as missionsService.MissionStatut | undefined,
       pays: pays as string | undefined,
       participantId: participantId ? parseInt(participantId as string) : undefined,
+      confirmationLogistique: confirmationLogistique as missionsService.LogistiqueStatut | undefined,
+      rapportStatut: rapportStatut as 'disponible' | 'manquant' | undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
     });
 
+    res.json(result);
+  } catch (error) {
+    handleMissionsError(res, error);
+  }
+}
+
+// ── GET /api/missions/aggregates ────────────────────────────────────────
+export async function aggregates(_req: Request, res: Response): Promise<void> {
+  try {
+    const result = await missionsService.getMissionsAggregates();
     res.json(result);
   } catch (error) {
     handleMissionsError(res, error);
@@ -101,7 +114,9 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       statut,
       participantsIds,
       rapportDocumentId,
-      confirmationLogistique,
+      logistiqueBilletReserve,
+      logistiqueHebergementConfirme,
+      logistiqueFinancementValide,
       contactSurPlaceId,
     } = req.body;
 
@@ -113,8 +128,10 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       !dateFin &&
       !statut &&
       !participantsIds &&
-      !rapportDocumentId &&
-      !confirmationLogistique &&
+      rapportDocumentId === undefined &&
+      logistiqueBilletReserve === undefined &&
+      logistiqueHebergementConfirme === undefined &&
+      logistiqueFinancementValide === undefined &&
       contactSurPlaceId === undefined
     ) {
       res.status(400).json({ message: 'Aucun champ à modifier.' });
@@ -127,12 +144,6 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const logistiqueValides = ['a_planifier', 'en_cours', 'confirme'];
-    if (confirmationLogistique && !logistiqueValides.includes(confirmationLogistique)) {
-      res.status(400).json({ message: 'Statut logistique invalide.' });
-      return;
-    }
-
     const mission = await missionsService.mettreAJourMission(id, {
       titre,
       destination,
@@ -141,9 +152,17 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       dateFin: dateFin ? new Date(dateFin) : undefined,
       statut,
       participantsIds: participantsIds ? participantsIds.map(Number) : undefined,
-      rapportDocumentId: rapportDocumentId ? parseInt(rapportDocumentId) : undefined,
-      confirmationLogistique,
-      contactSurPlaceId: contactSurPlaceId !== undefined ? parseInt(contactSurPlaceId) : undefined,
+      // null clears the link (removing a mistakenly-uploaded report);
+      // undefined (field absent) leaves it untouched.
+      rapportDocumentId:
+        rapportDocumentId === null ? null : rapportDocumentId !== undefined ? parseInt(rapportDocumentId) : undefined,
+      logistiqueBilletReserve,
+      logistiqueHebergementConfirme,
+      logistiqueFinancementValide,
+      // null clears the contact-on-site (removing one set by mistake);
+      // undefined (field absent) leaves it untouched.
+      contactSurPlaceId:
+        contactSurPlaceId === null ? null : contactSurPlaceId !== undefined ? parseInt(contactSurPlaceId) : undefined,
       updatedByUserId: req.user!.userId,
     });
 

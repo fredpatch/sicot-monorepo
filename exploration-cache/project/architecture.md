@@ -221,3 +221,34 @@ owner, not yet resolved here.
 `verify` job type-checks and builds (`npm run build`) but doesn't run
 tests — don't treat a green CI run as a correctness guarantee beyond
 "it compiles."
+
+## Missions Module (M3) Redesign (2026-08-24)
+
+Full-detail entry is in `changelog.md`. What matters for future sessions:
+
+- `packages/client/src/pages/missions/` now follows the same feature-folder
+  convention as Partenaires (`.types.ts`/`.constants.ts`/`.utils.ts`/
+  `.schemas.ts` + `components/`), finishing a migration Missions never got
+  in earlier sprints. `/missions/:id` is a real route now (was rendered
+  inside a split-pane before).
+- `confirmationLogistique` is **derived, not manually set** — it comes from
+  three checklist booleans (`logistiqueBilletReserve`/
+  `logistiqueHebergementConfirme`/`logistiqueFinancementValide`, migration
+  `0012_opposite_tyrannus.sql`). Don't add a way to set it directly again
+  without also updating the derivation logic in
+  `missions.service.ts`'s `mettreAJourMission`.
+- New `packages/server/src/modules/contacts/` module — `GET /api/contacts`
+  (agent-accessible, search across all organisations' contacts in one
+  query). This is the correct way to look up a contact going forward;
+  don't reintroduce the old organisations→contacts N+1 pattern elsewhere.
+- Two role-gate changes, both intentionally narrow: `GET /api/users` is
+  agent-accessible for **listing only** (mutations stay admin-only), and
+  `POST /api/notifications/envoyer` accepts `agent` only for the
+  `recommandation_rappel` notification type (checked inside the
+  controller, not the route middleware — other types stay admin-gated).
+- Quick-create pattern established here (participant via
+  `CreerUtilisateurDialog`, contact via `FormulaireOrganisation`+
+  `FormulaireContact`) — reuse existing admin forms/dialogs rather than
+  building parallel creation logic when a picker's target entity might not
+  exist yet. Worth applying the same pattern elsewhere if the same
+  complaint comes up (e.g. other pickers across the app).

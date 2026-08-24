@@ -27,6 +27,7 @@ import jobsRoutes from './modules/jobs/routes/jobs.route';
 import portalRoutes from './modules/portal/routes/portal.route';
 import analyticsRoutes from './modules/analytics/routes/analytics.route';
 import personnelAnacRoutes from './modules/personnel-anac/routes/personnel-anac.route';
+import contactsRoutes from './modules/contacts/routes/contacts.route';
 
 // Utilitaires
 import { verifyEmailConnection } from './utils/email';
@@ -106,6 +107,7 @@ app.use('/api/jobs', jobsRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/personnel-anac', personnelAnacRoutes);
+app.use('/api/contacts', contactsRoutes);
 
 // ── Health check ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

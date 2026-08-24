@@ -11,10 +11,10 @@
 - [ ] **Import glossaire initial** - Si fichier fourni par CCIT, script import CSV/Excel → seed BDD
 - [x] ~~**Modélisation BDD complète**~~ - Schéma Drizzle de toutes les entités (10 modules) créé et migré (juin 2026)
 
-## Sprint 1 - Administration & Auth (M10) | ✅ COMPLÉTÉ (Personnel ANAC API integration IN PROGRESS)
+## Sprint 1 - Administration & Auth (M10) | ✅ COMPLÉTÉ (Personnel ANAC API intégrée, commit 6e20415)
 
 - [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
-- [🔄] **Intégration API Personnel ANAC** - Fetch liste agents en temps réel (IMPLEMENTATION IN PROGRESS — 2026-07-06: AdminUsersPage.tsx, personnel-anac.api.ts, personnel-anac server module + utils created)
+- [x] ~~**Intégration API Personnel ANAC**~~ - Fetch liste agents en temps réel, AdminUsersPage.tsx + personnel-anac.api.ts + module serveur personnel-anac (commit 6e20415). Usage production dépend encore de la connectivité Tailscale du serveur vers PERSONNEL_ANAC_BASE_URL — voir Waiting On.
 - [x] ~~**Flux bootstrap admin**~~ - Page BootstrapPage.tsx + service/controller/route, création Super Admin sans API Personnel ANAC (juin 2026)
 - [x] ~~**Page connexion**~~ - LoginPage.tsx avec OTP + mot de passe, indicateur de force, 2 étapes (juin 2026)
 - [x] ~~**Gestion des rôles**~~ - Middleware requireRole avec hiérarchie agent/traducteur/relecteur/admin/super_admin (juin 2026)
@@ -259,7 +259,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Rédaction manuel utilisateur complet** - Tous profils (M. NDONG N'NANG)
 - [ ] **Rapport de recette v1.0 signé** - Mme NGO MYTOULOU
 
-## Sprint 7 - Déploiement Production & Formation | ⬜ À FAIRE
+## Sprint 7 - Déploiement Production & Formation | 🟡 PARTIEL (infra Docker/VPS prête, voir Sprint 12 — installation SERV-APPI/réseau/formations restent à faire)
 
 - [ ] **Installation SICOT v1.0 sur SERV-APPI** - Environnement production
 - [ ] **Configuration réseau LAN ANAC** - Accès postes clients toutes directions
@@ -615,11 +615,40 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) | ✅ COMPLÉTÉ (2026-08-24)
+
+Sprint non planifié, réalisé le même jour — voir `exploration-cache/changelog.md`
+pour le détail complet et `docs/deployment/production-guide.md` pour le runbook.
+
+### Infrastructure de déploiement
+
+- [x] ~~**Docker Compose (local/staging/prod)**~~ - Les 5 services (client, api, ocr-service, translate-service, libretranslate auto-hébergé), suivant `docs/deployment-documentation.md`
+- [x] ~~**CI/CD GitHub Actions**~~ - 3 workflows séparés (ci, docker-publish, deploy-prod — ce dernier en `workflow_dispatch` manuel uniquement)
+- [x] ~~**Rôles agent élargis**~~ - GET /api/users (lecture seule) et POST /api/notifications/envoyer (uniquement recommandation_rappel) accessibles agent, pour débloquer les besoins Missions
+- [x] ~~**Vérification end-to-end**~~ - Déploiement staging réel, 7 conteneurs healthy, migrations appliquées, réseau inter-conteneurs confirmé
+- [x] ~~**Corrections trouvées en construisant l'infra**~~ - Migrations Drizzle jamais committées (gitignore), `*.tsbuildinfo` cassant les builds propres, OCR/translate-service bindés 127.0.0.1 au lieu de 0.0.0.0
+
+### Refonte Missions (M3)
+
+- [x] ~~**Registre plein écran**~~ - Cartes de synthèse (GET /api/missions/aggregates), filtres étendus, table + cartes mobile
+- [x] ~~**Création guidée (stepper 5 étapes) + édition par sections**~~ - Rapport et recommandations exclus du formulaire d'édition (workflows séparés)
+- [x] ~~**Workspace détail (/missions/:id, vraie route)**~~ - Aperçu 3 colonnes, sections logistique/rapport/recommandations dédiées, ancien MissionDetails.tsx supprimé
+- [x] ~~**Checklist logistique**~~ - Migration 0012 (3 booléens), confirmationLogistique dérivé serveur-side, visible en lecture seule dans la section
+- [x] ~~**GET /api/contacts**~~ - Remplace le pattern N+1 (toutes organisations → tous leurs contacts) sur le sélecteur de contact sur place
+- [x] ~~**Création rapide participant/contact**~~ - Réutilise CreerUtilisateurDialog et FormulaireOrganisation/FormulaireContact existants plutôt qu'une logique parallèle
+- [x] ~~**Correctifs suppression de champ**~~ - participantsIds vide, rapportDocumentId null, contactSurPlaceId null étaient tous silencieusement ignorés par le serveur
+
+### Reporté (voir Notion Sprint 12, statut À faire)
+
+- [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées
+- [ ] **Composant SummaryCard partagé** - dupliqué 3× (Accords/Partenaires/Missions)
+- [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
+
 ## Waiting On
 
 - [ ] **Glossaire CCIT existant** - Attente fichier CSV/Excel de la Cellule CCIT pour seed initial M7
-- [ ] **Intégration API Personnel ANAC** - En attente documentation complète de l'API (Sprint 1 partiel)
-- [ ] **Accès SERV-APPI** - Confirmer droits d'installation pour l'équipe dev (PostgreSQL, LibreTranslate, Tesseract)
+- [ ] **Réseau Tailscale API Personnel ANAC en production** - Code intégré (commit 6e20415) ; reste à confirmer que le serveur/VPS de production sera joint au réseau Tailscale ANAC pour atteindre PERSONNEL_ANAC_BASE_URL
+- [ ] **Accès SERV-APPI** - Confirmer droits d'installation pour l'équipe dev (PostgreSQL, LibreTranslate, Tesseract) — ne bloque plus le déploiement en général, un chemin Docker/VPS alternatif est prêt (voir Sprint 12)
 - [ ] **Décision DeepL** - La DG valide-t-elle l'option fallback cloud DeepL ? Contrat RGPD à prévoir
 - [ ] **Validation périmètre portail externe** - La DG/CCIT doit confirmer quels types de documents sont éligibles à exposition externe avant Sprint 9
 - [ ] **Validation pg_dump sur SERV-APPI (Linux production)** - Confirmer que pg_dump est installé/accessible en PATH sur l'environnement de production, éviter la même erreur qu'en dev Windows

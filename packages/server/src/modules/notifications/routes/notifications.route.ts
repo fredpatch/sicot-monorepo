@@ -14,7 +14,10 @@ router.get(
   notificationsController.historiqueEntite
 );
 
-// Envoi réservé CCIT (admin minimum)
-router.post('/envoyer', requireRole('admin'), notificationsController.envoyer);
+// Envoi réservé CCIT (admin minimum), sauf relance de recommandation de
+// mission — agent minimum, restriction de type appliquée dans le contrôleur
+// (cf. Missions §12 du plan de refonte : un agent doit pouvoir relancer une
+// recommandation dont il est responsable sans devenir admin).
+router.post('/envoyer', requireRole('agent'), notificationsController.envoyer);
 
 export default router;

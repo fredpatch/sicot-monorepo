@@ -38,24 +38,29 @@ Internal web application for **ANAC Gabon** (Agence Nationale de l'Aviation Civi
 | M9  | Dashboard & Statistiques   | KPI blocks, monthly auto-report (PDF+Excel), exports                 |
 | M10 | Administration & Auth      | Users, roles, audit trail, OTP bootstrap, DB backup                  |
 
-## 🚦 Current Status (June 2026)
+## 🚦 Current Status (updated 2026-08-24 — was stale since Sprint 1, see quick-ref.md/manifest.json for the maintained version of this table)
 
-| Phase                              | Status     | Notes                                     |
-| ---------------------------------- | ---------- | ----------------------------------------- |
-| Sprint 0 — Init                    | ✅ Done    | Stack, monorepo, DB schema, environment   |
-| Sprint 1 — M10 Auth & Admin        | ✅ Done    | Full auth, users, audit, backup, login UI |
-| Sprint 2 — M8 + M2                 | ⏳ Next    | Documents, Partenaires                    |
-| Sprint 3 — M1 + M4 + M3            | ⏳ Pending | Accords, Courriers, Missions              |
-| Sprint 4 — M6 + M7 + M5            | ⏳ Pending | Translation stack                         |
-| Sprint 5 — M9 Dashboard            | ⏳ Pending |                                           |
-| Sprint 6 — Tests & Recette         | ⏳ Pending |                                           |
-| Sprint 7 — Déploiement + Formation | ⏳ Pending |                                           |
+| Phase                                | Status        | Notes                                                                    |
+| ------------------------------------- | ------------- | ------------------------------------------------------------------------- |
+| Sprint 0 — Init                      | ✅ Done       | Stack, monorepo, DB schema, environment                                  |
+| Sprint 1 — M10 Auth & Admin          | ✅ Done       | Full auth, users, audit, backup, login UI, Personnel ANAC API (6e20415)  |
+| Sprint 2 — M8 + M2                   | ✅ Done       | Documents (OCR), Partenaires                                             |
+| Sprint 3 — M1 + M4 + M3              | ✅ Done       | Accords, Courriers, Missions                                             |
+| Sprint 4 — M6 + M7 + M5              | ✅ Done       | Traduction IA, Glossaire, Demandes                                       |
+| Sprint 5 — M9 Dashboard              | ✅ Done       | KPI, rapports auto, exports                                              |
+| Sprint 8 — Notifications & Rappels   | ✅ Done       | Paramètres, notifications, relances, criticité courriers                 |
+| Sprint 9 — Portail Documentaire      | ✅ Done       | /portail public, téléchargement tokénisé                                 |
+| Sprint 10 — Paramètres Système       | ✅ Done       | OTP, blocage compte, rétention, journal d'audit UI+export                |
+| Sprint 11 — Analytics & Rapports M11 | ✅ Done       | 27 métriques, export CSV/Excel, rapports PDF/Excel + cron mensuel        |
+| Sprint 12 — Missions M3 redesign + deployment infra | ✅ Done (2026-08-24) | Registry/creation/detail workspace, logistics checklist migration, Docker/CI-CD |
+| Sprint 6 — Tests & Recette           | ⏳ Pending    | Deferred after Sprint 8/9/10                                             |
+| Sprint 7 — Déploiement + Formation   | 🟡 Partial    | Docker/VPS path ready; SERV-APPI install + formations still pending      |
 
 ## 📁 Repository
 
 - **Repo**: `fredpatch/sicot-monorepo` (GitHub)
 - **Branch**: `main`
-- **Last commit**: `d51eee7` — feat(client): login page redesign with shadcn components & framer-motion
+- **Last commit**: see `exploration-cache/manifest.json`'s `lastCommit` field for the maintained pointer (this line goes stale fast — don't trust it, `git log` is authoritative)
 
 ## 🔗 Related Files
 

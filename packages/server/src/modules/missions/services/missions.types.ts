@@ -32,9 +32,13 @@ export interface UpdateMissionParams {
   dateFin?: Date;
   statut?: MissionStatut;
   participantsIds?: number[];
-  confirmationLogistique?: LogistiqueStatut;
-  contactSurPlaceId?: number;
-  rapportDocumentId?: number;
+  // confirmationLogistique is NOT settable directly — it's derived from
+  // the three checklist items below (see mettreAJourMission).
+  logistiqueBilletReserve?: boolean;
+  logistiqueHebergementConfirme?: boolean;
+  logistiqueFinancementValide?: boolean;
+  contactSurPlaceId?: number | null;
+  rapportDocumentId?: number | null;
   updatedByUserId: number;
 }
 
@@ -59,8 +63,22 @@ export interface MissionFilters {
   statut?: MissionStatut;
   pays?: string;
   participantId?: number;
+  confirmationLogistique?: LogistiqueStatut;
+  rapportStatut?: 'disponible' | 'manquant';
   page?: number;
   pageSize?: number;
+}
+
+// Global counts, independent of the current search/statut/pays filters —
+// mirrors OrganisationsAggregates in the partenaires module.
+export interface MissionsAggregates {
+  total: number;
+  planifiees: number;
+  enCours: number;
+  terminees: number;
+  annulees: number;
+  aVenir30Jours: number;
+  logistiqueARisque: number;
 }
 
 export interface ParticipantResume {
@@ -94,6 +112,9 @@ export interface MissionView {
   participants: ParticipantResume[];
   recommandations?: RecommandationView[];
   confirmationLogistique: LogistiqueStatut;
+  logistiqueBilletReserve: boolean;
+  logistiqueHebergementConfirme: boolean;
+  logistiqueFinancementValide: boolean;
   contactSurPlace?: ContactResume;
   rapportDocumentId?: number;
   createdPar?: number;

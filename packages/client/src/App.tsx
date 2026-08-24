@@ -14,6 +14,7 @@ import AccordFormPage from './pages/accords/components/AccordFormPage';
 import CourriersPage from './pages/CourriersPage';
 import CourrierFormPage from './pages/courriers/components/CourrierFormPage';
 import MissionsPage from './pages/MissionsPage';
+import MissionDetailPage from './pages/missions/MissionDetailPage';
 import MissionFormPage from './pages/missions/components/MissionFormPage';
 import GlossairePage from './pages/GlossairePage';
 import TraductionsPage from './pages/TraductionsPage';
@@ -180,9 +181,9 @@ export default function App() {
           <Route path="/partenaires/:id" element={<PartenaireDetailPage />} />
           <Route path="/partenaires/:id/edit" element={<PartenaireFormPage />} />
           <Route path="/missions" element={<MissionsPage />} />
-          <Route path="/missions/:id" element={<MissionsPage />} />
           <Route path="/missions/new" element={<MissionFormPage />} />
           <Route path="/missions/:id/edit" element={<MissionFormPage />} />
+          <Route path="/missions/:id" element={<MissionDetailPage />} />
           <Route path="/courriers" element={<CourriersPage />} />
           <Route path="/courriers/:id" element={<CourriersPage />} />
           <Route path="/courriers/new" element={<CourrierFormPage />} />

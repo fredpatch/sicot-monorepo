@@ -103,7 +103,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 
 ```
 ✅ Sprint 0 — Init
-✅ Sprint 1 — Auth & Admin (M10) + Personnel-ANAC API (IN PROGRESS)
+✅ Sprint 1 — Auth & Admin (M10) + Personnel-ANAC API
 ✅ Sprint 2 — Documents + Partenaires (M8 + M2)
 ✅ Sprint 3 — Accords + Courriers + Missions (M1+M4+M3)
 ✅ Sprint 4 — Traduction + Glossaire + Demandes (M5+M6+M7)
@@ -113,13 +113,15 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
+🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) module redesign
 ⏳ Sprint 6 — Tests & Recette (deferred)
-⏳ Sprint 7 — Déploiement + Formation (deferred)
+🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
 
 ## 🔴 Active Blockers & Pending Fixes
 
-- **Personnel ANAC API** — INTEGRATION IN PROGRESS (resolves Sprint 1 blocker)
+- **Personnel ANAC API** — code integration COMPLETE (6e20415); production
+  use still needs the server joined to ANAC's Tailscale network
 - **SERV-APPI access** — IT dept pending (LAN deployment path; a separate
   Docker/VPS deployment path now exists too — see
   `project/architecture.md` § Deployment Infrastructure)
@@ -129,4 +131,11 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 - **⚠️ exceljs version** — downgraded 4.x→3.x (2026-07-04), needs restore + re-test
 - **Pending Drizzle migration** — aggregates all schema changes from Sprints 9/10/11
 - **Portal route bug** — `/portail` href → `/portal` in DocumentsPage.tsx
+- **Missions Période filter** — deferred during the M3 redesign (à venir/en
+  cours/30j/cette année/terminées needs more date-range logic than this
+  pass covered) — Notion Sprint 12, À faire
+- **Shared SummaryCard component** — still copy-pasted 3× (Accords,
+  Partenaires, Missions), not extracted to avoid touching modules outside
+  each task's scope — Notion Sprint 12, À faire
+- **No automated test suite** — CI is lint + build only
 - **No automated test suite** — `ci.yml`'s CI gate is lint + build only
