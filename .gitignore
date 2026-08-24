@@ -1,14 +1,19 @@
 node_modules/
 dist/
 build/
+*.tsbuildinfo
 .env
 .env.local
 .env.production
+.env.staging
+.env.prod
 *.log
 .DS_Store
 coverage/
 .nyc_output/
-drizzle/
+# packages/server/drizzle/ (migration SQL) is intentionally NOT ignored —
+# it must be committed, since the prod Docker image and deploy script both
+# depend on it being present in the repo checkout to run `db:migrate`.
 *.sqlite
 # Python
 .venv/

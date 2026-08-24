@@ -5,7 +5,6 @@ import type { SQL } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { toOrganisationView, toContactView } from './organisations.helpers';
 import type {
-  OrganisationType,
   CreateOrganisationParams,
   UpdateOrganisationParams,
   OrganisationFilters,

@@ -296,4 +296,7 @@ if __name__ == "__main__":
     print(f"✅ SICOT OCR Service démarré sur http://localhost:{PORT}")
     print(f"📋 Tesseract : {TESSERACT_CMD}")
     print(f"📋 Formats supportés : {', '.join(EXTRACTEURS.keys())}")
-    serve(app, host="127.0.0.1", port=PORT)
+    # 0.0.0.0, not 127.0.0.1: inside Docker, other containers reach this
+    # service by its container name over the bridge network — a loopback
+    # bind would make the port unreachable from anywhere but itself.
+    serve(app, host="0.0.0.0", port=PORT)

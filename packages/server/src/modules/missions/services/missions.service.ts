@@ -12,16 +12,11 @@ import {
   getResponsableSansEmail,
 } from './missions.helpers';
 import type {
-  MissionStatut,
-  RecommandationStatut,
-  LogistiqueStatut,
-  ContactResume,
   CreateMissionParams,
   UpdateMissionParams,
   CreateRecommandationParams,
   UpdateRecommandationParams,
   MissionFilters,
-  ParticipantResume,
   RecommandationView,
   MissionView,
 } from './missions.types';

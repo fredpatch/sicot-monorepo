@@ -1,0 +1,106 @@
+name: sicot
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432" # exposed for a local DB GUI — never do this in staging/prod
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    environment:
+      LT_LOAD_ONLY: fr,en
+      LT_DISABLE_WEB_UI: "true"
+    ports:
+      - "5000:5000"
+    volumes:
+      - libretranslate_dev_data:/home/libretranslate/.local
+
+  translate-service:
+    build:
+      context: .
+      dockerfile: packages/translate-service/Dockerfile
+    volumes:
+      - ./packages/translate-service/main.py:/app/main.py
+    ports:
+      - "5002:5002"
+    environment:
+      TRANSLATE_PORT: 5002
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+      DEEPL_ENABLED: ${DEEPL_ENABLED:-false}
+      DEEPL_API_KEY: ${DEEPL_API_KEY:-}
+    depends_on:
+      - libretranslate
+
+  ocr-service:
+    build:
+      context: .
+      dockerfile: packages/ocr-service/Dockerfile
+    volumes:
+      - ./packages/ocr-service/main.py:/app/main.py
+    ports:
+      - "5001:5001"
+    environment:
+      OCR_PORT: 5001
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+      target: dev
+    volumes:
+      - .:/app
+      - /app/node_modules # anonymous volume: don't let the host bind-mount shadow the container's own node_modules
+      - sicot_uploads:/sicot/documents
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:5173
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      OCR_SERVICE_URL: http://ocr-service:5001
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+      UPLOAD_DIR: /sicot/documents
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      PERSONNEL_ANAC_BASE_URL: ${PERSONNEL_ANAC_BASE_URL:-}
+      PERSONNEL_ANAC_API_KEY: ${PERSONNEL_ANAC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+    depends_on:
+      - postgres
+      - ocr-service
+      - translate-service
+
+  client:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile
+      target: dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+      VITE_API_PROXY_TARGET: http://api:3001 # dev server proxies /api to the api CONTAINER, not host localhost
+    depends_on:
+      - api
+
+volumes:
+  postgres_dev_data:
+  libretranslate_dev_data:
+  sicot_uploads:

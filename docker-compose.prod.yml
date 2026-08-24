@@ -1,0 +1,148 @@
+name: sicot_prod
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks: [prod_net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    environment:
+      LT_LOAD_ONLY: fr,en
+      LT_DISABLE_WEB_UI: "true"
+    volumes:
+      - libretranslate_prod_data:/home/libretranslate/.local
+    networks: [prod_net]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request as u; u.urlopen('http://127.0.0.1:5000/languages', timeout=3)\" || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  translate:
+    image: ghcr.io/${GHCR_OWNER}/sicot-translate:${APP_VERSION:-latest}
+    environment:
+      TRANSLATE_PORT: 5002
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+      DEEPL_ENABLED: ${DEEPL_ENABLED:-false}
+      DEEPL_API_KEY: ${DEEPL_API_KEY:-}
+    depends_on:
+      libretranslate: { condition: service_healthy }
+    networks: [prod_net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5002/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  ocr:
+    image: ghcr.io/${GHCR_OWNER}/sicot-ocr:${APP_VERSION:-latest}
+    networks: [prod_net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5001/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  api:
+    image: ghcr.io/${GHCR_OWNER}/sicot-api:${APP_VERSION:-latest}
+    shm_size: "512mb" # Puppeteer PDF export — see §11 of deployment doc
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      PORT: 3001
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      OCR_SERVICE_URL: http://ocr:5001
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+      UPLOAD_DIR: /sicot/documents
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      PERSONNEL_ANAC_BASE_URL: ${PERSONNEL_ANAC_BASE_URL:-}
+      PERSONNEL_ANAC_API_KEY: ${PERSONNEL_ANAC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      SESSION_TIMEOUT_MINUTES: ${SESSION_TIMEOUT_MINUTES:-30}
+    volumes:
+      - sicot_uploads_prod:/sicot/documents
+      - sicot_backups_prod:/sicot/backups/local
+    depends_on:
+      postgres: { condition: service_healthy }
+      ocr: { condition: service_healthy }
+      translate: { condition: service_healthy }
+    networks: [prod_net]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:3001/api/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  client:
+    image: ghcr.io/${GHCR_OWNER}/sicot-client:${APP_VERSION:-latest}
+    networks: [prod_net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    depends_on:
+      api: { condition: service_healthy }
+      client: { condition: service_healthy }
+    networks: [prod_net]
+    restart: unless-stopped
+
+networks:
+  prod_net:
+    driver: bridge
+
+volumes:
+  postgres_prod_data:
+  libretranslate_prod_data:
+  sicot_uploads_prod:
+  sicot_backups_prod:
+  certbot_webroot:

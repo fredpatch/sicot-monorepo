@@ -1,0 +1,85 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image tag to deploy, usually a commit SHA. Leave empty to deploy the current commit."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production # gate this on required reviewers in repo settings for a manual-approval step
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "APP_VERSION=${{ inputs.version }}" >> "$GITHUB_ENV"
+          else
+            echo "APP_VERSION=${{ github.sha }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Copy deployment files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: "docker-compose.prod.yml,nginx/prod.conf,scripts/deploy-prod.sh"
+          target: "/opt/sicot"
+          overwrite: true
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_VERSION: ${{ env.APP_VERSION }}
+          GHCR_OWNER: ${{ github.repository_owner }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          envs: APP_VERSION,GHCR_OWNER,GHCR_USERNAME,GHCR_TOKEN
+          script: |
+            set -e
+            cd /opt/sicot
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            OWNER_LC=$(echo "$GHCR_OWNER" | tr '[:upper:]' '[:lower:]')
+            if grep -q '^APP_VERSION=' .env.prod; then
+              sed -i "s/^APP_VERSION=.*/APP_VERSION=$APP_VERSION/" .env.prod
+            else
+              echo "APP_VERSION=$APP_VERSION" >> .env.prod
+            fi
+            if grep -q '^GHCR_OWNER=' .env.prod; then
+              sed -i "s/^GHCR_OWNER=.*/GHCR_OWNER=$OWNER_LC/" .env.prod
+            else
+              echo "GHCR_OWNER=$OWNER_LC" >> .env.prod
+            fi
+            chmod +x scripts/deploy-prod.sh
+            ./scripts/deploy-prod.sh
+
+      - name: Notify - success
+        if: success()
+        run: |
+          if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            curl -sS -H "Content-Type: application/json" \
+              -d "{\"content\": \"✅ **SICOT** deployed to production — commit \`${{ env.APP_VERSION }}\`, triggered by ${{ github.actor }}.\"}" \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}"
+          fi
+      - name: Notify - failure
+        if: failure()
+        run: |
+          if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            curl -sS -H "Content-Type: application/json" \
+              -d "{\"content\": \"❌ **SICOT** production deploy FAILED — commit \`${{ env.APP_VERSION }}\`. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}"
+          fi

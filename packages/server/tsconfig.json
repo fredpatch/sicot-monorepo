@@ -11,5 +11,6 @@
     }
   },
   "include": ["src"],
+  "exclude": ["src/db/seed-demo.ts", "src/scripts/gemini-smoke-test.ts"],
   "references": [{ "path": "../shared" }]
 }

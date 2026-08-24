@@ -360,4 +360,7 @@ if __name__ == "__main__":
     print(f"📋 LibreTranslate : {LIBRETRANSLATE_URL}")
     print(f"📋 DeepL fallback : {'activé' if DEEPL_ENABLED else 'désactivé'}")
     print(f"📋 Langues : {', '.join(LANGUES_SUPPORTEES)}")
-    serve(app, host="127.0.0.1", port=PORT)
+    # 0.0.0.0, not 127.0.0.1: inside Docker, other containers reach this
+    # service by its container name over the bridge network — a loopback
+    # bind would make the port unreachable from anywhere but itself.
+    serve(app, host="0.0.0.0", port=PORT)

@@ -1,0 +1,142 @@
+name: sicot_staging
+
+services:
+  postgres_staging:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}_staging
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    networks: [staging_net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  libretranslate_staging:
+    image: libretranslate/libretranslate:latest
+    environment:
+      LT_LOAD_ONLY: fr,en
+      LT_DISABLE_WEB_UI: "true"
+    volumes:
+      - libretranslate_staging_data:/home/libretranslate/.local
+    networks: [staging_net]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request as u; u.urlopen('http://127.0.0.1:5000/languages', timeout=3)\" || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  translate_staging:
+    build:
+      context: .
+      dockerfile: packages/translate-service/Dockerfile
+    environment:
+      TRANSLATE_PORT: 5002
+      LIBRETRANSLATE_URL: http://libretranslate_staging:5000
+      DEEPL_ENABLED: ${DEEPL_ENABLED:-false}
+      DEEPL_API_KEY: ${DEEPL_API_KEY:-}
+    depends_on:
+      libretranslate_staging: { condition: service_healthy }
+    networks: [staging_net]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5002/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  ocr_staging:
+    build:
+      context: .
+      dockerfile: packages/ocr-service/Dockerfile
+    networks: [staging_net]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5001/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  api_staging:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+      target: prod
+    shm_size: "512mb" # Puppeteer PDF export — see §11 of deployment doc
+    environment:
+      NODE_ENV: staging
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres_staging:5432/${DB_NAME}_staging
+      PORT: 3001
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4001}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      OCR_SERVICE_URL: http://ocr_staging:5001
+      LIBRETRANSLATE_URL: http://libretranslate_staging:5000
+      UPLOAD_DIR: /sicot/documents
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      PERSONNEL_ANAC_BASE_URL: ${PERSONNEL_ANAC_BASE_URL:-}
+      PERSONNEL_ANAC_API_KEY: ${PERSONNEL_ANAC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+    volumes:
+      - sicot_uploads_staging:/sicot/documents
+    depends_on:
+      postgres_staging: { condition: service_healthy }
+      ocr_staging: { condition: service_healthy }
+      translate_staging: { condition: service_healthy }
+    networks: [staging_net]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://localhost:3001/api/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  client_staging:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile
+      target: prod
+    networks: [staging_net]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx_staging:
+    image: nginx:alpine
+    ports:
+      - "4001:80"
+    volumes:
+      - ./nginx/staging.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api_staging: { condition: service_healthy }
+      client_staging: { condition: service_healthy }
+    networks: [staging_net]
+
+networks:
+  staging_net:
+    driver: bridge
+
+volumes:
+  postgres_staging_data:
+  libretranslate_staging_data:
+  sicot_uploads_staging:

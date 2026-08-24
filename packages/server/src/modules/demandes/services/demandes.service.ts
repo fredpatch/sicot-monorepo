@@ -6,7 +6,6 @@ import { lancerTraduction } from '../../traduction/services/traduction.service';
 import type { TraductionDirection } from '@/utils/traduction.js';
 import { toDemandeView, getTexteDocument } from './demandes.helpers';
 import type {
-  DemandeStatut,
   DemandePriorite,
   DemandeView,
   CreerDemandeParams,
