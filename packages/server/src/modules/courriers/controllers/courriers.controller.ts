@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as courriersService from '../services/courriers.service';
+import { genererPDFCourrier } from '../services/courriers.export.service.js';
 import { handleCourriersError } from '@/utils/error.js';
 
 // ── GET /api/courriers ────────────────────────────────────────────────────
@@ -54,6 +55,30 @@ export async function getById(req: Request, res: Response): Promise<void> {
 
     const courrier = await courriersService.getCourrier(id);
     res.json(courrier);
+  } catch (error) {
+    handleCourriersError(res, error);
+  }
+}
+
+// ── GET /api/courriers/:id/export/pdf ─────────────────────────────────────
+export async function exporterPDF(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const courrier = await courriersService.getCourrier(id);
+    const pdf = await genererPDFCourrier(courrier);
+
+    const disposition = req.query.apercu === '1' ? 'inline' : 'attachment';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `${disposition}; filename="courrier-${courrier.reference}.pdf"`
+    );
+    res.send(pdf);
   } catch (error) {
     handleCourriersError(res, error);
   }

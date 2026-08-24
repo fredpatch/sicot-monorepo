@@ -72,6 +72,9 @@ GET  /api/courriers            List courriers (filter: direction, statut, sansRe
 GET  /api/courriers/:id/fil    Thread (fil de correspondance)
 GET  /api/missions             List missions + recommandations
 GET  /api/missions/recommandations/en-attente  Pending recommandations
+GET  /api/accords/:id/export/pdf    Individual PDF fiche (add ?apercu=1 for inline preview)
+GET  /api/courriers/:id/export/pdf  Individual PDF fiche (add ?apercu=1 for inline preview)
+GET  /api/missions/:id/export/pdf   Mission report PDF fiche (add ?apercu=1 for inline preview)
 GET  /api/glossaire            List terms (filter: search, domaine, actif)
 GET  /api/glossaire/suggestions?q=…  Glossaire suggestions for editor
 POST /api/traductions          Launch translation (texteOriginal + direction)
@@ -113,7 +116,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) module redesign
+🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) redesign + individual PDF export
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -122,9 +125,10 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 
 - **Personnel ANAC API** — code integration COMPLETE (6e20415); production
   use still needs the server joined to ANAC's Tailscale network
-- **SERV-APPI access** — IT dept pending (LAN deployment path; a separate
-  Docker/VPS deployment path now exists too — see
-  `project/architecture.md` § Deployment Infrastructure)
+- ~~**SERV-APPI access**~~ — SCRATCHED as a deployment target (security
+  issue on that server, per project owner 2026-08-24). Docker/VPS is the
+  only deployment path now; app already runs on a separate Ubuntu test
+  server (see `project/architecture.md` § Deployment Infrastructure)
 - **CCIT Glossaire Excel** — awaiting file from CCIT (M7 seed)
 - **DeepL approval** — DG + RGPD decision pending (fallback toggle ready)
 - **⚠️ tsc --noEmit** — broken client-wide (pre-existing: ignoreDeprecations vs TS 5.9.3)
@@ -137,5 +141,10 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 - **Shared SummaryCard component** — still copy-pasted 3× (Accords,
   Partenaires, Missions), not extracted to avoid touching modules outside
   each task's scope — Notion Sprint 12, À faire
+- **PDF export — Tier 2 fields** — full mockup parity needs real schema
+  work (courrier body/"Contenu" text, multi-document linking, accord
+  type/durée/renouvelable, mission organisateur/objectif/résumé
+  d'activités, per-mission participant role). Individual PDF export
+  itself is DONE (2026-08-24); this is the follow-up if full parity is
+  wanted — Notion Sprint 12, À faire
 - **No automated test suite** — CI is lint + build only
-- **No automated test suite** — `ci.yml`'s CI gate is lint + build only

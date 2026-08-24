@@ -20,6 +20,9 @@ export const accordsApi = {
   expirantBientot: (jours?: number) =>
     api.get('/accords/expirant', { params: jours !== undefined ? { jours } : undefined }),
 
+  // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
+  getUrlExportPDF: (id: number) => `/api/accords/${id}/export/pdf`,
+
   // ── Création ─────────────────────────────────────────────────────────────
 
   creer: (data: {

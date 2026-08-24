@@ -212,10 +212,11 @@ Linux paths inside the container instead of the Windows dev defaults.
 never auto-deploys to the VPS).
 
 **Relationship to SERV-APPI**: the original plan (`quick-ref.md` blockers)
-was LAN deployment on the Windows server `SERV-APPI`, blocked on IT access.
-This Docker/VPS infra is a separate, VPS-based deployment path — whether it
-replaces or complements the SERV-APPI plan is a decision for the project
-owner, not yet resolved here.
+was LAN deployment on the Windows server `SERV-APPI`. As of 2026-08-24 the
+project owner has scratched that plan entirely (security issue on that
+server) — SERV-APPI will not host the application. This Docker/VPS infra
+is now the only deployment path; the app already runs on a separate
+Ubuntu test server.
 
 **Known infra gap**: no automated test suite exists yet; `ci.yml`'s
 `verify` job type-checks and builds (`npm run build`) but doesn't run
@@ -252,3 +253,41 @@ Full-detail entry is in `changelog.md`. What matters for future sessions:
   building parallel creation logic when a picker's target entity might not
   exist yet. Worth applying the same pattern elsewhere if the same
   complaint comes up (e.g. other pickers across the app).
+
+## Individual PDF Export (2026-08-24)
+
+Closes the "Export PDF/DOCX individuel" backlog item — accords, courriers,
+and mission reports can each be exported as a standalone PDF "fiche" (not
+the existing dashboard/audit aggregate reports, which are unaffected).
+Full detail in `changelog.md`. What matters for future sessions:
+
+- `src/utils/ficheHTML.ts` is the shared template layer for this class of
+  PDF — masthead (with the ANAC seal, embedded as a cached base64 data URI
+  read from `packages/server/assets/anac-seal.png` via a
+  `process.cwd()`-relative path), badges, section boxes, tables. Reuse
+  these building blocks for any future "one-record fiche" PDF rather than
+  hand-rolling HTML again.
+- **The seal file must ship with the server image** — the prod Dockerfile
+  now has an explicit `COPY --from=build .../assets ./assets` line. If
+  that Dockerfile is ever restructured, keep that line or the seal will
+  silently disappear from deployed PDFs (build still succeeds — this is a
+  runtime file-not-found that just falls back to text-only masthead, no
+  error surfaced).
+- The "Historique" section on each fiche is real: `audit.service.ts`
+  gained `listerHistoriqueEntite(module, entiteId)` (and an `entiteId`
+  filter on `AuditFilters`) rather than fabricating a timeline. Any future
+  module doing the same kind of per-record history panel should use this,
+  not invent one.
+- **Hard rule applied here, worth repeating for any future PDF/report
+  work**: every mockup section without a real backing field was omitted,
+  not filled with placeholder/invented content (courrier body text, the
+  mockup's 5-stage courrier stepper, multi-document association, accord
+  type/durée, mission objectif/résumé d'activités, per-mission participant
+  role). These are tracked as Tier 2 backlog (real schema decisions) —
+  don't quietly add fake data to make a future mockup match instead of
+  asking whether the field should actually exist.
+- Preview-before-download: `GET /:id/export/pdf` accepts `?apercu=1` to
+  switch `Content-Disposition` from `attachment` to `inline`. The client's
+  `PdfPreviewDialog` (`packages/client/src/components/`) is the shared
+  component for this — reuse it for any future "preview then download"
+  flow instead of building a new modal.

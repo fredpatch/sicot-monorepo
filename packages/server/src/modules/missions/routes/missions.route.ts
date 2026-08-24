@@ -16,6 +16,7 @@ router.get('/aggregates', missionsController.aggregates);
 router.get('/', missionsController.lister);
 router.get('/:id', missionsController.getById);
 router.get('/:id/recommandations', missionsController.listerRecommandations);
+router.get('/:id/export/pdf', missionsController.exporterPDF);
 
 // ── Création et modification — agent minimum ──────────────────────────────
 router.post('/', requireRole('agent'), missionsController.creer);

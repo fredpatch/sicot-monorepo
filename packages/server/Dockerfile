@@ -35,6 +35,7 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 COPY --from=build /app/packages/server/dist ./dist
+COPY --from=build /app/packages/server/assets ./assets
 COPY --from=build /app/packages/server/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/packages/server/drizzle ./drizzle
 COPY --from=build /app/packages/server/package.json ./package.json

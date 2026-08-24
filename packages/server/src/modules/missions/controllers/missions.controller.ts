@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as missionsService from '../services/missions.service.js';
+import { genererPDFMission } from '../services/missions.export.service.js';
 import { handleMissionsError } from '@/utils/error.js';
 
 // ── GET /api/missions ─────────────────────────────────────────────────────
@@ -56,6 +57,27 @@ export async function getById(req: Request, res: Response): Promise<void> {
 
     const mission = await missionsService.getMission(id);
     res.json(mission);
+  } catch (error) {
+    handleMissionsError(res, error);
+  }
+}
+
+// ── GET /api/missions/:id/export/pdf ──────────────────────────────────────
+export async function exporterPDF(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const mission = await missionsService.getMission(id);
+    const pdf = await genererPDFMission(mission);
+
+    const disposition = req.query.apercu === '1' ? 'inline' : 'attachment';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `${disposition}; filename="mission-${id}-rapport.pdf"`);
+    res.send(pdf);
   } catch (error) {
     handleMissionsError(res, error);
   }

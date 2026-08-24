@@ -259,9 +259,9 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Rédaction manuel utilisateur complet** - Tous profils (M. NDONG N'NANG)
 - [ ] **Rapport de recette v1.0 signé** - Mme NGO MYTOULOU
 
-## Sprint 7 - Déploiement Production & Formation | 🟡 PARTIEL (infra Docker/VPS prête, voir Sprint 12 — installation SERV-APPI/réseau/formations restent à faire)
+## Sprint 7 - Déploiement Production & Formation | 🟡 PARTIEL (infra Docker/VPS prête, voir Sprint 12 — SERV-APPI abandonné le 2026-08-24, formations restent à faire)
 
-- [ ] **Installation SICOT v1.0 sur SERV-APPI** - Environnement production
+- [x] ~~**Installation SICOT v1.0 sur SERV-APPI**~~ - ABANDONNÉ : SERV-APPI n'hébergera plus l'application (problème de sécurité). Déjà installé sur un serveur de test Ubuntu séparé via le chemin Docker/VPS.
 - [ ] **Configuration réseau LAN ANAC** - Accès postes clients toutes directions
 - [ ] **Migration données existantes** - Accords et partenaires depuis fichiers Excel CCIT
 - [ ] **Validation bootstrap admin en production** - Activation comptes pilotes
@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) | ✅ COMPLÉTÉ (2026-08-24)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
 
 Sprint non planifié, réalisé le même jour — voir `exploration-cache/changelog.md`
 pour le détail complet et `docs/deployment/production-guide.md` pour le runbook.
@@ -638,17 +638,24 @@ pour le détail complet et `docs/deployment/production-guide.md` pour le runbook
 - [x] ~~**Création rapide participant/contact**~~ - Réutilise CreerUtilisateurDialog et FormulaireOrganisation/FormulaireContact existants plutôt qu'une logique parallèle
 - [x] ~~**Correctifs suppression de champ**~~ - participantsIds vide, rapportDocumentId null, contactSurPlaceId null étaient tous silencieusement ignorés par le serveur
 
+### Export PDF individuel (accords, courriers, rapports mission)
+
+- [x] ~~**Fiches PDF individuelles**~~ - `GET /:id/export/pdf` sur accords/courriers/missions, gabarit partagé (`ficheHTML.ts` + `genererPDFFiche()`), sceau ANAC intégré, badges de statut, section Historique adossée au vrai journal d'audit (nouveau filtre `entiteId`)
+- [x] ~~**Aperçu avant téléchargement**~~ - `PdfPreviewDialog` (iframe + `?apercu=1` en Content-Disposition inline) sur les 3 pages détail, plutôt qu'un téléchargement direct au clic
+- [x] ~~**Sections mockup sans champ réel volontairement omises**~~ - pas de contenu inventé (contenu courrier, stepper 5 étapes, documents multiples, type/durée accord, objectif/activités mission, fonction participant) — voir "Reporté" ci-dessous pour le suivi
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées
 - [ ] **Composant SummaryCard partagé** - dupliqué 3× (Accords/Partenaires/Missions)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
+- [ ] **Export PDF — parité complète mockup (Tier 2)** - contenu courrier, stepper 5 étapes, documents multiples par fiche, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission — chacun nécessite un vrai champ de schéma, pas juste du visuel
 
 ## Waiting On
 
 - [ ] **Glossaire CCIT existant** - Attente fichier CSV/Excel de la Cellule CCIT pour seed initial M7
 - [ ] **Réseau Tailscale API Personnel ANAC en production** - Code intégré (commit 6e20415) ; reste à confirmer que le serveur/VPS de production sera joint au réseau Tailscale ANAC pour atteindre PERSONNEL_ANAC_BASE_URL
-- [ ] **Accès SERV-APPI** - Confirmer droits d'installation pour l'équipe dev (PostgreSQL, LibreTranslate, Tesseract) — ne bloque plus le déploiement en général, un chemin Docker/VPS alternatif est prêt (voir Sprint 12)
+- [x] ~~**Accès SERV-APPI**~~ - ABANDONNÉ définitivement (problème de sécurité sur ce serveur, décision du porteur de projet le 2026-08-24) — SERV-APPI n'hébergera plus l'application. Le chemin Docker/VPS est désormais le seul retenu ; l'application tourne déjà sur un serveur de test Ubuntu séparé.
 - [ ] **Décision DeepL** - La DG valide-t-elle l'option fallback cloud DeepL ? Contrat RGPD à prévoir
 - [ ] **Validation périmètre portail externe** - La DG/CCIT doit confirmer quels types de documents sont éligibles à exposition externe avant Sprint 9
 - [ ] **Validation pg_dump sur SERV-APPI (Linux production)** - Confirmer que pg_dump est installé/accessible en PATH sur l'environnement de production, éviter la même erreur qu'en dev Windows

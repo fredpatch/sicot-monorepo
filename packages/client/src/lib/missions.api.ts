@@ -26,6 +26,9 @@ export const missionsApi = {
   // Recommandations en attente avec date limite — dashboard M9
   recommandationsEnAttente: () => api.get('/missions/recommandations/en-attente'),
 
+  // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
+  getUrlExportPDF: (id: number) => `/api/missions/${id}/export/pdf`,
+
   // ── Création ─────────────────────────────────────────────────────────────
 
   creer: (data: {

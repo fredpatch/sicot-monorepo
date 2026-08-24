@@ -15,6 +15,7 @@ router.get('/sans-reponse', courriersController.sansReponse);
 router.get('/', courriersController.lister);
 router.get('/:id', courriersController.getById);
 router.get('/:id/fil', courriersController.getFilCorrespondance);
+router.get('/:id/export/pdf', courriersController.exporterPDF);
 
 // ── Création et modification — agent minimum ──────────────────────────────
 router.post('/', requireRole('agent'), courriersController.creer);

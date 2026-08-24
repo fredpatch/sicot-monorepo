@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, MoreHorizontal, Pencil, Printer, XCircle } from 'lucide-react';
+import { ArrowLeft, FileDown, MoreHorizontal, Pencil, Printer, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { PdfPreviewDialog } from '@/components/PdfPreviewDialog';
+import { missionsApi } from '@/lib/missions.api';
 import type { Mission } from '../mission.types';
 import { MissionStatusBadge } from './MissionStatusBadge';
 import { MissionPeriod } from './MissionPeriod';
@@ -17,6 +19,7 @@ export function MissionDetailHeader({
   onCancelMission: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const isCancelled = mission.statut === 'annulee';
 
   return (
@@ -72,6 +75,17 @@ export function MissionDetailHeader({
                 <Printer size={14} aria-hidden="true" />
                 Imprimer
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setPdfPreviewOpen(true);
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-anac-navy hover:bg-anac-gray"
+              >
+                <FileDown size={14} aria-hidden="true" />
+                Exporter le rapport PDF
+              </button>
               {!isCancelled && (
                 <button
                   type="button"
@@ -91,6 +105,13 @@ export function MissionDetailHeader({
           )}
         </div>
       </div>
+
+      <PdfPreviewDialog
+        open={pdfPreviewOpen}
+        onOpenChange={setPdfPreviewOpen}
+        url={missionsApi.getUrlExportPDF(mission.id)}
+        titre={`Mission — ${mission.titre}`}
+      />
     </div>
   );
 }

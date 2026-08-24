@@ -5,12 +5,12 @@
 **Système Intégré de Coopération Internationale et de Traduction**
 Internal web application for **ANAC Gabon** (Agence Nationale de l'Aviation Civile), replacing the manual Excel-based workflows of the CCIT (Cellule de Coopération Internationale et de Traduction).
 
-- **Deployment**: two paths exist — the original LAN-only plan on Windows
-  server `SERV-APPI` (blocked on IT access), and a Docker Compose/GitHub
-  Actions/VPS infra added 2026-08-24 (see `project/architecture.md` §
-  Deployment Infrastructure and `docs/deployment/production-guide.md`).
-  Which one is actually used in production is a project-owner decision,
-  not yet resolved.
+- **Deployment**: the original LAN-only plan on Windows server `SERV-APPI`
+  is SCRATCHED (security issue on that server, per project owner
+  2026-08-24) — no longer an option. Docker Compose/GitHub Actions/VPS
+  infra (added 2026-08-24, see `project/architecture.md` § Deployment
+  Infrastructure and `docs/deployment/production-guide.md`) is the only
+  path now; the app already runs on a separate Ubuntu test server.
 - **Languages**: French (default UI) + English toggle (react-i18next)
 - **Users**: ~10-20 ANAC agents, role-based access
 
@@ -52,7 +52,7 @@ Internal web application for **ANAC Gabon** (Agence Nationale de l'Aviation Civi
 | Sprint 9 — Portail Documentaire      | ✅ Done       | /portail public, téléchargement tokénisé                                 |
 | Sprint 10 — Paramètres Système       | ✅ Done       | OTP, blocage compte, rétention, journal d'audit UI+export                |
 | Sprint 11 — Analytics & Rapports M11 | ✅ Done       | 27 métriques, export CSV/Excel, rapports PDF/Excel + cron mensuel        |
-| Sprint 12 — Missions M3 redesign + deployment infra | ✅ Done (2026-08-24) | Registry/creation/detail workspace, logistics checklist migration, Docker/CI-CD |
+| Sprint 12 — Missions M3 redesign + deployment infra + PDF export | ✅ Done (2026-08-24) | Registry/creation/detail workspace, logistics checklist migration, Docker/CI-CD, individual PDF export w/ preview |
 | Sprint 6 — Tests & Recette           | ⏳ Pending    | Deferred after Sprint 8/9/10                                             |
 | Sprint 7 — Déploiement + Formation   | 🟡 Partial    | Docker/VPS path ready; SERV-APPI install + formations still pending      |
 

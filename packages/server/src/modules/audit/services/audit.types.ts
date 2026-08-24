@@ -2,6 +2,7 @@ export interface AuditFilters {
   userId?: number;
   module?: string;
   action?: string;
+  entiteId?: number;
   dateDebut?: Date;
   dateFin?: Date;
   search?: string;

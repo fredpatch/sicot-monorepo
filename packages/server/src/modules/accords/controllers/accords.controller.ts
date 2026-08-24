@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as accordsService from '../services/accords.service.js';
+import { genererPDFAccord } from '../services/accords.export.service.js';
 import { handleAccordsError } from '@/utils/error.js';
 
 // ── GET /api/accords ──────────────────────────────────────────────────────
@@ -45,6 +46,27 @@ export async function getById(req: Request, res: Response): Promise<void> {
 
     const accord = await accordsService.getAccord(id);
     res.json(accord);
+  } catch (error) {
+    handleAccordsError(res, error);
+  }
+}
+
+// ── GET /api/accords/:id/export/pdf ───────────────────────────────────────
+export async function exporterPDF(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const accord = await accordsService.getAccord(id);
+    const pdf = await genererPDFAccord(accord);
+
+    const disposition = req.query.apercu === '1' ? 'inline' : 'attachment';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `${disposition}; filename="accord-${accord.reference}.pdf"`);
+    res.send(pdf);
   } catch (error) {
     handleAccordsError(res, error);
   }

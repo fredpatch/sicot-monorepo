@@ -1,5 +1,60 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-24 — feat(client/server): individual PDF export (accords, courriers, missions)
+
+Closed the "Export PDF/DOCX individuel" backlog item (Sprint 3/11, HAUTE) —
+PDF only, per explicit decision (no new dependency, reuses the existing
+Puppeteer pipeline; DOCX dropped from scope). Went through two rounds:
+a first pass with a plain single-table layout, then a full visual
+redesign against a reference mockup the user provided, upgraded again once
+the official ANAC seal file was supplied.
+
+### Added — Server
+- `src/utils/ficheHTML.ts` — reusable HTML building blocks for individual
+  "fiche" PDFs: institutional masthead (ANAC seal, embedded as a cached
+  base64 data URI from `packages/server/assets/anac-seal.png`, read once
+  via a `process.cwd()`-relative path so it works identically in dev and
+  in the Docker image), colored status badges, section boxes, two-column
+  layout, and a `tableHistorique()` helper.
+- `src/utils/pdf.ts` — new `genererPDFFiche()` variant of the existing
+  `genererPDFDepuisHTML()`: masthead lives in the HTML body instead of a
+  repeating Puppeteer header bar, since these are one-page fiches.
+- Real "Historique" section per fiche — sourced from the existing
+  `audit_logs` table, not invented. Added an `entiteId` filter to
+  `AuditFilters`/`construireConditions()` and a new
+  `listerHistoriqueEntite(module, entiteId)` in `audit.service.ts`.
+- `accords.export.service.ts` / `courriers.export.service.ts` /
+  `missions.export.service.ts` — one `genererPDF*()` per module, resolving
+  the linked document and the record's creator (`createdPar` → user) for
+  the "Document lié" and "Responsable" sections. Missions additionally
+  render a real recommendations count-by-status table (including a
+  genuinely derived "Dépassées" overdue count from `dateLimite`).
+- `GET /:id/export/pdf` on all three modules — same read-level auth as
+  `getById`. Accepts `?apercu=1` to switch `Content-Disposition` from
+  `attachment` to `inline` for the preview flow below.
+- `Dockerfile` (server, prod stage) — added `COPY --from=build
+  .../assets ./assets`, otherwise the seal would have silently been
+  missing in deployed images despite working locally.
+
+### Added — Client
+- `components/PdfPreviewDialog.tsx` — shared modal (iframe pointed at the
+  `?apercu=1` URL) with "Télécharger"/"Fermer" actions. "Exporter PDF" now
+  opens a preview first instead of downloading immediately, on all three
+  detail pages (`AccordDetail`, `CourrierDetail`, `MissionDetailHeader`).
+- `getUrlExportPDF(id)` added to `accords.api.ts` / `courriers.api.ts` /
+  `missions.api.ts`.
+
+### Deliberately not built (avoid inventing data)
+Went through the mockup section by section and only rendered what a real
+field backs. Left out: courrier body/"Contenu" text (only `objet` exists),
+the mockup's 5-stage courrier stepper (only 3 real `suiviStatut` values
+exist), multi-document association (schema is one `documentId` per
+record), accord "type/durée/renouvelable", mission
+"organisateur/objectif/résumé d'activités", and per-mission participant
+"fonction" — none of these have a backing field. Flagged as a real Tier 2
+backlog item (schema decisions, same category as the logistics-checklist
+call) if full mockup parity is wanted later.
+
 ## [Unreleased] — 2026-08-24 — feat(client/server): Missions module (M3) redesign
 
 Full redesign of the Missions module (`/missions`), replacing the old

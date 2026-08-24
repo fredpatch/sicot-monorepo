@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Download,
   ExternalLink,
+  FileDown,
   FileText,
   FolderOpen,
   History,
@@ -22,6 +23,7 @@ import {
 
 import HistoriqueNotifications from '@/pages/HistoriqueNotifications';
 import ModalRelance from '@/components/ModalRelance';
+import { PdfPreviewDialog } from '@/components/PdfPreviewDialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -59,6 +61,7 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
   const [section, setSection] = useState(searchParams.get('section') ?? 'overview');
   const [relanceOpen, setRelanceOpen] = useState(false);
   const [renewOpen, setRenewOpen] = useState(searchParams.get('action') === 'renew');
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const [groupResult, setGroupResult] = useState<{
     envoyes: number;
     ignores: number;
@@ -237,6 +240,15 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
               </Button>
             </a>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setPdfPreviewOpen(true)}
+            className="gap-2"
+          >
+            <FileDown size={14} aria-hidden="true" />
+            Exporter PDF
+          </Button>
           <Button type="button" variant="outline" onClick={onModifier} className="gap-2">
             <Pencil size={14} aria-hidden="true" />
             Modifier
@@ -509,6 +521,13 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
       </div>
 
       <RenewalDialog accord={accord} open={renewOpen} onOpenChange={(open) => (open ? setRenewOpen(true) : closeRenewal())} />
+
+      <PdfPreviewDialog
+        open={pdfPreviewOpen}
+        onOpenChange={setPdfPreviewOpen}
+        url={accordsApi.getUrlExportPDF(accord.id)}
+        titre={`Accord ${accord.reference}`}
+      />
 
       <ModalRelance
         open={relanceOpen}

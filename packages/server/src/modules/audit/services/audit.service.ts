@@ -111,10 +111,29 @@ function construireConditions(filters: AuditFilters) {
   if (filters.userId) conditions.push(eq(auditLogs.userId, filters.userId));
   if (filters.module) conditions.push(eq(auditLogs.module, filters.module));
   if (filters.action) conditions.push(ilike(auditLogs.action, `%${filters.action}%`));
+  if (filters.entiteId) conditions.push(eq(auditLogs.entiteId, filters.entiteId));
   if (filters.dateDebut) conditions.push(gte(auditLogs.createdAt, filters.dateDebut));
   if (filters.dateFin) conditions.push(lte(auditLogs.createdAt, filters.dateFin));
 
   return conditions;
+}
+
+// ── SERVICE : Historique d'une entité précise — pour les fiches PDF ────────
+export async function listerHistoriqueEntite(
+  module: string,
+  entiteId: number
+): Promise<AuditLogView[]> {
+  const rows = await db
+    .select({
+      log: auditLogs,
+      user: { matricule: users.matricule, nom: users.nom, prenom: users.prenom },
+    })
+    .from(auditLogs)
+    .leftJoin(users, eq(auditLogs.userId, users.id))
+    .where(and(eq(auditLogs.module, module), eq(auditLogs.entiteId, entiteId)))
+    .orderBy(auditLogs.createdAt);
+
+  return rows.map(toAuditLogView);
 }
 
 // ── SERVICE : Lister pour export — sans pagination, plafonné ──────────────

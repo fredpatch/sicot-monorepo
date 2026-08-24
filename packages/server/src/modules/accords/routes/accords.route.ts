@@ -14,6 +14,7 @@ router.get('/expirant', accordsController.expirantBientot);
 // ── Lecture — accessible à tous ───────────────────────────────────────────
 router.get('/', accordsController.lister);
 router.get('/:id', accordsController.getById);
+router.get('/:id/export/pdf', accordsController.exporterPDF);
 
 // ── Création et modification — agent minimum ──────────────────────────────
 router.post('/', requireRole('agent'), accordsController.creer);

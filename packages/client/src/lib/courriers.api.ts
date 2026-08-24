@@ -26,6 +26,9 @@ export const courriersApi = {
   // Courriers entrants sans réponse — dashboard M9
   sansReponse: () => api.get('/courriers/sans-reponse'),
 
+  // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
+  getUrlExportPDF: (id: number) => `/api/courriers/${id}/export/pdf`,
+
   // ── Création ─────────────────────────────────────────────────────────────
 
   creer: (data: {

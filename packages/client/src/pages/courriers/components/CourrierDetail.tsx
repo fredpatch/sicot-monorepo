@@ -12,10 +12,12 @@ import {
   Send,
   Link2,
   FileText,
+  FileDown,
   ExternalLink,
 } from 'lucide-react';
 
 import ModalRelance from '@/components/ModalRelance';
+import { PdfPreviewDialog } from '@/components/PdfPreviewDialog';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -137,6 +139,7 @@ export default function CourrierDetail({
   const navigate = useNavigate();
 
   const [modalRelance, setModalRelance] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
 
   // ── Requête courrier principal ────────────────────────────────────────
   const { data: courrier, isLoading } = useQuery({
@@ -273,6 +276,15 @@ export default function CourrierDetail({
 
           <Button variant="secondary" size="sm" onClick={onModifier} className="gap-1.5">
             <Pencil size={13} /> Modifier
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setPdfPreviewOpen(true)}
+            className="gap-1.5"
+          >
+            <FileDown size={13} /> Exporter PDF
           </Button>
 
           {courrier.suiviStatut !== 'archive' && (
@@ -520,6 +532,15 @@ export default function CourrierDetail({
             `\n\nPourriez-vous nous indiquer où en est le traitement de ce dossier ?`
           }
           destinatairesSuggeres={destinatairesSuggeres}
+        />
+      )}
+
+      {courrier && (
+        <PdfPreviewDialog
+          open={pdfPreviewOpen}
+          onOpenChange={setPdfPreviewOpen}
+          url={courriersApi.getUrlExportPDF(courrier.id)}
+          titre={`Courrier ${courrier.reference}`}
         />
       )}
     </div>
