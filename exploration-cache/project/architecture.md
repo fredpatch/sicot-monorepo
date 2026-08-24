@@ -183,3 +183,41 @@ File: `packages/server/src/jobs/backup.ts`
 
 `/api/documents` `/api/organisations` `/api/accords` `/api/courriers`
 `/api/missions` `/api/traductions` `/api/demandes` `/api/glossaire` `/api/dashboard`
+
+## Deployment Infrastructure (added 2026-08-24)
+
+Docker Compose + GitHub Actions/GHCR, following the pattern documented in
+`docs/deployment-documentation.md` (generic playbook) and
+`docs/deployment/production-guide.md` (this project's runbook — real values,
+exact commands). Full details there; summary:
+
+```
+docker-compose.yml            local dev (hot reload, all ports exposed)
+docker-compose.staging.yml    full prod shape, local ports (:4001)
+docker-compose.prod.yml       pulls prebuilt GHCR images, TLS, restart:unless-stopped
+```
+
+**7 containers in staging/prod**: `nginx` (only public one, 80/443) →
+`client` + `api` internally; `api` → `postgres`, `ocr`, `translate`;
+`translate` → `libretranslate` (self-hosted MT engine, `LT_LOAD_ONLY=fr,en`).
+`ocr` and `translate` are the Dockerized `ocr-service`/`translate-service`
+from above — same code, `main.py` now binds `0.0.0.0` (was `127.0.0.1`,
+broken in Docker) and env-driven `TESSERACT_CMD`/`LIBREOFFICE_CMD` point at
+Linux paths inside the container instead of the Windows dev defaults.
+
+**CI/CD** is three separate GitHub Actions workflows (`.github/workflows/`):
+`ci.yml` (every push/PR — lint + build), `docker-publish.yml` (push to
+`main` — builds & pushes 4 images to GHCR: `sicot-{api,client,ocr,translate}`),
+`deploy-prod.yml` (**manual `workflow_dispatch` only** — pushing to `main`
+never auto-deploys to the VPS).
+
+**Relationship to SERV-APPI**: the original plan (`quick-ref.md` blockers)
+was LAN deployment on the Windows server `SERV-APPI`, blocked on IT access.
+This Docker/VPS infra is a separate, VPS-based deployment path — whether it
+replaces or complements the SERV-APPI plan is a decision for the project
+owner, not yet resolved here.
+
+**Known infra gap**: no automated test suite exists yet; `ci.yml`'s
+`verify` job type-checks and builds (`npm run build`) but doesn't run
+tests — don't treat a green CI run as a correctness guarantee beyond
+"it compiles."

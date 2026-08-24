@@ -3,16 +3,16 @@
   "client": "ANAC Gabon",
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
-  "lastUpdated": "2026-07-06T14:00:00Z",
-  "lastCommit": "f06ed6d (pending: personnel-anac integration)",
-  "currentSprint": "Post-Sprint-11 work — API Personnel ANAC integration",
-  "currentSprintFocus": "Intégration API Personnel ANAC — fetching real agent list for bootstrap/user management. New uncommitted changes: AdminUsersPage.tsx, personnel-anac.api.ts (client), personnel-anac module (server), personnel-anac.utils.ts/types.ts. Scheduled to replace the hardcoded super-admin bootstrap flow with live ANAC agents. Related to Sprint 1 blocker: 'API Personnel ANAC Integration' — now actively being implemented.",
-  "status": "Sprints 1-5 + 8 + 9 + 10 + 11 COMPLETE ✅ per docs/TASKS.md. UI hardening sprint (Jul 5-6) COMPLETE ✅. Current work: Personnel ANAC API integration (Sprint 1 deferred task, now in progress). Pending fixes: tsc --noEmit (pre-existing), exceljs version restore, delete rapports.route.ts stub, single Drizzle migration for Sprints 9/10/11 schema changes.",
+  "lastUpdated": "2026-08-24T00:00:00Z",
+  "lastCommit": "ff26b42 feat(infra): add Docker/Compose/CI-CD deployment infrastructure",
+  "currentSprint": "Post-Sprint-11 work — deployment infra + API Personnel ANAC integration",
+  "currentSprintFocus": "2026-08-24: implemented Docker Compose (local/staging/prod) + GitHub Actions CI/CD deployment infrastructure for all 5 services, following docs/deployment-documentation.md. Verified end-to-end via a real staging deploy (all 7 containers healthy, migrations applied, inter-service networking confirmed). See project/architecture.md § Deployment Infrastructure. Personnel ANAC integration was completed and committed separately (6e20415, before this session) — the Sprint 1 blocker note below is now resolved on the code side; treat prior 'in progress' language for it as stale.",
+  "status": "Sprints 1-5 + 8 + 9 + 10 + 11 COMPLETE ✅ per docs/TASKS.md. UI hardening sprint (Jul 5-6) COMPLETE ✅. Personnel ANAC API integration COMPLETE ✅ (6e20415). Deployment infrastructure (Docker/Compose/CI-CD) COMPLETE ✅ (2026-08-24, ff26b42) — LAN/SERV-APPI vs. this VPS path still an open project-owner decision. Pending fixes: tsc --noEmit (pre-existing), exceljs version restore, delete rapports.route.ts stub.",
 
   "activeSession": {
-    "task": "Intégration API Personnel ANAC — implementing fetch of real agent list from ANAC API to replace hardcoded bootstrap flow. Files modified: packages/client/src/lib/personnel-anac.api.ts (new), packages/client/src/pages/AdminUsersPage.tsx (new), packages/client/src/pages/users/ (new folder), packages/server/src/modules/personnel-anac/ (new module), packages/server/src/utils/{personnel-anac.ts, personnel-anac.types.ts} (new). This resolves Sprint 1 blockers around agent list integration. Uncommitted and ready for commit + push.",
-    "startedAt": "2026-07-06 ~14:00",
-    "nextAction": "Commit the personnel-anac integration work (AdminUsersPage + API endpoints), push to remote. Then: 1) Fix tsc --noEmit, 2) Restore exceljs to ^4.4.0, 3) Generate single migration for all Schema changes (Sprints 9/10/11), 4) Fix /portail→/portal href bug, 5) Manual verification of Gemini rapports IA workflow."
+    "task": "Implemented deployment infrastructure per docs/deployment-documentation.md: Docker Compose (local/staging/prod) for all 5 services (client, api, ocr-service, translate-service, self-hosted libretranslate), 3-workflow GitHub Actions CI/CD (ci.yml, docker-publish.yml, deploy-prod.yml — manual-trigger only), nginx reverse proxy, deploy scripts. Verified with a real staging deploy: all images built, migrations applied against a live Postgres, all 7 containers reported healthy, client/api reachable through nginx, ocr/translate reachable from api over the internal network. Found and fixed 6 real bugs in the process (see changelog.md 2026-08-24 entry) — most notably packages/server/drizzle/ (migrations) was gitignored with zero commits in git history, and ocr-service/translate-service bound to 127.0.0.1 instead of 0.0.0.0 (unreachable from other containers). Committed as ff26b42 and pushed.",
+    "startedAt": "2026-08-24",
+    "nextAction": "Provision a real VPS + domain, fill in .env.prod on the VPS from .env.prod.example, replace PLACEHOLDER-DOMAIN.com in nginx/prod.conf, add the GitHub repo secrets listed in docs/deployment/production-guide.md §6, then run scripts/deploy-prod.sh once by hand before trusting the Deploy Production Actions workflow."
   },
 
   "index": [
@@ -67,8 +67,8 @@
     {
       "path": "project/architecture.md",
       "type": "project",
-      "tags": ["stack", "react", "express", "drizzle", "auth-flow", "environment"],
-      "summary": "Full stack: React+Vite+Tailwind v4 client, Express+Drizzle+PG server. Auth flow, env vars, module pattern, backup cron"
+      "tags": ["stack", "react", "express", "drizzle", "auth-flow", "environment", "deployment", "docker", "ci-cd"],
+      "summary": "Full stack: React+Vite+Tailwind v4 client, Express+Drizzle+PG server. Auth flow, env vars, module pattern, backup cron, deployment infrastructure (Docker Compose + GitHub Actions/GHCR, 7-container staging/prod stack)"
     },
     {
       "path": "project/database-schema.md",

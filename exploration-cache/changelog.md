@@ -1,5 +1,57 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-24 — feat(infra): Docker/Compose/CI-CD deployment infrastructure
+
+### Added
+- `docker-compose.yml` / `.staging.yml` / `.prod.yml` — local, staging (full
+  prod shape on local ports), and production Compose stacks covering all 5
+  deployable units: `client`, `api`, `ocr-service`, `translate-service`, and
+  a self-hosted `libretranslate` container (replacing the bare
+  `LIBRETRANSLATE_URL=http://localhost:5000` assumption with an actual
+  managed service).
+- `packages/{server,client,ocr-service,translate-service}/Dockerfile` —
+  multi-stage Node builds for server/client; `ocr-service` on
+  `python:3.11-slim` with Tesseract + LibreOffice + Poppler installed
+  (chosen over Alpine — LibreOffice's Alpine package is unreliable).
+- `nginx/staging.conf`, `nginx/prod.conf` — single public reverse proxy
+  routing `/api`, `/uploads`, and `/` (SPA); TLS via host Certbot in prod.
+- `.github/workflows/{ci,docker-publish,deploy-prod}.yml` — CI on every
+  push/PR, image publish to GHCR on push to `main`, and a **manual-only**
+  `workflow_dispatch` prod deploy — pushing to `main` never auto-deploys.
+- `scripts/deploy-{staging,prod}.sh`, `.env.example`, `.env.prod.example`,
+  `docs/deployment/production-guide.md` (project-specific runbook) and
+  `docs/deployment-documentation.md` (the reusable generic playbook this
+  was built from).
+- Root of the effort: [`project/architecture.md`](project/architecture.md)
+  now has a "Deployment Infrastructure" section — see there for the
+  service topology and env vars.
+
+### Fixed (found via an actual end-to-end staging deploy, not just written and assumed working)
+- `ocr-service`/`translate-service` bound Waitress to `127.0.0.1` — made
+  them unreachable from any other container on the Docker network. Now
+  `0.0.0.0`.
+- `packages/server/drizzle/` (migration SQL) was gitignored and had **zero
+  commits** in git history — a fresh checkout (and therefore every CI
+  build and prod deploy) would have shipped with no migrations at all
+  against a fresh database. Now tracked.
+- Committed `*.tsbuildinfo` files made `packages/shared`'s composite
+  TypeScript build think it was already built inside a clean
+  container/checkout (where `dist/` doesn't exist yet), so it silently
+  skipped emitting `.d.ts` files and broke every downstream `tsc` step.
+  Removed from git, added to `.gitignore`/`.dockerignore`.
+- `vite.config.ts` hardcoded the dev-server API proxy to
+  `http://localhost:3001`, which breaks once the client runs in its own
+  Docker container (`localhost` there means the client container itself).
+  Now reads `VITE_API_PROXY_TARGET`.
+- 7 pre-existing `@typescript-eslint/no-unused-vars` errors (unused
+  re-exported type imports in `demandes.service.ts`, `missions.service.ts`,
+  `organisations.service.ts`) that would have made CI red on the very first
+  run, unrelated to this infra work.
+- `src/db/seed-demo.ts` had pre-existing type errors that broke
+  `npm run build`; excluded from the `tsc` build in
+  `packages/server/tsconfig.json` since it's a dev-only script invoked via
+  `tsx`, never imported from compiled `dist/`.
+
 ## [Unreleased] — 2026-07-29 — feat(client/server): Dashboard, Accords, and Partenaires UX hardening
 
 ### Added

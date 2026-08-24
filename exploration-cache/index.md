@@ -3,7 +3,7 @@
 This folder is the living knowledge base for the SICOT project. Update it as the project evolves.
 
 **Project**: Système Intégré de Coopération Internationale et de Traduction — ANAC Gabon
-**Last updated**: 2026-07-06 | **Sprint**: 11 complete (`f3547d4`+`f27d58f`+`d312a86`) — 2026-07-05/06 was a "Sprint de durcissement UI" (sonner toasts, shadcn Table/Tabs migration, full feature-folder split), no new numbered sprint started
+**Last updated**: 2026-08-24 | **Sprint**: 11 complete (`f3547d4`+`f27d58f`+`d312a86`) — 2026-07-05/06 was a "Sprint de durcissement UI" (sonner toasts, shadcn Table/Tabs migration, full feature-folder split); 2026-08-24 added Docker/Compose/CI-CD deployment infrastructure (`ff26b42`), no new numbered sprint started
 
 ---
 

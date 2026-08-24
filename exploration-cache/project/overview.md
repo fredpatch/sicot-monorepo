@@ -5,7 +5,12 @@
 **Système Intégré de Coopération Internationale et de Traduction**
 Internal web application for **ANAC Gabon** (Agence Nationale de l'Aviation Civile), replacing the manual Excel-based workflows of the CCIT (Cellule de Coopération Internationale et de Traduction).
 
-- **Deployment**: LAN-only, Windows server `SERV-APPI`
+- **Deployment**: two paths exist — the original LAN-only plan on Windows
+  server `SERV-APPI` (blocked on IT access), and a Docker Compose/GitHub
+  Actions/VPS infra added 2026-08-24 (see `project/architecture.md` §
+  Deployment Infrastructure and `docs/deployment/production-guide.md`).
+  Which one is actually used in production is a project-owner decision,
+  not yet resolved.
 - **Languages**: French (default UI) + English toggle (react-i18next)
 - **Users**: ~10-20 ANAC agents, role-based access
 

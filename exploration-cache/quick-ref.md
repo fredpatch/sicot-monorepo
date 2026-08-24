@@ -10,6 +10,9 @@ npm run db:studio  # Drizzle Studio (DB browser)
 # Microservices (run separately):
 cd packages/ocr-service && python main.py        # OCR :5001
 cd packages/translate-service && python main.py  # Traduction :5002
+
+# OR: everything containerized (see project/architecture.md § Deployment Infrastructure)
+cp .env.example .env && docker compose up --build -d
 ```
 
 ## 📁 Where Is…
@@ -117,10 +120,13 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ## 🔴 Active Blockers & Pending Fixes
 
 - **Personnel ANAC API** — INTEGRATION IN PROGRESS (resolves Sprint 1 blocker)
-- **SERV-APPI access** — IT dept pending (prod deployment)
+- **SERV-APPI access** — IT dept pending (LAN deployment path; a separate
+  Docker/VPS deployment path now exists too — see
+  `project/architecture.md` § Deployment Infrastructure)
 - **CCIT Glossaire Excel** — awaiting file from CCIT (M7 seed)
 - **DeepL approval** — DG + RGPD decision pending (fallback toggle ready)
 - **⚠️ tsc --noEmit** — broken client-wide (pre-existing: ignoreDeprecations vs TS 5.9.3)
 - **⚠️ exceljs version** — downgraded 4.x→3.x (2026-07-04), needs restore + re-test
 - **Pending Drizzle migration** — aggregates all schema changes from Sprints 9/10/11
 - **Portal route bug** — `/portail` href → `/portal` in DocumentsPage.tsx
+- **No automated test suite** — `ci.yml`'s CI gate is lint + build only
