@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
 
 Sprint non planifié, réalisé le même jour — voir `exploration-cache/changelog.md`
 pour le détail complet et `docs/deployment/production-guide.md` pour le runbook.
@@ -644,12 +644,23 @@ pour le détail complet et `docs/deployment/production-guide.md` pour le runbook
 - [x] ~~**Aperçu avant téléchargement**~~ - `PdfPreviewDialog` (iframe + `?apercu=1` en Content-Disposition inline) sur les 3 pages détail, plutôt qu'un téléchargement direct au clic
 - [x] ~~**Sections mockup sans champ réel volontairement omises**~~ - pas de contenu inventé (contenu courrier, stepper 5 étapes, documents multiples, type/durée accord, objectif/activités mission, fonction participant) — voir "Reporté" ci-dessous pour le suivi
 
+### Refonte Courriers (M4)
+
+- [x] ~~**Registre plein écran**~~ - Cartes de synthèse (GET /api/courriers/aggregates), filtre Période réel (dateDebut/dateFin sur dateReception), filtre en_depassement, table + cartes mobile
+- [x] ~~**Création guidée (stepper 4 étapes) + édition par sections**~~ - Pas d'étape "Contenu" (aucun champ de corps de texte n'existe)
+- [x] ~~**Workspace détail (/courriers/:id, vraie route)**~~ - Aperçu 3 colonnes, sections documents/réponse dédiées, ancien CourrierDetail.tsx (split-pane) supprimé
+- [x] ~~**Contact-level expéditeur/destinataire**~~ - Migration 0013, `expediteurContactId`/`destinataireContactId` (FK contacts, affinement de l'organisation, pas un remplacement) ; le serveur rejette un changement d'organisation sans mise à jour explicite du contact
+- [x] ~~**Documents multiples par courrier**~~ - Migration 0013, table de jointure `courrier_documents`, backfill des liens existants, endpoints POST/DELETE dédiés
+- [x] ~~**Création rapide organisation/contact**~~ - `QuickCreateOrganisationDialog` + `QuickCreateContactDialog`, réutilisent FormulaireOrganisation/FormulaireContact existants
+- [x] ~~**Champs débloqués en édition**~~ - Expéditeur/destinataire, date, réponse requise (direction reste immuable) — étaient silencieusement ignorés par le serveur avant
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
-- [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées
-- [ ] **Composant SummaryCard partagé** - dupliqué 3× (Accords/Partenaires/Missions)
+- [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)
+- [ ] **Composant SummaryCard partagé** - dupliqué 4× (Accords/Partenaires/Missions/Courriers)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
-- [ ] **Export PDF — parité complète mockup (Tier 2)** - contenu courrier, stepper 5 étapes, documents multiples par fiche, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission — chacun nécessite un vrai champ de schéma, pas juste du visuel
+- [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
+- [ ] **Fils de correspondance multi-niveaux** - `getFilCorrespondance` ne remonte qu'un niveau de réponse
 
 ## Waiting On
 

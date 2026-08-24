@@ -12,7 +12,10 @@ export async function lister(req: Request, res: Response): Promise<void> {
       suiviStatut,
       reponseRequise,
       sansReponse,
+      enDepassement,
       organisationId,
+      dateDebut,
+      dateFin,
       page,
       pageSize,
     } = req.query;
@@ -23,11 +26,24 @@ export async function lister(req: Request, res: Response): Promise<void> {
       suiviStatut: suiviStatut as courriersService.CourrierSuiviStatut | undefined,
       reponseRequise: reponseRequise as courriersService.CourrierReponseStatut | undefined,
       sansReponse: sansReponse === 'true',
+      enDepassement: enDepassement === 'true',
       organisationId: organisationId ? parseInt(organisationId as string) : undefined,
+      dateDebut: dateDebut ? new Date(dateDebut as string) : undefined,
+      dateFin: dateFin ? new Date(dateFin as string) : undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
     });
 
+    res.json(result);
+  } catch (error) {
+    handleCourriersError(res, error);
+  }
+}
+
+// ── GET /api/courriers/aggregates ─────────────────────────────────────────
+export async function aggregates(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await courriersService.getCourriersAggregates();
     res.json(result);
   } catch (error) {
     handleCourriersError(res, error);
@@ -108,13 +124,15 @@ export async function creer(req: Request, res: Response): Promise<void> {
       objet,
       expediteurOrganisationId,
       destinataireOrganisationId,
+      expediteurContactId,
+      destinataireContactId,
       dateReception,
       reponseRequise,
       dateLimiteReponse,
       reponseAId,
       accordId,
       missionId,
-      documentId,
+      documentIds,
     } = req.body;
 
     // Validation des champs requis
@@ -153,13 +171,15 @@ export async function creer(req: Request, res: Response): Promise<void> {
       destinataireOrganisationId: destinataireOrganisationId
         ? parseInt(destinataireOrganisationId)
         : undefined,
+      expediteurContactId: expediteurContactId ? parseInt(expediteurContactId) : undefined,
+      destinataireContactId: destinataireContactId ? parseInt(destinataireContactId) : undefined,
       dateReception: new Date(dateReception),
       reponseRequise,
       dateLimiteReponse: dateLimiteReponse ? new Date(dateLimiteReponse) : undefined,
       reponseAId: reponseAId ? parseInt(reponseAId) : undefined,
       accordId: accordId ? parseInt(accordId) : undefined,
       missionId: missionId ? parseInt(missionId) : undefined,
-      documentId: documentId ? parseInt(documentId) : undefined,
+      documentIds: Array.isArray(documentIds) ? documentIds.map(Number) : undefined,
       createdByUserId: req.user!.userId,
     });
 
@@ -178,9 +198,33 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { objet, suiviStatut, dateLimiteReponse, accordId, missionId, documentId } = req.body;
+    const {
+      objet,
+      dateReception,
+      reponseRequise,
+      expediteurOrganisationId,
+      destinataireOrganisationId,
+      expediteurContactId,
+      destinataireContactId,
+      suiviStatut,
+      dateLimiteReponse,
+      accordId,
+      missionId,
+    } = req.body;
 
-    if (!objet && !suiviStatut && !dateLimiteReponse && !accordId && !missionId) {
+    if (
+      !objet &&
+      !dateReception &&
+      !reponseRequise &&
+      !expediteurOrganisationId &&
+      !destinataireOrganisationId &&
+      expediteurContactId === undefined &&
+      destinataireContactId === undefined &&
+      !suiviStatut &&
+      !dateLimiteReponse &&
+      !accordId &&
+      !missionId
+    ) {
       res.status(400).json({ message: 'Aucun champ à modifier.' });
       return;
     }
@@ -192,16 +236,73 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    // Validation reponseRequise
+    if (reponseRequise && !['oui', 'non', 'pour_information'].includes(reponseRequise)) {
+      res.status(400).json({ message: 'reponseRequise invalide.' });
+      return;
+    }
+
     const courrier = await courriersService.mettreAJourCourrier(id, {
       objet,
+      dateReception: dateReception ? new Date(dateReception) : undefined,
+      reponseRequise,
+      expediteurOrganisationId: expediteurOrganisationId ? parseInt(expediteurOrganisationId) : undefined,
+      destinataireOrganisationId: destinataireOrganisationId
+        ? parseInt(destinataireOrganisationId)
+        : undefined,
+      expediteurContactId:
+        expediteurContactId === null
+          ? null
+          : expediteurContactId !== undefined
+            ? parseInt(expediteurContactId)
+            : undefined,
+      destinataireContactId:
+        destinataireContactId === null
+          ? null
+          : destinataireContactId !== undefined
+            ? parseInt(destinataireContactId)
+            : undefined,
       suiviStatut,
       dateLimiteReponse: dateLimiteReponse ? new Date(dateLimiteReponse) : undefined,
       accordId: accordId ? parseInt(accordId) : undefined,
       missionId: missionId ? parseInt(missionId) : undefined,
-      documentId: documentId ? parseInt(documentId) : undefined,
       updatedByUserId: req.user!.userId,
     });
 
+    res.json(courrier);
+  } catch (error) {
+    handleCourriersError(res, error);
+  }
+}
+
+// ── POST /api/courriers/:id/documents ─────────────────────────────────────
+export async function ajouterDocument(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    const documentId = parseInt(req.body.documentId);
+    if (isNaN(id) || isNaN(documentId)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const courrier = await courriersService.ajouterDocumentCourrier(id, documentId, req.user!.userId);
+    res.json(courrier);
+  } catch (error) {
+    handleCourriersError(res, error);
+  }
+}
+
+// ── DELETE /api/courriers/:id/documents/:documentId ───────────────────────
+export async function retirerDocument(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    const documentId = parseInt(req.params.documentId);
+    if (isNaN(id) || isNaN(documentId)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const courrier = await courriersService.retirerDocumentCourrier(id, documentId, req.user!.userId);
     res.json(courrier);
   } catch (error) {
     handleCourriersError(res, error);

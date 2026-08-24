@@ -1,5 +1,89 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-24 — feat(client/server): Courriers module (M4) redesign
+
+Full redesign of the Courriers module, following the exact process and
+normalized pattern from this week's Missions redesign: Phase 1 audit →
+Phase 2 plan → registry → guided creation → detail workspace → live
+validation, then two feedback-driven follow-up rounds (real schema work
+for contact-level linking + multi-document attachment, then quick-create
++ edit-form field unlocking). Replaces the old split-pane (email-client
+style) list + flat single-step form.
+
+### Added — Registry (`/courriers`)
+- `courrier.types.ts` / `.constants.ts` / `.utils.ts` / `.schemas.ts` —
+  centralizes what was inline in the old `CourriersPage.tsx` (direction/
+  status badge logic, criticité-derived health signal).
+- `CourriersSummaryCards` (5 KPI cards) backed by a new
+  `GET /api/courriers/aggregates` endpoint (mirrors Missions/Accords
+  aggregates pattern).
+- `CourriersFilters` — type/statut/réponse (derived) + a real Période
+  filter (Ce mois/30 derniers jours/Cette année/Personnalisée), synced to
+  URL. Server gained `dateDebut`/`dateFin` range filtering on
+  `dateReception` and an `enDepassement` filter (shares its threshold
+  logic with the aggregates endpoint via `calculerLimiteCritique()`).
+- `CourriersRegistryTable` + mobile cards, full-width, replacing the
+  split-pane list.
+- `CourrierHealthBadge` / `getCourrierHealth()` — centralizes the
+  direction/statut/criticité → tone+label mapping that used to be inline
+  in `BadgeSuivi`/`BadgeDirection`.
+
+### Added — Guided creation & edit (`/courriers/new`, `/courriers/:id/edit`)
+- `CourrierCreateStepper` — 4-step flow (informations générales,
+  expéditeur/destinataire, documents, vérification). No "Contenu" step —
+  no body-content field exists, only `objet`, already covered in step 1.
+- `CourrierEditForm` — grouped sections. Direction stays immutable (a
+  courrier doesn't flip entrant/sortant); expéditeur/destinataire, date,
+  and réponse requise are editable per explicit follow-up request (see
+  below) — the server previously silently ignored these on `PATCH`.
+- Quick-create: `QuickCreateOrganisationDialog` + `QuickCreateContactDialog`
+  (contact-only variant — org already chosen by the time it opens, unlike
+  Missions' combined two-layer dialog), reusing the exact
+  `FormulaireOrganisation`/`FormulaireContact` from Partenaires. Wired into
+  both create and edit.
+
+### Added — Detail workspace (`/courriers/:id`, new real route)
+- `CourrierDetailHeader` (direction/health badges, Modifier/Répondre,
+  Imprimer via the existing `PdfPreviewDialog`, Archiver), `CourrierSummaryStrip`,
+  `CourrierOverview` (3-column: informations clés / suivi — real 2-transition
+  lifecycle, no invented stages / documents-réponse), `CourrierDocumentSection`
+  (fully interactive — add/remove per document), `CourrierResponseSection`
+  (réponse tracking + fil de correspondance + relance, combined — reuses
+  `ModalRelance`/`HistoriqueNotifications` unchanged).
+
+### Added — Real schema work (migration `0013_nappy_tombstone.sql`)
+- **Contact-level sender/recipient**: `courriers.expediteurContactId` /
+  `destinataireContactId` (nullable FK → `contacts.id`) — a refinement of
+  the existing organisation link, not a replacement. `GET /api/contacts`
+  gained an `organisationId` filter to scope the picker. Server validates
+  a contact always belongs to its organisation, including on edit — an
+  org change without an explicit contact update/clear is now rejected
+  (`CONTACT_EXPEDITEUR_INVALIDE`), not silently allowed to go stale.
+- **Multi-document attachment**: new `courrier_documents` join table
+  (replaces the single `documentId` column for new code — the column
+  itself is kept, unused, for backward compatibility rather than a
+  destructive drop). Migration backfills every existing single-document
+  link into the join table. New `POST/DELETE /api/courriers/:id/documents`
+  endpoints with dedicated `ajouterDocumentCourrier`/`retirerDocumentCourrier`
+  service functions (audit-logged as `COURRIER_DOCUMENT_AJOUTE`/`_RETIRE`).
+- `CourrierView`/`Courrier` (client) now carry `documents: DocumentResume[]`
+  and `expediteurContact?`/`destinataireContact?` instead of a single
+  `documentId`. `courriers.export.service.ts` (the PDF fiche) updated to
+  render the full document list and prefer the explicit contact over the
+  organisation's generic `contactPrincipal`.
+
+### Changed
+- `MISSION_PAGE_SIZE` (was 10) and `COURRIER_PAGE_SIZE` (was 20) both set
+  to 8, matching the convention Accords/Partenaires already used.
+
+### Deliberately not built (avoid inventing data)
+Same discipline as the PDF export work: courrier body/"Contenu" text (no
+field exists), the mockup's 5-stage courrier stepper (only 3 real
+`suiviStatut` values exist — rendered as a 2-transition progress
+indicator instead), multi-level correspondence threads (only one level of
+`reponseAId` exists). Flagged as future backlog if ever wanted, not
+silently fabricated.
+
 ## [Unreleased] — 2026-08-24 — feat(client/server): individual PDF export (accords, courriers, missions)
 
 Closed the "Export PDF/DOCX individuel" backlog item (Sprint 3/11, HAUTE) —

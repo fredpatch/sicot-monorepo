@@ -52,7 +52,7 @@ Internal web application for **ANAC Gabon** (Agence Nationale de l'Aviation Civi
 | Sprint 9 — Portail Documentaire      | ✅ Done       | /portail public, téléchargement tokénisé                                 |
 | Sprint 10 — Paramètres Système       | ✅ Done       | OTP, blocage compte, rétention, journal d'audit UI+export                |
 | Sprint 11 — Analytics & Rapports M11 | ✅ Done       | 27 métriques, export CSV/Excel, rapports PDF/Excel + cron mensuel        |
-| Sprint 12 — Missions M3 redesign + deployment infra + PDF export | ✅ Done (2026-08-24) | Registry/creation/detail workspace, logistics checklist migration, Docker/CI-CD, individual PDF export w/ preview |
+| Sprint 12 — Missions M3 + Courriers M4 redesigns + deployment infra + PDF export | ✅ Done (2026-08-24) | Registry/creation/detail workspace ×2, logistics checklist migration, contact-level linking + multi-document attachment (migration 0013), Docker/CI-CD, individual PDF export w/ preview |
 | Sprint 6 — Tests & Recette           | ⏳ Pending    | Deferred after Sprint 8/9/10                                             |
 | Sprint 7 — Déploiement + Formation   | 🟡 Partial    | Docker/VPS path ready; SERV-APPI install + formations still pending      |
 

@@ -4,6 +4,14 @@ export type CourrierDirection = 'entrant' | 'sortant';
 export type CourrierReponseStatut = 'oui' | 'non' | 'pour_information';
 export type CourrierSuiviStatut = 'en_attente' | 'repondu' | 'archive';
 
+export interface CourriersAggregates {
+  total: number;
+  aTraiter: number;
+  enAttenteReponse: number;
+  enDepassement: number;
+  envoyes: number;
+}
+
 export const courriersApi = {
   // ── Lecture ──────────────────────────────────────────────────────────────
 
@@ -13,7 +21,10 @@ export const courriersApi = {
     suiviStatut?: CourrierSuiviStatut;
     reponseRequise?: CourrierReponseStatut;
     sansReponse?: boolean;
+    enDepassement?: boolean;
     organisationId?: number;
+    dateDebut?: string;
+    dateFin?: string;
     page?: number;
     pageSize?: number;
   }) => api.get('/courriers', { params }),
@@ -25,6 +36,9 @@ export const courriersApi = {
 
   // Courriers entrants sans réponse — dashboard M9
   sansReponse: () => api.get('/courriers/sans-reponse'),
+
+  // Compteurs globaux, indépendants des filtres courants (cartes de synthèse)
+  aggregates: () => api.get('/courriers/aggregates'),
 
   // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
   getUrlExportPDF: (id: number) => `/api/courriers/${id}/export/pdf`,
@@ -38,11 +52,13 @@ export const courriersApi = {
     reponseRequise: CourrierReponseStatut;
     expediteurOrganisationId?: number;
     destinataireOrganisationId?: number;
+    expediteurContactId?: number;
+    destinataireContactId?: number;
     dateLimiteReponse?: string;
     reponseAId?: number; // fil de correspondance
     accordId?: number;
     missionId?: number;
-    documentId?: number;
+    documentIds?: number[];
   }) => api.post('/courriers', data),
 
   // ── Modification ─────────────────────────────────────────────────────────
@@ -51,11 +67,24 @@ export const courriersApi = {
     id: number,
     data: {
       objet?: string;
+      dateReception?: string;
+      reponseRequise?: CourrierReponseStatut;
+      expediteurOrganisationId?: number;
+      destinataireOrganisationId?: number;
+      expediteurContactId?: number | null;
+      destinataireContactId?: number | null;
       suiviStatut?: CourrierSuiviStatut;
       dateLimiteReponse?: string;
       accordId?: number;
       missionId?: number;
-      documentId?: number;
     }
   ) => api.patch(`/courriers/${id}`, data),
+
+  // ── Documents joints ─────────────────────────────────────────────────────
+
+  ajouterDocument: (id: number, documentId: number) =>
+    api.post(`/courriers/${id}/documents`, { documentId }),
+
+  retirerDocument: (id: number, documentId: number) =>
+    api.delete(`/courriers/${id}/documents/${documentId}`),
 };

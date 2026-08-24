@@ -1,400 +1,237 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  ArrowDownLeft,
-  ArrowUpRight,
-  AlertCircle,
-} from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { courriersApi } from '@/lib/courriers.api';
+import { COURRIER_PAGE_SIZE } from './courriers/courrier.constants';
+import type { Courrier, CourrierDirection, CourrierListResponse, CourrierSuiviStatut, CourriersAggregates } from './courriers/courrier.types';
+import { CourriersFilters } from './courriers/components/CourriersFilters';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  courriersApi,
-  type CourrierDirection,
-  type CourrierSuiviStatut,
-} from '@/lib/courriers.api';
-import CourrierDetail from './courriers/components/CourrierDetail';
+  CourriersRegistryMobileCards,
+  CourriersRegistryTable,
+} from './courriers/components/CourriersRegistryTable';
+import { CourriersSummaryCards } from './courriers/components/CourriersSummaryCards';
+import { getPeriodeRange } from './courriers/courrier.utils';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-interface OrganisationResume {
-  id: number;
-  nom: string;
-  pays: string;
+function useDebouncedValue<T>(value: T, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(handle);
+  }, [value, delay]);
+
+  return debounced;
 }
 
-type CourrierCriticite = 'normal' | 'a_surveiller' | 'critique';
-
-interface Courrier {
-  id: number;
-  reference: string;
-  direction: CourrierDirection;
-  objet: string;
-  expediteur?: OrganisationResume;
-  destinataire?: OrganisationResume;
-  dateReception: string;
-  reponseRequise: 'oui' | 'non' | 'pour_information';
-  dateLimiteReponse?: string;
-  suiviStatut: CourrierSuiviStatut;
-  reponseAId?: number;
-  accordId?: number;
-  missionId?: number;
-  createdAt: string;
-
-  criticite?: CourrierCriticite;
-  joursAttente?: number;
-}
-
-// ── Badges ─────────────────────────────────────────────────────────────────
-function BadgeDirection({ direction }: { direction: CourrierDirection }) {
-  if (direction === 'entrant') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 rounded px-1.5 py-0.5">
-        <ArrowDownLeft size={10} /> Entrant
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-700 bg-violet-50 rounded px-1.5 py-0.5">
-      <ArrowUpRight size={10} /> Sortant
-    </span>
-  );
-}
-
-function BadgeSuivi({
-  statut,
-  reponseRequise,
-  criticite,
-}: {
-  statut: CourrierSuiviStatut;
-  reponseRequise: string;
-  criticite?: CourrierCriticite;
-}) {
-  if (statut === 'archive') {
-    return <span className="badge-expire">Archivé</span>;
-  }
-  if (statut === 'repondu') {
-    return <span className="badge-actif">Répondu</span>;
-  }
-
-  // en_attente — utiliser la criticité si calculée
-  if (criticite === 'critique') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-white bg-red-600 rounded px-1.5 py-0.5">
-        <AlertCircle size={10} /> Critique
-      </span>
-    );
-  }
-  if (criticite === 'a_surveiller') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
-        <AlertCircle size={10} /> À surveiller
-      </span>
-    );
-  }
-  if (reponseRequise === 'oui') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-700 bg-red-50 rounded px-1.5 py-0.5">
-        <AlertCircle size={10} /> En attente
-      </span>
-    );
-  }
-  return <span className="badge-info">En attente</span>;
-}
-
-const FILTRES_DIRECTION = [
-  { value: '__all__', label: 'Tous' },
-  { value: 'entrant', label: 'Entrants' },
-  { value: 'sortant', label: 'Sortants' },
-];
-
-const FILTRES_STATUT = [
-  { value: '__all__', label: 'Tous les statuts' },
-  { value: 'en_attente', label: 'En attente' },
-  { value: 'repondu', label: 'Répondu' },
-  { value: 'archive', label: 'Archivé' },
-];
-
-// ── Composant principal ────────────────────────────────────────────────────
 export default function CourriersPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const courrierIdSelectionne = id ? parseInt(id) : null;
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // ── Filtres ───────────────────────────────────────────────────────────
-  const [search, setSearch] = useState('');
-  const [direction, setDirection] = useState('');
-  const [statut, setStatut] = useState('');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
+  const debouncedSearch = useDebouncedValue(search);
+  const direction = searchParams.get('direction') ?? '';
+  const statut = searchParams.get('statut') ?? '';
+  // Derived filter — attendue/en_depassement/repondu, not a stored field.
+  // See courrier.constants.ts's COURRIER_RESPONSE_FILTER_OPTIONS.
+  const reponse = searchParams.get('reponse') ?? '';
+  const periode = searchParams.get('periode') ?? '';
+  const periodeDebut = searchParams.get('periodeDebut') ?? '';
+  const periodeFin = searchParams.get('periodeFin') ?? '';
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
 
-  // ── Requête liste ─────────────────────────────────────────────────────
-  const { data, isLoading } = useQuery({
-    queryKey: ['courriers', search, direction, statut, page],
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const next = new URLSearchParams(searchParams);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === '') next.delete(key);
+        else next.set(key, value);
+      }
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  useEffect(() => {
+    const current = searchParams.get('search') ?? '';
+    if (debouncedSearch === current) return;
+    updateParams({ search: debouncedSearch || null, page: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const periodeRange = useMemo(
+    () => getPeriodeRange(periode, { dateDebut: periodeDebut, dateFin: periodeFin }),
+    [periode, periodeDebut, periodeFin]
+  );
+
+  const queryParams = useMemo(() => {
+    const base = {
+      search: debouncedSearch || undefined,
+      direction: direction ? (direction as CourrierDirection) : undefined,
+      statut: statut ? (statut as CourrierSuiviStatut) : undefined,
+      dateDebut: periodeRange.dateDebut,
+      dateFin: periodeRange.dateFin,
+      page,
+      pageSize: COURRIER_PAGE_SIZE,
+    };
+
+    if (reponse === 'attendue') {
+      return { ...base, reponseRequise: 'oui' as const, statut: 'en_attente' as const };
+    }
+    if (reponse === 'en_depassement') {
+      return { ...base, enDepassement: true };
+    }
+    if (reponse === 'repondu') {
+      return { ...base, statut: 'repondu' as const };
+    }
+    return base;
+  }, [debouncedSearch, direction, statut, reponse, periodeRange, page]);
+
+  const courriersQuery = useQuery({
+    queryKey: ['courriers', queryParams],
     queryFn: async () => {
-      const res = await courriersApi.lister({
-        search: search || undefined,
-        direction: direction ? (direction as CourrierDirection) : undefined,
-        suiviStatut: statut ? (statut as CourrierSuiviStatut) : undefined,
-        page,
-        pageSize: 30,
-      });
-      return res.data as { data: Courrier[]; total: number };
+      const res = await courriersApi.lister(queryParams);
+      return res.data as CourrierListResponse;
     },
   });
 
-  const totalPages = data ? Math.ceil(data.total / 30) : 0;
+  const aggregatesQuery = useQuery({
+    queryKey: ['courriers-aggregates'],
+    queryFn: async () => {
+      const res = await courriersApi.aggregates();
+      return res.data as CourriersAggregates;
+    },
+  });
 
-  function filtresActifs() {
-    return search !== '' || direction !== '' || statut !== '';
-  }
+  const courriers: Courrier[] = courriersQuery.data?.data ?? [];
+  const totalPages = courriersQuery.data ? Math.ceil(courriersQuery.data.total / COURRIER_PAGE_SIZE) : 0;
+  const hasFilters = Boolean(debouncedSearch || direction || statut || reponse || periode);
 
-  function reinitialiser() {
+  function resetFilters() {
     setSearch('');
-    setDirection('');
-    setStatut('');
-    setPage(1);
+    setSearchParams({}, { replace: true });
   }
 
-  function selectionner(courrierId: number) {
-    if (courrierId === courrierIdSelectionne) {
-      navigate('/courriers');
-    } else {
-      navigate(`/courriers/${courrierId}`);
-    }
+  function setFilter(key: string, value: string) {
+    updateParams({ [key]: value || null, page: null });
   }
 
-  // ── Rendu ─────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-0 overflow-hidden">
-      {/* ── Colonne gauche — liste ────────────────────────────────────
-          Masquée sur mobile quand un courrier est sélectionné        */}
-      <div
-        className={`
-          flex flex-col border-r border-anac-border bg-white
-          w-full md:w-80 lg:w-96 shrink-0
-          ${courrierIdSelectionne ? 'hidden md:flex' : 'flex'}
-        `}
-      >
-        {/* En-tête colonne gauche */}
-        <div className="p-4 border-b border-anac-border space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-anac-navy">Correspondances</h2>
+    <div className="mx-auto max-w-[1280px] space-y-5">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold leading-tight text-anac-navy">Courriers</h2>
+          <p className="mt-1 text-sm text-anac-muted">
+            Gérez les courriers entrants et sortants ainsi que leur suivi.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" onClick={() => navigate('/courriers/new')} className="gap-2 bg-anac-blue">
+            <Plus size={14} aria-hidden="true" />
+            Nouveau courrier
+          </Button>
+        </div>
+      </header>
+
+      <CourriersSummaryCards aggregates={aggregatesQuery.data} />
+
+      <CourriersFilters
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          updateParams({ page: null });
+        }}
+        direction={direction}
+        onDirectionChange={(value) => setFilter('direction', value)}
+        statut={statut}
+        onStatutChange={(value) => setFilter('statut', value)}
+        reponse={reponse}
+        onReponseChange={(value) => setFilter('reponse', value)}
+        periode={periode}
+        onPeriodeChange={(value) => setFilter('periode', value)}
+        periodeDebut={periodeDebut}
+        onPeriodeDebutChange={(value) => setFilter('periodeDebut', value)}
+        periodeFin={periodeFin}
+        onPeriodeFinChange={(value) => setFilter('periodeFin', value)}
+        resultCount={courriersQuery.data?.total ?? 0}
+        onReset={resetFilters}
+      />
+
+      {courriersQuery.isLoading ? (
+        <div className="card flex min-h-64 items-center justify-center text-anac-muted">
+          <Loader2 size={17} className="mr-2 animate-spin" aria-hidden="true" />
+          Chargement des courriers...
+        </div>
+      ) : courriersQuery.isError ? (
+        <div className="card flex min-h-64 flex-col items-center justify-center gap-3 text-center">
+          <p className="font-semibold text-anac-navy">Impossible de charger les courriers.</p>
+          <p className="text-sm text-anac-muted">Vérifiez la connexion au serveur puis réessayez.</p>
+          <Button type="button" variant="outline" onClick={() => courriersQuery.refetch()} className="gap-2">
+            <RefreshCw size={14} aria-hidden="true" />
+            Réessayer
+          </Button>
+        </div>
+      ) : courriers.length === 0 ? (
+        <div className="card flex min-h-64 flex-col items-center justify-center gap-2 text-center">
+          <p className="font-semibold text-anac-navy">
+            {hasFilters
+              ? 'Aucun courrier ne correspond aux filtres sélectionnés.'
+              : 'Aucun courrier enregistré.'}
+          </p>
+          <p className="text-sm text-anac-muted">
+            {hasFilters
+              ? 'Modifiez les filtres ou réinitialisez la recherche.'
+              : 'Enregistrez le premier courrier entrant ou sortant.'}
+          </p>
+          {hasFilters ? (
+            <Button type="button" variant="outline" onClick={resetFilters}>
+              Réinitialiser les filtres
+            </Button>
+          ) : (
+            <Button type="button" onClick={() => navigate('/courriers/new')} className="gap-2 bg-anac-blue">
+              <Plus size={14} aria-hidden="true" />
+              Nouveau courrier
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          <CourriersRegistryTable courriers={courriers} />
+          <CourriersRegistryMobileCards courriers={courriers} />
+        </>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-lg border border-anac-border bg-white px-4 py-3">
+          <p className="text-sm text-anac-muted">
+            Page <strong className="text-anac-navy">{page}</strong> sur {totalPages}
+          </p>
+          <div className="flex gap-2">
             <Button
+              type="button"
+              variant="outline"
               size="sm"
-              onClick={() => navigate('/courriers/new')}
-              className="gap-1.5 h-8 text-xs"
+              onClick={() => updateParams({ page: Math.max(1, page - 1).toString() })}
+              disabled={page <= 1}
+              aria-label="Page précédente"
             >
-              <Plus size={12} /> Nouveau
+              <ChevronLeft size={14} aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => updateParams({ page: Math.min(totalPages, page + 1).toString() })}
+              disabled={page >= totalPages}
+              aria-label="Page suivante"
+            >
+              <ChevronRight size={14} aria-hidden="true" />
             </Button>
           </div>
-
-          {/* Filtres compacts */}
-          <Input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="h-8 text-sm"
-          />
-
-          <div className="flex gap-2">
-            <Select
-              value={direction || '__all__'}
-              onValueChange={(v) => {
-                setDirection(v === '__all__' ? '' : v);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {FILTRES_DIRECTION.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>
-                    {f.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={statut || '__all__'}
-              onValueChange={(v) => {
-                setStatut(v === '__all__' ? '' : v);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {FILTRES_STATUT.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>
-                    {f.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {filtresActifs() && (
-            <button
-              onClick={reinitialiser}
-              className="text-xs text-anac-sky hover:text-anac-navy transition-colors"
-            >
-              Réinitialiser les filtres
-            </button>
-          )}
         </div>
-
-        {/* Liste courriers */}
-        <div className="flex-1 overflow-y-auto divide-y divide-anac-border/60">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16 text-anac-muted">
-              <Loader2 size={16} className="animate-spin mr-2" />
-              {t('common.loading')}
-            </div>
-          ) : data?.data.length === 0 ? (
-            <div className="text-center py-16 text-anac-muted text-sm">{t('common.noData')}</div>
-          ) : (
-            data?.data.map((courrier) => {
-              const estSelectionne = courrier.id === courrierIdSelectionne;
-              const interlocuteur =
-                courrier.direction === 'entrant' ? courrier.expediteur : courrier.destinataire;
-              const enAttenteUrgent =
-                courrier.suiviStatut === 'en_attente' &&
-                courrier.reponseRequise === 'oui' &&
-                courrier.direction === 'entrant';
-
-              return (
-                <button
-                  key={courrier.id}
-                  onClick={() => selectionner(courrier.id)}
-                  className={`
-                    w-full text-left px-4 py-3 transition-colors
-                    hover:bg-anac-gray/60
-                    ${estSelectionne ? 'bg-anac-sky/8 border-l-2 border-anac-sky' : ''}
-                  `}
-                >
-                  {/* Ligne 1 : direction + date */}
-                  <div className="flex items-center justify-between mb-1">
-                    <BadgeDirection direction={courrier.direction} />
-                    <span className="text-[11px] text-anac-muted">
-                      {new Date(courrier.dateReception).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-
-                  {/* Ligne 2 : objet */}
-                  <div
-                    className={`text-sm truncate ${enAttenteUrgent ? 'font-semibold text-anac-navy' : 'font-medium text-anac-text'}`}
-                  >
-                    {courrier.objet}
-                  </div>
-
-                  {/* Ligne 3 : interlocuteur + statut */}
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-anac-muted truncate max-w-[55%]">
-                      {interlocuteur?.nom ?? '—'}
-                    </span>
-                    <BadgeSuivi
-                      statut={courrier.suiviStatut}
-                      reponseRequise={courrier.reponseRequise}
-                      criticite={courrier.criticite}
-                    />
-                  </div>
-
-                  {/* Indicateur date limite dépassée */}
-                  {courrier.criticite &&
-                    courrier.criticite !== 'normal' &&
-                    courrier.joursAttente !== undefined && (
-                      <div
-                        className={`text-[11px] font-medium mt-1 ${
-                          courrier.criticite === 'critique' ? 'text-red-600' : 'text-amber-600'
-                        }`}
-                      >
-                        {courrier.criticite === 'critique' ? '⚠⚠' : '⚠'} En attente depuis{' '}
-                        {courrier.joursAttente} jours
-                      </div>
-                    )}
-                </button>
-              );
-            })
-          )}
-        </div>
-
-        {/* Pagination compacte */}
-        {totalPages > 1 && (
-          <div className="p-3 border-t border-anac-border flex items-center justify-between">
-            <span className="text-xs text-anac-muted">
-              {page} / {totalPages}
-            </span>
-            <div className="flex gap-1">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="h-7 w-7 p-0"
-              >
-                <ChevronLeft size={13} />
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="h-7 w-7 p-0"
-              >
-                <ChevronRight size={13} />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Colonne droite — détail ───────────────────────────────────── */}
-      <div
-        className={`
-        flex-1 overflow-hidden
-        ${courrierIdSelectionne ? 'flex' : 'hidden md:flex'}
-      `}
-      >
-        {courrierIdSelectionne ? (
-          <CourrierDetail
-            courrierId={courrierIdSelectionne}
-            onRetour={() => navigate('/courriers')}
-            onModifier={() => navigate(`/courriers/${courrierIdSelectionne}/edit`)}
-            onRepondre={() => navigate(`/courriers/new?reponseAId=${courrierIdSelectionne}`)}
-          />
-        ) : (
-          /* État vide — aucun courrier sélectionné */
-          <div className="flex-1 flex flex-col items-center justify-center text-anac-muted gap-3">
-            <div className="w-12 h-12 rounded-full bg-anac-gray flex items-center justify-center">
-              <ArrowDownLeft size={20} className="text-anac-muted" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-anac-navy">Sélectionnez un courrier</p>
-              <p className="text-xs mt-0.5">Cliquez sur un courrier pour voir les détails</p>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

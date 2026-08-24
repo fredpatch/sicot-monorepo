@@ -130,6 +130,8 @@ const LABELS_ACTION: Record<string, string> = {
   ACCORD_RENOUVELE: 'Renouvellement',
   COURRIER_CREE: 'Création',
   COURRIER_MODIFIE: 'Modification',
+  COURRIER_DOCUMENT_AJOUTE: 'Document ajouté',
+  COURRIER_DOCUMENT_RETIRE: 'Document retiré',
   MISSION_CREEE: 'Création',
   MISSION_MODIFIEE: 'Modification',
 };

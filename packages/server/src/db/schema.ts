@@ -316,6 +316,11 @@ export const courriers = pgTable(
     destinataireOrganisationId: integer('destinataire_organisation_id').references(
       () => organisations.id
     ),
+    // Optional refinement — a specific contact within the organisation
+    // above, not a replacement for it (the organisation stays the primary
+    // interlocutor; the contact is who to reach there).
+    expediteurContactId: integer('expediteur_contact_id').references(() => contacts.id),
+    destinataireContactId: integer('destinataire_contact_id').references(() => contacts.id),
     dateReception: timestamp('date_reception').notNull(),
     reponseRequise: courrierReponseStatutEnum('reponse_requise').notNull(),
     dateLimiteReponse: timestamp('date_limite_reponse'),
@@ -332,6 +337,24 @@ export const courriers = pgTable(
     index('courriers_direction_idx').on(t.direction),
     index('courriers_statut_idx').on(t.suiviStatut),
   ]
+);
+
+// Multi-document attachment — courriers.documentId (above) is kept for
+// backward compatibility but is no longer written to by new code; this
+// join table is now the source of truth for "documents joints".
+export const courrierDocuments = pgTable(
+  'courrier_documents',
+  {
+    id: serial('id').primaryKey(),
+    courrierId: integer('courrier_id')
+      .notNull()
+      .references(() => courriers.id),
+    documentId: integer('document_id')
+      .notNull()
+      .references(() => documents.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [index('courrier_documents_courrier_idx').on(t.courrierId)]
 );
 
 // ── M3 - Missions ──────────────────────────────────────────────────────────

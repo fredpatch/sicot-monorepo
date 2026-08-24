@@ -68,8 +68,12 @@ PATCH /api/organisations/:id   Update organisation
 POST /api/bootstrap            Create initial super_admin account
 GET  /api/accords              List accords (filter: statut, partenaire, expirant)
 POST /api/accords/:id/renouveler  Renew accord
-GET  /api/courriers            List courriers (filter: direction, statut, sansReponse)
+GET  /api/courriers            List courriers (filter: direction, statut, sansReponse, enDepassement, dateDebut/dateFin)
+GET  /api/courriers/aggregates Global KPI counts, independent of current filters
 GET  /api/courriers/:id/fil    Thread (fil de correspondance)
+POST /api/courriers/:id/documents            Attach a document (courrier_documents join table)
+DELETE /api/courriers/:id/documents/:documentId  Detach a document
+GET  /api/contacts             List contacts (filter: search, actif, organisationId)
 GET  /api/missions             List missions + recommandations
 GET  /api/missions/recommandations/en-attente  Pending recommandations
 GET  /api/accords/:id/export/pdf    Individual PDF fiche (add ?apercu=1 for inline preview)
@@ -116,7 +120,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) redesign + individual PDF export
+🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) redesigns + individual PDF export
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -137,14 +141,17 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 - **Portal route bug** — `/portail` href → `/portal` in DocumentsPage.tsx
 - **Missions Période filter** — deferred during the M3 redesign (à venir/en
   cours/30j/cette année/terminées needs more date-range logic than this
-  pass covered) — Notion Sprint 12, À faire
-- **Shared SummaryCard component** — still copy-pasted 3× (Accords,
-  Partenaires, Missions), not extracted to avoid touching modules outside
-  each task's scope — Notion Sprint 12, À faire
-- **PDF export — Tier 2 fields** — full mockup parity needs real schema
-  work (courrier body/"Contenu" text, multi-document linking, accord
-  type/durée/renouvelable, mission organisateur/objectif/résumé
-  d'activités, per-mission participant role). Individual PDF export
-  itself is DONE (2026-08-24); this is the follow-up if full parity is
-  wanted — Notion Sprint 12, À faire
+  pass covered). Courriers got its own Période filter during the M4
+  redesign (2026-08-24) — the same could be ported to Missions — Notion
+  Sprint 12, À faire
+- **Shared SummaryCard component** — still copy-pasted 4× now (Accords,
+  Partenaires, Missions, Courriers), not extracted to avoid touching
+  modules outside each task's scope — Notion Sprint 12, À faire
+- **PDF export — remaining Tier 2 fields** — courrier contact-level
+  sender/recipient and multi-document attachment are now DONE
+  (2026-08-24, Courriers M4 redesign) and already reflected in the PDF
+  fiche. Still open: courrier body/"Contenu" text (no field exists),
+  accord type/durée/renouvelable, mission organisateur/objectif/résumé
+  d'activités, per-mission participant role, multi-level correspondence
+  threads — Notion Sprint 12, À faire
 - **No automated test suite** — CI is lint + build only

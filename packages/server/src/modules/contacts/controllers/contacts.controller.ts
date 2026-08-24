@@ -4,11 +4,12 @@ import * as contactsService from '../services/contacts.service';
 // ── GET /api/contacts ───────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { search, actif, pageSize } = req.query;
+    const { search, actif, organisationId, pageSize } = req.query;
 
     const data = await contactsService.listerContacts({
       search: search as string | undefined,
       actif: actif !== undefined ? actif === 'true' : undefined,
+      organisationId: organisationId ? parseInt(organisationId as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
     });
 

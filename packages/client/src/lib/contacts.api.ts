@@ -12,6 +12,6 @@ export interface ContactListItem {
 }
 
 export const contactsApi = {
-  lister: (params?: { search?: string; actif?: boolean; pageSize?: number }) =>
+  lister: (params?: { search?: string; actif?: boolean; organisationId?: number; pageSize?: number }) =>
     api.get('/contacts', { params }),
 };

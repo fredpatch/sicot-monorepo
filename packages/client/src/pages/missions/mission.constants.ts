@@ -1,6 +1,6 @@
 import type { MissionStatut, RecommandationStatut, LogistiqueStatut } from '@/lib/missions.api';
 
-export const MISSION_PAGE_SIZE = 10;
+export const MISSION_PAGE_SIZE = 8;
 
 // A mission departing within this window with logistics not yet confirmed
 // is flagged at-risk — kept in sync with the server's

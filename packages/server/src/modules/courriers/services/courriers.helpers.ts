@@ -1,5 +1,5 @@
 import { db } from '@/db/index';
-import { courriers, organisations, contacts } from '@/db/schema';
+import { courriers, courrierDocuments, organisations, contacts, documents } from '@/db/schema';
 import { eq, ilike, and } from 'drizzle-orm';
 import { getValeurEntier } from '@/modules/parametres/services/parametres.service';
 import type {
@@ -8,7 +8,9 @@ import type {
   CourrierSuiviStatut,
   CourrierCriticite,
   CourrierView,
+  ContactResume,
   OrganisationResume,
+  DocumentResume,
   SeuilsCriticite,
 } from './courriers.types';
 
@@ -61,15 +63,17 @@ export async function toCourrierView(
   courrier: typeof courriers.$inferSelect,
   seuils: SeuilsCriticite
 ): Promise<CourrierView> {
-  let expediteur: OrganisationResume | undefined;
-  if (courrier.expediteurOrganisationId) {
-    expediteur = await getOrganisationAvecContact(courrier.expediteurOrganisationId);
-  }
-
-  let destinataire: OrganisationResume | undefined;
-  if (courrier.destinataireOrganisationId) {
-    destinataire = await getOrganisationAvecContact(courrier.destinataireOrganisationId);
-  }
+  const [expediteur, destinataire, expediteurContact, destinataireContact, docs] = await Promise.all([
+    courrier.expediteurOrganisationId
+      ? getOrganisationAvecContact(courrier.expediteurOrganisationId)
+      : Promise.resolve(undefined),
+    courrier.destinataireOrganisationId
+      ? getOrganisationAvecContact(courrier.destinataireOrganisationId)
+      : Promise.resolve(undefined),
+    courrier.expediteurContactId ? getContact(courrier.expediteurContactId) : Promise.resolve(undefined),
+    courrier.destinataireContactId ? getContact(courrier.destinataireContactId) : Promise.resolve(undefined),
+    getDocumentsCourrier(courrier.id),
+  ]);
 
   const { criticite, joursAttente } = await calculerCriticite(courrier, seuils);
   return {
@@ -80,6 +84,8 @@ export async function toCourrierView(
     objet: courrier.objet,
     expediteur,
     destinataire,
+    expediteurContact,
+    destinataireContact,
     dateReception: courrier.dateReception,
     reponseRequise: courrier.reponseRequise as CourrierReponseStatut,
     dateLimiteReponse: courrier.dateLimiteReponse ?? undefined,
@@ -87,13 +93,53 @@ export async function toCourrierView(
     reponseAId: courrier.reponseAId ?? undefined,
     accordId: courrier.accordId ?? undefined,
     missionId: courrier.missionId ?? undefined,
-    documentId: courrier.documentId ?? undefined,
+    documents: docs,
     createdPar: courrier.createdPar ?? undefined,
     createdAt: courrier.createdAt,
     updatedAt: courrier.updatedAt,
     criticite,
     joursAttente,
   };
+}
+
+export async function getContact(contactId: number): Promise<ContactResume | undefined> {
+  const [contact] = await db
+    .select({
+      id: contacts.id,
+      nom: contacts.nom,
+      prenom: contacts.prenom,
+      email: contacts.email,
+      telephone: contacts.telephone,
+      poste: contacts.poste,
+    })
+    .from(contacts)
+    .where(eq(contacts.id, contactId));
+
+  if (!contact) return undefined;
+  return {
+    id: contact.id,
+    nom: contact.nom,
+    prenom: contact.prenom,
+    email: contact.email ?? undefined,
+    telephone: contact.telephone ?? undefined,
+    poste: contact.poste ?? undefined,
+  };
+}
+
+export async function getDocumentsCourrier(courrierId: number): Promise<DocumentResume[]> {
+  const rows = await db
+    .select({
+      id: documents.id,
+      nomOriginal: documents.nomOriginal,
+      mimeType: documents.mimeType,
+      createdAt: courrierDocuments.createdAt,
+    })
+    .from(courrierDocuments)
+    .innerJoin(documents, eq(courrierDocuments.documentId, documents.id))
+    .where(eq(courrierDocuments.courrierId, courrierId))
+    .orderBy(courrierDocuments.createdAt);
+
+  return rows;
 }
 
 export async function getOrganisationAvecContact(orgId: number): Promise<OrganisationResume> {

@@ -10,6 +10,7 @@ router.use(authenticate);
 
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
 router.get('/sans-reponse', courriersController.sansReponse);
+router.get('/aggregates', courriersController.aggregates);
 
 // ── Lecture — accessible à tous ───────────────────────────────────────────
 router.get('/', courriersController.lister);
@@ -20,5 +21,7 @@ router.get('/:id/export/pdf', courriersController.exporterPDF);
 // ── Création et modification — agent minimum ──────────────────────────────
 router.post('/', requireRole('agent'), courriersController.creer);
 router.patch('/:id', requireRole('agent'), courriersController.mettreAJour);
+router.post('/:id/documents', requireRole('agent'), courriersController.ajouterDocument);
+router.delete('/:id/documents/:documentId', requireRole('agent'), courriersController.retirerDocument);
 
 export default router;

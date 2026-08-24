@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db/index.js';
-import { users, documents } from '@/db/schema';
+import { users } from '@/db/schema';
 import { genererPDFFiche, echapperHTML } from '@/utils/pdf.js';
 import {
   masthead,
@@ -54,24 +54,25 @@ function formatDate(date?: Date): string {
   return date ? new Date(date).toLocaleDateString('fr-FR') : '—';
 }
 
-function formatOrganisation(org?: CourrierView['expediteur']): string {
+// Le contact explicitement choisi prime sur le contact principal générique
+// de l'organisation — un choix explicite ne doit pas être silencieusement
+// remplacé par quelqu'un d'autre.
+function formatOrganisation(
+  org?: CourrierView['expediteur'],
+  contactChoisi?: CourrierView['expediteurContact']
+): string {
   if (!org) return '—';
-  const contact = org.contactPrincipal
-    ? ` — contact : ${echapperHTML(`${org.contactPrincipal.prenom} ${org.contactPrincipal.nom}`)}`
-    : '';
+  const contact = contactChoisi
+    ? ` — contact : ${echapperHTML(`${contactChoisi.prenom} ${contactChoisi.nom}`)}`
+    : org.contactPrincipal
+      ? ` — contact : ${echapperHTML(`${org.contactPrincipal.prenom} ${org.contactPrincipal.nom}`)}`
+      : '';
   return `${echapperHTML(org.nom)} (${echapperHTML(org.pays)})${contact}`;
 }
 
 // ── Export PDF — fiche individuelle d'un courrier ──────────────────────────
 export async function genererPDFCourrier(courrier: CourrierView): Promise<Buffer> {
-  const [document, responsable, historique] = await Promise.all([
-    courrier.documentId
-      ? db
-          .select({ id: documents.id, nomOriginal: documents.nomOriginal, mimeType: documents.mimeType })
-          .from(documents)
-          .where(eq(documents.id, courrier.documentId))
-          .then((rows) => rows[0])
-      : Promise.resolve(undefined),
+  const [responsable, historique] = await Promise.all([
     courrier.createdPar
       ? db
           .select({ nom: users.nom, prenom: users.prenom, email: users.email, role: users.role })
@@ -100,17 +101,15 @@ export async function genererPDFCourrier(courrier: CourrierView): Promise<Buffer
   const correspondants = sectionBox({
     titre: 'Correspondants',
     contenu: grilleInfos([
-      { label: 'Expéditeur', valeur: formatOrganisation(courrier.expediteur) },
-      { label: 'Destinataire', valeur: formatOrganisation(courrier.destinataire) },
+      { label: 'Expéditeur', valeur: formatOrganisation(courrier.expediteur, courrier.expediteurContact) },
+      { label: 'Destinataire', valeur: formatOrganisation(courrier.destinataire, courrier.destinataireContact) },
     ]),
   });
 
-  const documentHTML = document
-    ? tableSimple(
-        ['Nom du document', 'Type'],
-        [[echapperHTML(document.nomOriginal), echapperHTML(document.mimeType)]]
-      )
-    : `<p style="font-size:9px; color:#9ca3af; margin:0;">Aucun document lié.</p>`;
+  const documentHTML = tableSimple(
+    ['Nom du document', 'Type'],
+    courrier.documents.map((doc) => [echapperHTML(doc.nomOriginal), echapperHTML(doc.mimeType)])
+  );
 
   const responsableHTML = responsable
     ? grilleInfos([
@@ -130,7 +129,7 @@ export async function genererPDFCourrier(courrier: CourrierView): Promise<Buffer
       sectionBox({ titre: 'Informations générales', contenu: infosGenerales }),
       correspondants
     )}
-    ${sectionBox({ titre: 'Document lié', contenu: documentHTML })}
+    ${sectionBox({ titre: 'Documents joints', contenu: documentHTML })}
     ${deuxColonnes(
       sectionBox({ titre: 'Responsable', contenu: responsableHTML }),
       sectionBox({ titre: 'Historique', contenu: tableHistorique(historique) })

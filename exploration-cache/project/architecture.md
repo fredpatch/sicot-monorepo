@@ -285,9 +285,63 @@ Full detail in `changelog.md`. What matters for future sessions:
   type/durée, mission objectif/résumé d'activités, per-mission participant
   role). These are tracked as Tier 2 backlog (real schema decisions) —
   don't quietly add fake data to make a future mockup match instead of
-  asking whether the field should actually exist.
+  asking whether the field should actually exist. **Update (2026-08-24,
+  Courriers M4 redesign)**: courrier multi-document association and
+  contact-level sender/recipient are no longer Tier 2 — they're real
+  fields now (see § Courriers Module Redesign below). The rule still
+  applies to what's left: courrier body text, accord type/durée, mission
+  objectif/activités, per-mission participant role.
 - Preview-before-download: `GET /:id/export/pdf` accepts `?apercu=1` to
   switch `Content-Disposition` from `attachment` to `inline`. The client's
   `PdfPreviewDialog` (`packages/client/src/components/`) is the shared
   component for this — reuse it for any future "preview then download"
   flow instead of building a new modal.
+
+## Courriers Module (M4) Redesign (2026-08-24)
+
+Full-detail entry is in `changelog.md`. Same process as the Missions
+redesign, same normalized shape. What matters for future sessions:
+
+- `packages/client/src/pages/courriers/` now follows the same
+  feature-folder convention as Missions/Partenaires. `/courriers/:id` is a
+  real route now (was rendered inside a split-pane before).
+- **Contact-level sender/recipient is real now** —
+  `courriers.expediteurContactId`/`destinataireContactId` (migration
+  `0013_nappy_tombstone.sql`, nullable FK → `contacts.id`). It's a
+  *refinement* of the existing organisation link, not a replacement — a
+  courrier always has an organisation, and may additionally name a
+  specific contact there. **The server enforces the contact always
+  belongs to its organisation**, including on edit: changing
+  `expediteurOrganisationId` without also explicitly setting or
+  null-clearing `expediteurContactId` throws `CONTACT_EXPEDITEUR_INVALIDE`
+  rather than silently leaving a stale contact. Any future edit path that
+  touches the organisation field must preserve this check.
+- **Multi-document attachment is real now** — new `courrier_documents`
+  join table (same migration) is the source of truth for a courrier's
+  documents; the old single `courriers.documentId` column is **kept but
+  unused** by new code (a deliberate non-destructive choice — the
+  migration backfills existing links into the join table, so nothing was
+  lost, but the column itself was left rather than dropped). `POST/DELETE
+  /api/courriers/:id/documents` are dedicated endpoints
+  (`ajouterDocumentCourrier`/`retirerDocumentCourrier`), not part of the
+  general `PATCH` — don't route document changes through
+  `mettreAJourCourrier` again.
+- `GET /api/contacts` gained an `organisationId` filter (used to scope the
+  contact picker to whichever organisation is currently selected) — reuse
+  this rather than filtering contacts client-side.
+- Quick-create here is **two separate dialogs**, not one combined
+  two-layer dialog like Missions' contact-sur-place picker:
+  `QuickCreateOrganisationDialog` (org not found) and
+  `QuickCreateContactDialog` (contact not found, org already known — takes
+  an `organisation` prop instead of picking one itself). Missions' version
+  combines both layers because that form has no separate organisation
+  field; Courriers' does, so splitting them avoids a redundant org-picking
+  step. Both still reuse the exact `FormulaireOrganisation`/
+  `FormulaireContact` from Partenaires.
+- Réponse tracking uses a **derived** health signal (`criticite`, computed
+  server-side from configurable thresholds — see `chargerSeuils()`/
+  `calculerCriticite()` in `courriers.helpers.ts`), not a stored priority
+  field. The registry's `enDepassement` filter and the aggregates
+  endpoint's `enDepassement` count share one threshold-computation helper
+  (`calculerLimiteCritique()`) — keep them sharing it if the threshold
+  logic ever changes, don't let them drift apart.

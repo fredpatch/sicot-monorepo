@@ -16,6 +16,7 @@ export interface ContactListItem {
 export interface ContactFilters {
   search?: string;
   actif?: boolean;
+  organisationId?: number;
   pageSize?: number;
 }
 
@@ -28,6 +29,10 @@ export async function listerContacts(filters: ContactFilters): Promise<ContactLi
 
   if (filters.actif !== undefined) {
     conditions.push(eq(contacts.actif, filters.actif));
+  }
+
+  if (filters.organisationId !== undefined) {
+    conditions.push(eq(contacts.organisationId, filters.organisationId));
   }
 
   if (filters.search) {

@@ -1,6 +1,6 @@
 import { db } from '@/db/index';
-import { courriers, accords, missions } from '@/db/schema';
-import { eq, ilike, and, or, desc } from 'drizzle-orm';
+import { courriers, courrierDocuments, accords, missions, contacts, documents } from '@/db/schema';
+import { eq, ilike, and, or, desc, lte, gte } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { chargerSeuils, genererReference, toCourrierView } from './courriers.helpers';
 import type {
@@ -8,6 +8,7 @@ import type {
   UpdateCourrierParams,
   CourrierFilters,
   CourrierView,
+  CourriersAggregates,
 } from './courriers.types';
 
 export type {
@@ -19,8 +20,49 @@ export type {
   UpdateCourrierParams,
   CourrierFilters,
   OrganisationResume,
+  ContactResume,
+  DocumentResume,
   CourrierView,
+  CourriersAggregates,
 } from './courriers.types';
+
+// ── Date-limite de réception en-deçà de laquelle un courrier entrant en
+// attente de réponse est "en dépassement" — partagée entre les agrégats et
+// le filtre de liste, pour rester cohérente avec calculerCriticite() ──────
+async function calculerLimiteCritique(): Promise<Date> {
+  const seuils = await chargerSeuils();
+  return new Date(Date.now() - seuils.critique * 24 * 60 * 60 * 1000);
+}
+
+// ── SERVICE : Agrégats globaux (indépendants des filtres courants) ────────
+export async function getCourriersAggregates(): Promise<CourriersAggregates> {
+  const limiteCritique = await calculerLimiteCritique();
+
+  const [total, aTraiter, enAttenteReponse, enDepassement, envoyes] = await Promise.all([
+    db.$count(courriers),
+    db.$count(courriers, and(eq(courriers.direction, 'entrant'), eq(courriers.suiviStatut, 'en_attente'))),
+    db.$count(
+      courriers,
+      and(
+        eq(courriers.direction, 'entrant'),
+        eq(courriers.reponseRequise, 'oui'),
+        eq(courriers.suiviStatut, 'en_attente')
+      )
+    ),
+    db.$count(
+      courriers,
+      and(
+        eq(courriers.direction, 'entrant'),
+        eq(courriers.reponseRequise, 'oui'),
+        eq(courriers.suiviStatut, 'en_attente'),
+        lte(courriers.dateReception, limiteCritique)
+      )
+    ),
+    db.$count(courriers, eq(courriers.direction, 'sortant')),
+  ]);
+
+  return { total, aTraiter, enAttenteReponse, enDepassement, envoyes };
+}
 
 // ── SERVICE : Lister les courriers ────────────────────────────────────────
 export async function listerCourriers(filters: CourrierFilters): Promise<{
@@ -61,6 +103,26 @@ export async function listerCourriers(filters: CourrierFilters): Promise<{
         eq(courriers.direction, 'entrant'),
         eq(courriers.reponseRequise, 'oui'),
         eq(courriers.suiviStatut, 'en_attente')
+      )!
+    );
+  }
+
+  if (filters.dateDebut) {
+    conditions.push(gte(courriers.dateReception, filters.dateDebut));
+  }
+
+  if (filters.dateFin) {
+    conditions.push(lte(courriers.dateReception, filters.dateFin));
+  }
+
+  if (filters.enDepassement) {
+    const limiteCritique = await calculerLimiteCritique();
+    conditions.push(
+      and(
+        eq(courriers.direction, 'entrant'),
+        eq(courriers.reponseRequise, 'oui'),
+        eq(courriers.suiviStatut, 'en_attente'),
+        lte(courriers.dateReception, limiteCritique)
       )!
     );
   }
@@ -122,6 +184,20 @@ export async function creerCourrier(params: CreateCourrierParams): Promise<Courr
     if (!mission) throw new Error('MISSION_INTROUVABLE');
   }
 
+  // Vérifier que les contacts appartiennent bien à l'organisation choisie
+  if (params.expediteurContactId) {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, params.expediteurContactId));
+    if (!contact || contact.organisationId !== params.expediteurOrganisationId) {
+      throw new Error('CONTACT_EXPEDITEUR_INVALIDE');
+    }
+  }
+  if (params.destinataireContactId) {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, params.destinataireContactId));
+    if (!contact || contact.organisationId !== params.destinataireOrganisationId) {
+      throw new Error('CONTACT_DESTINATAIRE_INVALIDE');
+    }
+  }
+
   const reference = await genererReference();
 
   const [courrier] = await db
@@ -132,6 +208,8 @@ export async function creerCourrier(params: CreateCourrierParams): Promise<Courr
       objet: params.objet,
       expediteurOrganisationId: params.expediteurOrganisationId,
       destinataireOrganisationId: params.destinataireOrganisationId,
+      expediteurContactId: params.expediteurContactId,
+      destinataireContactId: params.destinataireContactId,
       dateReception: params.dateReception,
       reponseRequise: params.reponseRequise,
       dateLimiteReponse: params.dateLimiteReponse,
@@ -139,10 +217,15 @@ export async function creerCourrier(params: CreateCourrierParams): Promise<Courr
       reponseAId: params.reponseAId,
       accordId: params.accordId,
       missionId: params.missionId,
-      documentId: params.documentId,
       createdPar: params.createdByUserId,
     })
     .returning();
+
+  if (params.documentIds && params.documentIds.length > 0) {
+    await db
+      .insert(courrierDocuments)
+      .values(params.documentIds.map((documentId) => ({ courrierId: courrier.id, documentId })));
+  }
 
   // Si c'est une réponse à un courrier entrant, marquer le parent comme répondu
   if (params.reponseAId && params.direction === 'sortant') {
@@ -180,11 +263,51 @@ export async function mettreAJourCourrier(
 
   const updates: Partial<typeof courriers.$inferInsert> = {};
   if (params.objet !== undefined) updates.objet = params.objet;
+  if (params.dateReception !== undefined) updates.dateReception = params.dateReception;
+  if (params.reponseRequise !== undefined) updates.reponseRequise = params.reponseRequise;
+  if (params.expediteurOrganisationId !== undefined) {
+    updates.expediteurOrganisationId = params.expediteurOrganisationId;
+  }
+  if (params.destinataireOrganisationId !== undefined) {
+    updates.destinataireOrganisationId = params.destinataireOrganisationId;
+  }
+  if (params.expediteurContactId !== undefined) updates.expediteurContactId = params.expediteurContactId;
+  if (params.destinataireContactId !== undefined) updates.destinataireContactId = params.destinataireContactId;
   if (params.suiviStatut !== undefined) updates.suiviStatut = params.suiviStatut;
   if (params.dateLimiteReponse !== undefined) updates.dateLimiteReponse = params.dateLimiteReponse;
   if (params.accordId !== undefined) updates.accordId = params.accordId;
   if (params.missionId !== undefined) updates.missionId = params.missionId;
-  if (params.documentId !== undefined) updates.documentId = params.documentId;
+
+  // Un contact doit toujours appartenir à l'organisation effective (celle
+  // fournie dans cette requête, sinon celle déjà enregistrée) — évite un
+  // contact orphelin si l'organisation change sans que le contact suive.
+  const orgExpediteurEffective =
+    updates.expediteurOrganisationId !== undefined
+      ? updates.expediteurOrganisationId
+      : existant.expediteurOrganisationId;
+  const contactExpediteurEffectif =
+    updates.expediteurContactId !== undefined ? updates.expediteurContactId : existant.expediteurContactId;
+  if (contactExpediteurEffectif) {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, contactExpediteurEffectif));
+    if (!contact || contact.organisationId !== orgExpediteurEffective) {
+      throw new Error('CONTACT_EXPEDITEUR_INVALIDE');
+    }
+  }
+
+  const orgDestinataireEffective =
+    updates.destinataireOrganisationId !== undefined
+      ? updates.destinataireOrganisationId
+      : existant.destinataireOrganisationId;
+  const contactDestinataireEffectif =
+    updates.destinataireContactId !== undefined
+      ? updates.destinataireContactId
+      : existant.destinataireContactId;
+  if (contactDestinataireEffectif) {
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, contactDestinataireEffectif));
+    if (!contact || contact.organisationId !== orgDestinataireEffective) {
+      throw new Error('CONTACT_DESTINATAIRE_INVALIDE');
+    }
+  }
 
   const [updated] = await db
     .update(courriers)
@@ -203,6 +326,57 @@ export async function mettreAJourCourrier(
   const seuils = await chargerSeuils();
 
   return toCourrierView(updated, seuils);
+}
+
+// ── SERVICE : Ajouter un document joint ───────────────────────────────────
+export async function ajouterDocumentCourrier(
+  courrierId: number,
+  documentId: number,
+  userId: number
+): Promise<CourrierView> {
+  const [courrier] = await db.select().from(courriers).where(eq(courriers.id, courrierId));
+  if (!courrier) throw new Error('COURRIER_INTROUVABLE');
+
+  const [document] = await db.select().from(documents).where(eq(documents.id, documentId));
+  if (!document) throw new Error('DOCUMENT_INTROUVABLE');
+
+  await db.insert(courrierDocuments).values({ courrierId, documentId });
+
+  await logAudit({
+    userId,
+    action: 'COURRIER_DOCUMENT_AJOUTE',
+    module: 'M4',
+    entiteId: courrierId,
+    details: { documentId },
+  });
+
+  const seuils = await chargerSeuils();
+  return toCourrierView(courrier, seuils);
+}
+
+// ── SERVICE : Retirer un document joint ───────────────────────────────────
+export async function retirerDocumentCourrier(
+  courrierId: number,
+  documentId: number,
+  userId: number
+): Promise<CourrierView> {
+  const [courrier] = await db.select().from(courriers).where(eq(courriers.id, courrierId));
+  if (!courrier) throw new Error('COURRIER_INTROUVABLE');
+
+  await db
+    .delete(courrierDocuments)
+    .where(and(eq(courrierDocuments.courrierId, courrierId), eq(courrierDocuments.documentId, documentId)));
+
+  await logAudit({
+    userId,
+    action: 'COURRIER_DOCUMENT_RETIRE',
+    module: 'M4',
+    entiteId: courrierId,
+    details: { documentId },
+  });
+
+  const seuils = await chargerSeuils();
+  return toCourrierView(courrier, seuils);
 }
 
 // ── SERVICE : Courriers sans réponse ──────────────────────────────────────

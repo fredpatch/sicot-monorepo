@@ -12,7 +12,8 @@ import axios from 'axios';
 import AccordsPage from './pages/AccordsPage';
 import AccordFormPage from './pages/accords/components/AccordFormPage';
 import CourriersPage from './pages/CourriersPage';
-import CourrierFormPage from './pages/courriers/components/CourrierFormPage';
+import CourrierDetailPage from './pages/courriers/CourrierDetailPage';
+import CourrierFormPage from './pages/courriers/CourrierFormPage';
 import MissionsPage from './pages/MissionsPage';
 import MissionDetailPage from './pages/missions/MissionDetailPage';
 import MissionFormPage from './pages/missions/components/MissionFormPage';
@@ -185,9 +186,9 @@ export default function App() {
           <Route path="/missions/:id/edit" element={<MissionFormPage />} />
           <Route path="/missions/:id" element={<MissionDetailPage />} />
           <Route path="/courriers" element={<CourriersPage />} />
-          <Route path="/courriers/:id" element={<CourriersPage />} />
           <Route path="/courriers/new" element={<CourrierFormPage />} />
           <Route path="/courriers/:id/edit" element={<CourrierFormPage />} />
+          <Route path="/courriers/:id" element={<CourrierDetailPage />} />
           <Route path="/traductions" element={<TraductionsPage />} />
           <Route path="/traductions/:id" element={<TraductionEditeur />} />
           <Route path="/demandes" element={<DemandesPage />} />

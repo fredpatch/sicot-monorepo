@@ -1,8 +1,8 @@
-# SICOT — Missions Module Redesign Implementation Task
+# SICOT — Courriers Module Redesign Implementation Task
 
 You are acting as a Senior Frontend Engineer, UX/UI Architect, and Product Usability Specialist.
 
-Your task is to redesign and implement the complete “Missions” module of SICOT.
+Your task is to redesign and implement the complete “Courriers” module of SICOT.
 
 Repository:
 
@@ -22,13 +22,14 @@ Use it to understand:
 
 - The normalized SICOT visual language
 - Registry density
-- Mission operational KPIs
-- Guided planning workflow
-- Three-column mission overview
-- Logistics visibility
-- Participants management
-- Report workflow
-- Recommendations and follow-up
+- Operational summary cards
+- Search and filtering hierarchy
+- Guided courrier creation
+- Courrier lifecycle visualization
+- Follow-up and response tracking
+- Document visibility
+- Reminder workflow
+- Detail workspace structure
 - Responsive behavior
 
 Do not reproduce the mockup blindly.
@@ -42,20 +43,20 @@ First inspect the current implementation and adapt the design to:
 - Existing shadcn components
 - Existing Tailwind tokens
 - Existing React Query architecture
-- The normalized Dashboard, Accords, and Partenaires patterns already implemented in the repository
+- Existing Dashboard, Accords, Partenaires, and Missions patterns already normalized in the repository
 
 The task covers:
 
-1. Missions registry
-2. Guided mission creation
-3. Mission editing
-4. Mission detail workspace
-5. Participants
-6. Logistics
-7. Contact on site
-8. Mission report
-9. Recommendations
-10. Follow-up and reminders
+1. Courriers registry
+2. Guided courrier creation
+3. Courrier editing
+4. Courrier detail workspace
+5. Incoming and outgoing correspondence
+6. Response tracking
+7. Related courrier threads
+8. Documents
+9. Reminder / relance workflow
+10. Courrier operational status
 
 Do not modify unrelated modules.
 
@@ -79,16 +80,16 @@ Follow this sequence:
 
 1. Audit the current implementation
 2. Report existing architecture and constraints
-3. Propose the implementation plan
+3. Propose an implementation plan
 4. Implement incrementally
 5. Validate the result
-6. Return a final report
+6. Return a final implementation report
 
 Do not start implementation before returning the Phase 1 audit report.
 
-Do not produce one monolithic replacement file.
+Do not produce one large replacement file.
 
-Do not introduce a second design system.
+Do not introduce another design system.
 
 Do not invent backend data.
 
@@ -102,96 +103,66 @@ SICOT means:
 Système Intégré de Coopération Internationale et de Traduction
 ```
 
-The Missions module manages official missions, travel, participation in events, mission logistics, participants, reports, and resulting recommendations.
+The Courriers module manages official incoming and outgoing correspondence handled by the cooperation and translation workflow.
 
-A mission currently includes at least:
+A courrier may involve:
 
-- Title
-- Destination
-- Country
-- Start date
-- End date
+- Reference
+- Subject
+- Incoming or outgoing type
+- Sender
+- Recipient
+- Date
 - Status
-- Participants
-- Logistics confirmation status
-- Optional contact on site
-- Optional mission report document
-- Recommendations
-- Creation and update metadata
-
-Known mission statuses:
-
-```text
-planifiee
-en_cours
-terminee
-annulee
-```
-
-Known logistics statuses:
-
-```text
-a_planifier
-en_cours
-confirme
-```
-
-Known recommendation statuses:
-
-```text
-en_attente
-en_cours
-realisee
-```
+- Priority
+- Response expectation
+- Response deadline
+- Related correspondence
+- Attachments
+- Reminder notifications
+- Internal notes
+- Creation/update metadata
 
 The module must help users answer:
 
-- Which missions are upcoming?
-- Which missions are currently in progress?
-- Which missions have logistics risks?
-- Which missions are completed without a report?
-- Who is participating?
-- Who is the on-site contact?
-- Which recommendations are still pending?
-- Which recommendations are overdue?
-- What action is required next?
+- Which courriers require action?
+- Which are waiting for a response?
+- Which are overdue?
+- Which outgoing messages have been sent?
+- Which incoming messages still require handling?
+- What response is expected?
+- Which courriers belong to the same conversation/thread?
+- Which documents are attached?
+- What is the next action?
 
 ---
 
 # 3. Important mockup constraint
 
-The attached visual reference includes some fields that may not exist in the current SICOT domain model.
+The visual reference contains some fields that may not exist in the current domain.
 
-Examples:
+Examples may include:
 
-- Mission reference
-- Mission type
-- Priority
-- Responsible person
-- Detailed objective
-- Programme
-- Budget
-- Multiple documents
-- Meetings
-- Progress percentage
-- Expenses
-- Organiser
-- Precise location
+- Explicit priority
+- Response type
+- Automatic reminders
+- Workflow stage
+- Receipt confirmation
+- Internal criticality
+- Detailed lifecycle events
 
-Do NOT implement these fields unless the repository audit confirms they genuinely exist.
+Do NOT implement these unless the repository audit confirms they exist.
 
-The visual reference is for:
+The mockup is primarily a reference for:
 
 - Layout
-- hierarchy
-- spacing
 - density
+- hierarchy
+- workflow
 - navigation
 - interaction design
 
-It is NOT permission to invent new business fields.
-
-If a desirable field is missing, report it as a future domain enhancement.
+If a useful field is absent from the current domain model, report it as a future enhancement.
 
 ---
 
@@ -200,13 +171,12 @@ If a desirable field is missing, report it as a future domain enhancement.
 Inspect at least:
 
 ```text
-packages/client/src/pages/MissionsPage.tsx
-packages/client/src/pages/missions/components/MissionFormPage.tsx
-packages/client/src/pages/missions/components/MissionDetails.tsx
-packages/client/src/lib/missions.api.ts
+packages/client/src/pages/CourriersPage.tsx
+packages/client/src/pages/courriers/components/CourrierFormPage.tsx
+packages/client/src/pages/courriers/components/*
+packages/client/src/lib/courriers.api.ts
 packages/client/src/lib/documents.api.ts
-packages/client/src/lib/users.api.ts
-packages/client/src/lib/organisations.api.ts
+packages/client/src/lib/notifications.api.ts
 packages/client/src/App.tsx
 packages/client/src/components/layouts/Layout.tsx
 packages/client/src/components/table
@@ -216,81 +186,79 @@ packages/client/tailwind.config.*
 packages/client/package.json
 ```
 
-Also inspect the current normalized implementations of:
+Also inspect the normalized implementations of:
 
 ```text
-packages/client/src/pages/dashboard
 packages/client/src/pages/accords
 packages/client/src/pages/partenaires
+packages/client/src/pages/missions
 ```
 
-Use them as the primary style and architecture reference.
+Reuse their shared patterns where appropriate.
 
-Inspect the server-side mission module for:
+Inspect the server-side correspondence module for:
 
 - List payload
 - Detail payload
-- Filters
-- Pagination
 - Create payload
 - Update payload
-- Participants
-- Logistics
-- Contact on site
-- Reports
-- Recommendations
-- Recommendation updates
+- Filters
+- Pagination
+- Status model
+- Incoming/outgoing type
+- Sender and recipient representation
+- Related correspondence
+- Attachments
+- Reply/response relationships
+- Notifications
+- Reminder rules
+- Deadline rules
 
 Confirm real backend behavior rather than inferring it.
 
 ---
 
-# 5. Existing implementation to preserve
+# 5. Existing functionality to preserve
 
-The current Missions module already supports:
+Preserve all currently working capabilities, including where available:
 
 - Search
+- Incoming/outgoing filtering
 - Status filtering
 - Pagination
-- Mission creation
-- Mission editing
-- Participants selection
-- Mission status
-- Logistics confirmation
-- On-site contact
-- Mission report attachment
-- Existing report document selection
-- Recommendations
-- Recommendation assignment
-- Recommendation deadline
-- Recommendation status updates
-- Reminder notifications
-- Expired or urgent logistics warnings
-- Missing-report warning
+- Courrier creation
+- Courrier editing
+- Sender/recipient data
+- Document attachment
+- Existing document linking
+- Related courrier/reply relationship
+- Response tracking
+- Reminder actions
+- Notification history
+- Waiting-response alerts
+- Dashboard integration
+- Detail navigation
 
-Preserve these capabilities unless the audit proves one is broken or obsolete.
-
-Do not remove business functionality for visual simplicity.
+Do not remove working business behavior for visual simplicity.
 
 ---
 
 # 6. Current UX problems to solve
 
-The redesign should address these weaknesses:
+Audit and address these likely weaknesses:
 
-- The registry still uses the old narrow split-pane pattern.
-- Destination, participants, logistics state, and report state are hard to scan across multiple missions.
-- There are no operational summary metrics.
-- Search and filtering are too basic.
-- Creation is a single long form.
-- Participants selection is a long checkbox list.
-- Logistics is mostly treated as an edit-time concern.
-- Contact-on-site selection uses an expensive multi-request workaround.
-- The detail view stacks information vertically rather than acting as an operational workspace.
-- Participants, logistics, report, recommendations, and contact information compete for attention.
-- Recommendations do not have enough visual prominence.
-- Missing reports are warnings, but not integrated into the overall mission workflow.
-- N+1-style contact loading should not be normalized into the new design.
+- Registry still follows an older dense or split pattern.
+- Incoming and outgoing flows may not be immediately distinguishable.
+- Status and response health are not prominent enough.
+- Waiting-response risk is hard to scan.
+- Creation may expose too many fields at once.
+- Sender/recipient logic can be confusing.
+- Response expectations are not presented as a clear workflow.
+- Related correspondence may feel disconnected.
+- Documents and reminders compete visually.
+- Detail may show data without clearly communicating the next action.
+- Operational overdue state should be explicit.
+- The module should follow the normalized SICOT patterns already established.
 
 ---
 
@@ -298,326 +266,331 @@ The redesign should address these weaknesses:
 
 Implement three coherent experiences.
 
-## Screen A — Missions registry
+## Screen A — Courriers registry
 
 Route:
 
 ```text
-/missions
+/courriers
 ```
 
 Primary goal:
 
-Provide an operational overview of all missions.
+Provide an operational register of incoming and outgoing correspondence.
 
-## Screen B — Guided mission creation
+## Screen B — Guided courrier creation
 
 Route:
 
 ```text
-/missions/new
+/courriers/new
 ```
 
 Primary goal:
 
-Guide users through mission planning without presenting all fields at once.
+Guide users through creation depending on whether the courrier is incoming or outgoing.
 
-## Screen C — Mission detail workspace
+## Screen C — Courrier detail workspace
 
 Route:
 
 ```text
-/missions/:id
+/courriers/:id
 ```
 
 Primary goal:
 
-Provide a mission command center combining planning, participants, logistics, report, and recommendations.
+Provide a complete operational view of the courrier, related correspondence, response state, documents, and reminders.
 
 Editing may use:
 
 ```text
-/missions/:id/edit
+/courriers/:id/edit
 ```
-
-Preserve current route conventions where practical.
 
 ---
 
-# 8. Screen A — Missions registry
+# 8. Screen A — Courriers registry
 
-## 8.1 Page header
+## 8.1 Header
 
 Display:
 
 ```text
-Missions
+Courriers
 ```
 
 Subtitle:
 
 ```text
-Planifiez et suivez les missions et déplacements officiels.
+Gérez les courriers entrants et sortants ainsi que leur suivi.
 ```
 
-Right-side actions:
+Right-side action:
 
-- Exporter, only if genuinely supported
-- Nouvelle mission
+```text
+Nouveau courrier
+```
 
-Do not create a non-functional export action.
+Optional:
+
+```text
+Exporter
+```
+
+only if genuinely supported.
+
+Do not create a fake export action.
 
 ---
 
 # 8.2 Operational summary cards
 
-Add compact metrics.
+Suggested metrics:
 
-Suggested cards:
+- Total courriers
+- À traiter
+- En attente de réponse
+- Envoyés
+- Critiques / en dépassement
 
-- Total missions
-- Planifiées
-- En cours
-- À venir
-- Terminées
-- Annulées
-
-Optional operational metric:
-
-- Logistique à risque
-
-Only display metrics that can be calculated accurately.
-
-Do not derive full totals from the current paginated page.
+Only display metrics that can be computed accurately.
 
 Suggested wording:
 
 ```text
-Total missions
-32
-Toutes périodes
+Total courriers
+142
+Tous types confondus
 ```
 
 ```text
-Planifiées
+À traiter
+23
+Nécessitent une action
+```
+
+```text
+En attente de réponse
+37
+12 en dépassement
+```
+
+```text
+Envoyés
+186
+Courriers sortants transmis
+```
+
+```text
+Critiques
 7
-À préparer
+À traiter en priorité
 ```
 
-```text
-En cours
-3
-Actuellement en déplacement
-```
+Do not calculate global metrics from only the current page.
 
-```text
-À venir
-5
-Dans les 30 prochains jours
-```
-
-```text
-Terminées
-17
-Suivi terminé
-```
-
-```text
-Annulées
-0
-Aucune annulation
-```
-
-If the backend does not provide aggregate counts, identify the minimum server-side change.
+If needed, propose a lightweight aggregate endpoint.
 
 ---
 
-# 8.3 Operational risk indicators
-
-The registry must surface mission health.
-
-Useful risk states:
-
-### Critical
-
-- Mission starts within 14 days
-- Logistics not confirmed
-
-### Warning
-
-- Mission completed
-- No mission report
-
-### Warning
-
-- Pending overdue recommendations
-
-Do not create a single generic “priority” field.
-
-Derive risk from real business state.
-
-Centralize this logic.
-
----
-
-# 8.4 Search and filters
-
-Provide a horizontal filter toolbar.
+# 8.3 Search and filters
 
 Search placeholder:
 
 ```text
-Rechercher une mission, une destination ou un pays…
+Rechercher par référence, objet, expéditeur ou destinataire…
 ```
 
 Filters:
 
+- Type
 - Statut
-- Pays
+- Priorité, only if real
 - Période
-- Participant, if supported
-- Logistique
-- Rapport
-- Recommendation health, if practical
+- Réponse attendue
+- En dépassement
+- Expéditeur/destinataire where practical
+
+Suggested type filter:
+
+```text
+Tous
+Entrants
+Sortants
+```
+
+Suggested response filter:
+
+```text
+Tous
+Réponse attendue
+En attente
+En dépassement
+Répondu
+```
 
 Suggested period filters:
 
 ```text
-Toutes
-À venir
-En cours
-30 prochains jours
+Ce mois
+30 derniers jours
 Cette année
-Terminées
-```
-
-Suggested logistics filters:
-
-```text
-Toutes
-À planifier
-En cours
-Confirmée
-À risque
-```
-
-Suggested report filters:
-
-```text
-Tous
-Rapport disponible
-Rapport manquant
+Personnalisée
 ```
 
 Synchronize meaningful filters with URL search parameters.
 
 Debounce remote search.
 
-Reset page when filters change.
+Reset pagination on filter change.
 
 ---
 
-# 8.5 Registry table
+# 8.4 Registry table
 
-Use a full-width table on desktop.
+Use full-width desktop table.
 
 Suggested columns:
 
-- Mission
-- Destination
-- Pays
-- Dates
-- Participants
+- Référence
+- Objet
+- Type
+- Expéditeur / Destinataire
+- Date
 - Statut
-- Logistique
-- Rapport
+- Priorité, if real
+- Échéance / Délai
 - Actions
 
-Do not invent mission references unless the domain contains them.
-
-Mission column:
-
-- Mission title
-- Optional operational warning
-
-Destination:
+Type should be explicit:
 
 ```text
-Montréal
-Canada
+Entrant
+Sortant
 ```
 
-Dates:
+Use text + badge, not color alone.
+
+Sender/recipient cell:
+
+For incoming:
 
 ```text
-02 juin 2026 → 06 juin 2026
+Expéditeur
+B2Fly Gabon
 ```
 
-Participants:
+For outgoing:
 
 ```text
-4 participants
+Destinataire
+OACI
 ```
 
-Logistics:
+Do not confuse direction.
+
+Deadline cell:
+
+Examples:
 
 ```text
-Confirmée
-En cours
-À planifier
+23/05/2026
+J+3
 ```
-
-Report:
 
 ```text
-Disponible
-À déposer
-Non requis / —
+Dans 5 jours
 ```
 
-Use real rules.
+```text
+Aucune échéance
+```
+
+Overdue state must be explicit.
 
 Row click opens:
 
 ```text
-/missions/:id
+/courriers/:id
 ```
 
 Actions menu:
 
 - Voir
 - Modifier
-- Gérer la logistique
-- Déposer le rapport
-- Voir les recommandations
+- Préparer une relance
+- Voir la réponse
+- Voir les pièces jointes
 
-Only show valid actions.
+Only show actions valid for the specific courrier.
 
 ---
 
-# 8.6 Mobile behavior
+# 8.5 Courrier health rules
+
+Centralize operational health.
+
+Possible states:
+
+### Critical
+
+- Response deadline exceeded
+- Incoming courrier requires action and is overdue
+
+### Warning
+
+- Response expected soon
+- Courrier remains unprocessed
+
+### Normal
+
+- Sent
+- Treated
+- Replied
+
+Do not introduce a stored “health” field unless necessary.
+
+Derive it.
+
+Suggested utilities:
+
+```text
+isCourrierOverdue
+daysUntilResponseDeadline
+daysSinceResponseDeadline
+getCourrierHealth
+formatResponseDeadline
+```
+
+Use one configured threshold.
+
+---
+
+# 8.6 Responsive behavior
 
 Desktop:
 
-- Full-width mission table
+- Full-width table
 
 Tablet:
 
-- Hide lower-priority columns
-- Preserve title, destination, dates, status, logistics
+- Hide secondary columns
+- Preserve reference, subject, type, status, deadline
 
 Mobile:
 
-- Mission cards
-- Destination
-- Period
+- Courrier cards
+- Reference
+- Type
+- Subject
+- Sender/recipient
+- Date
 - Status
-- Logistics state
-- Participant count
-- Report health
+- Response health
 - Actions menu
 
-Do not require horizontal scrolling.
+No horizontal page overflow.
 
 ---
 
@@ -626,232 +599,186 @@ Do not require horizontal scrolling.
 Implement:
 
 - Loading skeleton
-- Error with retry
-- Empty mission registry
-- Empty filtered result
+- API error with retry
+- Empty registry
+- Empty filtered results
 
 Differentiate:
 
 ```text
-Aucune mission enregistrée.
+Aucun courrier enregistré.
 ```
 
 from:
 
 ```text
-Aucune mission ne correspond aux filtres sélectionnés.
+Aucun courrier ne correspond aux filtres sélectionnés.
 ```
 
 ---
 
-# 9. Screen B — Guided mission creation
+# 9. Screen B — Guided courrier creation
 
 Use a stepper.
 
-Recommended steps based on current real fields:
+Recommended steps based on real domain fields:
 
 1. Informations générales
-2. Dates et destination
-3. Participants
-4. Contact et logistique
+2. Expéditeur / Destinataire
+3. Contenu
+4. Documents
 5. Vérification
 
-Do not add Programme, Budget, Priority, Mission Type, Objectives, or Documents unless confirmed by the repository.
+Do not add unsupported fields.
 
 ---
 
 # 9.1 Step 1 — Informations générales
 
-Fields:
+Fields may include:
 
-- Titre de la mission
+- Type de courrier
+- Objet
+- Date du courrier
+- Priority, only if real
+- Status only when necessary
 
-Potential contextual helper:
+Type is critical:
 
 ```text
-Ex. Participation à l’Assemblée OACI 2026
+Entrant
+Sortant
 ```
 
-Do not ask for status during creation unless there is a real business need.
+The rest of the flow may change based on type.
 
-Default status should remain consistent with backend behavior.
+Reference behavior:
+
+Confirm whether reference is backend-generated.
+
+If yes, show:
+
+```text
+La référence sera générée automatiquement lors de l’enregistrement.
+```
+
+Do not ask users to manually enter generated identifiers.
 
 ---
 
-# 9.2 Step 2 — Dates et destination
+# 9.2 Step 2 — Expéditeur / Destinataire
 
-Fields:
+For incoming:
 
-- Destination
-- Pays
-- Date de début
-- Date de fin
+Focus on:
 
-Validation:
-
-- Destination required
-- Country required
-- Start date required
-- End date required
-- End date >= start date
-
-Show a concise summary:
-
-```text
-Montréal, Canada
-02 juin 2026 → 06 juin 2026
-Durée : 5 jours
-```
-
-Do not store duration.
-
-Derive it.
-
-Be careful with date-only timezone handling.
-
----
-
-# 9.3 Step 3 — Participants
-
-Improve the existing checkbox selector.
-
-Provide:
-
-- Search
-- Selected count
-- Agent name
-- Matricule
-- Selected agents panel
-
-Suggested desktop layout:
-
-Left:
-
-```text
-Agents disponibles
-```
-
-Right:
-
-```text
-Participants sélectionnés
-```
-
-Allow removal from the selected panel.
-
-On mobile:
-
-- Stack both sections
-
-Do not fetch users repeatedly between steps.
-
-Reuse React Query cache.
-
-Participants remain optional if current backend permits it.
-
----
-
-# 9.4 Step 4 — Contact et logistique
-
-This should be a first-class planning step.
-
-Fields supported by the current model:
-
-- Contact on site
-- Logistics status
-
-However, audit current creation support carefully.
-
-The API currently supports:
-
-```text
-contactSurPlaceId
-```
-
-Confirm whether it should be allowed during create.
-
-For logistics:
-
-Current known values:
-
-```text
-a_planifier
-en_cours
-confirme
-```
-
-Recommended creation default:
-
-```text
-a_planifier
-```
-
-Do not require users to manually select the default unless useful.
-
-Display:
-
-```text
-État logistique
-À planifier
-```
-
-Contact-on-site selector:
-
-- Contact name
+- Expéditeur
 - Organisation
-- Email
-- Phone
+- Contact
+- Reference sender, if supported
+- Reception mode, if supported
 
-Avoid the current workaround that fetches every organisation and then every contact.
+For outgoing:
 
-Prefer:
+Focus on:
+
+- Destinataire
+- Organisation
+- Contact
+- Transmission mode, if supported
+
+Use current Partenaires/Contacts data where practical.
+
+Do not duplicate partner data models.
+
+If the domain stores free-text sender/recipient instead, preserve it.
+
+Do not force partner selection if external free-text recipients are valid.
+
+---
+
+# 9.3 Step 3 — Contenu
+
+Fields may include:
+
+- Summary
+- Content
+- Notes
+
+Use the actual schema.
+
+If only an object/subject exists and full body content is not stored, do not invent a content field.
+
+If body content exists:
+
+Provide a large textarea.
+
+Suggested helper:
 
 ```text
-GET /contacts?actif=true
-```
-
-or another existing centralized contact endpoint.
-
-If none exists, propose the minimum backend addition.
-
-Do not normalize an N+1 request pattern.
-
-Allow:
-
-```text
-Aucun contact sur place pour le moment
+Résumez le contenu ou les éléments nécessitant un suivi.
 ```
 
 ---
 
-# 9.5 Step 5 — Verification
+# 9.4 Step 4 — Documents
 
-Display:
+Preserve current attachment behavior.
 
-- Mission title
-- Destination
-- Country
-- Dates
-- Duration
-- Participants
-- Contact on site
-- Logistics state
+Support:
+
+- Upload new document
+- Link existing document
+
+If current model supports multiple documents:
+
+Show list.
+
+If current model supports only one document:
+
+Do not redesign as multi-attachment.
+
+Show:
+
+- Filename
+- Type
+- Upload state
+- Remove action
+
+Handle duplicates using existing document rules.
+
+---
+
+# 9.5 Step 5 — Vérification
+
+Display summary:
+
+- Type
+- Subject
+- Date
+- Sender/recipient
+- Status
+- Response expectation
+- Deadline
+- Attachments
 
 Primary action:
 
 ```text
-Créer la mission
+Créer le courrier
 ```
 
-Secondary:
+or if current business vocabulary uses registration:
 
 ```text
-Annuler
+Enregistrer le courrier
 ```
 
-Allow navigation back to previous steps.
+Prefer the wording already established in SICOT.
 
-Do not add draft behavior unless it exists.
+Allow users to return to previous steps.
+
+Do not invent drafts unless supported.
 
 ---
 
@@ -859,8 +786,8 @@ Do not add draft behavior unless it exists.
 
 Desktop:
 
-- Vertical stepper
-- Form workspace
+- Vertical stepper on left
+- Form workspace on right
 
 Tablet/mobile:
 
@@ -868,22 +795,22 @@ Tablet/mobile:
 
 Requirements:
 
-- Current step identified
+- Current step clearly identified
 - Completed steps marked
 - Per-step validation
 - Values preserved
 - Future invalid steps blocked
 - Previous steps accessible
-- Focus moves to step heading
-- Accessible step labels
-- Stable bottom navigation
+- Focus moves to heading
+- Accessible labels
+- Stable navigation controls
 
 Actions:
 
 ```text
 Précédent
 Suivant
-Créer la mission
+Enregistrer le courrier
 ```
 
 ---
@@ -893,31 +820,29 @@ Créer la mission
 Route:
 
 ```text
-/missions/:id/edit
+/courriers/:id/edit
 ```
 
-Do not force users through all creation steps for a minor operational update.
+Do not force users through full creation steps for minor changes.
 
-Use grouped sections:
+Use grouped sections.
+
+Possible edit sections:
 
 - Informations
+- Expéditeur/destinataire
 - Dates
-- Participants
-- Logistique
-- Contact sur place
-- Statut
+- Response tracking
+- Documents
+- Status
 
-Mission report and recommendations should not be mixed into the standard edit form.
-
-Those are separate operational workflows.
+Do not mix reminders into the normal edit form.
 
 ---
 
-# 11. Screen C — Mission detail workspace
+# 11. Screen C — Courrier detail workspace
 
-Use the clean three-column operational layout.
-
-The mission detail becomes the central command center.
+Use a normalized operational workspace.
 
 ---
 
@@ -926,32 +851,35 @@ The mission detail becomes the central command center.
 Breadcrumb:
 
 ```text
-Missions / {mission title}
+Courriers / {reference}
 ```
 
-Header content:
+Header:
 
-- Mission title
-- Mission status
-- Destination
-- Country
-- Dates
+- Subject
+- Reference
+- Type badge
+- Status
+- Deadline health
 
 Primary actions:
 
 - Modifier
-- Mettre à jour la logistique
-- Déposer le rapport, when relevant
+- Imprimer
+- Préparer une relance
 - Plus d’actions
 
-Possible overflow actions:
+Only show valid actions.
 
-- Annuler la mission, if supported
-- Préparer une relance
-- Voir notifications
-- Open report
+Possible overflow:
 
-Do not invent actions.
+- Mark as treated
+- Register response
+- Link related courrier
+- Open/download document
+- View notification history
+
+Do not invent unsupported transitions.
 
 ---
 
@@ -959,41 +887,34 @@ Do not invent actions.
 
 Display:
 
+- Type
 - Statut
-- Destination
-- Période
-- Participants
-- Logistique
+- Date
+- Sender/recipient
+- Response deadline
+- Priority if real
 
-Optional:
+Example:
 
-- Rapport
-
-Examples:
+```text
+Type
+Entrant
+```
 
 ```text
 Statut
-En cours
+En attente de réponse
 ```
 
 ```text
-Destination
-Montréal, Canada
+Date
+20/05/2026
 ```
 
 ```text
-Période
-02 → 06 juin 2026
-```
-
-```text
-Participants
-4
-```
-
-```text
-Logistique
-Confirmée
+Échéance
+23/05/2026
+J+3
 ```
 
 ---
@@ -1003,606 +924,380 @@ Confirmée
 Recommended sections:
 
 - Aperçu
-- Participants
-- Logistique
-- Rapport
-- Recommandations
+- Suivi
+- Documents
+- Réponse / Courriers liés
 - Notifications
 - Historique
 
-Implement only sections supported by real data.
+Only implement sections supported by the real domain.
 
-Do not add Budget, Programme, or Documents unless the backend supports them.
-
-Normalize style with Accords and Partenaires.
+Normalize style with Accords, Partenaires, and Missions.
 
 ---
 
 # 12. Three-column overview
 
-Large desktop:
+Large desktop layout:
 
 ## Column 1 — Informations clés
 
 Display:
 
-- Title
-- Destination
-- Country
-- Start date
-- End date
+- Reference
+- Subject
+- Direction
+- Sender
+- Recipient
+- Date
 - Status
-- Created date
+- Notes/content
 
-If appropriate:
+## Column 2 — Suivi / Lifecycle
 
-- Contact on site
+Display a lightweight timeline based on real events.
 
-Keep it compact.
+Possible events:
 
-## Column 2 — Participants
+- Créé
+- Reçu
+- Envoyé
+- En attente de réponse
+- Répondu
+- Traité
+
+Do not invent events.
+
+Show current stage prominently.
+
+If response deadline exists:
 
 Show:
 
-- Participant name
-- Matricule
-- Email when available
-
-Maximum preview:
-
 ```text
-4 participants
+Délai : 23/05/2026
+J+3
 ```
 
-Display a link:
-
-```text
-Voir tous les participants
-```
-
-Do not invent participant roles such as “Responsable” unless they exist.
-
-## Column 3 — Operational follow-up
+## Column 3 — Documents / Response
 
 Display:
 
-- Logistics state
-- Contact on site
-- Report state
-- Recommendations count
+- Linked documents
+- Expected response
+- Related courrier
+- Reminder status
 
-Suggested layout:
+If there is no response tracking field, use available related correspondence instead.
 
-```text
-Logistique
-Confirmée
-```
-
-```text
-Rapport
-À déposer
-```
-
-```text
-Recommandations
-3 en attente
-1 dépassée
-```
-
-This column should answer:
-
-```text
-What still needs attention?
-```
+Do not invent “response expected” if not stored.
 
 ---
 
-# 13. Logistics section
+# 13. Courrier lifecycle
 
-Make logistics a dedicated workflow section.
+Audit the real status model.
 
-Current states:
+Centralize labels and order.
 
-```text
-À planifier
-En cours
-Confirmée
-```
+Do not scatter status mapping across components.
 
-Display:
-
-- Current state
-- Mission start date
-- Countdown
-- On-site contact
-- Operational warning
-
-Critical example:
+Suggested utility:
 
 ```text
-Départ dans 8 jours.
-La logistique n’est pas encore confirmée.
+getCourrierLifecycleState
+getCourrierStatusLabel
+getCourrierStatusTone
 ```
 
-Primary action:
+If incoming and outgoing use different lifecycle states, model that explicitly.
 
-```text
-Mettre à jour la logistique
-```
-
-Use a small dialog or side sheet.
-
-Do not require users to open the entire edit form just to change logistics.
+Do not force one workflow if domain behavior differs.
 
 ---
 
-# 14. Contact on site
+# 14. Response tracking
+
+This is one of the most important operational areas.
+
+Audit whether current model supports:
+
+- Response expected
+- Response deadline
+- Response received
+- Related response courrier
+- Response status
+
+If available, expose clearly.
+
+Suggested states:
+
+```text
+Aucune réponse attendue
+Réponse attendue
+En attente
+Réponse reçue
+En dépassement
+```
+
+Do not invent stored statuses if derived values are enough.
+
+Show overdue state explicitly.
+
+---
+
+# 15. Related courrier / Thread
+
+If the domain supports correspondence threads or reply links:
 
 Display:
 
-- Name
-- Organisation
-- Position
-- Email
-- Phone
+- Parent courrier
+- Response courrier
+- Related courriers
 
-Actions:
+Use a small timeline or linked list.
 
-- Email
-- Copy contact data
-- Change contact
-
-Only expose data that exists.
-
-Empty state:
+Example:
 
 ```text
-Aucun contact sur place défini.
+COU-2026-020
+Demande d’information
+↓
+COU-2026-030
+Réponse reçue
+```
+
+Do not infer relationships from subject text.
+
+Use explicit IDs/relations only.
+
+---
+
+# 16. Documents section
+
+Display attachments with:
+
+- Filename
+- MIME type
+- Upload date when available
+- Open
+- Download
+
+If multiple attachments are supported:
+
+Use compact list/table.
+
+If no document exists:
+
+```text
+Aucun document joint.
 ```
 
 Action:
 
 ```text
-Définir un contact
+Ajouter un document
 ```
 
-Use centralized contact querying.
-
-Do not fetch all organisation contacts individually.
+only if current update flow supports it.
 
 ---
 
-# 15. Participants section
-
-Display a full participant list.
-
-Suggested columns:
-
-- Agent
-- Matricule
-- Email
-- Actions
-
-Do not invent participant roles.
-
-Allow participant management only through existing mission update behavior.
-
-Potential action:
-
-```text
-Modifier les participants
-```
-
-This may open a compact participant-management dialog rather than full mission edit.
-
-Prefer the simpler existing mutation path if splitting it creates unnecessary complexity.
-
----
-
-# 16. Mission report section
-
-The current model supports one report document:
-
-```text
-rapportDocumentId
-```
-
-Preserve this.
-
-Display:
-
-- Report status
-- File name
-- MIME type
-- Open
-- Download
-
-For completed mission without report:
-
-```text
-Rapport de mission requis
-```
-
-Primary action:
-
-```text
-Déposer le rapport
-```
-
-Support both existing behaviors:
-
-- Upload new file
-- Link existing mission document
-
-Do not redesign this as multiple report documents.
-
----
-
-# 17. Report workflow
-
-When mission status becomes:
-
-```text
-terminee
-```
-
-and no report is linked:
-
-Show a warning.
-
-Do not necessarily block mission completion unless current business rules require it.
-
-Confirm server behavior.
-
-Suggested status wording:
-
-```text
-Mission terminée — rapport non déposé
-```
-
-Once report exists:
-
-```text
-Rapport disponible
-```
-
-Do not duplicate the same warning across multiple cards.
-
----
-
-# 18. Recommendations section
-
-Recommendations are a first-class workflow.
-
-Display each recommendation with:
-
-- Text
-- Responsible agent
-- Deadline
-- Status
-- Overdue state
-
-Statuses:
-
-```text
-En attente
-En cours
-Réalisée
-```
-
-Operational warning:
-
-```text
-Dépassée de 12 jours
-```
-
-Actions:
-
-- Mark in progress
-- Mark completed
-- Edit where supported
-- Send reminder
-- Reassign responsible person if supported
-
-Preserve existing update endpoint.
-
-Do not use color alone.
-
----
-
-# 19. Recommendations summary
-
-At section header, display:
-
-```text
-5 recommandations
-3 en attente
-1 dépassée
-```
-
-Sort operationally:
-
-1. Overdue
-2. Due soon
-3. In progress
-4. No deadline
-5. Completed
-
-Provide filters if useful:
-
-```text
-Toutes
-À traiter
-Dépassées
-Réalisées
-```
-
-Do not overbuild for a small dataset.
-
----
-
-# 20. Add recommendation flow
-
-Use a small dialog or side sheet.
-
-Fields:
-
-- Recommendation
-- Responsible person
-- Deadline
-
-Current validation:
-
-- Recommendation text required
-
-Do not require responsible or deadline unless backend does.
-
-Display helper:
-
-```text
-Une date limite permet d’activer le suivi et les alertes.
-```
-
----
-
-# 21. Notifications and reminders
+# 17. Reminder / relance workflow
 
 Preserve existing reminder behavior.
 
-For recommendation reminders:
-
-Display:
-
-- Recipient
-- Recommendation
-- Deadline
-- Message preview
-
-Do not send from an ambiguous single-click icon.
-
-Prefer:
+Action:
 
 ```text
 Préparer une relance
 ```
 
-Then review and send.
+Do not send immediately.
 
-Keep notification history available if existing.
-
----
-
-# 22. Mission lifecycle indicators
-
-Derive lifecycle state from dates and mission status.
-
-Possible indicators:
-
-```text
-À venir
-En cours
-Terminée
-Annulée
-```
-
-Do not create a new stored status.
-
-If mission is `planifiee` and start date is in the future:
+Use a review dialog.
 
 Display:
 
-```text
-J-8
-```
+- Recipient
+- Subject
+- Related courrier
+- Response deadline
+- Message preview
 
-If dates indicate the mission should be underway but status is still planned:
-
-Show a non-blocking consistency warning.
-
-Example:
+Then:
 
 ```text
-La date de départ est atteinte mais la mission est toujours marquée “Planifiée”.
+Envoyer la relance
 ```
 
-Do not automatically mutate state unless explicitly required.
+Show success/failure state.
+
+Keep notification history visible.
 
 ---
 
-# 23. Component architecture
+# 18. Internal notes
+
+If internal notes exist:
+
+Provide a dedicated compact section.
+
+Do not mix internal notes with the official courrier content.
+
+If no notes model exists, do not add one.
+
+---
+
+# 19. Print / report generation integration
+
+The Courrier detail should expose:
+
+```text
+Imprimer
+```
+
+This action should generate or open the official courrier report view.
+
+Use the previously designed ANAC report visual system:
+
+- ANAC header
+- Official title
+- Generated timestamp
+- Courrier reference
+- Summary
+- Sender/recipient
+- Status
+- Documents
+- Lifecycle
+- Response state
+- Footer with SICOT
+
+Do not implement the full report system inside this task unless the reporting infrastructure already exists.
+
+If reporting is not yet implemented:
+
+- Wire the action to a clearly isolated future report route or placeholder interface only if appropriate
+- Report the dependency
+
+Do not create a fake downloadable PDF.
+
+---
+
+# 20. Component architecture
 
 Suggested structure:
 
 ```text
-packages/client/src/pages/missions/
+packages/client/src/pages/courriers/
 ├── components/
-│   ├── MissionStatusBadge.tsx
-│   ├── MissionLogisticsBadge.tsx
-│   ├── MissionHealthBadge.tsx
-│   ├── MissionsSummaryCards.tsx
-│   ├── MissionsFilters.tsx
-│   ├── MissionsRegistryTable.tsx
-│   ├── MissionRegistryCard.tsx
-│   ├── MissionDetailHeader.tsx
-│   ├── MissionSummaryStrip.tsx
-│   ├── MissionOverview.tsx
-│   ├── MissionParticipantsSection.tsx
-│   ├── MissionLogisticsSection.tsx
-│   ├── MissionReportSection.tsx
-│   ├── MissionRecommendationsSection.tsx
-│   ├── MissionNotificationsSection.tsx
-│   ├── LogisticsDialog.tsx
-│   ├── RecommendationDialog.tsx
+│   ├── CourrierTypeBadge.tsx
+│   ├── CourrierStatusBadge.tsx
+│   ├── CourrierHealthBadge.tsx
+│   ├── CourriersSummaryCards.tsx
+│   ├── CourriersFilters.tsx
+│   ├── CourriersRegistryTable.tsx
+│   ├── CourrierRegistryCard.tsx
+│   ├── CourrierDetailHeader.tsx
+│   ├── CourrierSummaryStrip.tsx
+│   ├── CourrierOverview.tsx
+│   ├── CourrierLifecycle.tsx
+│   ├── CourrierDocumentsSection.tsx
+│   ├── CourrierResponseSection.tsx
+│   ├── CourrierRelatedSection.tsx
+│   ├── CourrierNotificationsSection.tsx
+│   ├── RelanceDialog.tsx
 │   └── form/
-│       ├── MissionFormStepper.tsx
+│       ├── CourrierFormStepper.tsx
 │       ├── GeneralInformationStep.tsx
-│       ├── DestinationDatesStep.tsx
-│       ├── ParticipantsStep.tsx
-│       ├── LogisticsContactStep.tsx
+│       ├── SenderRecipientStep.tsx
+│       ├── ContentStep.tsx
+│       ├── DocumentsStep.tsx
 │       └── ReviewStep.tsx
 ├── hooks/
-│   ├── useMissionsQueries.ts
-│   ├── useMissionDetailQueries.ts
-│   └── useMissionsMutations.ts
-├── mission.types.ts
-├── mission.schemas.ts
-├── mission.utils.ts
-├── mission.constants.ts
-├── MissionsPage.tsx
-├── MissionDetailPage.tsx
-└── MissionFormPage.tsx
+│   ├── useCourriersQueries.ts
+│   ├── useCourrierDetailQueries.ts
+│   └── useCourriersMutations.ts
+├── courrier.types.ts
+├── courrier.schemas.ts
+├── courrier.utils.ts
+├── courrier.constants.ts
+├── CourriersPage.tsx
+├── CourrierDetailPage.tsx
+└── CourrierFormPage.tsx
 ```
 
 Adapt to current conventions.
 
-Do not rename everything unnecessarily.
-
-Reuse existing working code where appropriate.
+Do not rename everything unless useful.
 
 ---
 
-# 24. Shared normalization
+# 21. Shared normalization
 
-Inspect the updated:
+Inspect the updated implementations of:
 
-- Dashboard
 - Accords
 - Partenaires
+- Missions
 
-Reuse shared visual and architectural patterns for:
+Reuse shared patterns for:
 
 - Page headers
 - Breadcrumbs
-- Summary metric cards
+- Summary cards
 - Filter toolbars
-- Full-width registries
+- Full-width tables
 - Mobile cards
-- Stepper
-- Detail summary strip
+- Stepper layouts
+- Detail summary strips
 - Section navigation
 - Error states
 - Empty states
 - Action menus
 - Responsive spacing
 
-Extract shared primitives only where useful.
+Extract shared primitives only where genuinely reusable.
 
 Do not copy-paste large components.
 
 ---
 
-# 25. Centralized business utilities
+# 22. Business utilities
 
-Create shared mission utilities.
-
-Examples:
+Create centralized utilities where appropriate:
 
 ```text
-getMissionLifecycleState
-getMissionDuration
-daysUntilMissionStart
-isMissionLogisticsAtRisk
-isMissionReportMissing
-isRecommendationOverdue
-getMissionHealth
-formatMissionPeriod
+isCourrierOverdue
+daysUntilCourrierDeadline
+daysSinceCourrierDeadline
+getCourrierHealth
+getCourrierDirectionLabel
+formatCourrierDeadline
+getCourrierLifecycleState
 ```
 
 Centralize thresholds.
 
-Example:
-
-```text
-MISSION_LOGISTICS_RISK_DAYS = 14
-```
-
-Do not repeat:
-
-```text
-14 * 24 * 60 * 60 * 1000
-```
-
-throughout the UI.
+Do not repeat date arithmetic in JSX.
 
 Handle date-only values carefully.
 
 ---
 
-# 26. Contact query problem
+# 23. Registry aggregates
 
-The current form loads:
-
-1. All organisations
-2. Then all contacts for each organisation
-
-This creates an N+1 pattern.
-
-Do not preserve this approach.
-
-Audit whether a centralized contacts endpoint exists.
-
-Preferred minimum API:
-
-```text
-GET /contacts?actif=true
-```
-
-Possible response:
-
-```text
-{
-  data: [
-    {
-      id,
-      nom,
-      prenom,
-      email,
-      telephone,
-      poste,
-      organisationId,
-      organisationNom
-    }
-  ]
-}
-```
-
-If no endpoint exists, propose and implement the smallest safe server-side addition.
-
-Do not redesign the Partenaires module.
-
----
-
-# 27. Registry aggregates
-
-Audit whether mission list response supports:
+Audit whether list API returns:
 
 - Total
-- By status
-- Upcoming count
-- Logistics-risk count
-- Missing-report count
+- Incoming count
+- Outgoing count
+- Waiting-response count
+- Overdue count
+- To-process count
 
-If unavailable, propose a lightweight aggregate response.
+If not, propose the smallest aggregate response.
 
 Example:
 
@@ -1612,48 +1307,46 @@ Example:
   total,
   aggregates: {
     total,
-    planned,
-    inProgress,
-    completed,
-    cancelled,
-    upcoming30Days,
-    logisticsAtRisk,
-    missingReport
+    incoming,
+    outgoing,
+    waitingResponse,
+    overdue,
+    toProcess
   }
 }
 ```
 
-Do not calculate global KPIs from only one page.
+Do not calculate global KPIs from the current page.
 
 ---
 
-# 28. Accessibility
+# 24. Accessibility
 
 Requirements:
 
 - Full keyboard access
-- Semantic table rows and links
-- No invalid nested buttons
-- Accessible menus
+- Semantic rows/cards
+- No invalid nested interactive controls
+- Accessible action menus
 - Stepper exposes current/completed state
-- Visible field labels
+- Visible form labels
 - Validation errors linked to fields
-- Status not conveyed by color alone
-- Icon-only buttons have accessible names
+- Direction/status not conveyed by color alone
+- Icon-only controls have accessible labels
 - Dialog focus trapped/restored
 - Focus moves to step heading
-- Report upload progress announced
-- Recommendations deadlines readable without color
-- Mobile cards preserve logical order
+- Deadline state readable without color
+- Attachment actions accessible
+- Mobile cards preserve reading order
 
 ---
 
-# 29. Responsive behavior
+# 25. Responsive behavior
 
 Desktop:
 
 - Full-width registry
-- Vertical guided stepper
+- Vertical creation stepper
 - Three-column detail overview
 
 Tablet:
@@ -1664,36 +1357,31 @@ Tablet:
 
 Mobile:
 
-- Mission cards
+- Courrier cards
 - Filters stacked or in sheet
 - One creation step at a time
 - Detail sections stacked
-- Header actions collapsed
-- Participants displayed as cards
-- Recommendations displayed as cards
+- Actions collapsed
+- Documents rendered as cards
 - No horizontal overflow
 
 ---
 
-# 30. Error handling
+# 26. Error handling
 
 Implement meaningful states for:
 
-- Mission list failure
-- Mission detail failure
+- Courrier list failure
+- Courrier detail failure
 - Invalid ID
-- Missing mission
-- Users list failure
-- Contacts list failure
-- Mission creation failure
-- Mission update failure
-- Logistics update failure
-- Report upload failure
-- Existing-report selection failure
-- Recommendation creation failure
-- Recommendation update failure
+- Missing courrier
+- Create failure
+- Update failure
+- Document upload failure
+- Existing-document linking failure
+- Response linking failure
 - Reminder failure
-- Related notification history failure
+- Notification history failure
 
 Do not return null for expected errors.
 
@@ -1701,60 +1389,52 @@ Use existing toast and alert patterns.
 
 ---
 
-# 31. Performance
+# 27. Performance
 
-- Debounce registry search
+- Debounce search
 - Preserve server-side pagination
-- Reuse users cache
-- Replace contact N+1 loading
-- Lazy-load notification history if appropriate
-- Lazy-load report details where useful
-- Avoid refetching full mission after every minor action if optimistic or targeted update is safe
+- Avoid per-row related-courrier queries
+- Avoid per-row document queries
+- Lazy-load notification history where useful
+- Reuse document/partner caches
 - Invalidate only relevant queries
 
 Do not overengineer for a small internal user base.
 
 ---
 
-# 32. Testing and validation
-
-Run relevant project commands.
+# 28. Testing and validation
 
 At minimum validate:
 
 - TypeScript
 - ESLint
 - Production build
-- `/missions`
-- `/missions/new`
-- `/missions/:id`
-- `/missions/:id/edit`
+- `/courriers`
+- `/courriers/new`
+- `/courriers/:id`
+- `/courriers/:id/edit`
 - Search
+- Type filter
 - Status filter
-- Country filter
 - Period filter
-- Logistics filter
-- Report filter
+- Response filter
 - Pagination
 - URL restoration
-- Mission creation
+- Incoming courrier creation
+- Outgoing courrier creation
 - Step validation
-- Participants selection
-- Date-range validation
-- Contact selection
-- Creation without contact
-- Mission editing
-- Logistics update
-- Report upload
-- Existing report linking
-- Mission completed without report
-- Mission completed with report
-- Recommendation creation
-- Recommendation status update
-- Overdue recommendation display
+- Sender/recipient logic
+- Date validation
+- Document upload
+- Existing document linking
+- Courrier edit
+- Waiting-response state
+- Overdue state
+- Response-linked courrier
 - Reminder flow
-- Upcoming mission countdown
-- Logistics risk warning
+- Notification history
+- Print action integration
 - Loading states
 - Error states
 - Empty states
@@ -1765,11 +1445,11 @@ At minimum validate:
 - No horizontal overflow
 - No console errors
 
-Do not claim checks passed unless executed.
+Do not claim a check passed unless executed.
 
 ---
 
-# 33. Expected implementation sequence
+# 29. Expected implementation sequence
 
 ## Phase 1 — Audit
 
@@ -1778,18 +1458,19 @@ Return:
 1. Current file structure
 2. Current routes
 3. Current API payloads
-4. Mission status rules
-5. Logistics rules
-6. Participant rules
-7. Report workflow
-8. Recommendation rules
-9. Contact-on-site behavior
-10. Existing reusable UI
-11. Dashboard/Accords/Partenaires patterns to reuse
-12. Data limitations
-13. Backend dependencies
-14. Proposed file changes
-15. Risks
+4. Courrier type rules
+5. Status rules
+6. Sender/recipient rules
+7. Response tracking rules
+8. Related courrier behavior
+9. Document behavior
+10. Reminder behavior
+11. Existing reusable UI
+12. Normalized module patterns to reuse
+13. Data limitations
+14. Backend dependencies
+15. Proposed file changes
+16. Risks
 
 Do not implement yet.
 
@@ -1800,16 +1481,17 @@ Return:
 1. Registry component map
 2. Summary metrics strategy
 3. Guided creation steps
-4. Detail workspace design
-5. Logistics workflow
-6. Report workflow
-7. Recommendations workflow
-8. Contact querying strategy
-9. Shared normalization plan
-10. Responsive strategy
-11. Accessibility strategy
-12. Backend changes if unavoidable
-13. Implementation order
+4. Incoming/outgoing conditional flow
+5. Detail workspace design
+6. Lifecycle strategy
+7. Response tracking strategy
+8. Related correspondence strategy
+9. Reminder workflow
+10. Print/report integration
+11. Responsive strategy
+12. Accessibility strategy
+13. Backend changes if unavoidable
+14. Implementation order
 
 ## Phase 3 — Registry implementation
 
@@ -1822,7 +1504,7 @@ Implement:
 5. Desktop table
 6. Mobile cards
 7. Pagination
-8. Health indicators
+8. Operational health
 9. Loading/error/empty states
 
 Validate.
@@ -1833,12 +1515,12 @@ Implement:
 
 1. Stepper
 2. General information
-3. Destination/dates
-4. Participants
-5. Contact/logistics
+3. Sender/recipient
+4. Content
+5. Documents
 6. Review
 7. Submission
-8. Unsaved-change handling
+8. Unsaved-change protection
 9. Responsive behavior
 
 Validate.
@@ -1850,14 +1532,15 @@ Implement:
 1. Header
 2. Summary strip
 3. Overview
-4. Participants
-5. Logistics
-6. Contact on site
-7. Report
-8. Recommendations
+4. Lifecycle
+5. Documents
+6. Response tracking
+7. Related correspondence
+8. Reminders
 9. Notifications
-10. States
-11. Responsive behavior
+10. Print integration
+11. States
+12. Responsive behavior
 
 Validate.
 
@@ -1875,81 +1558,75 @@ Return:
 4. Registry changes
 5. Guided form changes
 6. Detail workspace changes
-7. Logistics changes
-8. Contact-query changes
-9. Report workflow
-10. Recommendations workflow
-11. Shared components
-12. Backend/API changes
-13. Accessibility decisions
-14. Responsive behavior
-15. Validation commands
-16. Validation results
-17. Remaining recommendations
+7. Lifecycle behavior
+8. Response tracking
+9. Related courrier handling
+10. Documents changes
+11. Reminder workflow
+12. Print/report integration
+13. Shared components
+14. Backend/API changes
+15. Accessibility decisions
+16. Responsive behavior
+17. Validation commands
+18. Validation results
+19. Remaining recommendations
 
 ---
 
-# 34. Acceptance criteria
+# 30. Acceptance criteria
 
 The task is complete when:
 
-- Missions follows the normalized SICOT visual style.
-- The registry is full-width and operationally useful.
-- Mission KPIs are accurate.
-- Logistics risks are immediately visible.
-- Missing reports are visible.
+- Courriers follows the normalized SICOT style.
+- Registry is full-width and operationally useful.
+- Incoming and outgoing courriers are clearly distinguishable.
+- Operational KPIs are accurate.
+- Waiting-response and overdue courriers are explicit.
 - Search, filters, and pagination work.
-- URL filters persist.
-- Mobile uses mission cards.
-- Mission creation uses a guided stepper.
-- The stepper uses only real domain fields.
-- Dates validate correctly.
-- Participants selection is searchable and manageable.
-- Contact on site can be selected efficiently.
-- The N+1 contact-loading workaround is removed.
-- Mission detail uses the three-column operational layout.
-- Logistics has a dedicated workflow.
-- Participants are visible and manageable.
-- Report workflow remains supported.
-- Recommendations are a first-class section.
-- Overdue recommendations are explicit.
-- Reminder functionality remains available.
-- Loading, error, empty, and missing-record states exist.
-- Mission business rules are centralized.
-- The design aligns with Dashboard, Accords, and Partenaires.
-- The module is responsive.
-- The module is keyboard accessible.
+- URL filter persistence works.
+- Mobile uses courrier cards.
+- Creation uses a guided stepper.
+- Incoming/outgoing creation flows are context-aware.
+- Only real domain fields are used.
+- Documents remain supported.
+- Courrier detail uses a structured operational workspace.
+- Lifecycle is visible.
+- Response tracking is clear.
+- Related courriers are visible when supported.
+- Reminder workflow remains available.
+- Notification history remains available.
+- Print action is prepared for report generation.
+- Loading/error/empty/missing states exist.
+- Courrier business rules are centralized.
+- Design aligns with Dashboard, Accords, Partenaires, and Missions.
+- Module is responsive.
+- Module is keyboard accessible.
 - TypeScript, lint, and build pass.
 - No unrelated modules are changed.
-- A final implementation report is returned.
+- Final report is returned.
 
 ---
 
-# 35. Restrictions
+# 31. Restrictions
 
 Do not:
 
 - Rewrite the entire application.
 - Replace React Query.
-- Replace React Hook Form.
-- Replace Zod.
+- Replace React Hook Form or Zod.
 - Replace Tailwind.
 - Introduce another UI library.
-- Add mock production data.
-- Invent mission type.
-- Invent priority.
-- Invent budget.
-- Invent programme.
-- Invent objectives.
-- Invent multiple mission documents.
-- Invent participant roles.
-- Invent mission reference if none exists.
-- Preserve N+1 contact fetching.
-- Calculate global KPIs from the current page.
-- Mix report management into the normal mission edit form.
-- Hide logistics inside generic edit only.
-- Reduce recommendations to a secondary note field.
-- Duplicate normalized Accords/Partenaires components through copy-paste.
+- Add production mock data.
+- Invent priority if absent.
+- Invent response deadlines if absent.
+- Invent automatic reminder states.
+- Invent courrier relationships from matching subject text.
+- Calculate global KPIs from one page.
+- Create per-row API requests.
+- Mix reminders into generic edit forms.
+- Create fake print/PDF output.
+- Duplicate normalized module components through copy-paste.
 - Modify unrelated pages.
 - Commit or push changes.
 
