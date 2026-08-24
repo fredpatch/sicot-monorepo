@@ -109,8 +109,34 @@ export async function getTerme(id: number): Promise<TermeView> {
   return { ...toTermeView(terme), historique };
 }
 
+// ── SERVICE : Agrégats pour les cartes de synthèse ─────────────────────────
+export async function getGlossaireAggregates(): Promise<{
+  total: number;
+  actifs: number;
+  inactifs: number;
+  domaines: number;
+}> {
+  const [total, actifs, inactifs, domainesRows] = await Promise.all([
+    db.$count(glossaire),
+    db.$count(glossaire, eq(glossaire.actif, true)),
+    db.$count(glossaire, eq(glossaire.actif, false)),
+    db.selectDistinct({ domaine: glossaire.domaine }).from(glossaire),
+  ]);
+
+  const domaines = domainesRows.filter((r) => !!r.domaine).length;
+
+  return { total, actifs, inactifs, domaines };
+}
+
 // ── SERVICE : Créer un terme ───────────────────────────────────────────────
 export async function creerTerme(params: CreateTermeParams): Promise<TermeView> {
+  const [doublon] = await db
+    .select()
+    .from(glossaire)
+    .where(and(ilike(glossaire.termeFr, params.termeFr), ilike(glossaire.termeEn, params.termeEn)));
+
+  if (doublon) throw new Error('TERME_DEJA_EXISTANT');
+
   const [terme] = await db
     .insert(glossaire)
     .values({
@@ -190,6 +216,30 @@ export async function desactiverTerme(id: number, userId: number): Promise<Terme
   await logAudit({
     userId,
     action: 'TERME_DESACTIVE',
+    module: 'M7',
+    entiteId: id,
+    details: { termeFr: existant.termeFr },
+  });
+
+  return toTermeView(updated);
+}
+
+// ── SERVICE : Réactiver un terme ──────────────────────────────────────────
+export async function reactiverTerme(id: number, userId: number): Promise<TermeView> {
+  const [existant] = await db.select().from(glossaire).where(eq(glossaire.id, id));
+
+  if (!existant) throw new Error('TERME_INTROUVABLE');
+  if (existant.actif) throw new Error('TERME_DEJA_ACTIF');
+
+  const [updated] = await db
+    .update(glossaire)
+    .set({ actif: true, updatedAt: new Date() })
+    .where(eq(glossaire.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: 'TERME_REACTIVE',
     module: 'M7',
     entiteId: id,
     details: { termeFr: existant.termeFr },

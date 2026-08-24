@@ -1,5 +1,57 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-24 — feat(client/server): Glossaire module (M7) redesign
+
+Redesign of the Glossaire module to a concept-first, multilingual-ready
+registry, following the same audit → plan → implement → validate process
+as Missions/Courriers/Traductions. No backend multilingual migration —
+`termeFr`/`termeEn` storage is unchanged; a frontend adapter layer
+(`glossary.adapters.ts`) presents the same data as a generic `variants`
+list so a future language only needs an adapter entry, not a registry
+rewrite.
+
+### Added — Registry (`/glossaire`)
+- `GET /api/glossaire/aggregates` — total/actifs/inactifs/domaines counts,
+  independent of filters/pagination (same pattern as Missions/Courriers/
+  Traductions aggregates).
+- `GlossaryRegistryTable`/`GlossaryRegistryMobileCards` — hand-built table
+  + mobile cards replacing the shared `DataTable` (same reasoning as the
+  Traductions redesign: that component's header-hover styling breaks on
+  a dark header). Columns are concept-first (Terme principal / Traductions
+  disponibles / Domaine / Statut / Dernière mise à jour / Actions) instead
+  of permanently fixed FR/EN columns.
+- `GlossaireFiltres` rebuilt to the Missions/Courriers/Traductions filter
+  shape — debounced search (now also server-side, unchanged endpoint
+  behavior), Statut select, "Plus de filtres" expandable Domaine select,
+  filter chips, reset.
+- `TermWorkspace` — Dialog-based (no Sheet primitive exists in the
+  codebase yet) tabbed detail view: Traductions / Contexte d'utilisation /
+  Informations / Historique, opened on row click or "Voir".
+- `LanguageVariantBadge` — language always shown as ISO code + label text,
+  never a flag alone.
+
+### Added — Backend (additive, no contract changes)
+- **`PATCH /:id/reactiver`** — flips `actif` back to `true` with a
+  dedicated `TERME_REACTIVE` audit action. Previously absent at every
+  layer (service/controller/route/client) — deactivating a term had no
+  UI path to undo.
+- **Duplicate check on `creerTerme`** — reuses the exact case-insensitive
+  FR+EN match already used by `importerTermes` (CSV import), which was
+  until now the only place with duplicate detection; manual create had
+  none. Surfaces "Ce terme existe déjà dans le glossaire." (409).
+
+### Notes
+- No changes to `traductionsApi.suggestions`/`getSuggestionsGlossaire`/
+  `GlossarySuggestions.tsx` — confirmed by diff review, not touched.
+- "Langues couvertes" KPI intentionally omitted (would always read FR+EN
+  on the current backend — brief explicitly warns against a misleading
+  static-looking dynamic metric).
+- Validated live against the dev DB via a disposable scratch script
+  (deleted after use): aggregates, duplicate rejection, reactivate +
+  re-reactivate rejection, domaine search — all confirmed working.
+  Browser/visual verification not performed this session (Playwright
+  Chromium version mismatch, same constraint as prior sessions).
+
 ## [Unreleased] — 2026-08-24 — feat(client/server): Traductions module (M6) redesign + app-wide router/confirm-dialog
 
 Full redesign of the Traductions production workspace (queue + workshop),

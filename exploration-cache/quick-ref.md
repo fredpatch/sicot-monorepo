@@ -88,7 +88,9 @@ GET  /api/traductions          List (filter: statut, direction, vue=actives|supp
 PATCH /api/traductions/:id/relancer  Retry engine on a manuelle_requise translation (never overwrites texteFinal)
 GET  /api/traductions/:id/suggestions?texte=…&origine=source|traduction  Glossary suggestions — origine picks which panel's language to search
 GET  /api/glossaire            List terms (filter: search, domaine, actif)
-GET  /api/glossaire/suggestions?q=…  Glossaire suggestions for editor
+GET  /api/glossaire/aggregates Global counts (total/actifs/inactifs/domaines), independent of filters
+GET  /api/glossaire/suggestions?q=…  Glossaire suggestions for editor (dead code path — client uses /traductions/:id/suggestions instead)
+PATCH /api/glossaire/:id/reactiver  Reactivate a deactivated term
 POST /api/glossaire/import     Bulk import (JSON {termeFr,termeEn,domaine?,contexte?}[]) — no client UI wired to it yet
 POST /api/traductions          Launch translation (texteOriginal + direction)
 GET  /api/traductions/moteur/status  LibreTranslate health check
@@ -129,7 +131,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) redesigns + individual PDF export + services:up scripts
+🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) redesigns + individual PDF export + services:up scripts
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -153,9 +155,10 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
   pass covered). Courriers got its own Période filter during the M4
   redesign (2026-08-24) — the same could be ported to Missions — Notion
   Sprint 12, À faire
-- **Shared SummaryCard component** — still copy-pasted 4× now (Accords,
-  Partenaires, Missions, Courriers), not extracted to avoid touching
-  modules outside each task's scope — Notion Sprint 12, À faire
+- **Shared SummaryCard component** — still copy-pasted 6× now (Accords,
+  Partenaires, Missions, Courriers, Traductions, Glossaire), not extracted
+  to avoid touching modules outside each task's scope — Notion Sprint 12,
+  À faire
 - **PDF export — remaining Tier 2 fields** — courrier contact-level
   sender/recipient and multi-document attachment are now DONE
   (2026-08-24, Courriers M4 redesign) and already reflected in the PDF
@@ -163,9 +166,14 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
   accord type/durée/renouvelable, mission organisateur/objectif/résumé
   d'activités, per-mission participant role, multi-level correspondence
   threads — Notion Sprint 12, À faire
-- **Glossaire import UI** — `POST /api/glossaire/import` works, no client
-  button/dialog calls it yet; blocked on the CCIT seed file (see below).
-  Building a document-based auto-extraction pipeline (raw ANAC PDFs →
-  glossary) is a separate, bigger recommendation, not yet started — Notion
-  Sprint 12, À faire
+- **Glossaire — multiple import sources, each needing its own UI surface**
+  — expanded recommendation (2026-08-24, explicit user request): the
+  glossary should eventually accept several kinds of import (CSV/Excel
+  structured, and possibly document-based extraction — see below), and
+  each mechanism needs a dedicated UI (button/dialog), not just a silent
+  backend endpoint. `POST /api/glossaire/import` (CSV/Excel) already
+  exists server-side with no client UI yet, blocked on the CCIT seed file
+  (see below). A document-based auto-extraction pipeline (raw ANAC PDFs →
+  glossary) is a separate, bigger piece, not yet started — Notion Sprint
+  12, À faire
 - **No automated test suite** — CI is lint + build only

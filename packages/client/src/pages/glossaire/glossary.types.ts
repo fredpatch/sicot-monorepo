@@ -1,4 +1,4 @@
-// packages/client/src/pages/glossaire/glossaire.types.ts
+// packages/client/src/pages/glossaire/glossary.types.ts
 export interface HistoriqueEntry {
   id: number;
   ancienTermeFr?: string;
@@ -17,4 +17,11 @@ export interface Terme {
   createdAt: string;
   updatedAt: string;
   historique?: HistoriqueEntry[];
+}
+
+export interface GlossaireAggregates {
+  total: number;
+  actifs: number;
+  inactifs: number;
+  domaines: number;
 }

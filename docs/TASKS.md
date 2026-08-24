@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
 
 Sprint non planifié, réalisé le même jour — voir `exploration-cache/changelog.md`
 pour le détail complet et `docs/deployment/production-guide.md` pour le runbook.
@@ -666,15 +666,26 @@ pour le détail complet et `docs/deployment/production-guide.md` pour le runbook
 - [x] ~~**`useConfirm()` app-wide**~~ - Remplace tous les `window.confirm()` du client (Accords/Courriers/Missions) par une dialog shadcn-style (`components/ui/confirm-dialog.tsx`), pas seulement dans Traductions
 - [x] ~~**Scripts microservices**~~ - `npm run services:up/down/restart/logs/status` (Docker Compose : libretranslate + translate-service + ocr-service), documentés comme devant tourner en continu sur le serveur
 
+### Refonte Glossaire (M7)
+
+- [x] ~~**Registre concept-first**~~ - Cartes de synthèse réelles (`GET /api/glossaire/aggregates` : total/actifs/inactifs/domaines, remplace tout calcul sur la page courante), colonnes Terme principal/Traductions disponibles/Domaine/Statut/Dernière mise à jour au lieu de colonnes FR/EN figées, table + cartes mobiles construites à la main (retrait du `DataTable` générique, même convention que Missions/Courriers/Traductions)
+- [x] ~~**Couche de normalisation multilingue-ready**~~ - `glossary.adapters.ts` (`GlossaryConceptViewModel`/`TermVariant`/`getPrimaryVariant`/`toApiPayload`) : le registre et la fiche terme consomment une liste de variantes générique, jamais `termeFr`/`termeEn` directement — une langue future (ES/PT) n'exige qu'une entrée d'adaptateur, pas une refonte du registre. Aucune migration backend multilingue effectuée (`termeFr`/`termeEn` inchangés)
+- [x] ~~**Fiche terminologique (workspace)**~~ - `TermWorkspace` (Dialog à onglets, pas de nouveau composant Sheet) : Traductions / Contexte d'utilisation / Informations / Historique, ouverte au clic ligne ou action "Voir"
+- [x] ~~**Réactivation de terme**~~ - `PATCH /:id/reactiver` (n'existait à aucune couche avant), bouton "Réactiver" dans le registre et la fiche — auparavant aucun chemin UI pour annuler une désactivation
+- [x] ~~**Garde-fou doublon à la création**~~ - `creerTerme` applique désormais la même vérification exacte FR+EN (insensible à la casse) que l'import CSV, qui en était jusque-là le seul endroit ; erreur serveur "Ce terme existe déjà dans le glossaire." remontée dans le formulaire
+- [x] ~~**Langue toujours textuelle**~~ - `LanguageVariantBadge` (code ISO + libellé, jamais un drapeau seul)
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas de statuts En révision/Approuvé/Brouillon, pas de "Ajouter une langue" fonctionnel, pas de champs Définition/Source/Référence — historique étiqueté honnêtement (suivi des renommages FR/EN uniquement, pas un audit trail complet)
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)
-- [ ] **Composant SummaryCard partagé** - dupliqué 5× (Accords/Partenaires/Missions/Courriers/Traductions)
+- [ ] **Composant SummaryCard partagé** - dupliqué 6× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
 - [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
 - [ ] **Fils de correspondance multi-niveaux** - `getFilCorrespondance` ne remonte qu'un niveau de réponse
-- [ ] **Import CSV/Excel glossaire — interface** - `POST /api/glossaire/import` existe déjà côté serveur (JSON `{termeFr, termeEn, domaine?, contexte?}[]`) mais aucun bouton/dialog client ne l'appelle ; à construire une fois le fichier CCIT reçu (cf. Waiting On)
-- [ ] **Extraction glossaire depuis documents ANAC bruts** - Recommandation 2026-08-24 : alimenter le glossaire à partir de PDF/Word existants nécessiterait un pipeline d'extraction/alignement bilingue (au-delà d'un simple import structuré) — à évaluer séparément si le volume de terminologie non capturée le justifie
+- [ ] **Glossaire — pluralité des sources d'alimentation, avec surface UI dédiée à chacune** - Recommandation élargie 2026-08-24 (demande explicite) : le glossaire devra à terme accepter plusieurs types d'import (CSV/Excel structuré CCIT, et potentiellement extraction depuis documents ANAC bruts — voir ligne suivante), et **chaque mécanisme d'alimentation doit avoir sa propre surface UI** (bouton/dialog dédié, pas seulement un endpoint backend silencieux) — remplace l'ancien item "Import CSV/Excel glossaire — interface" ci-dessous, qui reste un sous-cas de celui-ci
+  - [ ] **Import CSV/Excel structuré** - `POST /api/glossaire/import` existe déjà côté serveur (JSON `{termeFr, termeEn, domaine?, contexte?}[]`) mais aucun bouton/dialog client ne l'appelle ; à construire une fois le fichier CCIT reçu (cf. Waiting On)
+  - [ ] **Extraction depuis documents ANAC bruts** - alimenter le glossaire à partir de PDF/Word existants nécessiterait un pipeline d'extraction/alignement bilingue (au-delà d'un simple import structuré), avec sa propre interface de revue/validation avant intégration — à évaluer séparément si le volume de terminologie non capturée le justifie
 
 ## Waiting On
 

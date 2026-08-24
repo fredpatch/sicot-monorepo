@@ -15,7 +15,10 @@ export function useGlossaireMutations({
   onTermeModifie,
 }: UseGlossaireMutationsParams = {}) {
   const queryClient = useQueryClient();
-  const invalidateGlossaire = () => queryClient.invalidateQueries({ queryKey: ['glossaire'] });
+  const invalidateGlossaire = () => {
+    queryClient.invalidateQueries({ queryKey: ['glossaire'] });
+    queryClient.invalidateQueries({ queryKey: ['glossaire-aggregates'] });
+  };
 
   const creerMutation = useMutation({
     mutationFn: (data: TermeFormData) => glossaireApi.creer(data),
@@ -29,14 +32,26 @@ export function useGlossaireMutations({
     mutationFn: (data: TermeFormData) => glossaireApi.mettreAJour(termeSelectionneId!, data),
     onSuccess: () => {
       invalidateGlossaire();
+      queryClient.invalidateQueries({ queryKey: ['terme', termeSelectionneId] });
       onTermeModifie?.();
     },
   });
 
   const desactiverMutation = useMutation({
     mutationFn: (id: number) => glossaireApi.desactiver(id),
-    onSuccess: invalidateGlossaire,
+    onSuccess: (_data, id) => {
+      invalidateGlossaire();
+      queryClient.invalidateQueries({ queryKey: ['terme', id] });
+    },
   });
 
-  return { creerMutation, modifierMutation, desactiverMutation };
+  const reactiverMutation = useMutation({
+    mutationFn: (id: number) => glossaireApi.reactiver(id),
+    onSuccess: (_data, id) => {
+      invalidateGlossaire();
+      queryClient.invalidateQueries({ queryKey: ['terme', id] });
+    },
+  });
+
+  return { creerMutation, modifierMutation, desactiverMutation, reactiverMutation };
 }

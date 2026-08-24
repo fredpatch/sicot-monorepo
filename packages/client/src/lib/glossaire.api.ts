@@ -9,6 +9,8 @@ export const glossaireApi = {
     pageSize?: number;
   }) => api.get('/glossaire', { params }),
 
+  aggregates: () => api.get('/glossaire/aggregates'),
+
   getById: (id: number) => api.get(`/glossaire/${id}`),
 
   suggestions: (q: string, limite?: number) =>
@@ -29,6 +31,8 @@ export const glossaireApi = {
   ) => api.patch(`/glossaire/${id}`, data),
 
   desactiver: (id: number) => api.patch(`/glossaire/${id}/desactiver`),
+
+  reactiver: (id: number) => api.patch(`/glossaire/${id}/reactiver`),
 
   importerCSV: (
     termes: Array<{

@@ -8,6 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
+router.get('/aggregates', glossaireController.aggregates);
 router.get('/suggestions', glossaireController.suggestions);
 router.post('/import', requireRole('traducteur'), glossaireController.importerCSV);
 
@@ -19,5 +20,6 @@ router.get('/:id', glossaireController.getById);
 router.post('/', requireRole('traducteur'), glossaireController.creer);
 router.patch('/:id', requireRole('traducteur'), glossaireController.mettreAJour);
 router.patch('/:id/desactiver', requireRole('traducteur'), glossaireController.desactiver);
+router.patch('/:id/reactiver', requireRole('traducteur'), glossaireController.reactiver);
 
 export default router;

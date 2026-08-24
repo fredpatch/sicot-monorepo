@@ -435,3 +435,65 @@ sessions:
   before assuming a code regression — most likely they're just not
   running (no `.env` needed for these 3 specifically, only for DB/JWT-
   dependent services in the same compose file).
+
+## Glossaire Module (M7) Redesign (2026-08-24)
+
+Full detail in `changelog.md`. Notable, non-obvious things for future
+sessions:
+
+- **Two independent, disconnected glossary-suggestion code paths exist —
+  only one is used**: `glossaireApi.suggestions` → `GET
+  /glossaire/suggestions` → `suggererTermes()` is dead code, never called
+  anywhere in the client. The Traductions editor actually uses
+  `traductionsApi.suggestions` → `GET /traductions/:id/suggestions` →
+  `getSuggestionsGlossaire()`, which lives entirely inside the
+  **traduction** module, not glossaire. They have different matching
+  logic (whole-phrase substring on FR+EN vs. per-word substring on one
+  language only, capped to 5 words >3 chars). This redesign deliberately
+  did not touch either — confirmed by diff review — since the brief
+  scoped Glossaire only. Don't assume `glossaireApi.suggestions` is live
+  if you go looking for where suggestions come from.
+- **`glossaire.service.ts` had two duplicate-checking inconsistencies,
+  one now fixed**: `importerTermes` (CSV import) always had a
+  case-insensitive exact FR+EN match check; `creerTerme` (manual create)
+  had none until this redesign — now reuses the same check, throwing
+  `TERME_DEJA_EXISTANT` (409). The domain filter dropdown's distinct-value
+  query still only scans **active** terms (`listerTermes`'s `domaines`
+  return value) — a domain used solely by inactive terms silently
+  disappears from the filter list even with "Inactifs" selected. Not
+  fixed this session (out of the brief's scope), just flagging it exists.
+- **Reactivate was absent at every layer before this redesign** — no
+  service function, no controller handler, no route, no client call. The
+  generic `mettreAJourTerme` technically accepts `actif: true` in its
+  params and always did, but nothing called it that way. Added a
+  purpose-built `reactiverTerme()` / `PATCH /:id/reactiver` instead of
+  routing reactivation through the generic update, so it gets its own
+  audit action (`TERME_REACTIVE`) and its own guard (throws
+  `TERME_DEJA_ACTIF` if already active) rather than silently no-op'ing.
+- **`glossaireHistorique` only ever stores old `termeFr`/`termeEn`** — a
+  history row is created only when one of those two fields changes;
+  editing `domaine`/`contexte` alone, or deactivating/reactivating,
+  creates no history entry. The UI labels this "Historique" without
+  implying it's a full audit trail — don't add domaine/contexte/actif
+  history rendering without a matching schema change first.
+- **Multilingual-ready adapter layer**: `glossary.adapters.ts` exposes
+  `GlossaryConceptViewModel`/`TermVariant`/`getPrimaryVariant()`/
+  `toApiPayload()`. The registry table, mobile cards, and workspace all
+  consume `variants: TermVariant[]`, never `termeFr`/`termeEn` directly.
+  Backend storage is unchanged (`termeFr`/`termeEn` columns, no schema
+  migration) — this is a frontend normalization layer only, matching the
+  brief's explicit "multilingual-ready, not multilingual migration"
+  constraint. A future language (ES/PT/...) needs a new variant entry in
+  `toGlossaryConceptViewModel()` plus real backend columns/params; the
+  registry/workspace/table components would not need to change shape.
+- **No Sheet/Drawer primitive exists in `components/ui/`** — the term
+  workspace (`TermWorkspace.tsx`) is a `Dialog` with `Tabs` inside
+  (Traductions/Contexte/Informations/Historique) rather than a true side
+  sheet, since the brief explicitly said not to introduce a new UI
+  library and no Sheet component exists yet in the codebase. If a real
+  Sheet primitive gets built for another module later, this could be
+  revisited.
+- **Aggregates added, same pattern as Missions/Courriers/Traductions**:
+  `GET /glossaire/aggregates` → `{total, actifs, inactifs, domaines}`,
+  all real `db.$count`/distinct queries, never derived from the current
+  page.

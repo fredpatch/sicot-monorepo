@@ -80,6 +80,8 @@ export const handleAuditError = createErrorHandler(
 export const handleGlossaireError = createErrorHandler(
   {
     TERME_INTROUVABLE: { status: 404, message: 'Terme introuvable.' },
+    TERME_DEJA_EXISTANT: { status: 409, message: 'Ce terme existe déjà dans le glossaire.' },
+    TERME_DEJA_ACTIF: { status: 400, message: 'Ce terme est déjà actif.' },
   },
   '[glossaire.controller]'
 );

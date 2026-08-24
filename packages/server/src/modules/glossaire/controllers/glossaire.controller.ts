@@ -21,6 +21,16 @@ export async function lister(req: Request, res: Response): Promise<void> {
   }
 }
 
+// ── GET /api/glossaire/aggregates ─────────────────────────────────────────
+export async function aggregates(_req: Request, res: Response): Promise<void> {
+  try {
+    const result = await glossaireService.getGlossaireAggregates();
+    res.json(result);
+  } catch (error) {
+    handleGlossaireError(res, error);
+  }
+}
+
 // ── GET /api/glossaire/suggestions ───────────────────────────────────────
 export async function suggestions(req: Request, res: Response): Promise<void> {
   try {
@@ -123,6 +133,22 @@ export async function desactiver(req: Request, res: Response): Promise<void> {
     }
 
     const terme = await glossaireService.desactiverTerme(id, req.user!.userId);
+    res.json(terme);
+  } catch (error) {
+    handleGlossaireError(res, error);
+  }
+}
+
+// ── PATCH /api/glossaire/:id/reactiver ────────────────────────────────────
+export async function reactiver(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const terme = await glossaireService.reactiverTerme(id, req.user!.userId);
     res.json(terme);
   } catch (error) {
     handleGlossaireError(res, error);
