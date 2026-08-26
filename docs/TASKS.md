@@ -744,6 +744,7 @@ Suite directe de la découvrabilité des traductions : l'utilisateur a remarqué
 - [x] ~~**`POST /upload` accepte `visibiliteInterne` mais uniquement honoré pour traducteur+**~~ - un agent ne peut jamais s'auto-publier même en modifiant la requête
 - [x] ~~**Nouvelle colonne "Visibilité interne" + bouton bascule**~~ - même emplacement/pattern que la colonne Portail existante, traducteur+ uniquement
 - [x] ~~**Aucun rétro-remplissage nécessaire**~~ - données existantes = seed/test selon l'utilisateur, le défaut `false` s'applique uniformément
+- [x] ~~**Colonnes admin masquées pour l'agent**~~ - OCR/Visibilité interne/Portail Externe retirées entièrement (pas juste désactivées) de la table Documents quand `role === 'agent'` — aucune n'est actionnable pour ce rôle
 
 ### Reporté (voir Notion Sprint 12, statut À faire)
 

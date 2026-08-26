@@ -20,6 +20,12 @@ import { canManageDocuments, canManagePortail } from './documents.permissions';
 import { documentsApi } from '@/lib/documents.api';
 import type { Document } from './documents.types';
 
+// Colonnes purement administratives — sans action possible pour un agent
+// (statut OCR interne, bascule visibilité interne, publication portail
+// externe) — masquées plutôt que grisées, pour ne pas encombrer la vue
+// d'un rôle qui ne peut de toute façon rien y faire.
+const COLONNES_MASQUEES_AGENT = ['statutOCR', 'visibiliteInterne', 'portail'];
+
 interface UseDocumentsColumnsParams {
   t: TFunction;
   role: string | undefined;
@@ -57,8 +63,8 @@ export function useDocumentsColumns({
   onToggleVisibiliteInterne,
   toggleVisibiliteInterneEnCours,
 }: UseDocumentsColumnsParams): ColumnDef<Document>[] {
-  return useMemo<ColumnDef<Document>[]>(
-    () => [
+  return useMemo<ColumnDef<Document>[]>(() => {
+    const colonnes: ColumnDef<Document>[] = [
       {
         accessorKey: 'nomOriginal',
         header: 'Nom du fichier',
@@ -117,6 +123,7 @@ export function useDocumentsColumns({
         ),
       },
       {
+        id: 'statutOCR',
         accessorKey: 'statutOCR',
         header: 'OCR',
         enableSorting: false,
@@ -326,8 +333,12 @@ export function useDocumentsColumns({
           );
         },
       },
-    ],
-    [
+    ];
+
+    return colonnes.filter(
+      (colonne) => role !== 'agent' || !COLONNES_MASQUEES_AGENT.includes(colonne.id ?? '')
+    );
+  }, [
       t,
       role,
       onChangerCategorie,

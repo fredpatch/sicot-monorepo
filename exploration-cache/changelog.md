@@ -1,5 +1,16 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-26 — fix(client): hide admin-only Documents columns from agent
+
+Quick follow-up to the visibility gate above: an agent could still see the
+OCR status, "Visibilité interne", and "Portail Externe" columns even though
+none of them are actionable or informative for that role (no toggle, no
+management, and the visibility columns are largely redundant once the list
+is already scoped to what an agent can see). `useDocumentsColumns` now
+filters those three columns out entirely for `role === 'agent'` — hidden,
+not just disabled, to declutter rather than show inert UI. Client-only,
+no server change.
+
 ## [Unreleased] — 2026-08-26 — feat(server/client): internal document visibility gate (documents.visibiliteInterne)
 
 Direct follow-up to the discoverability work above: the user noticed an
