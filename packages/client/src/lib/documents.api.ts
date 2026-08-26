@@ -29,9 +29,10 @@ export const documentsApi = {
     });
   },
 
-  nouvelleVersion: (parentId: number, fichier: File) => {
+  nouvelleVersion: (parentId: number, fichier: File, categorie?: string) => {
     const formData = new FormData();
     formData.append('file', fichier);
+    if (categorie) formData.append('categorie', categorie);
 
     return api.post(`/documents/${parentId}/nouvelle-version`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

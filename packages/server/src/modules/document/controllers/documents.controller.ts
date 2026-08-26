@@ -143,13 +143,32 @@ export async function nouvelleVersion(req: Request, res: Response): Promise<void
       return;
     }
 
-    const document = await documentsService.nouvellVersionDocument(parentId, {
-      buffer: req.file.buffer,
-      nomOriginal: req.file.originalname,
-      mimeType: req.file.mimetype,
-      categorie: 'autre',
-      uploadePar: req.user!.userId,
-    });
+    const { categorie } = req.body;
+    const categoriesValides = [
+      'accord',
+      'correspondance',
+      'mission',
+      'traduction',
+      'glossaire',
+      'rapport',
+      'autre',
+    ];
+    const categorieOverride =
+      categorie && categoriesValides.includes(categorie)
+        ? (categorie as documentsService.DocumentCategorie)
+        : undefined;
+
+    const document = await documentsService.nouvellVersionDocument(
+      parentId,
+      {
+        buffer: req.file.buffer,
+        nomOriginal: req.file.originalname,
+        mimeType: req.file.mimetype,
+        categorie: 'autre',
+        uploadePar: req.user!.userId,
+      },
+      categorieOverride
+    );
 
     res.status(201).json({
       document,

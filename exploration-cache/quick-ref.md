@@ -113,7 +113,8 @@ PATCH /api/demandes/:id/archiver  Archive (→ archivee)
 GET  /api/missions/aggregates  Global counts, or scoped via ?participantId= (Mon espace) — now includes rapportsEnAttente (terminee + no rapportDocumentId)
 POST /api/documents/upload     Open to any authenticated role (no gate) — client-side action gating (delete/OCR/catégorie/portail) lives in documents.permissions.ts, mirrors server's real requireRole gates
 POST /api/documents/:id/nouvelle-version   Now traducteur+ (was ungated server-side — any authenticated role could version any document). New UI: "Verser version finale" row action, reuses this previously-unwired endpoint.
-GET  /api/documents             ?finalesUniquement=1 excludes rows superseded by a newer version (referenced as another row's parentId); documents never versioned pass through unaffected. Download ("Télécharger" action) now actually wired client-side — was dead code before (getUrlTelechargement existed, no caller).
+GET  /api/documents             ?finalesUniquement=1 excludes rows superseded by a newer version (referenced as another row's parentId); documents never versioned pass through unaffected. Download ("Télécharger" action) now actually wired client-side — was dead code before (getUrlTelechargement existed, no caller). ?categorie=traduction surfaces deposited translations, discoverable by any authenticated role.
+POST /api/documents/:id/nouvelle-version   Now accepts an optional `categorie` field to override the inherited-from-parent default — used by the new "Déposer au dossier documentaire" action in the Traduction workshop to tag deposits `traduction`.
 ```
 
 ## 🚫 Rules

@@ -709,3 +709,50 @@ sessions:
   any button for *any* role, admin included. `getUrlTelechargement()` was
   dead code. Found only because the "should agents be able to download"
   discussion prompted actually checking what already worked.
+
+## Translation deposit discoverability — the 3-tier model (2026-08-26)
+
+Reached by walking through four named people rather than abstract roles —
+worth preserving the reasoning, not just the conclusion, since it's easy to
+re-derive the wrong model (a 4th "translated docs" section) if this comes
+up again.
+
+- **The three tiers, and why each stays where it is:**
+  1. *Private / in-progress* — a demande and its draft translation (text,
+     workflow, assignment, priority). Ownership-scoped to the demandeur +
+     `traducteur+` staff (previous round's RBAC hardening). Stays private
+     because it's deliberation/draft state, not a finished artifact —
+     nobody but the requester and the people working it needs to see a
+     translation mid-correction.
+  2. *Internal shared / finished* — Documents. Already open-read to every
+     authenticated role, always has been; the only actual gap was
+     discoverability, not access. This is where Yan finds Fred's document.
+  3. *Public / curated* — `/portal`. Admin explicitly opts a specific
+     document in via `visibilitePortail`. This is where Patrick (external,
+     unauthenticated) goes, and it's deliberately a second, separate
+     decision from "this exists internally" — an admin should be able to
+     let all of ANAC see something without automatically exposing it
+     externally.
+- **Why an explicit `estVersionFinale` boolean or a new categorie value was
+  rejected in favor of using the existing `'traduction'` categorie** — the
+  categorie enum already had `'traduction'` as a value (`documents.constants.ts`
+  even already lists "Traductions" as a filter option in the UI); the only
+  actual bug was that `nouvellVersionDocument` never applied it — it always
+  inherited the parent document's categorie. Adding a *new* flag on top of
+  an existing, already-wired categorie would have duplicated a concept that
+  already existed and was already surfaced in the UI. The fix was three
+  lines deep (`categorieOverride` param) plus one new button
+  (`DeposerDocumentAction`) — not a schema change.
+- **Why a separate `/archives` route was rejected** — everything Yan needs
+  (find + download a finished document) is already what Documents does for
+  every other document type (accord/courrier/mission attachments). Adding
+  a second page for one categorie of document would duplicate the read
+  path, the auth model, and the filter UI for no benefit over "filter
+  Documents by Catégorie = Traductions," which already existed.
+- **`DeposerDocumentAction` chooses version-vs-standalone based on
+  `traduction.documentId`** — a translation launched from an uploaded
+  document gets its official file deposited as a new version of that same
+  document (keeps the lineage, matches "Verser version finale"'s existing
+  semantics); a translation launched from free text (no source document)
+  has nothing to version, so it becomes a standalone upload instead. Both
+  paths are tagged `categorie: 'traduction'` either way.

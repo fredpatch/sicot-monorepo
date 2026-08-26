@@ -6,6 +6,7 @@ import { confirmToast } from '@/lib/confirm-toast';
 import { traductionsApi } from '@/lib/traductions.api';
 import { BadgeStatut } from '../StatusBadge';
 import { BadgeDirection } from '../DirectionBadge';
+import { DeposerDocumentAction } from './DeposerDocumentAction';
 import type { Traduction } from '../../traductions.types';
 
 interface WorkshopHeaderProps {
@@ -28,6 +29,8 @@ interface WorkshopHeaderProps {
   peutRelancer: boolean;
   onRelancer: () => void;
   relanceEnCours: boolean;
+  onDeposerDocument: (fichier: File) => void;
+  deposerEnCours: boolean;
 }
 
 export function WorkshopHeader({
@@ -50,6 +53,8 @@ export function WorkshopHeader({
   peutRelancer,
   onRelancer,
   relanceEnCours,
+  onDeposerDocument,
+  deposerEnCours,
 }: WorkshopHeaderProps) {
   return (
     <div className="flex flex-col gap-3 border-b border-anac-border bg-white px-6 py-3 shrink-0 lg:flex-row lg:items-center lg:justify-between">
@@ -149,6 +154,7 @@ export function WorkshopHeader({
             >
               <FileText size={12} /> DOCX
             </Button>
+            <DeposerDocumentAction onFileSelected={onDeposerDocument} enCours={deposerEnCours} />
           </>
         )}
 

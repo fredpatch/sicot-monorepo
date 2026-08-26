@@ -723,6 +723,15 @@ Déclenché par l'utilisateur constatant en test manuel qu'un agent voyait encor
 - [x] ~~**Filtre "Versions finales uniquement"**~~ - `GET /documents?finalesUniquement=1` exclut les versions remplacées (référencées comme `parentId` par une autre ligne) tout en incluant correctement la dernière version d'une chaîne ET les documents jamais versionnés (aucun enfant = final par construction) — validé en direct sur la BDD dev avec des chaînes de versions synthétiques
 - [x] ~~**Décision Archives**~~ - discuté avec l'utilisateur : une section `/archives` séparée a été écartée au profit d'un filtre sur l'écran Documents existant (moins de surface, même modèle d'autorisation) ; un flag booléen explicite a d'abord été retenu puis abandonné une fois démontré que l'inférence par chaîne de versions couvre déjà tous les cas sans migration
 
+### Découvrabilité des traductions déposées (modèle 3 niveaux) | ✅ COMPLÉTÉ (2026-08-26)
+
+Discussion produit avec scénarios nommés (Fred demande/télécharge sa traduction, Yan — un autre agent — doit retrouver la traduction de Fred, Patrick — externe — passe par le portail public). Modèle retenu : privé en cours (demande/traduction, scope propriétaire, round précédent) / partagé interne fini (Documents, déjà en lecture ouverte à tous, il manquait juste la découvrabilité) / public curé (`/portail`, inchangé).
+
+- [x] ~~**`categorieOverride` sur `nouvellVersionDocument`**~~ - héritait auparavant toujours la catégorie du document parent ; une traduction reversionnée gardait silencieusement la catégorie du document source au lieu d'utiliser `'traduction'` (valeur déjà existante dans l'enum, jamais réellement appliquée)
+- [x] ~~**`DeposerDocumentAction` (atelier de traduction)**~~ - nouveau bouton dans `WorkshopHeader`, même garde que les exports PDF/DOCX (approuvée/archivée) : dépose le fichier officiel directement dans Documents, catégorisé `traduction` — nouvelle version du document source si `traduction.documentId` existe, sinon upload autonome
+- [x] ~~**Aucune nouvelle route/migration**~~ - le filtre `categorie=traduction` et l'option "Traductions" du Select existaient déjà côté Documents ; seul le tag manquait
+- [x] ~~**Section `/archives` et flag booléen écartés**~~ - discutés et rejetés au profit de l'inférence par catégorie existante, voir `project/architecture.md`
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)

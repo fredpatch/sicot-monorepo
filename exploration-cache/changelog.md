@@ -1,5 +1,44 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-26 — feat: discoverable shared translation deposits (categorie: 'traduction')
+
+Follow-up product discussion, worked through with concrete named scenarios
+(Fred requests/downloads his own translation, Yan — a different agent —
+needs to find Fred's finished translation, Patrick — external, unauthenticated
+— needs the public portal). Landed on a 3-tier visibility model: private
+in-progress demande/traduction (unchanged, ownership-scoped from the
+previous round), internal-shared finished documents (Documents — already
+open-read to all roles, just not discoverable), public curated (`/portal`,
+unchanged). The only real gap was discoverability of tier 2.
+
+### Added
+- `nouvellVersionDocument()` now accepts an optional `categorieOverride` —
+  previously always inherited the parent document's categorie, which meant
+  a re-versioned translation output silently kept whatever categorie its
+  *source* document happened to have, even though `'traduction'` already
+  existed as a categorie value. `POST /documents/:id/nouvelle-version`
+  accepts an optional `categorie` field to set this.
+- `DeposerDocumentAction` — new button in the Traduction workshop
+  (`WorkshopHeader`, next to the PDF/DOCX export buttons, same
+  approved/archivée gate) that deposits the official file straight into
+  Documents tagged `categorie: 'traduction'` — a new version of the source
+  document if the translation was launched from one (`traduction.documentId`),
+  otherwise a standalone upload (translation launched from free text has no
+  document to version). Removes the round-trip of going back into Documents
+  to find the right row to attach a version to.
+- No new route, no new auth model, no schema migration — Documents' `GET
+  /documents?categorie=traduction` filter and the "Traductions" option in
+  the existing category Select already existed; the only actual gap was
+  that nothing ever tagged a deposited translation with that categorie.
+- Live-validated against the dev DB: categorie override applied correctly,
+  `parentId`/`version` linked correctly, and the deposited document is
+  discoverable via the `categorie=traduction` filter — all confirmed with
+  disposable synthetic data.
+- A separate `/archives` route and an explicit `estVersionFinale`-style
+  boolean flag were both discussed and deliberately not built — see
+  `project/architecture.md` for the reasoning walkthrough against each
+  named scenario.
+
 ## [Unreleased] — 2026-08-26 — fix: user-reported feedback round (priority re-validation, admin export button, dialog overflow, PDF/DOCX layout) + feat: Documents download + "versions finales" filter
 
 Direct user feedback after testing the previous round live, plus a follow-up

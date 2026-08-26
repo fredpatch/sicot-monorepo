@@ -229,9 +229,15 @@ export async function mettreAJourCategorie(
 }
 
 // ── Nouvelle version d'un document existant ───────────────────────────────
+// Hérite de la catégorie du parent par défaut (cas générique : remplacer un
+// fichier par une version mise à jour du même type de document), sauf si
+// categorieOverride est fourni — ex. déposer une traduction officielle
+// reformatée depuis l'atelier de traduction, qui doit être classée
+// 'traduction' indépendamment de la catégorie du document source original.
 export async function nouvellVersionDocument(
   parentId: number,
-  params: UploadDocumentParams
+  params: UploadDocumentParams,
+  categorieOverride?: DocumentCategorie
 ): Promise<DocumentView> {
   const [parent] = await db.select().from(documents).where(eq(documents.id, parentId));
 
@@ -239,7 +245,7 @@ export async function nouvellVersionDocument(
 
   const { document } = await uploaderDocument({
     ...params,
-    categorie: parent.categorie as DocumentCategorie,
+    categorie: categorieOverride ?? (parent.categorie as DocumentCategorie),
   });
 
   const [updated] = await db

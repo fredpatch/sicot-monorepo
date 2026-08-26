@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useBlocker } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { traductionsApi } from '@/lib/traductions.api';
+import { documentsApi } from '@/lib/documents.api';
 import { WorkshopHeader } from './editor/WorkshopHeader';
 import { SourceTextPanel } from './editor/SourceTextPanel';
 import { TranslationPanel } from './editor/TranslationPanel';
@@ -181,6 +183,23 @@ export default function TraductionEditeur() {
     onError: (err: unknown) => setErreur(extractMessage(err, "Erreur lors de l'archivage.")),
   });
 
+  // Dépose le fichier officiel dans le dossier documentaire, catégorisé
+  // 'traduction' — rend la traduction découvrable par n'importe quel
+  // utilisateur interne, pas seulement le demandeur d'origine. Nouvelle
+  // version du document source s'il existe (traduction.documentId), sinon
+  // un document autonome (traduction lancée depuis un texte libre).
+  const deposerDocumentMutation = useMutation({
+    mutationFn: (fichier: File) =>
+      traduction?.documentId
+        ? documentsApi.nouvelleVersion(traduction.documentId, fichier, 'traduction')
+        : documentsApi.upload(fichier, 'traduction'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast.success('Document déposé dans le dossier documentaire.');
+    },
+    onError: (err: unknown) => setErreur(extractMessage(err, 'Erreur lors du dépôt du document.')),
+  });
+
   // ── Chargement ────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -266,6 +285,8 @@ export default function TraductionEditeur() {
         peutRelancer={peutRelancer}
         onRelancer={() => relancerMutation.mutate()}
         relanceEnCours={relancerMutation.isPending}
+        onDeposerDocument={(fichier) => deposerDocumentMutation.mutate(fichier)}
+        deposerEnCours={deposerDocumentMutation.isPending}
       />
 
       {erreur && (
