@@ -22,6 +22,8 @@ import {
   ExternalLink,
   BarChart3,
   Users,
+  User2,
+  Home,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -39,6 +41,7 @@ interface NavItem {
 
 // ── Items de navigation ───────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
+  { to: '/mon-espace', labelKey: 'nav.monEspace', icon: Home, roles: ['agent'] },
   { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, roles: ['admin', 'super_admin'], },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3, roles: ['admin', 'super_admin'], },
   { to: '/accords', labelKey: 'nav.accords', icon: FileText, roles: ['admin', 'super_admin'], },
@@ -46,6 +49,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/missions', labelKey: 'nav.missions', icon: Plane, roles: ['admin', 'super_admin'], },
   { to: '/courriers', labelKey: 'nav.courriers', icon: Mail, roles: ['admin', 'super_admin'], },
   { to: '/traductions', labelKey: 'nav.traductions', icon: Languages, roles: ['admin', 'super_admin'], },
+  { to: '/mes-missions', labelKey: 'nav.mesMissions', icon: Plane, roles: ['agent'] },
   { to: '/demandes', labelKey: 'nav.demandes', icon: Inbox },
   { to: '/glossaire', labelKey: 'nav.glossaire', icon: BookOpen },
   { to: '/documents', labelKey: 'nav.documents', icon: FolderOpen },
@@ -68,6 +72,7 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['admin', 'super_admin'],
   },
   { to: '/portal', labelKey: 'nav.portail', icon: ExternalLink },
+  { to: '/profil', labelKey: 'nav.profil', icon: User2 },
 ];
 
 // ── Composant principal ───────────────────────────────────────────────────
@@ -190,7 +195,11 @@ export default function Layout() {
             <div className="w-px h-5 bg-anac-border mx-1" />
 
             {/* Utilisateur connecté */}
-            <div className="flex items-center gap-2.5 px-1.5">
+            <NavLink
+              to="/profil"
+              className="flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors hover:bg-anac-gray"
+              title="Mon profil"
+            >
               <div className="text-right">
                 <p className="text-[12px] font-semibold text-anac-navy leading-tight">
                   {userPrenom} {userNom}
@@ -200,7 +209,7 @@ export default function Layout() {
               <div className="w-8 h-8 rounded-lg bg-anac-navy text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 select-none">
                 {initiales || '—'}
               </div>
-            </div>
+            </NavLink>
 
             <div className="w-px h-5 bg-anac-border mx-1" />
 

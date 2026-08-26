@@ -6,6 +6,7 @@ import { signAccessToken, verifyRefreshToken } from '@/utils/jwt';
 import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendCompteActiveEmail, sendOTPEmail } from '@/utils/email.js';
 import { SALT_ROUNDS } from './auth.constants';
+import { validerForceMotDePasse } from '@/utils/password.js';
 import {
   handleEchecConnexion,
   resetTentatives,
@@ -117,7 +118,7 @@ export async function setPassword(params: {
   const { userId, motDePasse, confirmation, ip } = params;
 
   if (motDePasse !== confirmation) throw new Error('MOTS_DE_PASSE_DIFFERENTS');
-  if (motDePasse.length < 8) throw new Error('MOT_DE_PASSE_TROP_COURT');
+  validerForceMotDePasse(motDePasse);
 
   const hash = await bcrypt.hash(motDePasse, SALT_ROUNDS);
 
@@ -152,6 +153,37 @@ export async function setPassword(params: {
     tokens: buildTokens(user),
     user: buildUserPublic(user),
   };
+}
+
+// ── SERVICE : Changer son propre mot de passe (self-service, hors 1ère connexion) ─
+// Distinct de setPassword() : vérifie le mot de passe actuel, ne touche pas à
+// premiereConnexion/otpHash/otpExpiresAt, et n'envoie pas l'email d'activation
+// (ce n'en est pas une).
+export async function changerMotDePasse(params: {
+  userId: number;
+  motDePasseActuel: string;
+  nouveauMotDePasse: string;
+  confirmation: string;
+  ip?: string;
+}): Promise<{ message: string }> {
+  const { userId, motDePasseActuel, nouveauMotDePasse, confirmation, ip } = params;
+
+  if (nouveauMotDePasse !== confirmation) throw new Error('MOTS_DE_PASSE_DIFFERENTS');
+  validerForceMotDePasse(nouveauMotDePasse);
+
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  if (!user) throw new Error('UTILISATEUR_INTROUVABLE');
+  if (!user.motDePasseHash) throw new Error('MOT_DE_PASSE_NON_DEFINI');
+
+  const actuelValide = await bcrypt.compare(motDePasseActuel, user.motDePasseHash);
+  if (!actuelValide) throw new Error('MOT_DE_PASSE_ACTUEL_INVALIDE');
+
+  const hash = await bcrypt.hash(nouveauMotDePasse, SALT_ROUNDS);
+  await db.update(users).set({ motDePasseHash: hash, updatedAt: new Date() }).where(eq(users.id, userId));
+
+  await logAudit({ userId, action: 'MOT_DE_PASSE_MODIFIE', module: 'M10', ip });
+
+  return { message: 'Mot de passe modifié avec succès.' };
 }
 
 // ── SERVICE : Rafraîchir le token ─────────────────────────────────────────

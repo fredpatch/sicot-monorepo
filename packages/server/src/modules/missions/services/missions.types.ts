@@ -79,6 +79,9 @@ export interface MissionsAggregates {
   annulees: number;
   aVenir30Jours: number;
   logistiqueARisque: number;
+  // Missions terminées sans rapport déposé — pas de fenêtre de délai
+  // inventée, juste terminee + rapportDocumentId manquant.
+  rapportsEnAttente: number;
 }
 
 export interface ParticipantResume {

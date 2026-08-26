@@ -36,6 +36,16 @@ export interface DemandeFilters {
   priorite?: DemandePriorite;
   demandeurId?: number;
   traducteurId?: number;
+  search?: string;
   page?: number;
   pageSize?: number;
+}
+
+export interface DemandesAggregates {
+  total: number;
+  aAssigner: number;
+  enCours: number;
+  enRelecture: number;
+  validees: number;
+  archivees: number;
 }

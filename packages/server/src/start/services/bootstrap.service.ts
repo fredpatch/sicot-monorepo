@@ -3,6 +3,7 @@ import { db } from '@/db/index';
 import { users } from '@/db/schema';
 import { eq, count } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { validerForceMotDePasse } from '@/utils/password';
 
 const SALT_ROUNDS = 10;
 
@@ -39,6 +40,8 @@ export async function initialiserSuperAdmin(params: {
   if (existant) {
     throw new Error('MATRICULE_EXISTANT');
   }
+
+  validerForceMotDePasse(motDePasse);
 
   const motDePasseHash = await bcrypt.hash(motDePasse, SALT_ROUNDS);
 

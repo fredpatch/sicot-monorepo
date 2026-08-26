@@ -20,6 +20,9 @@ export interface PersonnelAnacResultat {
   nom: string | null;
   prenom: string | null;
   organisationLabel: string | null;
+  poste: string | null;
+  service: string | null;
+  direction: string | null;
 }
 
 // Champs pré-remplis dans le dialog de création, en provenance de l'onglet Personnel ANAC
@@ -27,4 +30,7 @@ export interface PrefillUtilisateur {
   matricule: string;
   nom: string;
   prenom: string;
+  poste?: string | null;
+  service?: string | null;
+  direction?: string | null;
 }

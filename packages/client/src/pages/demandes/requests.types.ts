@@ -1,4 +1,4 @@
-// packages/client/src/pages/demandes/demandes.types.ts
+// packages/client/src/pages/demandes/requests.types.ts
 import type { DemandeStatut, DemandePriorite } from '@/lib/demandes.api';
 
 export interface Demande {
@@ -25,3 +25,7 @@ export interface DocumentDisponible {
   nomOriginal: string;
   statutOCR: string;
 }
+
+export type RequestSourceType = 'document' | 'texte';
+
+export type RequestAssignationFilter = '' | 'non_assignees' | 'mes_demandes' | 'mes_traductions';

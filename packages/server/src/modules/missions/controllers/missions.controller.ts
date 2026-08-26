@@ -27,9 +27,12 @@ export async function lister(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/missions/aggregates ────────────────────────────────────────
-export async function aggregates(_req: Request, res: Response): Promise<void> {
+export async function aggregates(req: Request, res: Response): Promise<void> {
   try {
-    const result = await missionsService.getMissionsAggregates();
+    const { participantId } = req.query;
+    const result = await missionsService.getMissionsAggregates(
+      participantId ? parseInt(participantId as string) : undefined
+    );
     res.json(result);
   } catch (error) {
     handleMissionsError(res, error);

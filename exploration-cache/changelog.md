@@ -1,5 +1,126 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-26 — feat(client/server): Demandes (M5) redesign + Agent workspace + Profil + self-service password
+
+Same audit → plan → implement → validate process as Missions/Courriers/
+Traductions/Glossaire. Demandes was the last un-migrated registry module
+(still using the generic `DataTable`, text-link actions, no aggregates, no
+search). Once redesigned, a follow-up discussion surfaced that agents (the
+lowest role tier) had no tailored space in the app at all — no dashboard
+access (correctly hidden from nav, but reachable by direct URL with zero
+route guard), no profile page, and a two-screen document-upload-then-select
+round trip for translation requests. All three were built out this round.
+
+### Added — Demandes registry (`/demandes`)
+- `GET /api/demandes/aggregates` — total/à assigner/en cours/en relecture/
+  validées/archivées, independent of filters (same pattern as every other
+  redesigned module).
+- Server-side search — resolves `demandeurNom`/`traducteurNom` (via a users
+  lookup) and `documentNom` (via a documents lookup) to candidate IDs, ORed
+  with a direct `texteLibre` match. Chosen over a join to keep the change
+  minimal and consistent with the module's existing style.
+- `RequestsRegistryTable`/`RequestsRegistryMobileCards` replace the generic
+  `DataTable` + text-link actions with the icon-button convention already
+  established elsewhere. `requests.permissions.ts` centralizes the action
+  matrix — it had been implemented three slightly different ways across
+  route/service/UI layers (found during the audit).
+- `RequestWorkspace` — Dialog-based tabbed detail (Aperçu/Source/Workflow/
+  Traduction liée), same pattern as Glossaire's `TermWorkspace` (still no
+  Sheet primitive in the repo).
+- Audit findings deliberately left unfixed (documented, not silently
+  patched): `demande.valider`/`traduction.approuver` are fully independent
+  status machines with no cross-checks; a demande whose auto-translation-
+  launch fails stays locked with no recovery path; `validerPriorite` has no
+  server-side status guard.
+
+### Added — Role-based landing + Agent workspace
+- `lib/landing.ts` (`getLandingRoute`) — single source of truth for
+  post-login/root-redirect routing by role. `agent` → `/mon-espace`,
+  everyone else → `/dashboard` (unchanged).
+- `AgentRoute`/`NonAgentRoute` (`App.tsx`) — real route guards, closing a
+  gap found mid-session: `/dashboard` was hidden from the agent nav but had
+  no route guard, so it was still reachable by direct URL.
+- `/mon-espace` — 4 summary cards (mes demandes/en cours/mes missions/
+  rapports en attente), a "Mes demandes" panel reusing the M5 registry
+  components scoped to `demandeurId`, a "Nouvelle demande" CTA, a "Mes
+  missions" panel scoped to `participantId` with report upload, a Documents
+  link, and a "Besoin d'aide ?" card honestly labeled "Bientôt disponible"
+  (no help system exists anywhere in the app — confirmed by grep before
+  deciding what to show).
+- `/mes-missions` — agent-restricted mission view (their own missions only,
+  report upload), distinct from the full `/missions` registry which stays
+  admin/super_admin-gated.
+- `getDemandesAggregates(demandeurId?)`/`getMissionsAggregates(participantId?)`
+  — both now accept an optional per-user scope; unscoped (global) behavior
+  is unchanged when the param is omitted. `MissionsAggregates` gains
+  `rapportsEnAttente` (`statut = 'terminee' AND rapportDocumentId IS NULL`
+  — no invented deadline window, reuses the exact predicate already in
+  `isMissionReportMissing()` client-side).
+- `QuickUploadDialog` (`components/documents/`) — generic reusable upload
+  dialog (uploads, hands the created document back via a callback, doesn't
+  assume what happens next). Used by both `NewRequestDialog`'s document
+  picker and the Mon espace/Mes missions report-upload cards, avoiding two
+  separate upload implementations.
+- `documents.permissions.ts` — client-side mirror of the Documents module's
+  existing server-side role gates (`traducteur+` for delete/OCR-correct/
+  retraiter-OCR/catégorie, `admin+` for portal publish). The server was
+  already correctly gated; the gap was purely that every role saw the same
+  action buttons regardless, which then 403'd on click for `agent`.
+
+### Added — Profil (`/profil`)
+- Informations personnelles tab — identity, matricule, poste/direction/
+  service (only shown when present), email, membre depuis, dernière
+  connexion (derived from the audit log — see fix below), statut du
+  compte. All read-only, admin-managed elsewhere.
+- Sécurité tab — real password-change form against the new
+  `POST /api/auth/changer-mot-de-passe`, reusing the exact
+  `<PasswordStrength>` checklist component already built for Bootstrap
+  (login/components/) rather than rebuilding it.
+- `changer-mot-de-passe` is deliberately distinct from `set-password`
+  (first-login flow): verifies the current password, doesn't touch
+  `premiereConnexion`/OTP fields, doesn't send the "account activated"
+  email (this isn't one).
+- **Password complexity now enforced server-side everywhere it's shown** —
+  `validerForceMotDePasse()` (length + uppercase + digit + special char)
+  is now checked in `changer-mot-de-passe`, `set-password`, AND
+  `bootstrap` (first super admin). Previously the complexity rule existed
+  only in the Bootstrap page's client-side zod schema — the server never
+  checked it anywhere, including bootstrap's own service, which had zero
+  password validation at all before this.
+- **Bug fix, found live**: `/auth/me`'s "dernière connexion" initially
+  matched only the `CONNEXION` audit action, which a first-time login
+  never logs (it logs `OTP_VALIDE` then `MOT_DE_PASSE_DEFINI` — the latter
+  is what actually issues the session tokens). Reproduced against a real
+  account mid-session (showed "Jamais connecté" for an account that was
+  actively logged in) and fixed by matching either `CONNEXION` or
+  `MOT_DE_PASSE_DEFINI`.
+- `users.poste`/`.service`/`.direction` — 3 new nullable columns (migration
+  `0014_lyrical_stardust.sql`). The Personnel ANAC integration already
+  exposed these fields raw but flattened them into one display string and
+  never persisted them; now split and threaded end-to-end (picker →
+  prefill → create → DB) for accounts created via that picker. `null` for
+  manually-created accounts.
+
+### Validation
+- `tsc --noEmit` and `eslint` clean on both packages throughout.
+- Both production builds succeed after every round.
+- Every backend addition live-validated against the real dev DB —
+  aggregates (global + scoped), search, org-field persistence, and the
+  full password-change flow (wrong current password / mismatched
+  confirmation / too short / missing complexity rules / valid change) —
+  each via a disposable script using synthetic test data created and
+  cleaned up in the same run, never mutating a real account.
+- **Not done**: interactive browser verification. Attempted once (via a
+  freshly-installed Playwright + Chromium), but completing a real login
+  session would have required overwriting a real user's password hash,
+  which the permission system correctly blocked as a sensitive DB
+  mutation — not worked around. Every round this session is therefore
+  verified at the type/lint/build/data layer only, not visually confirmed
+  in a browser, until the user tested it directly and confirmed the
+  Profil page rendered and functioned correctly (screenshot-confirmed
+  2026-08-26, which is also how the dernière-connexion bug above was
+  actually caught).
+
 ## [Unreleased] — 2026-08-24 — feat(client/server): Glossaire module (M7) redesign
 
 Redesign of the Glossaire module to a concept-first, multilingual-ready

@@ -1,4 +1,4 @@
-// packages/client/src/pages/demandes/components/ValiderPrioriteDialog.tsx
+// packages/client/src/pages/demandes/components/ValidatePriorityDialog.tsx
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -48,7 +48,8 @@ export function ValiderPrioriteDialog({
         <DialogHeader>
           <DialogTitle>Valider la priorité</DialogTitle>
           <DialogDescription>
-            Priorité demandée : <strong>{demande?.prioriteDemandee}</strong>
+            Priorité demandée :{' '}
+            <strong>{demande?.prioriteDemandee === 'urgente' ? 'Urgente' : 'Normale'}</strong>
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-3">

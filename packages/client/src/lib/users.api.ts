@@ -11,8 +11,16 @@ export const usersApi = {
 
   getById: (id: number) => api.get(`/users/${id}`),
 
-  creer: (data: { matricule: string; nom: string; prenom: string; email: string; role: string }) =>
-    api.post('/users', data),
+  creer: (data: {
+    matricule: string;
+    nom: string;
+    prenom: string;
+    email: string;
+    role: string;
+    poste?: string | null;
+    service?: string | null;
+    direction?: string | null;
+  }) => api.post('/users', data),
 
    toggleActivation: (id: number, actif: boolean) => api.patch(`/users/${id}/activation`, { actif }),
 

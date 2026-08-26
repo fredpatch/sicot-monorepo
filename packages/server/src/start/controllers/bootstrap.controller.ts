@@ -46,16 +46,11 @@ export async function init(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Validation mot de passe
+    // Validation mot de passe (correspondance uniquement ici — la force du
+    // mot de passe est validée dans le service, mêmes règles que
+    // changer-mot-de-passe/set-password)
     if (motDePasse !== confirmation) {
       res.status(400).json({ message: 'Les mots de passe ne correspondent pas.' });
-      return;
-    }
-
-    if (motDePasse.length < 8) {
-      res.status(400).json({
-        message: 'Le mot de passe doit contenir au moins 8 caractères.',
-      });
       return;
     }
 
@@ -84,6 +79,22 @@ export async function init(req: Request, res: Response): Promise<void> {
     if (message === 'MATRICULE_EXISTANT') {
       res.status(409).json({
         message: 'Ce matricule est déjà utilisé.',
+        code: message,
+      });
+      return;
+    }
+
+    if (message === 'MOT_DE_PASSE_TROP_COURT') {
+      res.status(400).json({
+        message: 'Le mot de passe doit contenir au moins 8 caractères.',
+        code: message,
+      });
+      return;
+    }
+
+    if (message === 'MOT_DE_PASSE_COMPLEXITE_INSUFFISANTE') {
+      res.status(400).json({
+        message: 'Le mot de passe doit contenir une majuscule, un chiffre et un caractère spécial.',
         code: message,
       });
       return;

@@ -57,8 +57,9 @@ Protected routes use `requireAdmin()` or `requireRole(['traducteur', 'admin'])` 
 ```
 POST /api/auth/login          OTP or password login
 POST /api/auth/refresh         Auto-called by Axios interceptor on 401
-GET  /api/auth/me              Returns current user (session check)
+GET  /api/auth/me              Returns current user (session check) — now includes email/poste/service/direction/actif/createdAt/derniereConnexion (derived from audit log: CONNEXION or MOT_DE_PASSE_DEFINI)
 POST /api/auth/logout
+POST /api/auth/changer-mot-de-passe  Self-service password change (verifies current password) — distinct from /set-password (first login)
 GET  /api/users                Admin only
 POST /api/users/:id/reinitialiser-otp   Reset OTP + email user
 GET  /api/audit                Admin only, filter by module/action/date
@@ -96,12 +97,17 @@ POST /api/traductions          Launch translation (texteOriginal + direction)
 GET  /api/traductions/moteur/status  LibreTranslate health check
 PATCH /api/traductions/:id/correction  Save human correction
 PATCH /api/traductions/:id/approuver  Approve translation
-GET  /api/demandes             List demandes (filter: statut, priorite, demandeurId)
+GET  /api/demandes             List demandes (filter: statut, priorite, demandeurId, traducteurId, search)
+GET  /api/demandes/aggregates  Global counts, or scoped via ?demandeurId= (Mon espace)
 POST /api/demandes             Create demande (direction, priorite, documentId|texteLibre)
 PATCH /api/demandes/:id/prendre-en-charge  Assign to current user (optimistic lock)
 PATCH /api/demandes/:id/rappeler  Release assignment
-PATCH /api/demandes/:id/soumettre  Submit for review (→ en_relecture)
-PATCH /api/demandes/:id/valider   Validate demande (→ validee)
+PATCH /api/demandes/:id/priorite  Reviewer validates/overrides prioriteDemandee (no server status guard — flagged gap)
+PATCH /api/demandes/:id/relecture  Submit for review (→ en_relecture)
+PATCH /api/demandes/:id/valider   Validate demande (→ validee) — independent of the linked traduction's own status (flagged gap)
+PATCH /api/demandes/:id/archiver  Archive (→ archivee)
+GET  /api/missions/aggregates  Global counts, or scoped via ?participantId= (Mon espace) — now includes rapportsEnAttente (terminee + no rapportDocumentId)
+POST /api/documents/upload     Open to any authenticated role (no gate) — client-side action gating (delete/OCR/catégorie/portail) lives in documents.permissions.ts, mirrors server's real requireRole gates
 ```
 
 ## 🚫 Rules
@@ -131,7 +137,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) redesigns + individual PDF export + services:up scripts
+🎯 Sprint 12 (2026-08-24 → 2026-08-26) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes missions) + Profil page + self-service password
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -177,3 +183,19 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee)
   glossary) is a separate, bigger piece, not yet started — Notion Sprint
   12, À faire
 - **No automated test suite** — CI is lint + build only
+- **Demandes/Traductions workflows not synchronized** — `demande.valider`/
+  `.archiver` never check the linked translation's status and vice versa;
+  found during the M5 audit (2026-08-26), deliberately left unfixed (scope
+  extension beyond what was asked) — Notion Sprint 12, À faire
+- **Demande can be left orphaned/locked** — if `prendreEnCharge`'s
+  auto-translation-launch fails after the lock is set, the demande stays
+  `en_cours`/locked with no `traductionId` and no in-module recovery
+  action. Found during the M5 audit (2026-08-26), not fixed — Notion
+  Sprint 12, À faire
+- **No browser/interactive testing this whole sprint** — every module
+  redesigned since 2026-08-24 (Missions through Demandes/Mon espace) was
+  validated at the type/lint/build/live-DB layer only; this environment
+  has no way to complete a real login session without mutating a real
+  account's credentials (attempted once via Playwright, correctly blocked
+  by the permission system). Worth an actual click-through pass before
+  considering any of this sprint's UI production-ready

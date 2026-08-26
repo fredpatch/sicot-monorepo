@@ -20,6 +20,9 @@ const fr = {
     audit: "Journal d'audit",
     portail: 'Portail externe',
     analytics: 'Analytics & Rapports',
+    profil: 'Mon profil',
+    monEspace: 'Mon espace',
+    mesMissions: 'Mes missions',
   },
   // Auth
   auth: {
@@ -116,6 +119,9 @@ const en = {
     audit: 'Audit Log',
     portail: 'External Portal',
     analytics: 'Analytics & Reports',
+    profil: 'My Profile',
+    monEspace: 'My Workspace',
+    mesMissions: 'My Missions',
   },
   auth: {
     title: 'SICOT - Sign In',

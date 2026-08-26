@@ -1,6 +1,6 @@
 import { db } from '@/db/index';
 import { missions, missionParticipants, recommandations, users, contacts } from '@/db/schema';
-import { eq, ilike, and, or, desc, isNotNull, isNull, ne, gte, lte } from 'drizzle-orm';
+import { eq, ilike, and, or, desc, isNotNull, isNull, ne, gte, lte, inArray, type SQL } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { sendRecommandationEmail } from '@/utils/email';
 import {
@@ -42,35 +42,53 @@ export type {
 // a mission departing soon with logistics not yet confirmed.
 const LOGISTIQUE_RISQUE_JOURS = 14;
 
-// ── SERVICE : Agrégats globaux (indépendants des filtres courants) ───────
-export async function getMissionsAggregates(): Promise<MissionsAggregates> {
+// ── SERVICE : Agrégats globaux, ou scopés à un participant ───────────────
+// participantId optionnel — quand fourni, tous les comptes sont restreints
+// aux missions où l'utilisateur figure dans mission_participants (ex.
+// l'espace de travail agent "Mon espace").
+export async function getMissionsAggregates(participantId?: number): Promise<MissionsAggregates> {
   const now = new Date();
   const dans30Jours = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const dansNJoursRisque = new Date(now.getTime() + LOGISTIQUE_RISQUE_JOURS * 24 * 60 * 60 * 1000);
 
-  const [total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque] =
+  let scope: SQL | undefined;
+  if (participantId !== undefined) {
+    const rows = await db
+      .select({ missionId: missionParticipants.missionId })
+      .from(missionParticipants)
+      .where(eq(missionParticipants.userId, participantId));
+    scope = inArray(
+      missions.id,
+      rows.map((r) => r.missionId)
+    );
+  }
+
+  const withScope = (...conditions: (SQL | undefined)[]) => and(...conditions, scope);
+
+  const [total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque, rapportsEnAttente] =
     await Promise.all([
-      db.$count(missions),
-      db.$count(missions, eq(missions.statut, 'planifiee')),
-      db.$count(missions, eq(missions.statut, 'en_cours')),
-      db.$count(missions, eq(missions.statut, 'terminee')),
-      db.$count(missions, eq(missions.statut, 'annulee')),
+      db.$count(missions, scope),
+      db.$count(missions, withScope(eq(missions.statut, 'planifiee'))),
+      db.$count(missions, withScope(eq(missions.statut, 'en_cours'))),
+      db.$count(missions, withScope(eq(missions.statut, 'terminee'))),
+      db.$count(missions, withScope(eq(missions.statut, 'annulee'))),
       db.$count(
         missions,
-        and(eq(missions.statut, 'planifiee'), gte(missions.dateDebut, now), lte(missions.dateDebut, dans30Jours))
+        withScope(eq(missions.statut, 'planifiee'), gte(missions.dateDebut, now), lte(missions.dateDebut, dans30Jours))
       ),
       db.$count(
         missions,
-        and(
+        withScope(
           eq(missions.statut, 'planifiee'),
           ne(missions.confirmationLogistique, 'confirme'),
           gte(missions.dateDebut, now),
           lte(missions.dateDebut, dansNJoursRisque)
         )
       ),
+      db.$count(missions, withScope(eq(missions.statut, 'terminee'), isNull(missions.rapportDocumentId))),
     ]);
 
-  return { total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque };
+  return { total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque, rapportsEnAttente };
 }
 
 // ── SERVICE : Lister les missions ─────────────────────────────────────────

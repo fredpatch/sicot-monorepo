@@ -1,4 +1,4 @@
-// packages/client/src/pages/demandes/demandes.schemas.ts
+// packages/client/src/pages/demandes/requests.schemas.ts
 import { z } from 'zod';
 
 export const demandeSchema = z

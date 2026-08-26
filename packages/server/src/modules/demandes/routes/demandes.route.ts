@@ -9,6 +9,7 @@ router.use(authenticate);
 
 // ── Lecture — accessible à tous ───────────────────────────────────────────
 router.get('/', demandesController.lister);
+router.get('/aggregates', demandesController.aggregates);
 router.get('/:id', demandesController.getById);
 
 // ── Création — tout agent peut soumettre ──────────────────────────────────

@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import axios from 'axios';
 import { authApi } from './lib/auth.api';
+import { getLandingRoute } from './lib/landing';
 import { Toaster } from './components/ui/sonner';
 import { ConfirmDialogProvider } from './components/ui/confirm-dialog';
 
@@ -57,6 +58,34 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+// ── Route réservée aux agents (espace de travail dédié) ───────────────────
+export function AgentRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+
+  if (!user || user.role !== 'agent') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// ── Route interdite aux agents (ex. /dashboard, hors de leur portée) ──────
+export function NonAgentRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+
+  if (user?.role === 'agent') {
+    return <Navigate to="/mon-espace" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// ── Redirection racine — atterrissage selon le rôle (voir lib/landing.ts) ─
+export function LandingRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={getLandingRoute(user?.role)} replace />;
 }
 
 // ── Composant racine ──────────────────────────────────────────────────────

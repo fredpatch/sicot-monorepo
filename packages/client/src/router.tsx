@@ -1,6 +1,6 @@
-import { createBrowserRouter, createRoutesFromElements, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 
-import App, { ProtectedRoute, AdminRoute } from './App';
+import App, { ProtectedRoute, AdminRoute, AgentRoute, NonAgentRoute, LandingRedirect } from './App';
 import Layout from './components/layouts/Layout';
 import LoginPage from './pages/LoginPage';
 import DocumentsPage from './pages/DocumentsPage';
@@ -26,6 +26,9 @@ import PortailPage from './pages/PortalPage';
 import AuditPage from './pages/AuditPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import ProfilePage from './pages/ProfilePage';
+import MonEspacePage from './pages/MonEspacePage';
+import MesMissionsPage from './pages/MesMissionsPage';
 
 // Data router (createBrowserRouter) rather than plain <BrowserRouter>/<Routes> —
 // required so react-router's useBlocker (unsaved-changes protection in the
@@ -48,7 +51,30 @@ export const router = createBrowserRouter(
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <NonAgentRoute>
+              <DashboardPage />
+            </NonAgentRoute>
+          }
+        />
+        <Route
+          path="/mon-espace"
+          element={
+            <AgentRoute>
+              <MonEspacePage />
+            </AgentRoute>
+          }
+        />
+        <Route
+          path="/mes-missions"
+          element={
+            <AgentRoute>
+              <MesMissionsPage />
+            </AgentRoute>
+          }
+        />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/accords" element={<AccordsPage />} />
         <Route path="/accords/:id" element={<AccordsPage />} />
@@ -71,6 +97,7 @@ export const router = createBrowserRouter(
         <Route path="/demandes" element={<DemandesPage />} />
         <Route path="/glossaire" element={<GlossairePage />} />
         <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/profil" element={<ProfilePage />} />
 
         <Route
           path="/utilisateurs"
@@ -99,9 +126,9 @@ export const router = createBrowserRouter(
         />
       </Route>
 
-      {/* ── Redirections ──────────────────────────────────────────── */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* ── Redirections — atterrissage selon le rôle (lib/landing.ts) ── */}
+      <Route path="/" element={<LandingRedirect />} />
+      <Route path="*" element={<LandingRedirect />} />
 
       {/* ── Portail documentaire ───────────────────────────────────── */}
       <Route path="/portal" element={<PortailPage />} />

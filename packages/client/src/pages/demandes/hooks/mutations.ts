@@ -11,6 +11,12 @@ interface UseDemandesMutationsParams {
   onPrioriteValidee?: () => void;
 }
 
+function errorMessage(err: unknown, fallback: string): string {
+  return (
+    (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? fallback
+  );
+}
+
 export function useDemandesMutations({
   onDemandeCreee,
   onCreationErreur,
@@ -18,7 +24,10 @@ export function useDemandesMutations({
 }: UseDemandesMutationsParams = {}) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const invalidateDemandes = () => queryClient.invalidateQueries({ queryKey: ['demandes'] });
+  const invalidateDemandes = () => {
+    queryClient.invalidateQueries({ queryKey: ['demandes'] });
+    queryClient.invalidateQueries({ queryKey: ['demandes-aggregates'] });
+  };
 
   const creerMutation = useMutation({
     mutationFn: (formData: DemandeFormData) =>
@@ -33,10 +42,7 @@ export function useDemandesMutations({
       onDemandeCreee?.();
     },
     onError: (err: unknown) => {
-      onCreationErreur?.(
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-          'Erreur lors de la création.'
-      );
+      onCreationErreur?.(errorMessage(err, 'Erreur lors de la création.'));
     },
   });
 
@@ -49,31 +55,40 @@ export function useDemandesMutations({
       }
     },
     onError: (err: unknown) => {
-      toast.error(
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-          'Erreur lors de la prise en charge.'
-      );
+      toast.error(errorMessage(err, 'Erreur lors de la prise en charge.'));
     },
   });
 
   const rappelerMutation = useMutation({
     mutationFn: (id: number) => demandesApi.rappeler(id),
     onSuccess: invalidateDemandes,
+    onError: (err: unknown) => {
+      toast.error(errorMessage(err, 'Erreur lors du rappel de la demande.'));
+    },
   });
 
   const passerEnRelectureMutation = useMutation({
     mutationFn: (id: number) => demandesApi.passerEnRelecture(id),
     onSuccess: invalidateDemandes,
+    onError: (err: unknown) => {
+      toast.error(errorMessage(err, 'Erreur lors de la soumission en relecture.'));
+    },
   });
 
   const validerMutation = useMutation({
     mutationFn: (id: number) => demandesApi.valider(id),
     onSuccess: invalidateDemandes,
+    onError: (err: unknown) => {
+      toast.error(errorMessage(err, 'Erreur lors de la validation.'));
+    },
   });
 
   const archiverMutation = useMutation({
     mutationFn: (id: number) => demandesApi.archiver(id),
     onSuccess: invalidateDemandes,
+    onError: (err: unknown) => {
+      toast.error(errorMessage(err, "Erreur lors de l'archivage."));
+    },
   });
 
   const validerPrioriteMutation = useMutation({
@@ -82,6 +97,9 @@ export function useDemandesMutations({
     onSuccess: () => {
       invalidateDemandes();
       onPrioriteValidee?.();
+    },
+    onError: (err: unknown) => {
+      toast.error(errorMessage(err, 'Erreur lors de la validation de la priorité.'));
     },
   });
 

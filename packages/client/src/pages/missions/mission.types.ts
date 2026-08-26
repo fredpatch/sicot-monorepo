@@ -66,6 +66,7 @@ export interface MissionsAggregates {
   annulees: number;
   aVenir30Jours: number;
   logistiqueARisque: number;
+  rapportsEnAttente: number;
 }
 
 export type { MissionStatut, RecommandationStatut, LogistiqueStatut };

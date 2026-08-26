@@ -21,7 +21,8 @@ export const missionsApi = {
   getById: (id: number) => api.get(`/missions/${id}`),
 
   // Compteurs globaux, indépendants des filtres courants (cartes de synthèse)
-  aggregates: () => api.get('/missions/aggregates'),
+  // — ou scopés à un participant (ex. l'espace de travail agent)
+  aggregates: (params?: { participantId?: number }) => api.get('/missions/aggregates', { params }),
 
   // Recommandations en attente avec date limite — dashboard M9
   recommandationsEnAttente: () => api.get('/missions/recommandations/en-attente'),

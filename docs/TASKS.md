@@ -615,10 +615,11 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-26)
 
-Sprint non planifié, réalisé le même jour — voir `exploration-cache/changelog.md`
-pour le détail complet et `docs/deployment/production-guide.md` pour le runbook.
+Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
+`exploration-cache/changelog.md` pour le détail complet et
+`docs/deployment/production-guide.md` pour le runbook.
 
 ### Infrastructure de déploiement
 
@@ -676,13 +677,37 @@ pour le détail complet et `docs/deployment/production-guide.md` pour le runbook
 - [x] ~~**Langue toujours textuelle**~~ - `LanguageVariantBadge` (code ISO + libellé, jamais un drapeau seul)
 - [x] ~~**Aucune fonctionnalité inventée**~~ - pas de statuts En révision/Approuvé/Brouillon, pas de "Ajouter une langue" fonctionnel, pas de champs Définition/Source/Référence — historique étiqueté honnêtement (suivi des renommages FR/EN uniquement, pas un audit trail complet)
 
+### Refonte Demandes (M5) | ✅ COMPLÉTÉ (2026-08-26)
+
+- [x] ~~**Registre concept-first aligné M3/M4/M6/M7**~~ - Cartes de synthèse réelles (`GET /api/demandes/aggregates` : total/à assigner/en cours/en relecture/validées/archivées), `RequestsRegistryTable`/`RequestsRegistryMobileCards` (retrait du `DataTable` générique + actions liens texte), filtres alignés (recherche server-side, statut, priorité, raccourci "Assignation" Toutes/Non assignées/Mes demandes/Mes traductions)
+- [x] ~~**Recherche server-side**~~ - `demandeurNom`/`traducteurNom`/`documentNom`/`texteLibre`, absente avant (résolution par IDs candidats plutôt que jointure, cohérent avec le reste du module)
+- [x] ~~**Permissions centralisées**~~ - `requests.permissions.ts` reproduit exactement la hiérarchie de rôles serveur (`agent < traducteur < relecteur < admin < super_admin`), remplace 3 implémentations légèrement différentes (route/service/UI) trouvées lors de l'audit
+- [x] ~~**Workspace demande (Dialog à onglets)**~~ - `RequestWorkspace` : Aperçu/Source/Workflow/Traduction liée, même pattern que `TermWorkspace` (Glossaire) faute de composant Sheet dans le dépôt
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas d'échéance/SLA, pas de champ commentaire, pas de fusion `demande.valider`/`traduction.approuver` (restent deux machines à états indépendantes, documentées comme telles — écart de conception réel, non corrigé, hors périmètre de cette tâche)
+
+### Espace Agent — "Mon espace" + "Mes missions" + Profil utilisateur | ✅ COMPLÉTÉ (2026-08-26)
+
+- [x] ~~**Atterrissage par rôle**~~ - `lib/landing.ts` (`getLandingRoute`) source unique utilisée par login/set-password/redirection racine ; agent → `/mon-espace`, tout le reste → `/dashboard` inchangé
+- [x] ~~**Fermeture de la faille de route**~~ - `/dashboard` était masqué du menu pour les agents mais restait joignable par URL directe (aucun garde de route) ; nouveaux `AgentRoute`/`NonAgentRoute` dans `App.tsx` ferment cette faille dans les deux sens
+- [x] ~~**`/mon-espace`**~~ - 4 cartes réelles (mes demandes/en cours/mes missions/rapports en attente), panneau "Mes demandes" (réutilise le registre M5 tel quel, scope `demandeurId`), CTA "Nouvelle demande", panneau "Mes missions" (scope `participantId`, dépôt de rapport), carte Documents, carte "Besoin d'aide ?" honnêtement étiquetée "Bientôt disponible" (aucun système d'aide n'existe)
+- [x] ~~**`/mes-missions`**~~ - Vue missions restreinte à l'agent (scope `participantId`, dépôt de rapport), pas d'actions de planification/admin — distincte du registre `/missions` complet qui reste réservé admin/super_admin
+- [x] ~~**Agrégats scopés par utilisateur**~~ - `getDemandesAggregates(demandeurId?)`/`getMissionsAggregates(participantId?)` acceptent désormais un paramètre optionnel (comportement global inchangé si omis) ; `MissionsAggregates` gagne `rapportsEnAttente` (`terminee` + `rapportDocumentId` manquant, aucune fenêtre de délai inventée)
+- [x] ~~**Dialog de téléversement réutilisable**~~ - `QuickUploadDialog` (générique : upload + retourne le document créé, l'appelant décide de la suite) utilisé à la fois par `NewRequestDialog` (Demandes) et les cartes mission de "Mon espace"/"Mes missions" — évite deux implémentations d'upload dupliquées
+- [x] ~~**Cloisonnement Documents par rôle (client)**~~ - `documents.permissions.ts` reproduit les gardes serveur déjà en place (`traducteur+` pour supprimer/retraiter OCR/changer catégorie, `admin+` pour publier au portail) ; auparavant tout rôle voyait des boutons qui échouaient en 403 au clic
+- [x] ~~**Page Profil (`/profil`)**~~ - Onglets Informations personnelles (identité, matricule, poste/direction/service si connu, membre depuis, dernière connexion dérivée du journal d'audit, statut) / Sécurité (changement de mot de passe réel, réutilise `<PasswordStrength>` déjà construit pour Bootstrap)
+- [x] ~~**`POST /api/auth/changer-mot-de-passe`**~~ - Distinct de `set-password` (première connexion) : vérifie le mot de passe actuel, ne touche pas à `premiereConnexion`/OTP, n'envoie pas l'email d'activation
+- [x] ~~**Politique de mot de passe appliquée partout**~~ - `validerForceMotDePasse()` (longueur + majuscule + chiffre + caractère spécial) désormais vérifiée côté serveur dans `changer-mot-de-passe`, `set-password` ET `bootstrap` (premier super admin) — auparavant seule la première connexion l'affichait côté client sans jamais la vérifier côté serveur, à aucun endroit
+- [x] ~~**Champs poste/service/direction**~~ - 3 colonnes nullable sur `users` (migration 0014), alimentées uniquement à la création depuis l'annuaire Personnel ANAC (`personnel-anac.service.ts` exposait déjà ces champs bruts, jusque-là aplatis en une seule chaîne d'affichage et jamais persistés) ; `null` pour un compte créé manuellement, plutôt que d'inventer une valeur
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)
-- [ ] **Composant SummaryCard partagé** - dupliqué 6× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire)
+- [ ] **Composant SummaryCard partagé** - dupliqué 8× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire/Demandes/Mon espace)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
 - [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
 - [ ] **Fils de correspondance multi-niveaux** - `getFilCorrespondance` ne remonte qu'un niveau de réponse
+- [ ] **Demandes/Traductions — workflows non synchronisés** - `demande.valider`/`demande.archiver` ne vérifient jamais le statut de la traduction liée et inversement ; une demande peut passer `validee` alors que sa traduction reste `a_reviser`. Trouvé lors de l'audit M5 (2026-08-26), volontairement non corrigé (extension de contrat hors périmètre de la tâche demandée)
+- [ ] **Demande verrouillée orpheline si l'auto-lancement de traduction échoue** - `prendreEnCharge` pose le verrou avant de tenter `lancerTraduction()` ; en cas d'échec, la demande reste `en_cours`/verrouillée sans `traductionId` et sans action de récupération dans le module. Trouvé lors de l'audit M5 (2026-08-26), non corrigé
 - [ ] **Glossaire — pluralité des sources d'alimentation, avec surface UI dédiée à chacune** - Recommandation élargie 2026-08-24 (demande explicite) : le glossaire devra à terme accepter plusieurs types d'import (CSV/Excel structuré CCIT, et potentiellement extraction depuis documents ANAC bruts — voir ligne suivante), et **chaque mécanisme d'alimentation doit avoir sa propre surface UI** (bouton/dialog dédié, pas seulement un endpoint backend silencieux) — remplace l'ancien item "Import CSV/Excel glossaire — interface" ci-dessous, qui reste un sous-cas de celui-ci
   - [ ] **Import CSV/Excel structuré** - `POST /api/glossaire/import` existe déjà côté serveur (JSON `{termeFr, termeEn, domaine?, contexte?}[]`) mais aucun bouton/dialog client ne l'appelle ; à construire une fois le fichier CCIT reçu (cf. Waiting On)
   - [ ] **Extraction depuis documents ANAC bruts** - alimenter le glossaire à partir de PDF/Word existants nécessiterait un pipeline d'extraction/alignement bilingue (au-delà d'un simple import structuré), avec sa propre interface de revue/validation avant intégration — à évaluer séparément si le volume de terminologie non capturée le justifie

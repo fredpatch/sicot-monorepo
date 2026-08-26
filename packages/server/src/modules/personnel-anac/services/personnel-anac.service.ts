@@ -9,6 +9,9 @@ export interface PersonnelAnacView {
   nom: string | null;
   prenom: string | null;
   organisationLabel: string | null; // ex: "Service Informatique - Direction Technique - Agent"
+  poste: string | null;
+  service: string | null;
+  direction: string | null;
 }
 
 function normaliser(raw: PersonnelAnacRaw): PersonnelAnacView {
@@ -21,6 +24,9 @@ function normaliser(raw: PersonnelAnacRaw): PersonnelAnacView {
     nom: raw.identity.lastName,
     prenom: raw.identity.firstName,
     organisationLabel,
+    poste: fonction?.name ?? null,
+    service: service?.name ?? null,
+    direction: direction?.name ?? null,
   };
 }
 

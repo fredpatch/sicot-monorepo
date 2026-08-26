@@ -6,6 +6,9 @@ export interface CreateUserParams {
   prenom: string;
   email: string;
   role: UserRole;
+  poste?: string;
+  service?: string;
+  direction?: string;
   createdByUserId: number;
 }
 
@@ -32,6 +35,9 @@ export interface UserView {
   nom: string;
   prenom: string;
   email: string;
+  poste: string | null;
+  service: string | null;
+  direction: string | null;
   role: UserRole;
   actif: boolean;
   premiereConnexion: boolean;

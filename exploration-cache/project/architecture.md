@@ -497,3 +497,93 @@ sessions:
   `GET /glossaire/aggregates` → `{total, actifs, inactifs, domaines}`,
   all real `db.$count`/distinct queries, never derived from the current
   page.
+
+## Demandes Module (M5) Redesign + Agent Workspace + Profil (2026-08-26)
+
+Full detail in `changelog.md`. Notable, non-obvious things for future
+sessions:
+
+- **Demandes and Traductions are two fully independent status machines
+  with no cross-checks, despite the FK link between them** — found during
+  the audit, deliberately not fixed. `approuverTraduction()` never touches
+  `demandesTraduction`; `validerDemande()`/`archiverDemande()` never check
+  the linked translation's status. A demande can show `validee`/`archivee`
+  while its translation is still `a_reviser`, and vice versa. Don't assume
+  these two statuses stay in sync anywhere in the UI.
+- **A demande can end up permanently locked with no recovery path**:
+  `prendreEnCharge()` poses the atomic lock (`verrou: true`) *before*
+  attempting `lancerTraduction()`. If that call throws, the demande stays
+  `en_cours`/locked with no `traductionId`, and there is no in-module
+  action to release it — the only code path that ever clears `verrou` is
+  in the *Traductions* module (`supprimerTraduction()`), which requires a
+  `traductionId` to exist in the first place. Not fixed this session.
+- **`validerPriorite()` has no server-side status guard at all** — it can
+  be called (and will succeed) on an `archivee` demande via a direct API
+  call, even though the UI hides the button in that case. Client-only
+  enforcement, not a real guard.
+- **Search added to `listerDemandes()` without a join** — resolves
+  `demandeurNom`/`traducteurNom` (via a `users` query) and `documentNom`
+  (via a `documents` query) to candidate ID arrays first, then `inArray`s
+  them alongside a direct `ilike` on `texteLibre`. Chosen over restructuring
+  the query into a join, since `toDemandeView()` already does per-row
+  lookups the same way — keeps the search consistent with how the rest of
+  the service already resolves those fields.
+- **Role-based landing routing is new infrastructure, not a one-off**:
+  `lib/landing.ts`'s `getLandingRoute(role)` is the only place that decides
+  where a role lands — used by `LoginPage`'s two post-auth `navigate()`
+  calls and the root/wildcard route (`<LandingRedirect />` in `App.tsx`).
+  If a future role needs its own landing page, add the branch there, not
+  in three separate call sites again.
+- **`/dashboard` had a real route-guard gap, now closed**: it was already
+  hidden from the sidebar for `agent` (via `NAV_ITEMS`'s `roles` filter),
+  but the *route itself* had no guard — reachable by typing the URL
+  directly. `AgentRoute`/`NonAgentRoute` (`App.tsx`) fix this in both
+  directions: `/mon-espace` and `/mes-missions` now real-guard to `agent`
+  only, `/dashboard` real-guards everyone else away from `agent`. This
+  pattern (nav-hidden ≠ actually protected) is worth checking before
+  assuming any other nav-gated route is actually inaccessible.
+- **`QuickUploadDialog` (`components/documents/`) is intentionally
+  ignorant of what happens after upload** — it uploads and calls
+  `onUploaded(document)`, full stop. The caller decides whether that means
+  "select this on a form" (`NewRequestDialog`) or "link this as a mission
+  report" (`MyMissionsPanel`/`MesMissionsPage`, via a separate
+  `missionsApi.mettreAJour({ rapportDocumentId })` call in the caller, not
+  the dialog). Do not add mission-specific or demande-specific logic
+  inside the dialog itself — extend via the `onUploaded` callback instead.
+  Currently wired into 2 of the 4 existing manual-upload call sites
+  (Demandes, Missions-via-Mon-espace); `AccordFormPage`'s and
+  `CourrierDocumentPicker`'s inline uploads were deliberately left as-is
+  (scope decision — "new only, extend later if it proves out").
+- **Documents role gating exists on both layers now, but was added
+  client-side only this session** — the server already correctly gated
+  delete/OCR-correct/retraiter-OCR/catégorie to `traducteur+` and portal
+  publish/unpublish to `admin+` (confirmed by reading the route file, no
+  change needed there). `documents.permissions.ts` is a pure UI mirror of
+  those existing gates — if the server gates ever change, this file will
+  silently drift out of sync since nothing enforces they match beyond
+  manual review.
+- **`users.poste`/`.service`/`.direction`** (migration
+  `0014_lyrical_stardust.sql`) are populated **only** when an account is
+  created via the Personnel ANAC picker flow (`OngletPersonnelAnac` →
+  `PrefillUtilisateur` → `CreateUserDialog`'s hidden submit merge →
+  `POST /users`). A manually-created account has `null` in all three,
+  by design — the profile page and anywhere else displaying them must
+  treat absence as normal, not as a loading/error state.
+- **Password complexity is enforced by one shared function now**:
+  `validerForceMotDePasse()` (`utils/password.ts`) is called from
+  `auth.service.ts`'s `setPassword()` and `changerMotDePasse()`, and from
+  `bootstrap.service.ts`'s `initialiserSuperAdmin()`. Before this session,
+  bootstrap had **zero** password validation server-side (not even a
+  length check) despite its own client-side form showing the full
+  strength checklist. Any future password-setting path should call this
+  function rather than re-implementing the regex checks.
+- **"Dernière connexion" is derived, not stored** — `/auth/me` queries the
+  most recent `audit_logs` row where `action` is `CONNEXION` *or*
+  `MOT_DE_PASSE_DEFINI` for that user. Excluding `OTP_VALIDE` is
+  deliberate: it only grants a 5-minute temporary token, not a real
+  session (see `login()`'s `Cas 1`). This was actually wrong on first pass
+  (matched `CONNEXION` only) and caught live by the user testing their own
+  account, which had only ever completed first-login (`OTP_VALIDE` →
+  `MOT_DE_PASSE_DEFINI`, no subsequent normal login) — a real example of
+  why "looks done" and "actually correct" aren't the same thing without a
+  human clicking through it.

@@ -5,17 +5,31 @@ import { handleDemandesError } from '@/utils/error.js';
 // ── GET /api/demandes ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { statut, priorite, demandeurId, traducteurId, page, pageSize } = req.query;
+    const { statut, priorite, demandeurId, traducteurId, search, page, pageSize } = req.query;
 
     const result = await demandesService.listerDemandes({
       statut: statut as demandesService.DemandeStatut | undefined,
       priorite: priorite as demandesService.DemandePriorite | undefined,
       demandeurId: demandeurId ? parseInt(demandeurId as string) : undefined,
       traducteurId: traducteurId ? parseInt(traducteurId as string) : undefined,
+      search: search ? String(search) : undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
     });
 
+    res.json(result);
+  } catch (error) {
+    handleDemandesError(res, error);
+  }
+}
+
+// ── GET /api/demandes/aggregates ──────────────────────────────────────────
+export async function aggregates(req: Request, res: Response): Promise<void> {
+  try {
+    const { demandeurId } = req.query;
+    const result = await demandesService.getDemandesAggregates(
+      demandeurId ? parseInt(demandeurId as string) : undefined
+    );
     res.json(result);
   } catch (error) {
     handleDemandesError(res, error);

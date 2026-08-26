@@ -15,10 +15,12 @@ import {
 import { BadgeOCR } from './components/BadgeOCR';
 import { CATEGORIES } from './documents.constants';
 import { formaterTaille } from './documents.utils';
+import { canManageDocuments, canManagePortail } from './documents.permissions';
 import type { Document } from './documents.types';
 
 interface UseDocumentsColumnsParams {
   t: TFunction;
+  role: string | undefined;
   onChangerCategorie: (id: number, cat: string) => void;
   onCorrigerOCR: (doc: Document) => void;
   onRetraiterOCR: (id: number) => void;
@@ -33,6 +35,7 @@ interface UseDocumentsColumnsParams {
 
 export function useDocumentsColumns({
   t,
+  role,
   onChangerCategorie,
   onCorrigerOCR,
   onRetraiterOCR,
@@ -65,6 +68,10 @@ export function useDocumentsColumns({
         enableSorting: false,
         cell: ({ row }) => {
           const doc = row.original;
+          const label = CATEGORIES.find((c) => c.value === doc.categorie)?.label ?? doc.categorie;
+          if (!canManageDocuments(role)) {
+            return <span className="text-xs text-anac-muted">{label}</span>;
+          }
           return (
             <Select value={doc.categorie} onValueChange={(cat) => onChangerCategorie(doc.id, cat)}>
               <SelectTrigger className="h-7 text-xs w-36 px-2">
@@ -153,6 +160,13 @@ export function useDocumentsColumns({
         enableSorting: false,
         cell: ({ row }) => {
           const doc = row.original;
+          const peutGerer = canManageDocuments(role);
+          const peutPublier = canManagePortail(role);
+
+          if (!peutGerer) {
+            return <span className="text-xs text-anac-muted">—</span>;
+          }
+
           return (
             <div className="flex items-center gap-2 flex-wrap">
               {doc.statutOCR !== 'traite' && (
@@ -210,7 +224,7 @@ export function useDocumentsColumns({
                 Supprimer
               </Button>
 
-              {doc.statutOCR === 'traite' && (
+              {doc.statutOCR === 'traite' && peutPublier && (
                 <>
                   <span className="text-anac-border">·</span>
                   {doc.visibilitePortail ? (
@@ -254,6 +268,7 @@ export function useDocumentsColumns({
     ],
     [
       t,
+      role,
       onChangerCategorie,
       onCorrigerOCR,
       onRetraiterOCR,

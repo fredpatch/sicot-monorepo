@@ -178,6 +178,12 @@ export const users = pgTable(
     nom: varchar('nom', { length: 100 }).notNull(),
     prenom: varchar('prenom', { length: 100 }).notNull(),
     email: varchar('email', { length: 255 }).notNull().unique(),
+    // Renseignés uniquement quand le compte est créé depuis l'annuaire
+    // Personnel ANAC (voir personnel-anac.service.ts) — null pour les comptes
+    // créés manuellement.
+    poste: varchar('poste', { length: 150 }),
+    service: varchar('service', { length: 150 }),
+    direction: varchar('direction', { length: 150 }),
     motDePasseHash: varchar('mot_de_passe_hash', { length: 255 }),
     otpHash: varchar('otp_hash', { length: 255 }),
     otpExpiresAt: timestamp('otp_expires_at'),

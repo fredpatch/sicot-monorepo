@@ -34,6 +34,9 @@ export default function AdminUsersPage() {
       matricule: personnel.matricule,
       nom: personnel.nom ?? '',
       prenom: personnel.prenom ?? '',
+      poste: personnel.poste,
+      service: personnel.service,
+      direction: personnel.direction,
     });
     setModalCreer(true);
   }

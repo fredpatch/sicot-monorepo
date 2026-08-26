@@ -9,8 +9,8 @@ import {
   REFRESH_TOKEN_COOKIE,
 } from '@/middleware/auth';
 import { db } from '@/db/index';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, auditLogs } from '@/db/schema';
+import { eq, and, or, desc } from 'drizzle-orm';
 
 // ── POST /api/auth/login ───────────────────────────────────────────────────
 export async function login(req: Request, res: Response): Promise<void> {
@@ -81,6 +81,30 @@ export async function setPassword(req: Request, res: Response): Promise<void> {
   }
 }
 
+// ── POST /api/auth/changer-mot-de-passe ─────────────────────────────────────
+export async function changerMotDePasse(req: Request, res: Response): Promise<void> {
+  const { motDePasseActuel, nouveauMotDePasse, confirmation } = req.body;
+
+  if (!motDePasseActuel || !nouveauMotDePasse || !confirmation) {
+    res.status(400).json({ message: 'Mot de passe actuel, nouveau mot de passe et confirmation requis.' });
+    return;
+  }
+
+  try {
+    const result = await authService.changerMotDePasse({
+      userId: req.user!.userId,
+      motDePasseActuel,
+      nouveauMotDePasse,
+      confirmation,
+      ip: req.ip,
+    });
+
+    res.json(result);
+  } catch (error) {
+    handleAuthError(res, error);
+  }
+}
+
 // ── POST /api/auth/refresh ─────────────────────────────────────────────────
 export async function refresh(req: Request, res: Response): Promise<void> {
   const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
@@ -130,12 +154,36 @@ export async function me(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    // Dérivé du journal d'audit plutôt que stocké — pas de colonne dédiée.
+    // Deux actions démarrent réellement une session (buildTokens() appelé) :
+    // CONNEXION (connexion normale par mot de passe) et MOT_DE_PASSE_DEFINI
+    // (fin de première connexion — l'OTP seul ne donne qu'un token temporaire
+    // de 5 min, donc OTP_VALIDE n'est pas une "connexion" en soi).
+    const [derniereConnexion] = await db
+      .select({ createdAt: auditLogs.createdAt })
+      .from(auditLogs)
+      .where(
+        and(
+          eq(auditLogs.userId, user.id),
+          or(eq(auditLogs.action, 'CONNEXION'), eq(auditLogs.action, 'MOT_DE_PASSE_DEFINI'))
+        )
+      )
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(1);
+
     res.json({
       id: user.id,
       matricule: user.matricule,
       nom: user.nom,
       prenom: user.prenom,
+      email: user.email,
+      poste: user.poste,
+      service: user.service,
+      direction: user.direction,
       role: user.role,
+      actif: user.actif,
+      createdAt: user.createdAt,
+      derniereConnexion: derniereConnexion?.createdAt ?? null,
     });
   } catch (error) {
     console.error('[auth/me]', error);

@@ -41,7 +41,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
 // ── POST /api/users ───────────────────────────────────────────────────────
 export async function creer(req: Request, res: Response): Promise<void> {
   try {
-    const { matricule, nom, prenom, email, role } = req.body;
+    const { matricule, nom, prenom, email, role, poste, service, direction } = req.body;
 
     // Validation des champs requis
     if (!matricule || !nom || !prenom || !email || !role) {
@@ -64,6 +64,9 @@ export async function creer(req: Request, res: Response): Promise<void> {
       prenom,
       email,
       role,
+      poste: poste || undefined,
+      service: service || undefined,
+      direction: direction || undefined,
       createdByUserId: req.user!.userId,
     });
 

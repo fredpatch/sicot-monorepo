@@ -7,6 +7,9 @@ export const authApi = {
   setPassword: (motDePasse: string, confirmation: string) =>
     api.post('/auth/set-password', { motDePasse, confirmation }),
 
+  changerMotDePasse: (motDePasseActuel: string, nouveauMotDePasse: string, confirmation: string) =>
+    api.post('/auth/changer-mot-de-passe', { motDePasseActuel, nouveauMotDePasse, confirmation }),
+
   refresh: () => api.post('/auth/refresh'),
 
   logout: () => api.post('/auth/logout'),

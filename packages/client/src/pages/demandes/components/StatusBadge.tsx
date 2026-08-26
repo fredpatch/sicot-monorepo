@@ -1,4 +1,4 @@
-// packages/client/src/pages/demandes/components/BadgeStatut.tsx
+// packages/client/src/pages/demandes/components/StatusBadge.tsx
 import { Clock, ArrowRight, CheckCircle2, Archive } from 'lucide-react';
 import type { DemandeStatut } from '@/lib/demandes.api';
 

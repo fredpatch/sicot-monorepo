@@ -6,7 +6,13 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +34,13 @@ interface CreerUtilisateurDialogProps {
   prefill?: PrefillUtilisateur;
 }
 
-export function CreerUtilisateurDialog({ open, onOpenChange, onSubmit, chargement, prefill }: CreerUtilisateurDialogProps) {
+export function CreerUtilisateurDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  chargement,
+  prefill,
+}: CreerUtilisateurDialogProps) {
   const {
     register,
     handleSubmit,
@@ -52,12 +64,22 @@ export function CreerUtilisateurDialog({ open, onOpenChange, onSubmit, chargemen
           <DialogTitle>Nouvel utilisateur</DialogTitle>
           <DialogDescription>
             {prefill
-              ? 'Matricule, nom et prénom pré-remplis depuis l\'annuaire Personnel ANAC.'
+              ? "Matricule, nom et prénom pré-remplis depuis l'annuaire Personnel ANAC."
               : 'Un OTP sera envoyé par email pour la première connexion.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form
+          onSubmit={handleSubmit((data) =>
+            onSubmit({
+              ...data,
+              poste: prefill?.poste,
+              service: prefill?.service,
+              direction: prefill?.direction,
+            })
+          )}
+          noValidate
+        >
           <DialogBody className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -68,7 +90,9 @@ export function CreerUtilisateurDialog({ open, onOpenChange, onSubmit, chargemen
                   disabled={!!prefill}
                   aria-invalid={!!errors.matricule}
                 />
-                {errors.matricule && <p className="text-[11px] text-anac-danger">{errors.matricule.message}</p>}
+                {errors.matricule && (
+                  <p className="text-[11px] text-anac-danger">{errors.matricule.message}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -103,16 +127,20 @@ export function CreerUtilisateurDialog({ open, onOpenChange, onSubmit, chargemen
               <div className="space-y-1.5">
                 <Label htmlFor="prenom">Prénom *</Label>
                 <Input id="prenom" {...register('prenom')} aria-invalid={!!errors.prenom} />
-                {errors.prenom && <p className="text-[11px] text-anac-danger">{errors.prenom.message}</p>}
+                {errors.prenom && (
+                  <p className="text-[11px] text-anac-danger">{errors.prenom.message}</p>
+                )}
               </div>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="email">Email *</Label>
               <Input id="email" type="email" {...register('email')} aria-invalid={!!errors.email} />
-              {errors.email && <p className="text-[11px] text-anac-danger">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-[11px] text-anac-danger">{errors.email.message}</p>
+              )}
               <p className="text-[11px] text-anac-muted">
-                Non fourni par l&apos;annuaire Personnel ANAC — à saisir manuellement.
+                Non fourni par l&apos;annuaire Personnel ANAC - à saisir manuellement.
               </p>
             </div>
           </DialogBody>
@@ -127,7 +155,7 @@ export function CreerUtilisateurDialog({ open, onOpenChange, onSubmit, chargemen
                   <Loader2 size={13} className="animate-spin" /> Création...
                 </>
               ) : (
-                'Créer et envoyer l\'OTP'
+                "Créer et envoyer l'OTP"
               )}
             </Button>
           </DialogFooter>

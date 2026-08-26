@@ -45,10 +45,15 @@ export const handleAuthError = createErrorHandler(
     MOT_DE_PASSE_REQUIS: { status: 400, message: 'Mot de passe requis.' },
     MOT_DE_PASSE_NON_DEFINI: { status: 401, message: 'Mot de passe non défini.' },
     MOT_DE_PASSE_INVALIDE: { status: 401, message: 'Mot de passe incorrect.' },
+    MOT_DE_PASSE_ACTUEL_INVALIDE: { status: 401, message: 'Mot de passe actuel incorrect.' },
     MOTS_DE_PASSE_DIFFERENTS: { status: 400, message: 'Les mots de passe ne correspondent pas.' },
     MOT_DE_PASSE_TROP_COURT: {
       status: 400,
       message: 'Le mot de passe doit contenir au moins 8 caractères.',
+    },
+    MOT_DE_PASSE_COMPLEXITE_INSUFFISANTE: {
+      status: 400,
+      message: 'Le mot de passe doit contenir une majuscule, un chiffre et un caractère spécial.',
     },
     UTILISATEUR_INTROUVABLE: { status: 404, message: 'Utilisateur introuvable.' },
     EMAIL_MANQUANT: { status: 400, message: 'Aucun email associé à ce compte.' },

@@ -1,8 +1,9 @@
-// packages/client/src/pages/demandes/components/NouvelleDemandeDialog.tsx
-import { useEffect } from 'react';
+// packages/client/src/pages/demandes/components/NewRequestDialog.tsx
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, FileText, AlignLeft } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Loader2, FileText, AlignLeft, Upload } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { QuickUploadDialog, type UploadedDocument } from '@/components/documents/QuickUploadDialog';
 import { useDocumentsOCRTraiteQuery } from '../hooks/queries';
 import { demandeSchema, type DemandeFormData } from '../requests.schemas';
 
@@ -60,10 +62,25 @@ export function NouvelleDemandeDialog({
   const typeWatched = watch('type');
   const { data: docsData } = useDocumentsOCRTraiteQuery(open && typeWatched === 'document');
   const documents = docsData?.data ?? [];
+  const queryClient = useQueryClient();
+  const [modalUpload, setModalUpload] = useState(false);
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) reset();
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleUploaded(document: UploadedDocument) {
+    queryClient.invalidateQueries({ queryKey: ['documents-ocr-traite'] });
+    if (document.statutOCR === 'traite') {
+      setValue('documentId', document.id);
+      setUploadNotice(null);
+    } else {
+      setUploadNotice(
+        `"${document.nomOriginal}" a été téléversé, mais l'OCR n'est pas encore disponible — sélectionnez-le une fois traité.`
+      );
+    }
+  }
 
   return (
     <Dialog
@@ -77,7 +94,7 @@ export function NouvelleDemandeDialog({
         <DialogHeader>
           <DialogTitle>Nouvelle demande de traduction</DialogTitle>
           <DialogDescription>
-            Soumettez un document ou un texte libre pour traduction.
+            Soumettez un document OCR ou un texte libre pour traduction.
           </DialogDescription>
         </DialogHeader>
 
@@ -104,7 +121,7 @@ export function NouvelleDemandeDialog({
               </div>
 
               <div className="space-y-1.5">
-                <Label>Priorité</Label>
+                <Label>Priorité demandée</Label>
                 <Controller
                   name="priorite"
                   control={control}
@@ -120,6 +137,9 @@ export function NouvelleDemandeDialog({
                     </Select>
                   )}
                 />
+                <p className="text-[11px] text-anac-muted">
+                  La priorité pourra être confirmée ou ajustée par un relecteur.
+                </p>
               </div>
             </div>
 
@@ -167,7 +187,18 @@ export function NouvelleDemandeDialog({
 
             {typeWatched === 'document' ? (
               <div className="space-y-1.5">
-                <Label>Document *</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Document *</Label>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setModalUpload(true)}
+                    className="h-auto gap-1 p-0 text-xs text-anac-sky hover:text-anac-navy"
+                  >
+                    <Upload size={11} aria-hidden="true" /> Téléverser un nouveau document
+                  </Button>
+                </div>
                 <Controller
                   name="documentId"
                   control={control}
@@ -197,6 +228,7 @@ export function NouvelleDemandeDialog({
                     Aucun document avec OCR traité disponible.
                   </p>
                 )}
+                {uploadNotice && <p className="text-xs text-anac-warning">{uploadNotice}</p>}
                 {errors.documentId && (
                   <p className="text-[11px] text-anac-danger">{errors.documentId.message}</p>
                 )}
@@ -237,6 +269,15 @@ export function NouvelleDemandeDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <QuickUploadDialog
+        open={modalUpload}
+        onOpenChange={setModalUpload}
+        title="Téléverser un document"
+        description="Le document sera ajouté à la Gestion documentaire et proposé pour cette demande une fois l'OCR terminé."
+        categorie="traduction"
+        onUploaded={handleUploaded}
+      />
     </Dialog>
   );
 }

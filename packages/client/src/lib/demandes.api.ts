@@ -4,15 +4,29 @@ export type DemandeStatut = 'soumise' | 'en_cours' | 'en_relecture' | 'validee' 
 export type DemandePriorite = 'normale' | 'urgente';
 export type DemandeDirection = 'fr_en' | 'en_fr';
 
+export interface DemandesAggregates {
+  total: number;
+  aAssigner: number;
+  enCours: number;
+  enRelecture: number;
+  validees: number;
+  archivees: number;
+}
+
 export const demandesApi = {
   lister: (params?: {
     statut?: DemandeStatut;
     priorite?: DemandePriorite;
     demandeurId?: number;
     traducteurId?: number;
+    search?: string;
     page?: number;
     pageSize?: number;
   }) => api.get('/demandes', { params }),
+
+  // Compteurs globaux, indépendants des filtres courants — ou scopés à un
+  // demandeur (ex. l'espace de travail agent)
+  aggregates: (params?: { demandeurId?: number }) => api.get('/demandes/aggregates', { params }),
 
   getById: (id: number) => api.get(`/demandes/${id}`),
 

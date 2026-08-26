@@ -1,15 +1,17 @@
 import { db } from '@/db/index.js';
-import { demandesTraduction, documents } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { demandesTraduction, documents, users } from '@/db/schema';
+import { eq, and, or, ilike, inArray, desc } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { lancerTraduction } from '../../traduction/services/traduction.service';
 import type { TraductionDirection } from '@/utils/traduction.js';
 import { toDemandeView, getTexteDocument } from './demandes.helpers';
 import type {
+  DemandeStatut,
   DemandePriorite,
   DemandeView,
   CreerDemandeParams,
   DemandeFilters,
+  DemandesAggregates,
 } from './demandes.types';
 
 export type {
@@ -18,6 +20,7 @@ export type {
   DemandeView,
   CreerDemandeParams,
   DemandeFilters,
+  DemandesAggregates,
 } from './demandes.types';
 
 // ── SERVICE : Créer une demande ───────────────────────────────────────────
@@ -74,6 +77,32 @@ export async function listerDemandes(filters: DemandeFilters): Promise<{
   if (filters.traducteurId)
     conditions.push(eq(demandesTraduction.traducteurId, filters.traducteurId));
 
+  // Recherche : demandeur/traducteur (par nom/prénom), document (par nom) ou texte libre.
+  // Résolue en IDs candidats plutôt que via jointure, pour rester simple sur une table
+  // de taille modeste — cohérent avec le reste du module (pas de jointure en lecture).
+  if (filters.search) {
+    const terme = `%${filters.search}%`;
+    const [utilisateurs, docs] = await Promise.all([
+      db
+        .select({ id: users.id })
+        .from(users)
+        .where(or(ilike(users.nom, terme), ilike(users.prenom, terme))),
+      db.select({ id: documents.id }).from(documents).where(ilike(documents.nomOriginal, terme)),
+    ]);
+    const userIds = utilisateurs.map((u) => u.id);
+    const docIds = docs.map((d) => d.id);
+
+    const searchConditions = [ilike(demandesTraduction.texteLibre, terme)];
+    if (userIds.length > 0) {
+      searchConditions.push(inArray(demandesTraduction.demandeurId, userIds));
+      searchConditions.push(inArray(demandesTraduction.traducteurId, userIds));
+    }
+    if (docIds.length > 0) {
+      searchConditions.push(inArray(demandesTraduction.documentId, docIds));
+    }
+    conditions.push(or(...searchConditions)!);
+  }
+
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const rows = await db
@@ -88,6 +117,26 @@ export async function listerDemandes(filters: DemandeFilters): Promise<{
   const data = await Promise.all(rows.map(toDemandeView));
 
   return { data, total };
+}
+
+// ── SERVICE : Agrégats globaux (indépendants de la pagination/des filtres) ─
+// demandeurId optionnel — quand fourni, tous les comptes sont restreints aux
+// demandes de cet utilisateur (ex. l'espace de travail agent "Mon espace").
+export async function getDemandesAggregates(demandeurId?: number): Promise<DemandesAggregates> {
+  const scope = demandeurId !== undefined ? eq(demandesTraduction.demandeurId, demandeurId) : undefined;
+  const withScope = (statut: DemandeStatut) =>
+    scope ? and(eq(demandesTraduction.statut, statut), scope) : eq(demandesTraduction.statut, statut);
+
+  const [total, aAssigner, enCours, enRelecture, validees, archivees] = await Promise.all([
+    db.$count(demandesTraduction, scope),
+    db.$count(demandesTraduction, withScope('soumise')),
+    db.$count(demandesTraduction, withScope('en_cours')),
+    db.$count(demandesTraduction, withScope('en_relecture')),
+    db.$count(demandesTraduction, withScope('validee')),
+    db.$count(demandesTraduction, withScope('archivee')),
+  ]);
+
+  return { total, aAssigner, enCours, enRelecture, validees, archivees };
 }
 
 // ── SERVICE : Récupérer une demande ───────────────────────────────────────

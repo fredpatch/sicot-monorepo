@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { DataTable } from '@/components/table/data-table';
 import { DataTablePagination } from '@/components/table/data-table-pagination';
 import { confirmToast } from '@/lib/confirm-toast';
+import { useAuth } from '@/App';
 
 import { useDocumentsColumns } from './documents/documents.columns';
 import { DocumentsUploadZone } from './documents/components/DocumentsUploadZone';
@@ -19,6 +20,7 @@ import { DocumentsFiltres } from './documents/components/DocumentsFilters';
 export default function DocumentsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // ── Filtres ───────────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
@@ -49,6 +51,7 @@ export default function DocumentsPage() {
 
   const colonnes = useDocumentsColumns({
     t,
+    role: user?.role,
     onChangerCategorie: (id, cat) => categoriesMutation.mutate({ id, cat }),
     onCorrigerOCR: setDocumentOCR,
     onRetraiterOCR: (id) => retraiterOCRMutation.mutate(id),

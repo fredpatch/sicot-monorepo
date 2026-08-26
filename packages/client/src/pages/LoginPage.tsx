@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, ShieldCheck } from 'lucide-react';
 
 import { authApi } from '@/lib/auth.api';
+import { getLandingRoute } from '@/lib/landing';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,7 +94,7 @@ export default function LoginPage() {
         setEtape('set-password');
       } else {
         setUser(res.data.user); // Set the user in context or state
-        navigate('/dashboard');
+        navigate(getLandingRoute(res.data.user.role));
       }
     } catch (err: unknown) {
       setServerError(
@@ -108,7 +109,7 @@ export default function LoginPage() {
     try {
       const res = await authApi.setPassword(data.motDePasse, data.confirmation);
       setUser(res.data.user);
-      navigate('/dashboard');
+      navigate(getLandingRoute(res.data.user.role));
     } catch (err: unknown) {
       setServerError(
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
