@@ -6,6 +6,10 @@ export function handleDocumentsError(res: Response, error: unknown): void {
 
   const errorMap: Record<string, { status: number; message: string }> = {
     DOCUMENT_INTROUVABLE: { status: 404, message: 'Document introuvable.' },
+    DOCUMENT_NON_AUTORISE: {
+      status: 403,
+      message: "Vous n'êtes pas autorisé à consulter ce document.",
+    },
     OCR_SERVICE_INDISPONIBLE: { status: 503, message: 'Service OCR indisponible.' },
     OCR_TIMEOUT: { status: 504, message: 'Délai OCR dépassé.' },
     DOCUMENT_DEJA_SUPPRIME: { status: 400, message: 'Ce document est déjà dans la corbeille.' },

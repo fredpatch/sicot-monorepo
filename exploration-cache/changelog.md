@@ -1,5 +1,59 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-26 — feat(server/client): internal document visibility gate (documents.visibiliteInterne)
+
+Direct follow-up to the discoverability work above: the user noticed an
+agent could see a document an admin had just uploaded that hadn't been
+translated yet. Revises the "Documents is open-read to every role" decision
+made earlier this session — on reflection, that was right for *finished*
+material but wrong as a blanket default for freshly-uploaded, not-yet-
+reviewed files.
+
+### Added
+- Migration `0015_fast_songbird.sql` — `documents.visibiliteInterne boolean
+  not null default false`. Distinct from `visibilitePortail` (external/
+  public) — this is the internal-only gate.
+- New uploads default `visibiliteInterne: false`. Two ways to flip it to
+  true: (1) automatically, when a translation is deposited via "Déposer au
+  dossier documentaire" (`categorie: 'traduction'` — the "translated ⇒
+  shared" rule from the discoverability round); (2) manually, via a new
+  "Rendre visible en interne" toggle (`traducteur+`, new "Visibilité
+  interne" column in Documents, same pattern as the existing Portail
+  column but a separate, independent flag).
+- **Only the `agent` role is restricted by this** — `GET /documents` now
+  forces `visibleOuUploadePar: userId` for that role only;
+  `traducteur+` continues to see everything, unchanged, since curating
+  what's visible/published is their job.
+- **An agent always sees their own uploads**, regardless of
+  `visibiliteInterne` — the rule is "visible-in-general OR uploaded-by-me",
+  not a flat allowlist. Otherwise an agent uploading their own source file
+  or mission report would lose track of it in Documents before anything
+  reviews it.
+- `GET /documents/:id` and `GET /documents/:id/telecharger` now enforce the
+  same rule via a new `verifierAccesDocument()` check (agent-only,
+  traducteur+ always passes) — closes the same "list hides it but direct-ID
+  access doesn't" class of gap fixed for demandes/traductions/glossaire
+  earlier in the session.
+- `nouvellVersionDocument` — the translation-deposit path forces
+  `visibiliteInterne: true` regardless of the parent's current value
+  (business rule: once deposited as a translation, it's shared, full
+  stop); the generic "Verser version finale" path (any other re-versioning)
+  inherits the parent's current visibility instead, same as it already
+  does for categorie.
+- `POST /documents/upload` accepts an optional `visibiliteInterne` field,
+  but **only honors it for `traducteur+`** — an agent role sending it
+  (even by tampering with the request) is silently ignored server-side, so
+  an agent can never self-publish. Used by the free-text-translation
+  fallback in `DeposerDocumentAction` (no source document to version).
+- Live-validated against the dev DB with disposable synthetic data: a
+  non-owner agent is excluded from both the list and direct access to an
+  unpublished document; the uploader still sees their own; a `traducteur`
+  role always passes; toggling visibility takes effect immediately; a
+  translation deposit is auto-visible even when its source document isn't.
+- No grandfathering needed — existing rows were test/seed data per the
+  user, so the new column's `false` default applies uniformly with no
+  backfill migration.
+
 ## [Unreleased] — 2026-08-26 — feat: discoverable shared translation deposits (categorie: 'traduction')
 
 Follow-up product discussion, worked through with concrete named scenarios

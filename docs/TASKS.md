@@ -732,6 +732,19 @@ Discussion produit avec scénarios nommés (Fred demande/télécharge sa traduct
 - [x] ~~**Aucune nouvelle route/migration**~~ - le filtre `categorie=traduction` et l'option "Traductions" du Select existaient déjà côté Documents ; seul le tag manquait
 - [x] ~~**Section `/archives` et flag booléen écartés**~~ - discutés et rejetés au profit de l'inférence par catégorie existante, voir `project/architecture.md`
 
+### Gate de visibilité interne des documents (documents.visibiliteInterne) | ✅ COMPLÉTÉ (2026-08-26)
+
+Suite directe de la découvrabilité des traductions : l'utilisateur a remarqué qu'un agent voyait un document tout juste uploadé par un admin, pas encore traduit. Révise la décision "Documents en lecture ouverte à tous" prise plus tôt dans la session — juste pour du contenu fini, pas pour du contenu frais non révisé.
+
+- [x] ~~**Migration `0015_fast_songbird.sql`**~~ - `documents.visibiliteInterne boolean not null default false`, distincte de `visibilitePortail`
+- [x] ~~**Restreint uniquement le rôle agent**~~ - `GET /documents` force `visibleOuUploadePar` pour agent seulement ; traducteur+ voit tout, inchangé
+- [x] ~~**Un agent voit toujours ses propres uploads**~~ - règle "visible OU uploadé par moi", pas une simple liste blanche
+- [x] ~~**`GET /:id` et `/:id/telecharger` gardés aussi**~~ - nouveau `verifierAccesDocument()`, ferme la même classe de faille (liste filtrée mais accès direct par ID non gardé) déjà corrigée pour demandes/traductions/glossaire
+- [x] ~~**Dépôt de traduction toujours auto-visible**~~ - `nouvellVersionDocument` force `visibiliteInterne=true` sur le chemin traduction, hérite du parent sur le chemin générique
+- [x] ~~**`POST /upload` accepte `visibiliteInterne` mais uniquement honoré pour traducteur+**~~ - un agent ne peut jamais s'auto-publier même en modifiant la requête
+- [x] ~~**Nouvelle colonne "Visibilité interne" + bouton bascule**~~ - même emplacement/pattern que la colonne Portail existante, traducteur+ uniquement
+- [x] ~~**Aucun rétro-remplissage nécessaire**~~ - données existantes = seed/test selon l'utilisateur, le défaut `false` s'applique uniformément
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)

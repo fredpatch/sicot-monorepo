@@ -17,11 +17,14 @@ export const documentsApi = {
 
   getById: (id: number) => api.get(`/documents/${id}`),
 
-  // Upload avec FormData — timeout plus long pour les gros fichiers
-  upload: (fichier: File, categorie?: string) => {
+  // Upload avec FormData — timeout plus long pour les gros fichiers.
+  // visibiliteInterne n'est honoré par le serveur que pour traducteur+ (un
+  // agent ne peut jamais s'auto-publier, même en le passant ici).
+  upload: (fichier: File, categorie?: string, visibiliteInterne?: boolean) => {
     const formData = new FormData();
     formData.append('file', fichier);
     if (categorie) formData.append('categorie', categorie);
+    if (visibiliteInterne) formData.append('visibiliteInterne', '1');
 
     return api.post('/documents/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -44,6 +47,9 @@ export const documentsApi = {
 
   mettreAJourCategorie: (id: number, categorie: string) =>
     api.patch(`/documents/${id}/categorie`, { categorie }),
+
+  toggleVisibiliteInterne: (id: number, visible: boolean) =>
+    api.patch(`/documents/${id}/visibilite-interne`, { visible }),
 
   getUrlTelechargement: (id: number) => `/api/documents/${id}/telecharger`,
 

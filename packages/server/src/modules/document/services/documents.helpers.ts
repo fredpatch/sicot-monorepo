@@ -31,6 +31,7 @@ export function toDocumentView(doc: typeof documents.$inferSelect): DocumentView
     createdAt: doc.createdAt,
     visibilitePortail: doc.visibilitePortail,
     portailTokenDureeJours: doc.portailTokenDureeJours ?? undefined,
+    visibiliteInterne: doc.visibiliteInterne,
   };
 }
 

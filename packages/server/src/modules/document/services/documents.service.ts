@@ -36,7 +36,7 @@ export async function verifierDoublon(hashMD5: string): Promise<DoublonInfo> {
 export async function uploaderDocument(
   params: UploadDocumentParams
 ): Promise<{ document: DocumentView; doublon: boolean; categorieProposee: DocumentCategorie }> {
-  const { buffer, nomOriginal, mimeType, categorie, uploadePar } = params;
+  const { buffer, nomOriginal, mimeType, categorie, uploadePar, visibiliteInterne } = params;
 
   assurerDossiers();
 
@@ -85,6 +85,7 @@ export async function uploaderDocument(
       hashMD5,
       version: 1,
       uploadePar,
+      visibiliteInterne: visibiliteInterne ?? false,
     })
     .returning();
 
@@ -131,6 +132,18 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
   // Dans listerDocuments, ajouter dans les conditions :
   if (!filters.avecSupprimes) {
     conditions.push(isNull(documents.deletedAt));
+  }
+
+  // Rôle agent uniquement (voir DocumentFilters#visibleOuUploadePar) — ne
+  // voit que ce qui est publié en interne, plus ses propres uploads même
+  // avant publication.
+  if (filters.visibleOuUploadePar !== undefined) {
+    conditions.push(
+      or(
+        eq(documents.visibiliteInterne, true),
+        eq(documents.uploadePar, filters.visibleOuUploadePar)
+      )!
+    );
   }
 
   // Ne garder que les lignes qu'aucune autre ligne ne référence via
@@ -243,9 +256,17 @@ export async function nouvellVersionDocument(
 
   if (!parent) throw new Error('DOCUMENT_INTROUVABLE');
 
+  // Une traduction déposée est automatiquement visible en interne, même si
+  // le document source ne l'était pas — c'est la règle métier convenue
+  // (« traduit ⇒ partagé »). Toute autre nouvelle version hérite de la
+  // visibilité actuelle du parent, comme sa catégorie.
+  const visibiliteInterne =
+    categorieOverride === 'traduction' ? true : parent.visibiliteInterne;
+
   const { document } = await uploaderDocument({
     ...params,
     categorie: categorieOverride ?? (parent.categorie as DocumentCategorie),
+    visibiliteInterne,
   });
 
   const [updated] = await db
@@ -264,6 +285,55 @@ export async function getCheminDocument(
   const [doc] = await db.select().from(documents).where(eq(documents.id, id));
   if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
   return { chemin: doc.chemin, nomOriginal: doc.nomOriginal, mimeType: doc.mimeType };
+}
+
+// ── Basculer la visibilité interne (agent) ────────────────────────────────
+// Distincte de visibilitePortail (public). traducteur+ uniquement (voir la
+// route) — décision moins engageante que la publication externe, donc pas
+// réservée admin comme le portail.
+export async function toggleVisibiliteInterne(
+  id: number,
+  visible: boolean,
+  userId: number
+): Promise<DocumentView> {
+  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+  if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+
+  const [updated] = await db
+    .update(documents)
+    .set({ visibiliteInterne: visible })
+    .where(eq(documents.id, id))
+    .returning();
+
+  await logAudit({
+    userId,
+    action: visible ? 'DOCUMENT_VISIBLE_INTERNE' : 'DOCUMENT_MASQUE_INTERNE',
+    module: 'M8',
+    entiteId: id,
+  });
+
+  return toDocumentView(updated);
+}
+
+// ── Vérifier qu'un agent a le droit de voir/télécharger un document donné
+// (GET /:id, GET /:id/telecharger) — traducteur+ n'est jamais restreint ici,
+// seul le rôle agent est concerné (voir listerDocuments#visibleOuUploadePar
+// pour la même règle appliquée au listing). ────────────────────────────────
+export async function verifierAccesDocument(
+  id: number,
+  utilisateur: { role: string; userId: number }
+): Promise<void> {
+  if (utilisateur.role !== 'agent') return;
+
+  const [doc] = await db
+    .select({ visibiliteInterne: documents.visibiliteInterne, uploadePar: documents.uploadePar })
+    .from(documents)
+    .where(eq(documents.id, id));
+
+  if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+  if (!doc.visibiliteInterne && doc.uploadePar !== utilisateur.userId) {
+    throw new Error('DOCUMENT_NON_AUTORISE');
+  }
 }
 
 // ── Soft delete ───────────────────────────────────────────────────────────

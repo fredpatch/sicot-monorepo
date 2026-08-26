@@ -54,6 +54,12 @@ export function useDocumentsMutations({
     onSuccess: invalidateDocuments,
   });
 
+  const toggleVisibiliteInterneMutation = useMutation({
+    mutationFn: ({ id, visible }: { id: number; visible: boolean }) =>
+      documentsApi.toggleVisibiliteInterne(id, visible),
+    onSuccess: invalidateDocuments,
+  });
+
   return {
     corrigerOCRMutation,
     categoriesMutation,
@@ -61,5 +67,6 @@ export function useDocumentsMutations({
     supprimerMutation,
     retraiterOCRMutation,
     nouvelleVersionMutation,
+    toggleVisibiliteInterneMutation,
   };
 }

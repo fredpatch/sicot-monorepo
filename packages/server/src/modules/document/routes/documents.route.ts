@@ -40,6 +40,11 @@ router.post(
 // ── Modifications — traducteur minimum ───────────────────────────────────
 router.patch('/:id/ocr', requireRole('traducteur'), documentsController.corrigerOCR);
 router.patch('/:id/categorie', requireRole('traducteur'), documentsController.mettreAJourCategorie);
+router.patch(
+  '/:id/visibilite-interne',
+  requireRole('traducteur'),
+  documentsController.toggleVisibiliteInterne
+);
 
 // ── Téléchargement ───────────────────────────────────────────────────────
 router.get('/:id/telecharger', documentsController.telecharger);

@@ -273,6 +273,13 @@ export const documents = pgTable(
 
     visibilitePortail: boolean('visibilite_portail').notNull().default(false),
     portailTokenDureeJours: integer('portail_token_duree_jours'), // null = permanent
+
+    // Visibilité interne (agent) — distincte du portail public. false par
+    // défaut ; passe à true automatiquement quand une traduction est
+    // déposée (voir nouvellVersionDocument), ou manuellement via le bouton
+    // "Rendre visible en interne" (traducteur+). Un agent voit toujours ses
+    // propres uploads indépendamment de ce champ (cf. listerDocuments).
+    visibiliteInterne: boolean('visibilite_interne').notNull().default(false),
   },
   (t) => [
     index('documents_hash_idx').on(t.hashMD5),

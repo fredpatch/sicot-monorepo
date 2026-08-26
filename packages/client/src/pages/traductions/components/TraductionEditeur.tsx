@@ -192,7 +192,7 @@ export default function TraductionEditeur() {
     mutationFn: (fichier: File) =>
       traduction?.documentId
         ? documentsApi.nouvelleVersion(traduction.documentId, fichier, 'traduction')
-        : documentsApi.upload(fichier, 'traduction'),
+        : documentsApi.upload(fichier, 'traduction', true),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast.success('Document déposé dans le dossier documentaire.');

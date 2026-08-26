@@ -1,6 +1,6 @@
 // packages/client/src/pages/documents/documents.columns.tsx
 import { useMemo } from 'react';
-import { Download, Globe, GlobeLock, Loader2 } from 'lucide-react';
+import { Download, Eye, EyeOff, Globe, GlobeLock, Loader2 } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TFunction } from 'i18next';
 
@@ -35,6 +35,8 @@ interface UseDocumentsColumnsParams {
   retirerPortailEnCours: boolean;
   onVerserVersion: (id: number, fichier: File) => void;
   verserVersionEnCours: boolean;
+  onToggleVisibiliteInterne: (id: number, visible: boolean) => void;
+  toggleVisibiliteInterneEnCours: boolean;
 }
 
 export function useDocumentsColumns({
@@ -52,6 +54,8 @@ export function useDocumentsColumns({
   retirerPortailEnCours,
   onVerserVersion,
   verserVersionEnCours,
+  onToggleVisibiliteInterne,
+  toggleVisibiliteInterneEnCours,
 }: UseDocumentsColumnsParams): ColumnDef<Document>[] {
   return useMemo<ColumnDef<Document>[]>(
     () => [
@@ -117,6 +121,40 @@ export function useDocumentsColumns({
         header: 'OCR',
         enableSorting: false,
         cell: ({ row }) => <BadgeOCR statut={row.original.statutOCR} />,
+      },
+      {
+        id: 'visibiliteInterne',
+        header: 'Visibilité interne',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const doc = row.original;
+          const peutGerer = canManageDocuments(role);
+
+          return (
+            <div className="flex items-center gap-1.5">
+              {doc.visibiliteInterne ? (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-xs text-green-700">
+                  <Eye size={12} /> Visible en interne
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-anac-border bg-anac-gray px-2 py-1 text-xs text-anac-muted">
+                  <EyeOff size={12} /> Masqué (déposant uniquement)
+                </span>
+              )}
+              {peutGerer && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => onToggleVisibiliteInterne(doc.id, !doc.visibiliteInterne)}
+                  disabled={toggleVisibiliteInterneEnCours}
+                  className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
+                >
+                  {doc.visibiliteInterne ? 'Masquer' : 'Rendre visible'}
+                </Button>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: 'portail',
@@ -304,6 +342,8 @@ export function useDocumentsColumns({
       retirerPortailEnCours,
       onVerserVersion,
       verserVersionEnCours,
+      onToggleVisibiliteInterne,
+      toggleVisibiliteInterneEnCours,
     ]
   );
 }

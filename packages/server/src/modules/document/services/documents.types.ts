@@ -7,6 +7,9 @@ export interface UploadDocumentParams {
   mimeType: string;
   categorie: DocumentCategorie;
   uploadePar: number;
+  // Omis = false par défaut (colonne DB). Voir documents.service.ts pour
+  // qui a le droit de le forcer à true.
+  visibiliteInterne?: boolean;
 }
 
 export interface DocumentView {
@@ -27,6 +30,7 @@ export interface DocumentView {
   createdAt: Date;
   visibilitePortail: boolean;
   portailTokenDureeJours?: number;
+  visibiliteInterne: boolean;
 }
 
 export interface DocumentFilters {
@@ -42,6 +46,10 @@ export interface DocumentFilters {
   // la dernière version d'une chaîne (nouvelle-version) ; exclut les
   // versions intermédiaires désormais remplacées.
   finalesUniquement?: boolean;
+  // Restreint la lecture à "visible en interne OU uploadé par cet
+  // utilisateur" — utilisé pour le rôle agent uniquement ; omis (undefined)
+  // pour traducteur+ qui voit tout, comme aujourd'hui.
+  visibleOuUploadePar?: number;
 }
 
 export interface DoublonInfo {

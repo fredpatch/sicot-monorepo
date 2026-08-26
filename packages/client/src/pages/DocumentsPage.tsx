@@ -44,6 +44,7 @@ export default function DocumentsPage() {
     supprimerMutation,
     retraiterOCRMutation,
     nouvelleVersionMutation,
+    toggleVisibiliteInterneMutation,
   } = useDocumentsMutations({
     onOCRCorrigee: () => setDocumentOCR(null),
     onPortailPublie: () => setModalPortail(null),
@@ -74,6 +75,9 @@ export default function DocumentsPage() {
     retirerPortailEnCours: togglePortailMutation.isPending,
     onVerserVersion: (id, fichier) => nouvelleVersionMutation.mutate({ id, fichier }),
     verserVersionEnCours: nouvelleVersionMutation.isPending,
+    onToggleVisibiliteInterne: (id, visible) =>
+      toggleVisibiliteInterneMutation.mutate({ id, visible }),
+    toggleVisibiliteInterneEnCours: toggleVisibiliteInterneMutation.isPending,
   });
 
   return (

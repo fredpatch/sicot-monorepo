@@ -12,7 +12,12 @@ export async function upload(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { categorie } = req.body;
+    const { categorie, visibiliteInterne } = req.body;
+    // POST /upload n'a aucune garde de rôle (les agents y déposent leurs
+    // propres fichiers) — visibiliteInterne ne peut donc jamais venir du
+    // client pour ce rôle, même s'il est fourni dans le corps de la
+    // requête, sinon un agent pourrait s'auto-publier en interne.
+    const estAgent = req.user!.role === 'agent';
 
     const result = await documentsService.uploaderDocument({
       buffer: req.file.buffer,
@@ -20,6 +25,7 @@ export async function upload(req: Request, res: Response): Promise<void> {
       mimeType: req.file.mimetype,
       categorie: categorie ?? 'autre',
       uploadePar: req.user!.userId,
+      visibiliteInterne: !estAgent && visibiliteInterne === '1',
     });
 
     // 207 Multi-Status si doublon détecté — succès mais avec avertissement
@@ -39,9 +45,12 @@ export async function upload(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/documents ────────────────────────────────────────────────────
+// Un agent ne voit que les documents visibles en interne + ceux qu'il a
+// lui-même uploadés ; traducteur+ voit tout, comme aujourd'hui.
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
     const { search, categorie, statutOCR, page, pageSize, finalesUniquement } = req.query;
+    const estAgent = req.user!.role === 'agent';
 
     const result = await documentsService.listerDocuments({
       search: search as string | undefined,
@@ -50,6 +59,7 @@ export async function lister(req: Request, res: Response): Promise<void> {
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
       finalesUniquement: finalesUniquement === '1',
+      visibleOuUploadePar: estAgent ? req.user!.userId : undefined,
     });
 
     res.json(result);
@@ -67,8 +77,38 @@ export async function getById(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    await documentsService.verifierAccesDocument(id, {
+      role: req.user!.role,
+      userId: req.user!.userId,
+    });
+
     const document = await documentsService.getDocument(id);
     res.json(document);
+  } catch (error) {
+    handleDocumentsError(res, error);
+  }
+}
+
+// ── PATCH /api/documents/:id/visibilite-interne ───────────────────────────
+export async function toggleVisibiliteInterne(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const { visible } = req.body;
+    if (typeof visible !== 'boolean') {
+      res.status(400).json({ message: 'Champ "visible" booléen requis.' });
+      return;
+    }
+
+    const document = await documentsService.toggleVisibiliteInterne(id, visible, req.user!.userId);
+    res.json({
+      document,
+      message: visible ? 'Document rendu visible en interne.' : 'Document masqué en interne.',
+    });
   } catch (error) {
     handleDocumentsError(res, error);
   }
@@ -205,6 +245,11 @@ export async function telecharger(req: Request, res: Response): Promise<void> {
       res.status(400).json({ message: 'ID invalide.' });
       return;
     }
+
+    await documentsService.verifierAccesDocument(id, {
+      role: req.user!.role,
+      userId: req.user!.userId,
+    });
 
     const { chemin, nomOriginal, mimeType } = await documentsService.getCheminDocument(id);
 

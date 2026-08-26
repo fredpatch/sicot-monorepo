@@ -115,6 +115,10 @@ POST /api/documents/upload     Open to any authenticated role (no gate) — clie
 POST /api/documents/:id/nouvelle-version   Now traducteur+ (was ungated server-side — any authenticated role could version any document). New UI: "Verser version finale" row action, reuses this previously-unwired endpoint.
 GET  /api/documents             ?finalesUniquement=1 excludes rows superseded by a newer version (referenced as another row's parentId); documents never versioned pass through unaffected. Download ("Télécharger" action) now actually wired client-side — was dead code before (getUrlTelechargement existed, no caller). ?categorie=traduction surfaces deposited translations, discoverable by any authenticated role.
 POST /api/documents/:id/nouvelle-version   Now accepts an optional `categorie` field to override the inherited-from-parent default — used by the new "Déposer au dossier documentaire" action in the Traduction workshop to tag deposits `traduction`.
+GET  /api/documents             Agent role only: implicitly scoped to visibiliteInterne=true OR uploadePar=self. traducteur+ unrestricted, as before.
+GET  /api/documents/:id, /:id/telecharger   Same agent-only visibility check now enforced directly, not just on the list (verifierAccesDocument).
+PATCH /api/documents/:id/visibilite-interne   traducteur+ only — toggles internal (not portal) visibility.
+POST /api/documents/upload      Optional visibiliteInterne field, honored only for traducteur+ (agent value always ignored server-side).
 ```
 
 ## 🚫 Rules

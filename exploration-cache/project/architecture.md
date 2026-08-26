@@ -756,3 +756,53 @@ up again.
   semantics); a translation launched from free text (no source document)
   has nothing to version, so it becomes a standalone upload instead. Both
   paths are tagged `categorie: 'traduction'` either way.
+
+## Internal document visibility gate — documents.visibiliteInterne (2026-08-26)
+
+Revises the "Documents is open-read to every role" decision from earlier
+the same session — not wrong in general, but wrong as a default for
+freshly-uploaded, not-yet-reviewed material. Triggered by the user noticing
+an agent could see a document an admin had just uploaded, untranslated.
+
+- **Two independent visibility flags on `documents`, not one** —
+  `visibilitePortail` (external/public, unchanged) and the new
+  `visibiliteInterne` (internal/agent). Deliberately not reused/merged:
+  "ANAC staff can see this" and "the public can see this" are different
+  decisions an admin makes separately (a document can be internally shared
+  but never meant for `/portal`, or vice versa in theory).
+- **Only `agent` is restricted — `traducteur+` is unaffected.** The
+  restriction lives in the controller (`estAgent` check), not the service —
+  `listerDocuments`'s `visibleOuUploadePar` filter is simply omitted for
+  non-agent roles, so the query runs exactly as it did before this change
+  for everyone except agent.
+- **"Visible OR uploaded-by-me", not a flat allowlist** — an agent must
+  always see their own uploads (source files for a demande, mission
+  reports) even before anything reviews them, otherwise the upload flow
+  itself becomes confusing ("I just uploaded this, where did it go?").
+  This is why the filter is `or(visibiliteInterne = true, uploadePar =
+  userId)`, not just `visibiliteInterne = true`.
+- **List-level filtering isn't enough on its own — same lesson as the
+  RBAC round.** `GET /:id` and `GET /:id/telecharger` got the identical
+  gap the demandes/traductions/glossaire reads had before that round: the
+  list query was scoped but a direct ID hit wasn't. Fixed the same way,
+  with a small `verifierAccesDocument()` helper reused by both endpoints
+  rather than duplicating the check.
+- **`visibiliteInterne` auto-true only on the translation-deposit path,
+  never inferred from `categorie` alone.** A document's `categorie` can be
+  changed independently at any time via `PATCH /:id/categorie` (existing
+  endpoint) — if visibility were derived from "categorie === 'traduction'"
+  as a live property, recategorizing any document to `'traduction'` would
+  silently publish it. Instead, the visibility decision is made once, at
+  the moment of deposit (`nouvellVersionDocument` with
+  `categorieOverride === 'traduction'`), as an explicit action — categorie
+  and visibility are set together but tracked independently afterward.
+- **`POST /upload`'s `visibiliteInterne` field is a server-side-gated
+  request, not a client-trusted one** — that route has no role guard at
+  all (agents upload their own files through it), so honoring a
+  client-supplied "make this visible to everyone" flag unconditionally
+  would let an agent self-publish. The controller checks `req.user.role`
+  and silently drops the field for `agent`, regardless of what the request
+  body contains.
+- **No backfill/grandfathering migration** — confirmed with the user that
+  existing rows are seed/test data, so the new column's DB default
+  (`false`) was allowed to apply uniformly with no data migration step.
