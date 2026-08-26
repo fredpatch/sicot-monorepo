@@ -48,11 +48,18 @@ export function useDocumentsMutations({
     onSuccess: invalidateDocuments,
   });
 
+  const nouvelleVersionMutation = useMutation({
+    mutationFn: ({ id, fichier }: { id: number; fichier: File }) =>
+      documentsApi.nouvelleVersion(id, fichier),
+    onSuccess: invalidateDocuments,
+  });
+
   return {
     corrigerOCRMutation,
     categoriesMutation,
     togglePortailMutation,
     supprimerMutation,
     retraiterOCRMutation,
+    nouvelleVersionMutation,
   };
 }

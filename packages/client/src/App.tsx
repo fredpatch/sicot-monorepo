@@ -82,6 +82,22 @@ export function NonAgentRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// ── Route réservée à une liste de rôles explicite ─────────────────────────
+// Générique — pour tout écran dont l'accès ne se limite pas à "admin" ou
+// "agent" (ex. Traductions/Demandes/Glossaire, réservés traducteur et plus).
+// Ferme la même faille que AdminRoute/AgentRoute/NonAgentRoute : la barre de
+// navigation masquait déjà ces liens par rôle, mais rien n'empêchait d'y
+// accéder par URL directe avant l'ajout de ce garde.
+export function RoleRoute({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+  const { user } = useAuth();
+
+  if (!user || !roles.includes(user.role)) {
+    return <Navigate to={getLandingRoute(user?.role)} replace />;
+  }
+
+  return <>{children}</>;
+}
+
 // ── Redirection racine — atterrissage selon le rôle (voir lib/landing.ts) ─
 export function LandingRedirect() {
   const { user } = useAuth();

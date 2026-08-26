@@ -617,3 +617,56 @@ sessions:
   shared `ChartCanvas` component (`components/analytics/ChartCanvas.tsx`)
   already renders bar charts on `/dashboard`; a `type: 'doughnut'` config
   was the only new code needed. No new dependency, no new chart wrapper.
+
+## Agent role-access hardening + translation export + document re-versioning (2026-08-26)
+
+- **UI hiding is not authorization — this whole pass exists because that
+  distinction had drifted.** Nav visibility (`Layout.tsx` `roles` arrays)
+  and client route guards (`AgentRoute`/`AdminRoute`/new `RoleRoute` in
+  `App.tsx`) only ever control what the UI *shows*; they say nothing about
+  what the API *allows*. Before this pass, `GET /demandes`, `GET
+  /glossaire`, and `GET /traductions/:id` had zero server-side role check
+  — any authenticated agent hitting the API directly (not through the UI)
+  could read every user's demandes, the full glossary, or any translation's
+  content by ID. The client-side fix (route guards) closes the UI path; the
+  server-side fix (forced `demandeurId` scoping, `requireRole('traducteur')`
+  on reads, `estDemandeurDeTraduction()` ownership check) closes the actual
+  authorization gap. Both are necessary — neither alone is sufficient.
+- **`estDemandeurDeTraduction(traductionId, userId)`** (`demandes.service.ts`)
+  — reverse lookup from `traductions.id` to `demandes_traduction.demandeurId`
+  (a translation has no direct owner field; ownership is only expressible
+  through the demande that requested it). Used by `traduction.controller.ts`
+  to gate `GET /:id`, `/:id/export/pdf`, `/:id/export/docx` for the `agent`
+  role specifically — `traducteur+` roles bypass this check entirely (their
+  job requires seeing any translation).
+- **Auditing one fix surfaced two more, unrelated bugs** — `/traductions`
+  nav was `admin/super_admin` only, meaning `traducteur`/`relecteur` users
+  had no menu path to their own core work page (only ever reachable by
+  typing the URL, which nobody had reason to notice since nothing was
+  gating it either way); and `POST /documents/:id/nouvelle-version` had no
+  `requireRole` at all, found only because this pass was the first to wire
+  a UI button to it. Both fixed alongside the main request rather than
+  filed as separate backlog items — same root cause (nav-hides vs.
+  route/API-guards drift), same fix shape.
+- **Translation export gated on `statut`, not just on access** — `GET
+  /traductions/:id/export/{pdf,docx}` additionally require `statut` to be
+  `approuvee` or `archivee` (`TRADUCTION_NON_APPROUVEE` otherwise). The text
+  can still change up to that point, so exporting earlier would produce a
+  document that silently goes stale. The read-only `TraductionPreview`
+  component mirrors this: download buttons only render once approved,
+  otherwise a plain "le texte peut encore changer" note.
+- **DOCX export is deliberately not the PDF's institutional template** —
+  the PDF fiche reuses `ficheHTML.ts`/`genererPDFFiche()` (ANAC letterhead,
+  seal, badges — same as accords/courriers/missions). The DOCX
+  (`docx` npm package, first use in the repo) is plain paragraphs only —
+  its purpose is a file the user can reopen and edit locally, not an
+  official document, so it deliberately doesn't try to look like one.
+- **Document re-versioning had a complete implementation with zero UI** —
+  `nouvellVersionDocument()`/`POST /:id/nouvelle-version` already existed,
+  fully working (links `parentId`, increments `version`), just never
+  called from anywhere in the client. `VerserVersionAction` is the first
+  caller. No new "archive" concept was introduced — the existing versioning
+  primitive already covered the "put the reformatted final file back"
+  scenario, it just needed a button. Known gap, not addressed here: the
+  Documents registry still lists every version as an independent row —
+  `parentId` isn't reflected in the UI as a grouped chain.

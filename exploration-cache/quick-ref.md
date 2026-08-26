@@ -84,8 +84,11 @@ GET  /api/missions/recommandations/en-attente  Pending recommandations
 GET  /api/accords/:id/export/pdf    Individual PDF fiche (add ?apercu=1 for inline preview)
 GET  /api/courriers/:id/export/pdf  Individual PDF fiche (add ?apercu=1 for inline preview)
 GET  /api/missions/:id/export/pdf   Mission report PDF fiche (add ?apercu=1 for inline preview)
-GET  /api/traductions/aggregates    Global KPI counts, independent of current filters
-GET  /api/traductions          List (filter: statut, direction, vue=actives|supprimees, source=libre|document)
+GET  /api/traductions/aggregates    Global KPI counts, independent of current filters — traducteur+ only
+GET  /api/traductions          List (filter: statut, direction, vue=actives|supprimees, source=libre|document) — traducteur+ only
+GET  /api/traductions/:id      Open to all authenticated roles, but an agent may only fetch the translation linked to their own demande (server-checked via estDemandeurDeTraduction, not just UI-hidden)
+GET  /api/traductions/:id/export/pdf   Fiche PDF (ficheHTML template) — only once statut is approuvee/archivee, same access rule as GET /:id
+GET  /api/traductions/:id/export/docx  Editable .docx of the final text — same gating as the PDF export
 PATCH /api/traductions/:id/relancer  Retry engine on a manuelle_requise translation (never overwrites texteFinal)
 GET  /api/traductions/:id/suggestions?texte=…&origine=source|traduction  Glossary suggestions — origine picks which panel's language to search
 GET  /api/glossaire            List terms (filter: search, domaine, actif)
@@ -97,8 +100,9 @@ POST /api/traductions          Launch translation (texteOriginal + direction)
 GET  /api/traductions/moteur/status  LibreTranslate health check
 PATCH /api/traductions/:id/correction  Save human correction
 PATCH /api/traductions/:id/approuver  Approve translation
-GET  /api/demandes             List demandes (filter: statut, priorite, direction, demandeurId, traducteurId, search)
-GET  /api/demandes/aggregates  Global counts (now incl. urgentes/normales), or scoped via ?demandeurId= (Mon espace, /mes-demandes)
+GET  /api/demandes             List demandes (filter: statut, priorite, direction, demandeurId, traducteurId, search) — an agent's demandeurId is now always server-forced to their own ID, client value ignored
+GET  /api/demandes/aggregates  Global counts (now incl. urgentes/normales), or scoped via ?demandeurId= — same server-side override for agent role
+GET  /api/glossaire, /aggregates, /suggestions   traducteur+ only (was open to all authenticated roles)
 POST /api/demandes             Create demande (direction, priorite, documentId|texteLibre)
 PATCH /api/demandes/:id/prendre-en-charge  Assign to current user (optimistic lock)
 PATCH /api/demandes/:id/rappeler  Release assignment
@@ -108,6 +112,7 @@ PATCH /api/demandes/:id/valider   Validate demande (→ validee) — independent
 PATCH /api/demandes/:id/archiver  Archive (→ archivee)
 GET  /api/missions/aggregates  Global counts, or scoped via ?participantId= (Mon espace) — now includes rapportsEnAttente (terminee + no rapportDocumentId)
 POST /api/documents/upload     Open to any authenticated role (no gate) — client-side action gating (delete/OCR/catégorie/portail) lives in documents.permissions.ts, mirrors server's real requireRole gates
+POST /api/documents/:id/nouvelle-version   Now traducteur+ (was ungated server-side — any authenticated role could version any document). New UI: "Verser version finale" row action, reuses this previously-unwired endpoint.
 ```
 
 ## 🚫 Rules
@@ -192,6 +197,13 @@ POST /api/documents/upload     Open to any authenticated role (no gate) — clie
   `en_cours`/locked with no `traductionId` and no in-module recovery
   action. Found during the M5 audit (2026-08-26), not fixed — Notion
   Sprint 12, À faire
+- **Document version chain not visually grouped** — the new "Verser version
+  finale" action (re-uses the previously-unwired `POST /:id/nouvelle-
+  version`) links a new upload to its parent via `parentId`, but the
+  Documents registry still lists every version as its own independent row
+  — not yet verified whether that reads as confusing duplication in
+  practice. Flagged during the RBAC/export pass (2026-08-26), not
+  investigated further — Notion Sprint 12, À faire
 - **No browser/interactive testing this whole sprint** — every module
   redesigned since 2026-08-24 (Missions through Demandes/Mon espace) was
   validated at the type/lint/build/live-DB layer only; this environment

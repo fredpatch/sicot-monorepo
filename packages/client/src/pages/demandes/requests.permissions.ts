@@ -60,8 +60,15 @@ export function canArchiveRequest(
   return demande.statut === 'validee' && roleAtLeast(user, 'relecteur');
 }
 
-export function canOpenTranslation(demande: Demande): boolean {
-  return demande.traductionId !== undefined;
+// Deliberately traducteur+ only — the destination (/traductions/:id) is the
+// full admin editing workshop (correction/approbation/suppression), not a
+// read-only viewer. An agent's own linked translation isn't safe to open
+// here until a real read-only preview exists (tracked in the backlog).
+export function canOpenTranslation(
+  demande: Demande,
+  user: RequestUser | null | undefined
+): boolean {
+  return demande.traductionId !== undefined && roleAtLeast(user, 'traducteur');
 }
 
 export type RequestActionId =
@@ -82,6 +89,6 @@ export function getRequestPrimaryAction(
   if (canTakeRequest(demande, user)) return 'prendre_en_charge';
   if (canSubmitForReview(demande, user)) return 'soumettre_relecture';
   if (canValidateRequest(demande, user)) return 'valider';
-  if (canOpenTranslation(demande)) return 'ouvrir_traduction';
+  if (canOpenTranslation(demande, user)) return 'ouvrir_traduction';
   return null;
 }

@@ -3,16 +3,22 @@ import * as demandesService from '../services/demandes.service.js';
 import { handleDemandesError } from '@/utils/error.js';
 
 // ── GET /api/demandes ─────────────────────────────────────────────────────
+// Lecture ouverte à tous les rôles authentifiés, MAIS un agent ne peut
+// jamais lister que ses propres demandes — le paramètre demandeurId fourni
+// par le client est ignoré/écrasé pour ce rôle plutôt que fait confiance.
+// (Rien n'empêchait avant ce correctif un agent d'appeler l'API directement
+// sans ce paramètre et de lire les demandes de tout le monde.)
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
     const { statut, priorite, direction, demandeurId, traducteurId, search, page, pageSize } = req.query;
+    const estAgent = req.user!.role === 'agent';
 
     const result = await demandesService.listerDemandes({
       statut: statut as demandesService.DemandeStatut | undefined,
       priorite: priorite as demandesService.DemandePriorite | undefined,
       direction: direction as ('fr_en' | 'en_fr') | undefined,
-      demandeurId: demandeurId ? parseInt(demandeurId as string) : undefined,
-      traducteurId: traducteurId ? parseInt(traducteurId as string) : undefined,
+      demandeurId: estAgent ? req.user!.userId : demandeurId ? parseInt(demandeurId as string) : undefined,
+      traducteurId: estAgent ? undefined : traducteurId ? parseInt(traducteurId as string) : undefined,
       search: search ? String(search) : undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
@@ -25,11 +31,13 @@ export async function lister(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/demandes/aggregates ──────────────────────────────────────────
+// Même principe — un agent n'obtient jamais que ses propres compteurs.
 export async function aggregates(req: Request, res: Response): Promise<void> {
   try {
     const { demandeurId } = req.query;
+    const estAgent = req.user!.role === 'agent';
     const result = await demandesService.getDemandesAggregates(
-      demandeurId ? parseInt(demandeurId as string) : undefined
+      estAgent ? req.user!.userId : demandeurId ? parseInt(demandeurId as string) : undefined
     );
     res.json(result);
   } catch (error) {
@@ -38,6 +46,7 @@ export async function aggregates(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/demandes/:id ─────────────────────────────────────────────────
+// Un agent ne peut consulter que ses propres demandes par ID direct.
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
@@ -47,6 +56,11 @@ export async function getById(req: Request, res: Response): Promise<void> {
     }
 
     const demande = await demandesService.getDemande(id);
+
+    if (req.user!.role === 'agent' && demande.demandeurId !== req.user!.userId) {
+      throw new Error('DEMANDE_NON_AUTORISEE');
+    }
+
     res.json(demande);
   } catch (error) {
     handleDemandesError(res, error);

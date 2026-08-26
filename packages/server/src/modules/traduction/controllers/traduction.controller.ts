@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import * as traductionService from '../services/traduction.service.js';
+import { genererPDFTraduction, genererDOCXTraduction } from '../services/traduction.export.service.js';
+import { estDemandeurDeTraduction } from '@/modules/demandes/services/demandes.service.js';
 import { TraductionDirection } from '@/utils/traduction.js';
 import { handleTraductionError } from '@/utils/error.js';
 
@@ -44,6 +46,16 @@ export async function moteurStatus(req: Request, res: Response): Promise<void> {
   }
 }
 
+// ── Garde commune GET /:id, /:id/export/pdf, /:id/export/docx — un agent ne
+// peut accéder qu'à la traduction liée à l'une de ses propres demandes,
+// jamais une traduction arbitraire par ID (voir estDemandeurDeTraduction).
+async function verifierAcces(req: Request, id: number): Promise<void> {
+  if (req.user!.role === 'agent') {
+    const autorise = await estDemandeurDeTraduction(id, req.user!.userId);
+    if (!autorise) throw new Error('TRADUCTION_NON_AUTORISEE');
+  }
+}
+
 // ── GET /api/traductions/:id ──────────────────────────────────────────────
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
@@ -53,8 +65,66 @@ export async function getById(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    await verifierAcces(req, id);
+
     const traduction = await traductionService.getTraduction(id);
     res.json(traduction);
+  } catch (error) {
+    handleTraductionError(res, error);
+  }
+}
+
+// ── GET /api/traductions/:id/export/pdf ───────────────────────────────────
+// Réservé aux traductions approuvées/archivées — le texte n'est définitif
+// qu'à partir de là, avant ça il peut encore changer.
+export async function exporterPDF(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    await verifierAcces(req, id);
+
+    const traduction = await traductionService.getTraduction(id);
+    if (!['approuvee', 'archivee'].includes(traduction.statut)) {
+      throw new Error('TRADUCTION_NON_APPROUVEE');
+    }
+
+    const pdf = await genererPDFTraduction(traduction);
+    const disposition = req.query.apercu === '1' ? 'inline' : 'attachment';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `${disposition}; filename="traduction-${id}.pdf"`);
+    res.send(pdf);
+  } catch (error) {
+    handleTraductionError(res, error);
+  }
+}
+
+// ── GET /api/traductions/:id/export/docx ──────────────────────────────────
+export async function exporterDOCX(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    await verifierAcces(req, id);
+
+    const traduction = await traductionService.getTraduction(id);
+    if (!['approuvee', 'archivee'].includes(traduction.statut)) {
+      throw new Error('TRADUCTION_NON_APPROUVEE');
+    }
+
+    const docx = await genererDOCXTraduction(traduction);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="traduction-${id}.docx"`);
+    res.send(docx);
   } catch (error) {
     handleTraductionError(res, error);
   }

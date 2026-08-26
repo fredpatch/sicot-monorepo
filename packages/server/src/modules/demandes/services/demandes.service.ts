@@ -146,6 +146,23 @@ export async function getDemandesAggregates(demandeurId?: number): Promise<Deman
   return { total, aAssigner, enCours, enRelecture, validees, archivees, urgentes, normales };
 }
 
+// ── SERVICE : Vérifier qu'un utilisateur est demandeur d'une traduction ───
+// Utilisé par le module traduction pour autoriser un agent à lire *sa
+// propre* traduction (GET /traductions/:id) sans lui ouvrir tout le module.
+export async function estDemandeurDeTraduction(
+  traductionId: number,
+  userId: number
+): Promise<boolean> {
+  const [demande] = await db
+    .select({ id: demandesTraduction.id })
+    .from(demandesTraduction)
+    .where(
+      and(eq(demandesTraduction.traductionId, traductionId), eq(demandesTraduction.demandeurId, userId))
+    );
+
+  return !!demande;
+}
+
 // ── SERVICE : Récupérer une demande ───────────────────────────────────────
 export async function getDemande(id: number): Promise<DemandeView> {
   const [demande] = await db.select().from(demandesTraduction).where(eq(demandesTraduction.id, id));

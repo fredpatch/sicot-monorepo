@@ -1,6 +1,71 @@
 # 📝 SICOT - Changelog
 
-## [Unreleased] — 2026-08-26 — feat(client/server): dedicated "Mes demandes" agent screen
+## [Unreleased] — 2026-08-26 — fix(server): agent role-access hardening + feat: translation export (PDF/DOCX) + read-only preview + document re-versioning
+
+Triggered by the user manually testing agent-role navigation and finding
+three real problems: agents could still see Demandes/Documents/Glossaire in
+nav, `/traductions/:id` had no route guard at all (a Documents link bounced
+an agent straight into the full admin editing workshop), and — found while
+auditing the fix — every read endpoint behind those pages (`GET /demandes`,
+`GET /glossaire`, `GET /traductions/:id`) had **no server-side role check**,
+only client-side hiding. A determined agent hitting the API directly could
+still read anyone's demandes or any translation's content.
+
+### Fixed — client route/nav guards
+- New generic `RoleRoute` component (`App.tsx`), applied to every registry
+  that was previously nav-hidden but NOT route-guarded: `/traductions`,
+  `/demandes`, `/glossaire` (now `traducteur+`), `/accords`, `/partenaires`,
+  `/missions`, `/courriers`, `/analytics` (now `admin+`, closing the same
+  class of gap already fixed for `/dashboard`).
+- Found and fixed a second, unrelated bug while auditing this: `/traductions`
+  nav was `admin/super_admin` only — `traducteur`/`relecteur` users had **no
+  menu link at all** to their own core work page. Nav roles corrected.
+- `canOpenTranslation` (`requests.permissions.ts`) now requires `traducteur+`
+  — an agent's own linked translation no longer opens the full admin editor
+  (correction/approval/deletion controls with no ownership check). Replaced
+  with a genuine read-only preview (see below).
+
+### Fixed — server-side authorization (the real gap, not just UI)
+- `GET /demandes`, `/demandes/aggregates`, `/demandes/:id` — an agent's
+  `demandeurId` is now always forced server-side to their own ID; the
+  client-supplied value is ignored for that role rather than trusted.
+- `GET /traductions` (list), `/aggregates`, `/:id/suggestions` — now
+  `requireRole('traducteur')`.
+- `GET /traductions/:id` — stays open to all authenticated roles, but a new
+  `estDemandeurDeTraduction()` helper (`demandes.service.ts`) checks that an
+  agent requesting a translation by ID actually owns the demande it's linked
+  to; anything else now 403s (`TRADUCTION_NON_AUTORISEE`) instead of
+  returning the content.
+- `GET /glossaire`, `/glossaire/:id`, `/aggregates`, `/suggestions` — now
+  `requireRole('traducteur')`.
+- `POST /documents/:id/nouvelle-version` — found completely ungated while
+  wiring up its first UI caller (see below); now `requireRole('traducteur')`,
+  matching every other document mutation.
+- All validated live against the dev DB with disposable synthetic rows
+  (created, checked, deleted — never touching real accounts/data).
+
+### Added — translation export + read-only agent preview
+- `GET /traductions/:id/export/pdf` and `/export/docx` — only once
+  `statut` is `approuvee`/`archivee` (the text can still change before
+  that). PDF reuses the existing `ficheHTML.ts`/`genererPDFFiche()`
+  institutional template (3rd reuse this sprint, after accords/courriers/
+  missions); DOCX is deliberately plain (no ANAC letterhead) since its
+  purpose is a locally-editable file, not an official fiche. New
+  `docx` npm dependency (server only) — first use in the repo.
+- `TraductionPreview` component — the agent-facing replacement for the
+  removed "open the editor" link inside `RequestWorkspace`'s "Traduction
+  liée" tab: shows the current text read-only, and only shows PDF/DOCX
+  download buttons once the translation is actually approved. Before that,
+  a plain "le texte peut encore changer" note, no dead buttons.
+
+### Added — document re-versioning UI
+- "Verser version finale" row action in Documents (`VerserVersionAction` +
+  `nouvelleVersionMutation`) — the first UI caller of the pre-existing
+  `nouvelle-version` endpoint (server logic existed, was never wired to
+  any button). Answers the "admin reformats a translated report and needs
+  to put the final file back" scenario without inventing a separate
+  "archive" concept — it's just a new version of the same document.
+
 
 Same audit → plan → implement → validate process, this time closing a gap
 left by the previous Demandes (M5) redesign below: Mon espace's compact

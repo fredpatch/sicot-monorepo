@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { BadgeOCR } from './components/BadgeOCR';
+import { VerserVersionAction } from './components/VerserVersionAction';
 import { CATEGORIES } from './documents.constants';
 import { formaterTaille } from './documents.utils';
 import { canManageDocuments, canManagePortail } from './documents.permissions';
@@ -31,6 +32,8 @@ interface UseDocumentsColumnsParams {
   onOuvrirPortail: (doc: Document) => void;
   onRetirerPortail: (id: number) => void;
   retirerPortailEnCours: boolean;
+  onVerserVersion: (id: number, fichier: File) => void;
+  verserVersionEnCours: boolean;
 }
 
 export function useDocumentsColumns({
@@ -46,6 +49,8 @@ export function useDocumentsColumns({
   onOuvrirPortail,
   onRetirerPortail,
   retirerPortailEnCours,
+  onVerserVersion,
+  verserVersionEnCours,
 }: UseDocumentsColumnsParams): ColumnDef<Document>[] {
   return useMemo<ColumnDef<Document>[]>(
     () => [
@@ -214,6 +219,12 @@ export function useDocumentsColumns({
               )}
 
               <span className="text-anac-border">·</span>
+              <VerserVersionAction
+                onFileSelected={(fichier) => onVerserVersion(doc.id, fichier)}
+                enCours={verserVersionEnCours}
+              />
+
+              <span className="text-anac-border">·</span>
               <Button
                 variant="link"
                 size="sm"
@@ -279,6 +290,8 @@ export function useDocumentsColumns({
       onOuvrirPortail,
       onRetirerPortail,
       retirerPortailEnCours,
+      onVerserVersion,
+      verserVersionEnCours,
     ]
   );
 }

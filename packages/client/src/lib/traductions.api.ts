@@ -16,6 +16,21 @@ export interface TraductionsAggregates {
   supprimees: number;
 }
 
+export interface TraductionView {
+  id: number;
+  documentId?: number;
+  texteOriginal?: string;
+  texteIA?: string;
+  texteFinal?: string;
+  direction: TraductionDirection;
+  statut: TraductionStatut;
+  moteurUtilise: string;
+  traducteurId?: number;
+  relecteurId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const traductionsApi = {
   lister: (params?: {
     search?: string;
@@ -30,6 +45,11 @@ export const traductionsApi = {
   aggregates: () => api.get('/traductions/aggregates'),
 
   getById: (id: number) => api.get(`/traductions/${id}`),
+
+  // Réservé aux traductions approuvées/archivées côté serveur — le bouton
+  // de téléchargement ne doit apparaître que dans ce cas (voir TraductionPreview).
+  getUrlExportPDF: (id: number) => `/api/traductions/${id}/export/pdf`,
+  getUrlExportDOCX: (id: number) => `/api/traductions/${id}/export/docx`,
 
   moteurStatus: () => api.get('/traductions/moteur/status'),
 

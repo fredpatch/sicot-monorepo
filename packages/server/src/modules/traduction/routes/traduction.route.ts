@@ -15,14 +15,24 @@ router.use((req, res, next) => {
 
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
 router.get('/moteur/status', traductionController.moteurStatus);
-router.get('/aggregates', traductionController.aggregates);
+// Registre complet — réservé au personnel qui traduit. Un agent n'a jamais
+// besoin de parcourir toutes les traductions, seulement la sienne (voir
+// GET /:id ci-dessous, qui autorise ce cas précis).
+router.get('/aggregates', requireRole('traducteur'), traductionController.aggregates);
 
 // ── Lecture ───────────────────────────────────────────────────────────────
-router.get('/', traductionController.lister);
+router.get('/', requireRole('traducteur'), traductionController.lister);
+// Ouvert à tous les rôles authentifiés — le contrôleur vérifie qu'un agent
+// ne peut ouvrir que la traduction liée à sa propre demande (sinon 403).
 router.get('/:id', traductionController.getById);
 
+// ── Export — même garde d'accès que GET /:id, uniquement une fois approuvée
+router.get('/:id/export/pdf', traductionController.exporterPDF);
+router.get('/:id/export/docx', traductionController.exporterDOCX);
+
 // ── Suggestions glossaire pour l'éditeur ──────────────────────────────────
-router.get('/:id/suggestions', traductionController.suggestions);
+// Utilisé uniquement par l'atelier de traduction (réservé traducteur+).
+router.get('/:id/suggestions', requireRole('traducteur'), traductionController.suggestions);
 
 // ── Lancer une traduction — traducteur minimum ────────────────────────────
 router.post('/', requireRole('traducteur'), traductionController.lancer);

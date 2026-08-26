@@ -700,9 +700,22 @@ Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 - [x] ~~**Politique de mot de passe appliquée partout**~~ - `validerForceMotDePasse()` (longueur + majuscule + chiffre + caractère spécial) désormais vérifiée côté serveur dans `changer-mot-de-passe`, `set-password` ET `bootstrap` (premier super admin) — auparavant seule la première connexion l'affichait côté client sans jamais la vérifier côté serveur, à aucun endroit
 - [x] ~~**Champs poste/service/direction**~~ - 3 colonnes nullable sur `users` (migration 0014), alimentées uniquement à la création depuis l'annuaire Personnel ANAC (`personnel-anac.service.ts` exposait déjà ces champs bruts, jusque-là aplatis en une seule chaîne d'affichage et jamais persistés) ; `null` pour un compte créé manuellement, plutôt que d'inventer une valeur
 
+### Durcissement accès agent + export traduction + reversionnement document | ✅ COMPLÉTÉ (2026-08-26)
+
+Déclenché par l'utilisateur constatant en test manuel qu'un agent voyait encore Demandes/Documents/Glossaire au menu et pouvait atterrir dans l'atelier admin de traduction complet depuis un lien Documents.
+
+- [x] ~~**Gardes de route généralisées (`RoleRoute`)**~~ - `/traductions`, `/demandes`, `/glossaire` (traducteur+), `/accords`, `/partenaires`, `/missions`, `/courriers`, `/analytics` (admin+) n'étaient masqués que du menu, jamais gardés au niveau route — faille identique à celle déjà fermée pour `/dashboard`, généralisée à tous les registres
+- [x] ~~**Bug menu Traductions découvert en marge**~~ - réglé admin/super_admin uniquement, privant traducteur/relecteur de tout lien vers leur propre outil de travail ; corrigé
+- [x] ~~**Lecture serveur non gardée (le vrai trou)**~~ - `GET /demandes`, `/demandes/aggregates`, `/demandes/:id` forcent désormais le scope `demandeurId` d'un agent côté serveur (valeur client ignorée) ; `GET /traductions`/`aggregates`/`suggestions` et `GET /glossaire`/`:id`/`aggregates`/`suggestions` passent en `traducteur+` ; `GET /traductions/:id` reste ouvert mais vérifie la propriété via `estDemandeurDeTraduction()` (nouveau helper) — un agent ne peut plus lire une traduction arbitraire par ID
+- [x] ~~**`POST /documents/:id/nouvelle-version` non gardée**~~ - trouvée sans aucun contrôle de rôle en câblant sa première UI ; alignée sur les autres mutations documentaires (`traducteur+`)
+- [x] ~~**Export traduction PDF/DOCX**~~ - `GET /traductions/:id/export/pdf` (réutilise `ficheHTML.ts`/`genererPDFFiche()`) et `/export/docx` (nouvelle dépendance `docx`, texte éditable sans mise en page institutionnelle) — disponibles uniquement une fois `approuvee`/`archivee`, même garde d'accès que `GET /:id`
+- [x] ~~**Aperçu lecture seule agent (`TraductionPreview`)**~~ - remplace le lien "Ouvrir la traduction" (qui menait à l'atelier admin complet) dans l'onglet "Traduction liée" de `RequestWorkspace` ; boutons de téléchargement affichés seulement si approuvée
+- [x] ~~**Reversionnement document (`VerserVersionAction`)**~~ - première UI câblée sur l'endpoint `nouvelle-version` existant côté serveur mais jamais appelé ; répond au scénario "admin reformate un rapport traduit et doit le reverser" sans inventer un concept d'archive séparé
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)
+- [ ] **Chaîne de versions documents non groupée à l'affichage** - `VerserVersionAction` relie une nouvelle version à son parent via `parentId`, mais le registre Documents affiche toujours chaque version comme une ligne indépendante ; pas vérifié si c'est source de confusion en pratique
 - [ ] **Composant SummaryCard partagé** - dupliqué 8× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire/Demandes/Mon espace)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
 - [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)

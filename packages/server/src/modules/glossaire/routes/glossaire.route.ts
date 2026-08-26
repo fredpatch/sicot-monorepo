@@ -8,13 +8,15 @@ const router = Router();
 router.use(authenticate);
 
 // ── Routes spéciales — avant /:id ─────────────────────────────────────────
-router.get('/aggregates', glossaireController.aggregates);
-router.get('/suggestions', glossaireController.suggestions);
+// Outil de travail traducteur/relecteur — un agent n'a pas d'usage légitime
+// du glossaire (ni l'écran, ni l'API directe depuis ce nettoyage).
+router.get('/aggregates', requireRole('traducteur'), glossaireController.aggregates);
+router.get('/suggestions', requireRole('traducteur'), glossaireController.suggestions);
 router.post('/import', requireRole('traducteur'), glossaireController.importerCSV);
 
-// ── Lecture — accessible à tous ───────────────────────────────────────────
-router.get('/', glossaireController.lister);
-router.get('/:id', glossaireController.getById);
+// ── Lecture ────────────────────────────────────────────────────────────────
+router.get('/', requireRole('traducteur'), glossaireController.lister);
+router.get('/:id', requireRole('traducteur'), glossaireController.getById);
 
 // ── Création et modification — traducteur minimum ─────────────────────────
 router.post('/', requireRole('traducteur'), glossaireController.creer);

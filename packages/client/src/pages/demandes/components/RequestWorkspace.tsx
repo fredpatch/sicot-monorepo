@@ -18,6 +18,7 @@ import type { Demande } from '../requests.types';
 import { formaterDate } from '../requests.utils';
 import { BadgeStatut } from './StatusBadge';
 import { RequestPriorityCell } from './PriorityBadge';
+import { TraductionPreview } from './TraductionPreview';
 import {
   canArchiveRequest,
   canOpenTranslation,
@@ -187,22 +188,26 @@ export function RequestWorkspace({
             </TabsContent>
 
             <TabsContent value="traduction">
-              {canOpenTranslation(demande) ? (
-                <div className="flex items-center justify-between rounded-lg border border-anac-border bg-anac-gray/40 p-4">
-                  <div>
-                    <p className="text-sm font-medium text-anac-navy">
-                      Traduction associée #{demande.traductionId}
-                    </p>
-                    <p className="text-xs text-anac-muted">Production et correction du texte.</p>
+              {demande.traductionId !== undefined ? (
+                canOpenTranslation(demande, user) ? (
+                  <div className="flex items-center justify-between rounded-lg border border-anac-border bg-anac-gray/40 p-4">
+                    <div>
+                      <p className="text-sm font-medium text-anac-navy">
+                        Traduction associée #{demande.traductionId}
+                      </p>
+                      <p className="text-xs text-anac-muted">Production et correction du texte.</p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => navigate(`/traductions/${demande.traductionId}`)}
+                      className="gap-2"
+                    >
+                      Ouvrir la traduction <ArrowUpRight size={14} aria-hidden="true" />
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={() => navigate(`/traductions/${demande.traductionId}`)}
-                    className="gap-2"
-                  >
-                    Ouvrir la traduction <ArrowUpRight size={14} aria-hidden="true" />
-                  </Button>
-                </div>
+                ) : (
+                  <TraductionPreview traductionId={demande.traductionId} />
+                )
               ) : (
                 <p className="text-sm text-anac-muted">Aucune traduction associée pour le moment.</p>
               )}
@@ -313,7 +318,7 @@ function RequestWorkspaceActions({
       </Button>
     );
   }
-  if (canOpenTranslation(demande)) {
+  if (canOpenTranslation(demande, user)) {
     buttons.push(
       <Button
         key="traduction"

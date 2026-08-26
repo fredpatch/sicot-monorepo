@@ -57,7 +57,7 @@ function RequestActions({
 }) {
   return (
     <div className="flex justify-end gap-1">
-      {canOpenTranslation(demande) && (
+      {canOpenTranslation(demande, user) && (
         <ActionTooltip label="Ouvrir la traduction">
           <Button
             type="button"

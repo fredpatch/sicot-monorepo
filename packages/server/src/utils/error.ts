@@ -183,6 +183,14 @@ export const handleDemandesError = createErrorHandler(
 export const handleTraductionError = createErrorHandler(
   {
     TRADUCTION_INTROUVABLE: { status: 404, message: 'Traduction introuvable.' },
+    TRADUCTION_NON_AUTORISEE: {
+      status: 403,
+      message: "Vous n'êtes pas autorisé à consulter cette traduction.",
+    },
+    TRADUCTION_NON_APPROUVEE: {
+      status: 400,
+      message: "Cette traduction n'est pas encore approuvée — export indisponible.",
+    },
     TEXTE_FINAL_REQUIS: { status: 400, message: 'Un texte final est requis avant approbation.' },
     APPROBATION_REQUISE: {
       status: 400,

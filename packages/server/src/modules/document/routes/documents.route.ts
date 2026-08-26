@@ -26,8 +26,12 @@ router.post(
 );
 
 // ── Nouvelle version ──────────────────────────────────────────────────────
+// N'avait aucune garde de rôle avant ce nettoyage — n'importe quel rôle
+// authentifié pouvait remplacer/versionner un document existant. Alignée
+// sur les autres mutations documentaires (traducteur minimum).
 router.post(
   '/:id/nouvelle-version',
+  requireRole('traducteur'),
   upload.single('file'),
   handleMulterError as never,
   documentsController.nouvelleVersion

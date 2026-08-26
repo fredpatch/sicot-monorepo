@@ -49,10 +49,31 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/partenaires', labelKey: 'nav.partenaires', icon: Globe2, roles: ['admin', 'super_admin'], },
   { to: '/missions', labelKey: 'nav.missions', icon: Plane, roles: ['admin', 'super_admin'], },
   { to: '/courriers', labelKey: 'nav.courriers', icon: Mail, roles: ['admin', 'super_admin'], },
-  { to: '/traductions', labelKey: 'nav.traductions', icon: Languages, roles: ['admin', 'super_admin'], },
+  {
+    to: '/traductions',
+    labelKey: 'nav.traductions',
+    icon: Languages,
+    // Corrigé — était admin/super_admin uniquement, ce qui privait les
+    // traducteurs/relecteurs de tout lien de menu vers leur propre outil
+    // de travail (seule une URL directe, non gardée avant ce nettoyage,
+    // leur permettait d'y accéder).
+    roles: ['traducteur', 'relecteur', 'admin', 'super_admin'],
+  },
   { to: '/mes-missions', labelKey: 'nav.mesMissions', icon: Plane, roles: ['agent'] },
-  { to: '/demandes', labelKey: 'nav.demandes', icon: Inbox },
-  { to: '/glossaire', labelKey: 'nav.glossaire', icon: BookOpen },
+  {
+    to: '/demandes',
+    labelKey: 'nav.demandes',
+    icon: Inbox,
+    // Registre complet (toutes les demandes) — réservé au personnel qui les
+    // traite. Les agents ont leur propre écran scopé (/mes-demandes).
+    roles: ['traducteur', 'relecteur', 'admin', 'super_admin'],
+  },
+  {
+    to: '/glossaire',
+    labelKey: 'nav.glossaire',
+    icon: BookOpen,
+    roles: ['traducteur', 'relecteur', 'admin', 'super_admin'],
+  },
   { to: '/documents', labelKey: 'nav.documents', icon: FolderOpen },
   {
     to: '/utilisateurs',
