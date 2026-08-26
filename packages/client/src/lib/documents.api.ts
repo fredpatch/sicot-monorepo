@@ -7,7 +7,13 @@ export const documentsApi = {
     statutOCR?: string;
     page?: number;
     pageSize?: number;
-  }) => api.get('/documents', { params }),
+    // Ne garder que la dernière version de chaque document (voir
+    // documents.service.ts#listerDocuments côté serveur pour la définition).
+    finalesUniquement?: boolean;
+  }) =>
+    api.get('/documents', {
+      params: { ...params, finalesUniquement: params?.finalesUniquement ? '1' : undefined },
+    }),
 
   getById: (id: number) => api.get(`/documents/${id}`),
 

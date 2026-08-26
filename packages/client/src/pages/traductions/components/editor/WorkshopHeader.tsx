@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Archive, CheckCircle2, Loader2, RotateCw } from 'lucide-react';
+import { Archive, CheckCircle2, Download, FileText, Loader2, RotateCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { confirmToast } from '@/lib/confirm-toast';
+import { traductionsApi } from '@/lib/traductions.api';
 import { BadgeStatut } from '../StatusBadge';
 import { BadgeDirection } from '../DirectionBadge';
 import type { Traduction } from '../../traductions.types';
@@ -128,6 +129,27 @@ export function WorkshopHeader({
               </>
             )}
           </Button>
+        )}
+
+        {(estApprouvee || estArchivee) && (
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => window.open(traductionsApi.getUrlExportPDF(traduction.id), '_blank')}
+              className="gap-1.5"
+            >
+              <Download size={12} /> PDF
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => window.open(traductionsApi.getUrlExportDOCX(traduction.id), '_blank')}
+              className="gap-1.5"
+            >
+              <FileText size={12} /> DOCX
+            </Button>
+          </>
         )}
 
         {estApprouvee && (

@@ -36,6 +36,12 @@ export interface DocumentFilters {
   page?: number;
   pageSize?: number;
   avecSupprimes?: boolean;
+  // Ne garder que la dernière version de chaque document — càd les lignes
+  // qu'aucune autre ligne ne référence via parentId. Couvre à la fois les
+  // documents jamais versionnés (final par construction, aucun enfant) et
+  // la dernière version d'une chaîne (nouvelle-version) ; exclut les
+  // versions intermédiaires désormais remplacées.
+  finalesUniquement?: boolean;
 }
 
 export interface DoublonInfo {

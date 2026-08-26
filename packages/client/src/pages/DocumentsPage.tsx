@@ -26,6 +26,7 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState('');
   const [categorie, setCategorie] = useState<Categorie>('tous');
   const [statutOCR, setStatutOCR] = useState('');
+  const [finalesUniquement, setFinalesUniquement] = useState(false);
   const [page, setPage] = useState(1);
 
   // ── État dialogs ──────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ export default function DocumentsPage() {
   const [modalPortail, setModalPortail] = useState<Document | null>(null);
 
   // ── Requêtes ──────────────────────────────────────────────────────────
-  const { data, isLoading } = useDocumentsQuery({ search, categorie, statutOCR, page });
+  const { data, isLoading } = useDocumentsQuery({ search, categorie, statutOCR, page, finalesUniquement });
 
   // ── Mutations ─────────────────────────────────────────────────────────
   const {
@@ -107,10 +108,16 @@ export default function DocumentsPage() {
           setStatutOCR(v);
           setPage(1);
         }}
+        finalesUniquement={finalesUniquement}
+        onFinalesUniquementChange={(v) => {
+          setFinalesUniquement(v);
+          setPage(1);
+        }}
         onReset={() => {
           setSearch('');
           setCategorie('tous');
           setStatutOCR('');
+          setFinalesUniquement(false);
           setPage(1);
         }}
         searchPlaceholder={t('common.search') + '...'}

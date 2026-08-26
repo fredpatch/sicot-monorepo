@@ -670,3 +670,42 @@ sessions:
   scenario, it just needed a button. Known gap, not addressed here: the
   Documents registry still lists every version as an independent row —
   `parentId` isn't reflected in the UI as a grouped chain.
+
+## Live feedback fixes + Documents download/versions-finales filter (2026-08-26)
+
+- **`estDemandeurDeTraduction`/ownership design held up under real use** —
+  no changes needed there; the day's feedback was entirely about UI gaps
+  (missing buttons, overflow, layout), not the access-control work.
+- **PDF/DOCX now share a layout, deliberately not by sharing code** — the
+  DOCX generator (`docx` library primitives: `Table`/`TableRow`/`TableCell`
+  for the masthead and info grid, `ImageRun` for the seal, `PageBreak`
+  between sections) was rewritten to visually match `ficheHTML.ts`'s HTML
+  output, but the two renderers don't share a common template — HTML/CSS
+  and OOXML are different enough that a shared abstraction would have cost
+  more than it saved for one document type. If a second DOCX export is
+  ever needed, revisit whether a shared layout description is worth it.
+- **Documents "Archives" discussion — the resolution, for future reference**
+  — the user's original framing conflated "archived" (which in this schema
+  means soft-deleted via `deletedAt`, i.e. hidden/restorable) with "this is
+  the finished official version" (no existing field for that). Three
+  options were weighed: (1) infer "final" from the version chain — a
+  document is final iff no other row references it via `parentId`; (2) an
+  explicit boolean/categorie flag set only when `nouvelle-version` runs;
+  (3) a separate `/archives` route entirely. (2) was initially chosen, then
+  dropped: it would only ever flag documents that went through
+  `VerserVersionAction`, silently excluding the majority of documents
+  (accord/courrier/mission attachments) that are final on upload and never
+  get versioned — the exact failure mode flagged as a concern for (1)
+  initially, but (1) actually handles it correctly (a never-versioned
+  document trivially has no children, so it passes as "final"). Shipped:
+  (1), as a filter on the existing Documents page, no schema change, no new
+  route. `listerDocuments`'s `finalesUniquement` resolves it as a
+  candidate-ID exclusion (`NOT IN (SELECT DISTINCT parentId WHERE parentId
+  IS NOT NULL)`), matching the module's established candidate-ID-list
+  pattern rather than a correlated subquery.
+- **The Documents download button gap was more severe than the surface
+  question ("should Documents be usable by all users") implied** — it
+  wasn't a role-gating issue at all, downloading was simply never wired to
+  any button for *any* role, admin included. `getUrlTelechargement()` was
+  dead code. Found only because the "should agents be able to download"
+  discussion prompted actually checking what already worked.

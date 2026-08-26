@@ -18,6 +18,8 @@ interface DocumentsFiltresProps {
   onCategorieChange: (value: Categorie) => void;
   statutOCR: string;
   onStatutOCRChange: (value: string) => void;
+  finalesUniquement: boolean;
+  onFinalesUniquementChange: (value: boolean) => void;
   onReset: () => void;
   searchPlaceholder: string;
 }
@@ -29,10 +31,12 @@ export function DocumentsFiltres({
   onCategorieChange,
   statutOCR,
   onStatutOCRChange,
+  finalesUniquement,
+  onFinalesUniquementChange,
   onReset,
   searchPlaceholder,
 }: DocumentsFiltresProps) {
-  const aUnFiltreActif = search || categorie !== 'tous' || statutOCR;
+  const aUnFiltreActif = search || categorie !== 'tous' || statutOCR || finalesUniquement;
 
   return (
     <div className="card p-4 flex flex-wrap gap-3">
@@ -72,6 +76,17 @@ export function DocumentsFiltres({
           ))}
         </SelectContent>
       </Select>
+
+      <Button
+        type="button"
+        variant={finalesUniquement ? 'default' : 'outline'}
+        size="sm"
+        onClick={() => onFinalesUniquementChange(!finalesUniquement)}
+        aria-pressed={finalesUniquement}
+        className={finalesUniquement ? 'bg-anac-blue' : undefined}
+      >
+        Versions finales uniquement
+      </Button>
 
       {aUnFiltreActif && (
         <Button variant="secondary" size="sm" onClick={onReset}>

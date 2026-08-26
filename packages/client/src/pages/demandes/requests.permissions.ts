@@ -39,11 +39,14 @@ export function canSubmitForReview(
   return demande.statut === 'en_cours' && demande.traducteurId === user?.id;
 }
 
+// Reste disponible même après une première validation — un relecteur doit
+// pouvoir revenir changer la priorité (ex. le demandeur avait sous-estimé
+// l'urgence), pas seulement la valider une fois pour toutes.
 export function canValidatePriority(
   demande: Demande,
   user: RequestUser | null | undefined
 ): boolean {
-  return !demande.prioriteValidee && demande.statut !== 'archivee' && roleAtLeast(user, 'relecteur');
+  return demande.statut !== 'archivee' && roleAtLeast(user, 'relecteur');
 }
 
 export function canValidateRequest(

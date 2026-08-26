@@ -1,5 +1,60 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-26 — fix: user-reported feedback round (priority re-validation, admin export button, dialog overflow, PDF/DOCX layout) + feat: Documents download + "versions finales" filter
+
+Direct user feedback after testing the previous round live, plus a follow-up
+product discussion about download access from the Documents screen.
+
+### Fixed — from live testing
+- **Priority re-validation** — `canValidatePriority` no longer disappears
+  after the first validation; a relecteur+ can reopen "Valider la priorité"
+  (now labeled "Changer la priorité" once already set) and pick a different
+  value at any point before the demande is archived. Was silently
+  impossible before (a pre-existing limitation, not introduced this
+  session, but only actually noticed once the admin registry got exercised).
+- **Missing download button on the admin translation screen** — the PDF/DOCX
+  export buttons had only been wired into the agent's read-only
+  `TraductionPreview`, never into the actual admin editor
+  (`TraductionEditeur`/`WorkshopHeader`) that "prendre en charge" navigates
+  to. Added both there, shown once `approuvee`/`archivee`.
+- **Dialog overflow on long text** — `RequestWorkspace`'s "Traduction liée"
+  and "Source" tabs now cap long text in their own `max-h-[45vh]
+  overflow-y-auto` box instead of stretching the dialog past the screen;
+  the dialog itself also got a `max-h-[85vh]` safety cap.
+- **PDF layout** — `genererPDFTraduction` no longer places source/traduit
+  side by side (`deuxColonnes`); each now gets the full page width, with a
+  page break before "Texte traduit".
+- **DOCX now matches the PDF's institutional formatting** — was plain
+  paragraphs only; now includes the same ANAC masthead (with the seal
+  image, embedded via `docx`'s `ImageRun`), the same Informations table,
+  and the same full-width-per-section + page-break layout as the PDF.
+
+### Added — Documents download + "versions finales" filter
+- Found while discussing this: **there was no working download button
+  anywhere in the Documents module, for any role.**
+  `documentsApi.getUrlTelechargement()` existed and the server route was
+  already open to all authenticated roles, but no component ever called
+  it — the entire actions cell collapsed to `—` for non-`traducteur+`
+  roles, and even `traducteur+` never had a download action, only
+  management ones. Added a "Télécharger" action, visible to everyone
+  (downloading isn't a management action — reading already is open to all).
+- New `finalesUniquement` filter on `GET /documents` — excludes documents
+  that have been superseded by a newer version (i.e. that another row
+  references via `parentId`), while correctly including both the latest
+  version of a chain AND documents that were never versioned at all
+  (they trivially have no children, so they pass). Resolved as a candidate-
+  ID exclusion list, consistent with the rest of the codebase's search
+  pattern, not a `NOT EXISTS` subquery. Live-validated against the dev DB
+  with disposable synthetic version chains — correctly excludes the
+  superseded original, includes the new version, includes a standalone
+  never-versioned document.
+- Considered and rejected: a separate `/archives` route, and inferring
+  "final" from an explicit new boolean/categorie flag. Both were discussed
+  with the user — the flag approach was initially agreed, then dropped
+  once the version-chain-leaf inference was shown to already handle every
+  case correctly (including "never versioned = trivially final") without
+  a schema change. See `project/architecture.md` for the full reasoning.
+
 ## [Unreleased] — 2026-08-26 — fix(server): agent role-access hardening + feat: translation export (PDF/DOCX) + read-only preview + document re-versioning
 
 Triggered by the user manually testing agent-role navigation and finding

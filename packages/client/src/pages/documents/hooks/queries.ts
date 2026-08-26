@@ -8,13 +8,20 @@ interface UseDocumentsQueryParams {
   categorie: Categorie;
   statutOCR: string;
   page: number;
+  finalesUniquement?: boolean;
 }
 
 const PAGE_SIZE = 10;
 
-export function useDocumentsQuery({ search, categorie, statutOCR, page }: UseDocumentsQueryParams) {
+export function useDocumentsQuery({
+  search,
+  categorie,
+  statutOCR,
+  page,
+  finalesUniquement,
+}: UseDocumentsQueryParams) {
   return useQuery({
-    queryKey: ['documents', search, categorie, statutOCR, page],
+    queryKey: ['documents', search, categorie, statutOCR, page, finalesUniquement],
     queryFn: async () => {
       const response = await documentsApi.lister({
         search: search || undefined,
@@ -22,6 +29,7 @@ export function useDocumentsQuery({ search, categorie, statutOCR, page }: UseDoc
         statutOCR: statutOCR || undefined,
         page,
         pageSize: PAGE_SIZE,
+        finalesUniquement,
       });
       return response.data as { data: Document[]; total: number };
     },

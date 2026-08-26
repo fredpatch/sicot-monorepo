@@ -1,6 +1,6 @@
 // packages/client/src/pages/documents/documents.columns.tsx
 import { useMemo } from 'react';
-import { Globe, GlobeLock, Loader2 } from 'lucide-react';
+import { Download, Globe, GlobeLock, Loader2 } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TFunction } from 'i18next';
 
@@ -17,6 +17,7 @@ import { VerserVersionAction } from './components/VerserVersionAction';
 import { CATEGORIES } from './documents.constants';
 import { formaterTaille } from './documents.utils';
 import { canManageDocuments, canManagePortail } from './documents.permissions';
+import { documentsApi } from '@/lib/documents.api';
 import type { Document } from './documents.types';
 
 interface UseDocumentsColumnsParams {
@@ -168,107 +169,118 @@ export function useDocumentsColumns({
           const peutGerer = canManageDocuments(role);
           const peutPublier = canManagePortail(role);
 
-          if (!peutGerer) {
-            return <span className="text-xs text-anac-muted">—</span>;
-          }
-
           return (
             <div className="flex items-center gap-2 flex-wrap">
-              {doc.statutOCR !== 'traite' && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => onCorrigerOCR(doc)}
-                  className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-                >
-                  Corriger OCR
-                </Button>
-              )}
-
-              {(doc.statutOCR === 'echec' || doc.statutOCR === 'a_retraiter') && (
-                <>
-                  <span className="text-anac-border">·</span>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => onRetraiterOCR(doc.id)}
-                    disabled={retraiterOCREnCours}
-                    className="h-auto p-0 text-xs text-amber-600 hover:text-amber-800"
-                  >
-                    {retraiterOCREnCours ? (
-                      <>
-                        <Loader2 size={11} className="animate-spin inline mr-1" />
-                        OCR...
-                      </>
-                    ) : (
-                      'Relancer OCR'
-                    )}
-                  </Button>
-                </>
-              )}
-
-              {doc.texteExtrait && doc.statutOCR === 'traite' && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => onTraduire(doc)}
-                  className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-                >
-                  Traduire
-                </Button>
-              )}
-
-              <span className="text-anac-border">·</span>
-              <VerserVersionAction
-                onFileSelected={(fichier) => onVerserVersion(doc.id, fichier)}
-                enCours={verserVersionEnCours}
-              />
-
-              <span className="text-anac-border">·</span>
               <Button
                 variant="link"
                 size="sm"
-                onClick={() => onSupprimer(doc)}
-                disabled={supprimerEnCours}
-                className="h-auto p-0 text-xs text-anac-muted hover:text-anac-danger"
+                onClick={() => window.open(documentsApi.getUrlTelechargement(doc.id), '_blank')}
+                className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
               >
-                Supprimer
+                <Download size={11} className="inline mr-1" />
+                Télécharger
               </Button>
 
-              {doc.statutOCR === 'traite' && peutPublier && (
+              {peutGerer && (
                 <>
                   <span className="text-anac-border">·</span>
-                  {doc.visibilitePortail ? (
-                    <div className="flex items-center gap-1.5">
-                      <a
-                        href="/portail"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
-                      >
-                        <Globe size={11} /> Exposé
-                      </a>
+                  {doc.statutOCR !== 'traite' && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => onCorrigerOCR(doc)}
+                      className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
+                    >
+                      Corriger OCR
+                    </Button>
+                  )}
+
+                  {(doc.statutOCR === 'echec' || doc.statutOCR === 'a_retraiter') && (
+                    <>
                       <span className="text-anac-border">·</span>
                       <Button
                         variant="link"
                         size="sm"
-                        onClick={() => onRetirerPortail(doc.id)}
-                        disabled={retirerPortailEnCours}
-                        className="h-auto p-0 text-xs text-red-400 hover:text-red-600"
+                        onClick={() => onRetraiterOCR(doc.id)}
+                        disabled={retraiterOCREnCours}
+                        className="h-auto p-0 text-xs text-amber-600 hover:text-amber-800"
                       >
-                        Retirer
+                        {retraiterOCREnCours ? (
+                          <>
+                            <Loader2 size={11} className="animate-spin inline mr-1" />
+                            OCR...
+                          </>
+                        ) : (
+                          'Relancer OCR'
+                        )}
                       </Button>
-                    </div>
-                  ) : (
+                    </>
+                  )}
+
+                  {doc.texteExtrait && doc.statutOCR === 'traite' && (
                     <Button
                       variant="link"
                       size="sm"
-                      onClick={() => onOuvrirPortail(doc)}
-                      className="h-auto p-0 text-xs text-anac-muted hover:text-anac-sky"
+                      onClick={() => onTraduire(doc)}
+                      className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
                     >
-                      <GlobeLock size={11} className="inline mr-1" />
-                      Portail
+                      Traduire
                     </Button>
+                  )}
+
+                  <span className="text-anac-border">·</span>
+                  <VerserVersionAction
+                    onFileSelected={(fichier) => onVerserVersion(doc.id, fichier)}
+                    enCours={verserVersionEnCours}
+                  />
+
+                  <span className="text-anac-border">·</span>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => onSupprimer(doc)}
+                    disabled={supprimerEnCours}
+                    className="h-auto p-0 text-xs text-anac-muted hover:text-anac-danger"
+                  >
+                    Supprimer
+                  </Button>
+
+                  {doc.statutOCR === 'traite' && peutPublier && (
+                    <>
+                      <span className="text-anac-border">·</span>
+                      {doc.visibilitePortail ? (
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href="/portail"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
+                          >
+                            <Globe size={11} /> Exposé
+                          </a>
+                          <span className="text-anac-border">·</span>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            onClick={() => onRetirerPortail(doc.id)}
+                            disabled={retirerPortailEnCours}
+                            className="h-auto p-0 text-xs text-red-400 hover:text-red-600"
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => onOuvrirPortail(doc)}
+                          className="h-auto p-0 text-xs text-anac-muted hover:text-anac-sky"
+                        >
+                          <GlobeLock size={11} className="inline mr-1" />
+                          Portail
+                        </Button>
+                      )}
+                    </>
                   )}
                 </>
               )}

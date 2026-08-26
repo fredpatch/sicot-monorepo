@@ -113,6 +113,7 @@ PATCH /api/demandes/:id/archiver  Archive (→ archivee)
 GET  /api/missions/aggregates  Global counts, or scoped via ?participantId= (Mon espace) — now includes rapportsEnAttente (terminee + no rapportDocumentId)
 POST /api/documents/upload     Open to any authenticated role (no gate) — client-side action gating (delete/OCR/catégorie/portail) lives in documents.permissions.ts, mirrors server's real requireRole gates
 POST /api/documents/:id/nouvelle-version   Now traducteur+ (was ungated server-side — any authenticated role could version any document). New UI: "Verser version finale" row action, reuses this previously-unwired endpoint.
+GET  /api/documents             ?finalesUniquement=1 excludes rows superseded by a newer version (referenced as another row's parentId); documents never versioned pass through unaffected. Download ("Télécharger" action) now actually wired client-side — was dead code before (getUrlTelechargement existed, no caller).
 ```
 
 ## 🚫 Rules
@@ -200,10 +201,11 @@ POST /api/documents/:id/nouvelle-version   Now traducteur+ (was ungated server-s
 - **Document version chain not visually grouped** — the new "Verser version
   finale" action (re-uses the previously-unwired `POST /:id/nouvelle-
   version`) links a new upload to its parent via `parentId`, but the
-  Documents registry still lists every version as its own independent row
-  — not yet verified whether that reads as confusing duplication in
-  practice. Flagged during the RBAC/export pass (2026-08-26), not
-  investigated further — Notion Sprint 12, À faire
+  Documents registry still lists every version as its own independent row.
+  Partially mitigated (2026-08-26) by the new `finalesUniquement` filter —
+  toggling "Versions finales uniquement" hides superseded rows — but there's
+  still no visual grouping/history view showing that two rows are the same
+  document's lineage. Notion Sprint 12, À faire
 - **No browser/interactive testing this whole sprint** — every module
   redesigned since 2026-08-24 (Missions through Demandes/Mon espace) was
   validated at the type/lint/build/live-DB layer only; this environment

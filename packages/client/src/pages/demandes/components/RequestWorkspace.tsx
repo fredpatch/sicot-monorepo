@@ -77,7 +77,7 @@ export function RequestWorkspace({
 
   return (
     <Dialog open={!!demande} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Demande #{demande.id}</DialogTitle>
           <DialogDescription>
@@ -147,7 +147,7 @@ export function RequestWorkspace({
               ) : (
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-anac-muted">Texte libre</p>
-                  <p className="whitespace-pre-wrap text-sm text-anac-navy">
+                  <p className="max-h-[45vh] overflow-y-auto whitespace-pre-wrap text-sm text-anac-navy">
                     {demande.texteLibre || '—'}
                   </p>
                 </div>

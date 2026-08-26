@@ -114,9 +114,13 @@ export default function MesDemandesPage() {
   if (!user) return null;
 
   const demandes = demandesQuery.data?.data ?? [];
-  const totalPages = demandesQuery.data ? Math.ceil(demandesQuery.data.total / REQUEST_PAGE_SIZE) : 0;
+  const totalPages = demandesQuery.data
+    ? Math.ceil(demandesQuery.data.total / REQUEST_PAGE_SIZE)
+    : 0;
   const hasFilters = Boolean(debouncedSearch || statut || priorite || direction);
-  const demandeOuverte = demandeOuverteId ? demandes.find((d) => d.id === demandeOuverteId) ?? null : null;
+  const demandeOuverte = demandeOuverteId
+    ? (demandes.find((d) => d.id === demandeOuverteId) ?? null)
+    : null;
 
   function resetFilters() {
     setSearch('');
@@ -154,7 +158,9 @@ export default function MesDemandesPage() {
       <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold leading-tight text-anac-navy">Mes demandes</h2>
-          <p className="mt-1 text-sm text-anac-muted">Suivez l&apos;état de vos demandes de traduction.</p>
+          <p className="mt-1 text-sm text-anac-muted">
+            Suivez l&apos;état de vos demandes de traduction.
+          </p>
         </div>
         <Button type="button" onClick={() => setModalNouvelle(true)} className="gap-2 bg-anac-blue">
           <Plus size={14} aria-hidden="true" />
@@ -190,8 +196,15 @@ export default function MesDemandesPage() {
           ) : demandesQuery.isError ? (
             <div className="card flex min-h-64 flex-col items-center justify-center gap-3 text-center">
               <p className="font-semibold text-anac-navy">Impossible de charger vos demandes.</p>
-              <p className="text-sm text-anac-muted">Vérifiez la connexion au serveur puis réessayez.</p>
-              <Button type="button" variant="outline" onClick={() => demandesQuery.refetch()} className="gap-2">
+              <p className="text-sm text-anac-muted">
+                Vérifiez la connexion au serveur puis réessayez.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => demandesQuery.refetch()}
+                className="gap-2"
+              >
                 <RefreshCw size={14} aria-hidden="true" />
                 Réessayer
               </Button>
@@ -199,7 +212,9 @@ export default function MesDemandesPage() {
           ) : demandes.length === 0 ? (
             <div className="card flex min-h-64 flex-col items-center justify-center gap-2 text-center">
               <p className="font-semibold text-anac-navy">
-                {hasFilters ? 'Aucune demande ne correspond aux filtres sélectionnés.' : 'Vous n’avez aucune demande de traduction.'}
+                {hasFilters
+                  ? 'Aucune demande ne correspond aux filtres sélectionnés.'
+                  : 'Vous n’avez aucune demande de traduction.'}
               </p>
               <p className="text-sm text-anac-muted">
                 {hasFilters
@@ -250,17 +265,19 @@ export default function MesDemandesPage() {
           )}
 
           {/* Seules vos demandes sont affichées — pas la file globale de traduction. */}
-          <p className="rounded-lg border border-anac-border bg-white px-4 py-3 text-xs text-anac-muted">
-            Seules vos demandes sont affichées. Vous pouvez consulter l&apos;état, ouvrir la traduction associée et
-            suivre l&apos;avancement.
-          </p>
+          <div className="flex space-x-4">
+            <p className="rounded-lg border border-anac-border bg-white px-4 py-3 text-xs text-anac-muted">
+              Seules vos demandes sont affichées. Vous pouvez consulter l&apos;état, ouvrir la
+              traduction associée et suivre l&apos;avancement.
+            </p>
+            <HelpCard />
+          </div>
         </div>
 
         <div className="space-y-5">
           <RequestsStatusChart aggregates={aggregatesQuery.data} />
           <RequestsPriorityBreakdown aggregates={aggregatesQuery.data} />
           <QuickActionsCard onNouvelleDemande={() => setModalNouvelle(true)} />
-          <HelpCard />
         </div>
       </div>
 

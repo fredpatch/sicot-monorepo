@@ -39,17 +39,24 @@ export function ValiderPrioriteDialog({
   const [nouvellePriorite, setNouvellePriorite] = useState<DemandePriorite>('normale');
 
   useEffect(() => {
-    if (demande) setNouvellePriorite(demande.prioriteDemandee);
+    if (demande) setNouvellePriorite(demande.prioriteValidee ?? demande.prioriteDemandee);
   }, [demande?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Dialog open={!!demande} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Valider la priorité</DialogTitle>
+          <DialogTitle>{demande?.prioriteValidee ? 'Changer la priorité' : 'Valider la priorité'}</DialogTitle>
           <DialogDescription>
             Priorité demandée :{' '}
             <strong>{demande?.prioriteDemandee === 'urgente' ? 'Urgente' : 'Normale'}</strong>
+            {demande?.prioriteValidee && (
+              <>
+                {' '}
+                — actuellement validée :{' '}
+                <strong>{demande.prioriteValidee === 'urgente' ? 'Urgente' : 'Normale'}</strong>
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-3">

@@ -81,7 +81,7 @@ export function TraductionPreview({ traductionId }: { traductionId: number }) {
 
       <div className="space-y-1">
         <p className="text-xs font-medium text-anac-muted">Texte traduit</p>
-        <p className="whitespace-pre-wrap rounded-md border border-anac-border bg-anac-gray/40 p-3 text-sm text-anac-navy">
+        <p className="max-h-[45vh] overflow-y-auto whitespace-pre-wrap rounded-md border border-anac-border bg-anac-gray/40 p-3 text-sm text-anac-navy">
           {texte || 'Traduction en cours de production.'}
         </p>
       </div>

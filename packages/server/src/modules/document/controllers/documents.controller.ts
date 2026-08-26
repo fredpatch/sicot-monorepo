@@ -41,7 +41,7 @@ export async function upload(req: Request, res: Response): Promise<void> {
 // ── GET /api/documents ────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { search, categorie, statutOCR, page, pageSize } = req.query;
+    const { search, categorie, statutOCR, page, pageSize, finalesUniquement } = req.query;
 
     const result = await documentsService.listerDocuments({
       search: search as string | undefined,
@@ -49,6 +49,7 @@ export async function lister(req: Request, res: Response): Promise<void> {
       statutOCR: statutOCR as string | undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
+      finalesUniquement: finalesUniquement === '1',
     });
 
     res.json(result);

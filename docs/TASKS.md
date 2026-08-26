@@ -712,6 +712,17 @@ Déclenché par l'utilisateur constatant en test manuel qu'un agent voyait encor
 - [x] ~~**Aperçu lecture seule agent (`TraductionPreview`)**~~ - remplace le lien "Ouvrir la traduction" (qui menait à l'atelier admin complet) dans l'onglet "Traduction liée" de `RequestWorkspace` ; boutons de téléchargement affichés seulement si approuvée
 - [x] ~~**Reversionnement document (`VerserVersionAction`)**~~ - première UI câblée sur l'endpoint `nouvelle-version` existant côté serveur mais jamais appelé ; répond au scénario "admin reformate un rapport traduit et doit le reverser" sans inventer un concept d'archive séparé
 
+### Feedback utilisateur (test en direct) + téléchargement Documents | ✅ COMPLÉTÉ (2026-08-26)
+
+- [x] ~~**Re-validation de priorité**~~ - `canValidatePriority` restait vrai indéfiniment après une première validation ; un relecteur+ peut désormais rouvrir "Valider la priorité" (libellé "Changer la priorité" une fois déjà validée) à tout moment avant archivage
+- [x] ~~**Bouton export manquant côté admin**~~ - les boutons PDF/DOCX n'étaient câblés que dans l'aperçu lecture seule agent, jamais dans `TraductionEditeur`/`WorkshopHeader` (l'écran que "prendre en charge" ouvre réellement) ; ajoutés, visibles une fois approuvée/archivée
+- [x] ~~**Débordement de dialog sur texte long**~~ - onglets "Traduction liée"/"Source" de `RequestWorkspace` plafonnés à `max-h-[45vh]` avec défilement propre, dialog lui-même plafonné à `max-h-[85vh]`
+- [x] ~~**Mise en page PDF traduction**~~ - source/traduit n'est plus en colonnes côte à côte ; chacun occupe la pleine largeur, saut de page avant "Texte traduit"
+- [x] ~~**DOCX aligné sur la mise en forme PDF**~~ - était du texte brut ; reprend désormais le même masthead ANAC (sceau inclus via `ImageRun`), le même tableau Informations, la même page pleine largeur par section
+- [x] ~~**Bouton "Télécharger" manquant sur Documents**~~ - trouvé en marge de la discussion : `documentsApi.getUrlTelechargement()` existait, la route serveur était déjà ouverte à tous, mais aucun composant ne l'appelait ; ajouté, visible à tous les rôles (télécharger n'est pas une action de gestion)
+- [x] ~~**Filtre "Versions finales uniquement"**~~ - `GET /documents?finalesUniquement=1` exclut les versions remplacées (référencées comme `parentId` par une autre ligne) tout en incluant correctement la dernière version d'une chaîne ET les documents jamais versionnés (aucun enfant = final par construction) — validé en direct sur la BDD dev avec des chaînes de versions synthétiques
+- [x] ~~**Décision Archives**~~ - discuté avec l'utilisateur : une section `/archives` séparée a été écartée au profit d'un filtre sur l'écran Documents existant (moins de surface, même modèle d'autorisation) ; un flag booléen explicite a d'abord été retenu puis abandonné une fois démontré que l'inférence par chaîne de versions couvre déjà tous les cas sans migration
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { db } from '@/db';
 import { documents } from '@/db/schema';
-import { eq, ilike, or, desc, and, isNull } from 'drizzle-orm';
+import { eq, ilike, or, desc, and, isNull, isNotNull, notInArray } from 'drizzle-orm';
 import { extraireTexte } from '@/utils/ocr';
 import { calculerMD5 } from '@/utils/hash';
 import { logAudit } from '@/modules/auth/services/auth.service';
@@ -131,6 +131,23 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
   // Dans listerDocuments, ajouter dans les conditions :
   if (!filters.avecSupprimes) {
     conditions.push(isNull(documents.deletedAt));
+  }
+
+  // Ne garder que les lignes qu'aucune autre ligne ne référence via
+  // parentId — résolu en IDs candidats plutôt qu'un NOT EXISTS, cohérent
+  // avec le reste du module (ex. recherche demandeur/document dans
+  // demandes.service.ts).
+  if (filters.finalesUniquement) {
+    const parents = await db
+      .selectDistinct({ parentId: documents.parentId })
+      .from(documents)
+      .where(isNotNull(documents.parentId));
+    const parentIds = parents
+      .map((p) => p.parentId)
+      .filter((id): id is number => id !== null);
+    if (parentIds.length > 0) {
+      conditions.push(notInArray(documents.id, parentIds));
+    }
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
