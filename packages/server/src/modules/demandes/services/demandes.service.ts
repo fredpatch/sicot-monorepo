@@ -73,6 +73,7 @@ export async function listerDemandes(filters: DemandeFilters): Promise<{
   const conditions = [];
   if (filters.statut) conditions.push(eq(demandesTraduction.statut, filters.statut));
   if (filters.priorite) conditions.push(eq(demandesTraduction.prioriteDemandee, filters.priorite));
+  if (filters.direction) conditions.push(eq(demandesTraduction.direction, filters.direction));
   if (filters.demandeurId) conditions.push(eq(demandesTraduction.demandeurId, filters.demandeurId));
   if (filters.traducteurId)
     conditions.push(eq(demandesTraduction.traducteurId, filters.traducteurId));
@@ -124,19 +125,25 @@ export async function listerDemandes(filters: DemandeFilters): Promise<{
 // demandes de cet utilisateur (ex. l'espace de travail agent "Mon espace").
 export async function getDemandesAggregates(demandeurId?: number): Promise<DemandesAggregates> {
   const scope = demandeurId !== undefined ? eq(demandesTraduction.demandeurId, demandeurId) : undefined;
-  const withScope = (statut: DemandeStatut) =>
+  const withStatut = (statut: DemandeStatut) =>
     scope ? and(eq(demandesTraduction.statut, statut), scope) : eq(demandesTraduction.statut, statut);
+  const withPriorite = (priorite: DemandePriorite) =>
+    scope
+      ? and(eq(demandesTraduction.prioriteDemandee, priorite), scope)
+      : eq(demandesTraduction.prioriteDemandee, priorite);
 
-  const [total, aAssigner, enCours, enRelecture, validees, archivees] = await Promise.all([
+  const [total, aAssigner, enCours, enRelecture, validees, archivees, urgentes, normales] = await Promise.all([
     db.$count(demandesTraduction, scope),
-    db.$count(demandesTraduction, withScope('soumise')),
-    db.$count(demandesTraduction, withScope('en_cours')),
-    db.$count(demandesTraduction, withScope('en_relecture')),
-    db.$count(demandesTraduction, withScope('validee')),
-    db.$count(demandesTraduction, withScope('archivee')),
+    db.$count(demandesTraduction, withStatut('soumise')),
+    db.$count(demandesTraduction, withStatut('en_cours')),
+    db.$count(demandesTraduction, withStatut('en_relecture')),
+    db.$count(demandesTraduction, withStatut('validee')),
+    db.$count(demandesTraduction, withStatut('archivee')),
+    db.$count(demandesTraduction, withPriorite('urgente')),
+    db.$count(demandesTraduction, withPriorite('normale')),
   ]);
 
-  return { total, aAssigner, enCours, enRelecture, validees, archivees };
+  return { total, aAssigner, enCours, enRelecture, validees, archivees, urgentes, normales };
 }
 
 // ── SERVICE : Récupérer une demande ───────────────────────────────────────

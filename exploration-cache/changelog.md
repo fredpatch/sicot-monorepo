@@ -1,5 +1,42 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-26 — feat(client/server): dedicated "Mes demandes" agent screen
+
+Same audit → plan → implement → validate process, this time closing a gap
+left by the previous Demandes (M5) redesign below: Mon espace's compact
+`MyRequestsPanel` linked out to the admin registry
+(`/demandes?assignation=mes_demandes`) rather than to a real agent-owned
+screen — unlike missions, which already got a dedicated `/mes-missions`.
+Audited with `/frontend-design:frontend-design` against a provided mockup
+before implementing.
+
+### Added — `/mes-demandes` (new agent-only route)
+- New nav item + `AgentRoute`-guarded route, placed between Mon espace and
+  Mes missions. `MyRequestsPanel`'s "Voir toutes" links now point here
+  instead of the generic admin page.
+- Reuses `RequestsSummaryCards`/`RequestsRegistryTable`/
+  `RequestsRegistryMobileCards`/`RequestWorkspace`/`NouvelleDemandeDialog`
+  unchanged, scoped via `demandeurId` — no new registry component, this is
+  a composition, not a rebuild.
+- Right-hand rail (all real data, nothing fabricated): a doughnut
+  "Répartition par statut" built on `ChartCanvas`/chart.js (already used on
+  the Dashboard, no new dependency) deriving straight from the existing
+  aggregates; a "Priorité des demandes" bar reading a **new**
+  `urgentes`/`normales` breakdown added to `DemandesAggregates`/
+  `getDemandesAggregates`; an "Actions rapides" card with 3 real navigable
+  shortcuts (new demande / documents / mes missions); a "Besoin d'aide ?"
+  card labeled honestly "Bientôt disponible", same as Mon espace's.
+- New `direction` filter (`fr_en`/`en_fr`) on `listerDemandes` — the
+  mockup's filter row needed it and the admin Demandes page never had it
+  either. Added as its own `MyRequestsFilters` component rather than
+  extending the admin `DemandesFiltres`, since the agent screen's filter
+  row is laid out flat (no "assignation" concept — scope is implicit) while
+  the admin one keeps its existing collapse-to-advanced behavior.
+- Live-validated `getDemandesAggregates`'s new `urgentes`/`normales` counts
+  and the `direction` filter against the real dev DB with disposable
+  synthetic rows (created and deleted, no real data touched) — see the
+  DB-validation methodology note below.
+
 ## [Unreleased] — 2026-08-26 — feat(client/server): Demandes (M5) redesign + Agent workspace + Profil + self-service password
 
 Same audit → plan → implement → validate process as Missions/Courriers/

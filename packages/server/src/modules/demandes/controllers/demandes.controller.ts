@@ -5,11 +5,12 @@ import { handleDemandesError } from '@/utils/error.js';
 // ── GET /api/demandes ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { statut, priorite, demandeurId, traducteurId, search, page, pageSize } = req.query;
+    const { statut, priorite, direction, demandeurId, traducteurId, search, page, pageSize } = req.query;
 
     const result = await demandesService.listerDemandes({
       statut: statut as demandesService.DemandeStatut | undefined,
       priorite: priorite as demandesService.DemandePriorite | undefined,
+      direction: direction as ('fr_en' | 'en_fr') | undefined,
       demandeurId: demandeurId ? parseInt(demandeurId as string) : undefined,
       traducteurId: traducteurId ? parseInt(traducteurId as string) : undefined,
       search: search ? String(search) : undefined,

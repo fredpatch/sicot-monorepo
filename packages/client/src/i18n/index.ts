@@ -22,6 +22,7 @@ const fr = {
     analytics: 'Analytics & Rapports',
     profil: 'Mon profil',
     monEspace: 'Mon espace',
+    mesDemandes: 'Mes demandes',
     mesMissions: 'Mes missions',
   },
   // Auth
@@ -121,6 +122,7 @@ const en = {
     analytics: 'Analytics & Reports',
     profil: 'My Profile',
     monEspace: 'My Workspace',
+    mesDemandes: 'My Requests',
     mesMissions: 'My Missions',
   },
   auth: {

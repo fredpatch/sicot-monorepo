@@ -97,8 +97,8 @@ POST /api/traductions          Launch translation (texteOriginal + direction)
 GET  /api/traductions/moteur/status  LibreTranslate health check
 PATCH /api/traductions/:id/correction  Save human correction
 PATCH /api/traductions/:id/approuver  Approve translation
-GET  /api/demandes             List demandes (filter: statut, priorite, demandeurId, traducteurId, search)
-GET  /api/demandes/aggregates  Global counts, or scoped via ?demandeurId= (Mon espace)
+GET  /api/demandes             List demandes (filter: statut, priorite, direction, demandeurId, traducteurId, search)
+GET  /api/demandes/aggregates  Global counts (now incl. urgentes/normales), or scoped via ?demandeurId= (Mon espace, /mes-demandes)
 POST /api/demandes             Create demande (direction, priorite, documentId|texteLibre)
 PATCH /api/demandes/:id/prendre-en-charge  Assign to current user (optimistic lock)
 PATCH /api/demandes/:id/rappeler  Release assignment
@@ -137,7 +137,7 @@ POST /api/documents/upload     Open to any authenticated role (no gate) — clie
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24 → 2026-08-26) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes missions) + Profil page + self-service password
+🎯 Sprint 12 (2026-08-24 → 2026-08-26) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes demandes/Mes missions) + Profil page + self-service password
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```

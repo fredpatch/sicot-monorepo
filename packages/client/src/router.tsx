@@ -28,6 +28,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import ProfilePage from './pages/ProfilePage';
 import MonEspacePage from './pages/MonEspacePage';
+import MesDemandesPage from './pages/MesDemandesPage';
 import MesMissionsPage from './pages/MesMissionsPage';
 
 // Data router (createBrowserRouter) rather than plain <BrowserRouter>/<Routes> —
@@ -64,6 +65,14 @@ export const router = createBrowserRouter(
           element={
             <AgentRoute>
               <MonEspacePage />
+            </AgentRoute>
+          }
+        />
+        <Route
+          path="/mes-demandes"
+          element={
+            <AgentRoute>
+              <MesDemandesPage />
             </AgentRoute>
           }
         />

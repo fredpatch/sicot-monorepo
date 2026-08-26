@@ -16,6 +16,12 @@ export const FILTRES_PRIORITE = [
   { value: 'normale', label: 'Normale' },
 ];
 
+export const FILTRES_DIRECTION = [
+  { value: '__all__', label: 'Toutes directions' },
+  { value: 'fr_en', label: 'FR → EN' },
+  { value: 'en_fr', label: 'EN → FR' },
+];
+
 export const FILTRES_ASSIGNATION = [
   { value: '__all__', label: 'Toutes' },
   { value: 'non_assignees', label: 'Non assignées' },

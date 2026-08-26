@@ -34,6 +34,7 @@ export interface CreerDemandeParams {
 export interface DemandeFilters {
   statut?: DemandeStatut;
   priorite?: DemandePriorite;
+  direction?: TraductionDirection;
   demandeurId?: number;
   traducteurId?: number;
   search?: string;
@@ -48,4 +49,6 @@ export interface DemandesAggregates {
   enRelecture: number;
   validees: number;
   archivees: number;
+  urgentes: number;
+  normales: number;
 }

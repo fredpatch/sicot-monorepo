@@ -11,12 +11,15 @@ export interface DemandesAggregates {
   enRelecture: number;
   validees: number;
   archivees: number;
+  urgentes: number;
+  normales: number;
 }
 
 export const demandesApi = {
   lister: (params?: {
     statut?: DemandeStatut;
     priorite?: DemandePriorite;
+    direction?: DemandeDirection;
     demandeurId?: number;
     traducteurId?: number;
     search?: string;

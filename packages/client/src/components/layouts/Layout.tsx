@@ -42,6 +42,7 @@ interface NavItem {
 // ── Items de navigation ───────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
   { to: '/mon-espace', labelKey: 'nav.monEspace', icon: Home, roles: ['agent'] },
+  { to: '/mes-demandes', labelKey: 'nav.mesDemandes', icon: Inbox, roles: ['agent'] },
   { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, roles: ['admin', 'super_admin'], },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3, roles: ['admin', 'super_admin'], },
   { to: '/accords', labelKey: 'nav.accords', icon: FileText, roles: ['admin', 'super_admin'], },

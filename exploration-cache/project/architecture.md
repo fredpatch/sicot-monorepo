@@ -587,3 +587,33 @@ sessions:
   `MOT_DE_PASSE_DEFINI`, no subsequent normal login) — a real example of
   why "looks done" and "actually correct" aren't the same thing without a
   human clicking through it.
+
+## "Mes demandes" agent screen (2026-08-26)
+
+- **Promotion, not a new module** — Mon espace's `MyRequestsPanel` already
+  existed as a compact 5-row preview; this added the full page it always
+  linked out to (`/mes-demandes`, `AgentRoute`-guarded), mirroring how
+  `/mes-missions` already stood next to `/missions`. No new registry
+  component: `RequestsSummaryCards`/`RequestsRegistryTable`/
+  `RequestWorkspace`/`NouvelleDemandeDialog` are the exact same instances
+  used by the admin `/demandes` page, just given a `demandeurId` scope.
+- **`DemandesAggregates` gained `urgentes`/`normales`** — a straight
+  `$count` per `prioriteDemandee` value inside `getDemandesAggregates`,
+  reusing the same `scope`/`withX` closure pattern already used for the
+  status counts. Feeds a bar breakdown in the new right rail; no separate
+  endpoint.
+- **New `direction` filter on `listerDemandes`** — the mockup's filter row
+  needed FR→EN/EN→FR filtering, which never existed even on the admin
+  Demandes page. Added as a plain `eq()` condition, same shape as the
+  other filters.
+- **Own filter component, not an extension of `DemandesFiltres`** — the
+  agent screen's mockup lays out Statut/Priorité/Direction flat (no
+  "Plus de filtres" collapse, no "Assignation" concept since scope is
+  already implicit via `demandeurId`). Rather than overload the admin
+  page's `DemandesFiltres` props with an agent-only shape, a new
+  `MyRequestsFilters` component was written — same `FilterChip`/reset
+  pattern, different field set.
+- **Doughnut chart reuses the Dashboard's existing chart.js setup** — the
+  shared `ChartCanvas` component (`components/analytics/ChartCanvas.tsx`)
+  already renders bar charts on `/dashboard`; a `type: 'doughnut'` config
+  was the only new code needed. No new dependency, no new chart wrapper.

@@ -1,6 +1,12 @@
 // packages/client/src/pages/demandes/hooks/queries.ts
 import { useQuery } from '@tanstack/react-query';
-import { demandesApi, type DemandeStatut, type DemandePriorite, type DemandesAggregates } from '@/lib/demandes.api';
+import {
+  demandesApi,
+  type DemandeStatut,
+  type DemandePriorite,
+  type DemandeDirection,
+  type DemandesAggregates,
+} from '@/lib/demandes.api';
 import { documentsApi } from '@/lib/documents.api';
 import type { Demande, DocumentDisponible } from '../requests.types';
 import { REQUEST_PAGE_SIZE } from '../requests.constants';
@@ -8,6 +14,7 @@ import { REQUEST_PAGE_SIZE } from '../requests.constants';
 interface UseDemandesQueryParams {
   statut: string;
   priorite: string;
+  direction?: string;
   demandeurId?: number;
   traducteurId?: number;
   search: string;
@@ -17,17 +24,19 @@ interface UseDemandesQueryParams {
 export function useDemandesQuery({
   statut,
   priorite,
+  direction,
   demandeurId,
   traducteurId,
   search,
   page,
 }: UseDemandesQueryParams) {
   return useQuery({
-    queryKey: ['demandes', statut, priorite, demandeurId, traducteurId, search, page],
+    queryKey: ['demandes', statut, priorite, direction, demandeurId, traducteurId, search, page],
     queryFn: async () => {
       const res = await demandesApi.lister({
         statut: statut ? (statut as DemandeStatut) : undefined,
         priorite: priorite ? (priorite as DemandePriorite) : undefined,
+        direction: direction ? (direction as DemandeDirection) : undefined,
         demandeurId,
         traducteurId,
         search: search || undefined,

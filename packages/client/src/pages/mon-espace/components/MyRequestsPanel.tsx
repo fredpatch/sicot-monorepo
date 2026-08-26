@@ -79,7 +79,7 @@ export function MyRequestsPanel({ demandeurId }: { demandeurId: number }) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-anac-border p-4">
         <h3 className="text-base font-bold text-anac-navy">Mes demandes de traduction</h3>
         <Link
-          to="/demandes?assignation=mes_demandes"
+          to="/mes-demandes"
           className="flex items-center gap-1 text-xs font-medium text-anac-blue hover:text-anac-navy"
         >
           Voir toutes <ArrowRight size={12} aria-hidden="true" />
@@ -127,7 +127,7 @@ export function MyRequestsPanel({ demandeurId }: { demandeurId: number }) {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/demandes?assignation=mes_demandes')}
+            onClick={() => navigate('/mes-demandes')}
             className="gap-1.5"
           >
             Voir toutes mes demandes <ArrowRight size={13} aria-hidden="true" />
