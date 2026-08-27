@@ -5,6 +5,27 @@ export async function lister(req: Request, res: Response): Promise<void> {
   res.json(jobsService.listerJobs());
 }
 
+// ── GET /api/jobs/historique ────────────────────────────────────────────
+export async function historique(req: Request, res: Response): Promise<void> {
+  try {
+    const { jobCle, module, source, succes, page, pageSize } = req.query;
+
+    const result = await jobsService.listerExecutionsJobs({
+      jobCle: jobCle as string | undefined,
+      module: module as string | undefined,
+      source: source === 'manuel' || source === 'cron' ? source : undefined,
+      succes: succes !== undefined ? succes === 'true' : undefined,
+      page: page ? parseInt(page as string) : undefined,
+      pageSize: pageSize ? parseInt(pageSize as string) : undefined,
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('[jobs.controller] historique', error);
+    res.status(500).json({ message: 'Erreur interne du serveur.' });
+  }
+}
+
 export async function executer(req: Request, res: Response): Promise<void> {
   try {
     const { cle } = req.params;

@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { genererAnalyseIA, genererRapport } from '@/modules/report/services/rapports.service';
+import { enregistrerExecutionJob } from '@/modules/jobs/services/job-executions.service.js';
 
 const TOUS_LES_MODULES = [
   'global',
@@ -56,7 +57,28 @@ export async function genererRapportMensuel(): Promise<{ pdf: number; excel: num
 export function demarrerJobRapportMensuel(): void {
   cron.schedule('0 6 1 * *', async () => {
     console.log('📊 Génération du rapport mensuel automatique...');
-    await genererRapportMensuel();
+    const debut = Date.now();
+    try {
+      const resultat = await genererRapportMensuel();
+      await enregistrerExecutionJob({
+        jobCle: 'rapport_mensuel',
+        module: 'M11',
+        source: 'cron',
+        succes: true,
+        resume: `Rapport mensuel généré — document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
+        dureeMs: Date.now() - debut,
+      });
+    } catch (error) {
+      await enregistrerExecutionJob({
+        jobCle: 'rapport_mensuel',
+        module: 'M11',
+        source: 'cron',
+        succes: false,
+        resume: "Échec de l'exécution.",
+        erreur: error instanceof Error ? error.message : 'Erreur inconnue',
+        dureeMs: Date.now() - debut,
+      });
+    }
   });
 
   console.log('📅 Rapport mensuel planifié le 1er de chaque mois à 06h00');

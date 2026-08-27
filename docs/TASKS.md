@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-27)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Administration (M10) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-27)
 
 Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 `exploration-cache/changelog.md` pour le détail complet et
@@ -778,6 +778,28 @@ Suite du même sprint, sur la base de l'audit du module (modèle utilisateur ré
 - [x] ~~**Cartes mobile (`UsersMobileCards`)**~~ - repli `< md`, même logique de capacités que le registre desktop
 - [x] ~~**Cartes de synthèse réelles (`UsersSummaryCards`)**~~ - Total/Actifs/Désactivés/Première connexion, pas de carte « Invités » (aucun état d'invitation réel dans le modèle)
 - [x] ~~**Aucune fonctionnalité inventée**~~ - pas de téléphone/sessions actives/méthode de connexion/notes administratives/activité par utilisateur (aucune donnée serveur) ; validé en direct : `GET /personnel-anac/matricule/:matricule` renvoie 503 en dev (réseau Tailscale ANAC injoignable hors production) et l'onglet Personnel ANAC reste correctement masqué plutôt que d'afficher une erreur
+
+### Refonte Administration (M10) | ✅ COMPLÉTÉ (2026-08-27)
+
+Suite du même sprint, même processus audit → plan → implémentation. Le brief
+(52 sections) exigeait de classer chaque élément du mockup en
+configurable-réel / monitoring-réel / job-réel / futur-non-construit /
+non-supporté avant tout code, et d'auditer les rôles côté serveur (pas
+seulement la protection de route côté client) — aucune télémétrie inventée.
+
+- [x] ~~**Aucun code de module brut affiché**~~ - `MODULE_LABELS`/`getModuleLabel()` (`admin.constants.ts`) résout M1/M3/M4/M6/M10/M11 vers leur nom métier partout (paramètres, jobs, historique) ; plus jamais "M6" à l'écran
+- [x] ~~**Double contrôle d'accès audité**~~ - route (`requireRole('admin')`) + grain plus fin par service : `PATCH /parametres/:cle` réservé `super_admin`, chaque job porte son propre `roleMinimum` (`canEditParameter`/`canRunJob` côté client miroir exact)
+- [x] ~~**Bannière d'info corrigée**~~ - l'affirmation générique "effet au prochain cycle cron" ne s'applique en réalité qu'à `accord_alerte_jours` (seul paramètre lu par un job planifié) ; `PARAMETRES_A_EFFET_DIFFERE` restreint le message à ce seul cas, les autres paramètres sont lus en direct
+- [x] ~~**Paramètre mort signalé, non corrigé**~~ - `recommandation_alerte_jours` est éditable et journalisé mais n'est lu nulle part (jamais câblé au job `recommandations_retard`, qui ne vérifie qu'un retard déjà consommé) ; laissé tel quel, hors périmètre demandé
+- [x] ~~**Historique des exécutions persistant (`job_executions`)**~~ - nouvelle table, `source: 'manuel'|'cron'`, `declenchePar` nullable pour le cron ; remplace l'ancien état en mémoire qui disparaissait au rechargement
+- [x] ~~**Rotation de sauvegarde GFS (Grandfather-Father-Son)**~~ - `backup.ts` réécrit : quotidien tous les jours à minuit, hebdomadaire chaque dimanche (purge les quotidiens), mensuel le dernier jour du mois (purge les hebdomadaires), annuel le 31 décembre (purge les mensuels) ; chaque palier est un `pg_dump` frais et indépendant, jamais une "fusion" de fichiers ; purge d'un palier inférieur uniquement si le palier supérieur est confirmé bon (taille minimale `TAILLE_MIN_OCTETS`)
+- [x] ~~**Répertoire local de sauvegarde configurable**~~ - nouveau paramètre `backup_local_dir` (type `texte`, éditable `super_admin`), lu via `getValeurTexte()` ; le NAS reste `BACKUP_NAS_DIR` (env, non exposé à l'UI — seul le local a été demandé configurable)
+- [x] ~~**Local et NAS totalement indépendants**~~ - `dumpVersDestination()` ne lève jamais, écrit vers chaque destination via `Promise.all` ; l'échec d'une destination ne bloque ni ne fait échouer l'autre (`succesGlobal = local.succes || nas.succes`)
+- [x] ~~**Job de rattrapage NAS (`backup_sync_nas`)**~~ - `synchroniserVersNas()` copie unidirectionnelle local → NAS, parcourt les 4 sous-répertoires de palier, ne copie que les fichiers présents localement et absents du NAS ; à lancer manuellement une fois la connexion NAS rétablie
+- [x] ~~**Rétention par nombre, pas par jours**~~ - `backup_retention_quotidien_nombre`/`hebdomadaire`/`mensuel` (7/5/12 par défaut) remplacent les anciens `backup_retention_locale_jours`/`backup_retention_nas_jours` (supprimés du seed via `CLES_OBSOLETES`) ; annuel conservé sans limite
+- [x] ~~**Comptage de purge dédupliqué**~~ - `compterPurges(supprimesLocal, supprimesNas)` (`new Set(...).size`) corrige un double-comptage trouvé en validation live (un même fichier supprimé des deux destinations comptait pour 2 au lieu de 1)
+- [x] ~~**Onglet Monitoring & Jobs restructuré (retour utilisateur : "trop long")**~~ - audit `/ui-ux-pro-max` + `/frontend-design` présenté et approuvé avant code : 3 sous-onglets (Aperçu/Jobs/Historique, `?sub=` dans l'URL), les 12 jobs regroupés par module en sections repliables (repliées par défaut), lignes d'historique compressées sur une ligne (détail au clic), pagination réduite de 15 à 8 par page
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas de télémétrie serveur (CPU/RAM/latence) non exposée par une route réelle, pas de journal d'accès NAS fictif ; validé en direct (JWT signés + curl contre la DB de dev) : répertoire local personnalisé, isolation d'échec par destination, les 4 promotions de palier, purge correcte (test rétention=1), rattrapage NAS (fichier supprimé côté NAS puis restauré par le job de sync)
 
 ### Reporté (voir Notion Sprint 12, statut À faire)
 

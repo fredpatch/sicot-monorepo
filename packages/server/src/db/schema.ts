@@ -133,6 +133,8 @@ export const statutRelectureIAEnum = pgEnum('statut_relecture_ia', [
   'rejete',
 ]);
 
+export const jobExecutionSourceEnum = pgEnum('job_execution_source', ['manuel', 'cron']);
+
 // ── M10 - Notifications ───────────────────────────────────────────────────
 export const notifications = pgTable(
   'notifications',
@@ -216,6 +218,29 @@ export const auditLogs = pgTable(
     index('audit_logs_user_idx').on(t.userId),
     index('audit_logs_module_idx').on(t.module),
     index('audit_logs_created_at_idx').on(t.createdAt),
+  ]
+);
+
+// ── M10 - Historique d'exécution des jobs (manuel + cron) ─────────────────
+// declenchePar est null pour une exécution cron (aucun utilisateur derrière),
+// renseigné pour une exécution manuelle depuis la console Administration.
+export const jobExecutions = pgTable(
+  'job_executions',
+  {
+    id: serial('id').primaryKey(),
+    jobCle: varchar('job_cle', { length: 100 }).notNull(),
+    module: varchar('module', { length: 20 }).notNull(),
+    source: jobExecutionSourceEnum('source').notNull(),
+    succes: boolean('succes').notNull(),
+    resume: text('resume').notNull(),
+    erreur: text('erreur'),
+    dureeMs: integer('duree_ms').notNull(),
+    declenchePar: integer('declenche_par').references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    index('job_executions_cle_idx').on(t.jobCle),
+    index('job_executions_created_at_idx').on(t.createdAt),
   ]
 );
 

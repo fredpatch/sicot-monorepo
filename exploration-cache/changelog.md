@@ -1,5 +1,101 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-27 — feat(client/server): redesign Administration module (M10) + GFS backup rotation
+
+Audit-first redesign of the Administration module, driven by a 52-section
+brief placed in `prompt.md`. Same process as every prior round this sprint:
+Phase 1 audit (classified every mockup element as real-configurable/
+real-monitoring/real-job/future-placeholder/unsupported, audited backend
+role requirements rather than trusting client-side route protection alone),
+Phase 2 plan (`frontend-design`-informed), then incremental implementation.
+One explicit constraint drove the client architecture: raw module codes
+(M1, M6, ...) must never render anywhere in the UI, always resolved to a
+friendly label.
+
+### Key audit findings
+- The info banner's "effect at next cron cycle" claim was overgeneralized —
+  only `accord_alerte_jours` is actually read by a scheduled job; every
+  other parameter is read live. Narrowed to a per-key map
+  (`PARAMETRES_A_EFFET_DIFFERE`) instead of a blanket statement.
+- `recommandation_alerte_jours` is editable and audit-logged but read
+  nowhere — likely intended to mirror `accord_alerte_jours` as an
+  early-warning lead time but never wired to `recommandations_retard`
+  (which only checks after-the-fact overdue status). Flagged, not fixed —
+  outside the requested scope.
+
+### Backend — GFS backup rotation
+Replaced the old flat daily-retention backup job with a full
+Grandfather-Father-Son rotation, designed from an abstract user spec into a
+concrete architecture (independent-per-destination writes rather than a
+merge, fresh `pg_dump` per tier boundary rather than file copies,
+sanity-check-before-prune, count-based retention instead of day-based,
+single sequential daily cron instead of four racing crons):
+- `effectuerSauvegardeTier(tier)` — quotidien/hebdomadaire/mensuel/annuel,
+  each a fresh `pg_dump` written to local and NAS via `Promise.all`; one
+  destination failing never blocks or fails the other
+  (`succesGlobal = local.succes || nas.succes`). A dump below
+  `TAILLE_MIN_OCTETS` is treated as failed even if `pg_dump` didn't throw.
+- `promouvoirPalier(tier, tierInférieur, ...)` — prunes the lower tier only
+  once the new tier is confirmed good, and only prunes each destination that
+  itself succeeded.
+- `executerCycleSauvegarde()` — single daily cron (midnight): always dumps
+  quotidien; promotes to hebdomadaire on Sunday (purges quotidiens); to
+  mensuel on the last day of the month (purges hebdomadaires); to annuel on
+  Dec 31 (purges mensuels, kept indefinitely). Every step recorded
+  separately in `job_executions` (`source: 'cron'`).
+- `backup_local_dir` — new `texte` parameter, user-configurable via the
+  admin UI (`getValeurTexte()`); `BACKUP_NAS_DIR` stays env-only (only the
+  local destination was asked to be configurable).
+- `synchroniserVersNas()` — one-directional local → NAS catch-up copy for
+  when NAS connectivity is restored after downtime; new `backup_sync_nas`
+  manual job.
+- Retention switched from day-based to count-based:
+  `backup_retention_quotidien_nombre`/`hebdomadaire`/`mensuel` (7/5/12
+  defaults), old `backup_retention_locale_jours`/`backup_retention_nas_jours`
+  deleted from the seed via `CLES_OBSOLETES`.
+- `compterPurges(supprimesLocal, supprimesNas)` — dedup fix found during
+  live testing: a single backup deleted from both destinations was being
+  counted as 2 purges instead of 1 (`new Set([...local, ...nas]).size`).
+- `registre.ts` — `backup_bdd`/`backup_nas` replaced by 5 jobs
+  (`backup_quotidien`/`hebdomadaire`/`mensuel`/`annuel`/`sync_nas`), all
+  `module: 'M10'`, `roleMinimum: 'super_admin'`.
+- Live-validated end-to-end against the real dev filesystem/DB: custom
+  local directory, independent destination failure isolation, all 4 tier
+  promotions, pruning correctness (retention=1 test), and the NAS catch-up
+  sync (deleted a NAS file, ran sync, confirmed restoration) — test
+  artifacts cleaned up and real parameter defaults restored afterward.
+
+### Client
+- `MODULE_LABELS`/`getModuleLabel()` (`admin.constants.ts`) — the single
+  source of truth resolving M1/M3/M4/M6/M10/M11 to their business names;
+  used everywhere a module shows up (parameters, jobs, history).
+- `canEditParameter`/`canRunJob` (`admin.permissions.ts`) — client-side
+  mirror of the server's two-layer gate (`super_admin`-only parameter
+  edits, per-job `roleMinimum`).
+- `job_executions` history — new persistent table + `JobHistoryTable`,
+  replacing the old in-memory job-result state that vanished on reload.
+- `AdminPage.tsx` replaces the old flat `AdminParametresPage.tsx`, feature-
+  foldered under `pages/admin/` like every other module this sprint.
+
+### Ergonomics follow-up (user feedback: "Monitoring tab too long, job list too long")
+Audited via `/ui-ux-pro-max` + `/frontend-design` (layout/composition
+pass only — this is an internal admin console reusing existing tokens, not
+a new visual identity); plan presented and approved before any code:
+- Monitoring & Jobs split into 3 sub-tabs (Aperçu/Jobs/Historique),
+  `?sub=` alongside the existing `?tab=` in the URL, cleared when the
+  top-level tab changes away from Monitoring.
+- `JobsList` — 12 jobs grouped by module into collapsible sections
+  (collapsed by default, hand-built `useState` toggle rather than adding a
+  new Collapsible/Accordion dependency — none existed in the repo).
+  `JobRow` dropped its now-redundant per-row module badge.
+- `JobHistoryTable` — rows compressed to one line (status/label/module/
+  origin/timestamp), résumé/error/duration revealed on click;
+  `JOB_HISTORY_PAGE_SIZE` reduced 15 → 8 to match the shorter rows.
+
+Validated via `tsc`/`eslint`/`build` (client + server) plus the live HTTP
+checks above — no Chromium/Playwright, per the standing instruction from
+the Documents round.
+
 ## [Unreleased] — 2026-08-27 — feat(client/server): redesign Utilisateurs module (M10)
 
 Same audit-first process as the Documents (M8) round just before it: Phase 1

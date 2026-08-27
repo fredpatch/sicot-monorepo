@@ -1,5 +1,13 @@
 import { db } from '@/db/index.js';
 import { parametres } from '@/db/schema';
+import { inArray } from 'drizzle-orm';
+
+// Remplacées par le schéma de rotation quotidien/hebdomadaire/mensuel/annuel
+// (voir jobs/backup.ts) — la rétention en jours n'a plus de sens dès lors
+// qu'un seul fichier est produit par palier ; remplacé par un nombre de
+// copies à conserver. Supprimées au démarrage plutôt que laissées mortes en
+// base (cf. recommandation_alerte_jours, jamais nettoyé — leçon retenue).
+const CLES_OBSOLETES = ['backup_retention_locale_jours', 'backup_retention_nas_jours'];
 
 const DEFAUTS = [
   {
@@ -49,24 +57,40 @@ const DEFAUTS = [
     description: 'Durée du blocage du compte après dépassement du seuil de tentatives (minutes)',
   },
   {
-    cle: 'backup_retention_locale_jours',
-    valeur: '30',
-    type: 'entier' as const,
+    cle: 'backup_local_dir',
+    valeur: process.env.BACKUP_LOCAL_DIR ?? '/sicot/backups/local',
+    type: 'texte' as const,
     module: 'M10',
-    description: 'Durée de conservation des sauvegardes locales quotidiennes (jours)',
+    description: "Dossier local où écrire les sauvegardes (tous paliers). Modifiable par l'administrateur.",
   },
   {
-    cle: 'backup_retention_nas_jours',
-    valeur: '360',
+    cle: 'backup_retention_quotidien_nombre',
+    valeur: '7',
     type: 'entier' as const,
     module: 'M10',
-    description: 'Durée de conservation des sauvegardes NAS hebdomadaires (jours)',
+    description: 'Nombre de sauvegardes quotidiennes conservées avant rotation vers la palier hebdomadaire',
+  },
+  {
+    cle: 'backup_retention_hebdomadaire_nombre',
+    valeur: '5',
+    type: 'entier' as const,
+    module: 'M10',
+    description: 'Nombre de sauvegardes hebdomadaires conservées avant rotation vers le palier mensuel',
+  },
+  {
+    cle: 'backup_retention_mensuel_nombre',
+    valeur: '12',
+    type: 'entier' as const,
+    module: 'M10',
+    description: 'Nombre de sauvegardes mensuelles conservées avant rotation vers le palier annuel',
   },
 ] satisfies (typeof parametres.$inferInsert)[];
 
 // ── Seed idempotent des paramètres par défaut ─────────────────────────────
 // Appelé au démarrage - n'écrase jamais une valeur déjà modifiée par un admin
 export async function seedParametresDefaut(): Promise<void> {
+  await db.delete(parametres).where(inArray(parametres.cle, CLES_OBSOLETES));
+
   for (const p of DEFAUTS) {
     await db.insert(parametres).values(p).onConflictDoNothing({ target: parametres.cle });
   }

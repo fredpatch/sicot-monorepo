@@ -1,5 +1,11 @@
 import { mettreAJourAccordsExpires, envoyerAlertesAccords } from './alertes.js';
-import { declencherSauvegardeManuelle, effectuerSauvegarde, BACKUP_NAS_DIR } from './backup.js';
+import {
+  effectuerSauvegardeTier,
+  promouvoirPalier,
+  resumerResultat,
+  synchroniserVersNas,
+  compterPurges,
+} from './backup.js';
 import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
 import { db } from '@/db/index.js';
 import { courriers, recommandations } from '@/db/schema';
@@ -153,18 +159,96 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     },
   },
   {
-    cle: 'backup_bdd',
-    label: 'Sauvegarde locale immédiate',
+    cle: 'backup_quotidien',
+    label: 'Sauvegarde quotidienne immédiate',
     description:
-      'Déclenche une sauvegarde manuelle immédiate de la base PostgreSQL en local (en plus du cron quotidien 02h00).',
+      "Déclenche immédiatement la sauvegarde du palier quotidien, vers le dossier local et le NAS indépendamment (en plus du cycle automatique de minuit).",
     module: 'M10',
     roleMinimum: 'super_admin',
     executer: async () => {
-      const resultat = await declencherSauvegardeManuelle();
-      if (!resultat.succes) throw new Error(resultat.erreur ?? 'Échec de la sauvegarde.');
+      const resultat = await effectuerSauvegardeTier('quotidien');
+      if (!resultat.succesGlobal) throw new Error(resumerResultat(resultat));
+      return { resume: resumerResultat(resultat), details: { ...resultat } };
+    },
+  },
+  {
+    cle: 'backup_hebdomadaire',
+    label: 'Promotion hebdomadaire',
+    description:
+      'Crée la sauvegarde hebdomadaire du jour puis purge les sauvegardes quotidiennes au-delà du nombre configuré à conserver (seulement si la promotion a réussi).',
+    module: 'M10',
+    roleMinimum: 'super_admin',
+    executer: async () => {
+      const { resultat, supprimesLocal, supprimesNas } = await promouvoirPalier(
+        'hebdomadaire',
+        'quotidien',
+        'backup_retention_quotidien_nombre',
+        7
+      );
+      if (!resultat.succesGlobal) throw new Error(resumerResultat(resultat));
       return {
-        resume: `Sauvegarde créée : ${resultat.nomFichier} (${resultat.tailleMo} Mo).`,
-        details: resultat,
+        resume: `${resumerResultat(resultat)} · ${compterPurges(supprimesLocal, supprimesNas)} sauvegarde(s) quotidienne(s) purgée(s).`,
+        details: { resultat, supprimesLocal, supprimesNas },
+      };
+    },
+  },
+  {
+    cle: 'backup_mensuel',
+    label: 'Promotion mensuelle',
+    description:
+      'Crée la sauvegarde mensuelle du jour puis purge les sauvegardes hebdomadaires au-delà du nombre configuré à conserver (seulement si la promotion a réussi).',
+    module: 'M10',
+    roleMinimum: 'super_admin',
+    executer: async () => {
+      const { resultat, supprimesLocal, supprimesNas } = await promouvoirPalier(
+        'mensuel',
+        'hebdomadaire',
+        'backup_retention_hebdomadaire_nombre',
+        5
+      );
+      if (!resultat.succesGlobal) throw new Error(resumerResultat(resultat));
+      return {
+        resume: `${resumerResultat(resultat)} · ${compterPurges(supprimesLocal, supprimesNas)} sauvegarde(s) hebdomadaire(s) purgée(s).`,
+        details: { resultat, supprimesLocal, supprimesNas },
+      };
+    },
+  },
+  {
+    cle: 'backup_annuel',
+    label: 'Promotion annuelle',
+    description:
+      'Crée la sauvegarde annuelle du jour puis purge les sauvegardes mensuelles au-delà du nombre configuré à conserver. La sauvegarde annuelle elle-même est conservée indéfiniment.',
+    module: 'M10',
+    roleMinimum: 'super_admin',
+    executer: async () => {
+      const { resultat, supprimesLocal, supprimesNas } = await promouvoirPalier(
+        'annuel',
+        'mensuel',
+        'backup_retention_mensuel_nombre',
+        12
+      );
+      if (!resultat.succesGlobal) throw new Error(resumerResultat(resultat));
+      return {
+        resume: `${resumerResultat(resultat)} · ${compterPurges(supprimesLocal, supprimesNas)} sauvegarde(s) mensuelle(s) purgée(s). Conservée indéfiniment.`,
+        details: { resultat, supprimesLocal, supprimesNas },
+      };
+    },
+  },
+  {
+    cle: 'backup_sync_nas',
+    label: 'Synchroniser vers le NAS',
+    description:
+      "Copie vers le NAS les sauvegardes présentes en local mais absentes du NAS — utile après une coupure réseau pendant laquelle seule la sauvegarde locale a pu s'exécuter.",
+    module: 'M10',
+    roleMinimum: 'super_admin',
+    executer: async () => {
+      const { copies, erreurs } = await synchroniserVersNas();
+      return {
+        resume:
+          copies.length > 0
+            ? `${copies.length} sauvegarde(s) copiée(s) vers le NAS.${erreurs.length > 0 ? ` ${erreurs.length} échec(s).` : ''}`
+            : 'Aucune sauvegarde à synchroniser — le NAS est déjà à jour.',
+        details: { copies, erreurs },
       };
     },
   },
@@ -194,22 +278,6 @@ export const REGISTRE_JOBS: JobDefinition[] = [
       const resultat = await genererRapportMensuel();
       return {
         resume: `Rapport mensuel généré — document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
-        details: resultat,
-      };
-    },
-  },
-  {
-    cle: 'backup_nas',
-    label: 'Sauvegarde NAS immédiate',
-    description:
-      'Déclenche une sauvegarde manuelle vers le NAS (en plus du cron hebdomadaire dimanche 03h00).',
-    module: 'M10',
-    roleMinimum: 'super_admin',
-    executer: async () => {
-      const resultat = await effectuerSauvegarde(BACKUP_NAS_DIR, 'hebdomadaire');
-      if (!resultat.succes) throw new Error(resultat.erreur ?? 'Échec de la sauvegarde NAS.');
-      return {
-        resume: `Sauvegarde NAS créée : ${resultat.nomFichier} (${resultat.tailleMo} Mo).`,
         details: resultat,
       };
     },

@@ -28,7 +28,7 @@ import TraductionsPage from './pages/TraductionsPage';
 import TraductionEditeur from './pages/traductions/components/TraductionEditeur';
 import DemandesPage from './pages/DemandesPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminParametresPage from './pages/AdminParametresPage';
+import AdminPage from './pages/admin/AdminPage';
 import PortailPage from './pages/PortalPage';
 import AuditPage from './pages/AuditPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -158,7 +158,7 @@ export const router = createBrowserRouter(
           path="/admin/*"
           element={
             <AdminRoute>
-              <AdminParametresPage />
+              <AdminPage />
             </AdminRoute>
           }
         />

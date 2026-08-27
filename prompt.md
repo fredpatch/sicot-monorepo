@@ -1,55 +1,40 @@
-# SICOT — Traductions Production Workspace Redesign Task
+You are acting as a Senior Frontend Engineer, UX/UI Architect, Product Usability Specialist, and Administration Console Reviewer.
 
-You are acting as a Senior Frontend Engineer, UX/UI Architect, and Product Usability Specialist.
-
-Your task is to redesign and implement the SICOT **Traductions production module**.
+Your task is to redesign and implement the SICOT “Administration” section.
 
 Repository:
-
-```text
 https://github.com/fredpatch/sicot-monorepo.git
-```
 
 Primary frontend location:
-
-```text
 packages/client
-```
 
 The attached image is the visual reference for the target direction.
 
-This task is **not** about the separate “Demandes de traduction” workflow.
+Use it to understand:
 
-This module is the internal workspace where operators:
+- normalized SICOT administration styling
+- clear separation between configuration and operations
+- parameter grouping
+- monitoring hierarchy
+- manual jobs
+- system health visibility
+- AI usage monitoring
+- safety around administrative actions
+- responsive behavior
 
-- Receive extracted text from documents/OCR
-- Launch machine translation
-- Create translations from free text
-- Review machine translation
-- Correct translated content manually
-- Work manually when the translation engine fails
-- Use glossary suggestions
-- Save corrections
-- Approve translations
-- Archive translations
+Do NOT reproduce the mockup blindly.
 
-Use the attached visual reference to understand:
+First inspect the current implementation and classify every element into:
 
-- Queue layout
-- Workload hierarchy
-- Engine-health visibility
-- New-translation dialog
-- Source/document context
-- Side-by-side translation editor
-- Glossary assistance
-- Review and approval actions
-- Responsive behavior
+1. Real configurable setting
+2. Real monitoring data
+3. Real executable job
+4. Future monitoring placeholder
+5. Unsupported/mockup-only information
 
-Do not reproduce the image blindly.
+Do not fabricate production telemetry.
 
-First inspect the current implementation and adapt it to the actual architecture, API contracts, and business logic.
-
-Do not modify the separate Demandes module.
+Do not modify unrelated modules.
 
 Do not commit or push changes unless explicitly requested.
 
@@ -61,1526 +46,1311 @@ Work incrementally.
 
 Use:
 
-```text
 ✅ Done
 ⏳ Current
 🔜 Next
-```
 
 Follow:
 
-1. Audit current implementation
-2. Report actual workflow
-3. Propose implementation plan
-4. Implement incrementally
-5. Validate
-6. Return final report
+1. Audit current Administration implementation
+2. Report actual settings / monitoring / jobs
+3. Classify mockup data as real vs future placeholder
+4. Propose information architecture
+5. Implement incrementally
+6. Validate
+7. Return final report
 
-Do not implement before returning Phase 1.
-
-Do not replace working translation logic merely for visual consistency.
-
-The bilingual editor is the core product experience and must remain central.
+Do not start implementation before returning Phase 1.
 
 ---
 
-# 2. Current real translation workflow
+# 2. Product purpose
 
-The current flow is approximately:
+The Administration section is SICOT’s privileged system-operations console.
 
-```text
-Text source
-      ↓
-Translation job created
-      ↓
-Translation engine attempted
-      ↓
-┌─────────────────────┬──────────────────────────┐
-│ Engine succeeds     │ Engine unavailable/fails│
-│                     │                          │
-│ texteIA generated   │ statut = manuelle_requise
-│ statut = a_reviser  │ editable target starts  │
-└───────────┬─────────┴──────────────┬───────────┘
-            ↓                        ↓
-       Human correction / manual translation
-                    ↓
-             Save correction
-                    ↓
-               Human review
-                    ↓
-                Approval
-                    ↓
-                Archive
-```
+It currently combines:
 
-Preserve this behavior.
+- configurable business thresholds
+- security configuration
+- backup retention settings
+- translation-engine fallback settings
+- AI/Gemini quota configuration
+- Gemini usage monitoring
+- translation engine status
+- automated report status
+- maintenance jobs
+- backup jobs
+- analytics snapshot jobs
+- monthly report generation
+- manual execution of scheduled operations
+
+The redesign must make these responsibilities easier to understand and safer to operate.
 
 ---
 
-# 3. Files to inspect first
+# 3. Current access model
+
+Current route:
+
+/admin/*
+
+Current route protection:
+
+AdminRoute
+
+Audit whether all Administration endpoints require:
+
+admin
+or
+super_admin
+
+The existing page text appears to indicate some parameters are specifically reserved to Super Admin.
+
+Do not rely only on page-level route protection.
+
+Audit backend role requirements for:
+
+- parameter listing
+- parameter update
+- jobs listing
+- job execution
+- Gemini monitoring
+- translation engine monitoring
+
+If some operations are super_admin-only, reflect this in the capability layer and UI.
+
+---
+
+# 4. Files to inspect first
 
 Inspect at least:
 
-```text
-packages/client/src/pages/TraductionsPage.tsx
+packages/client/src/pages/AdminParametresPage.tsx
 
-packages/client/src/pages/traductions/
-packages/client/src/pages/traductions/components/
-packages/client/src/pages/traductions/hooks/
-packages/client/src/pages/traductions/traductions.columns.tsx
-packages/client/src/pages/traductions/traductions.types.ts
-packages/client/src/pages/traductions/traductions.utils.ts
-
-packages/client/src/pages/traductions/components/NewTraductionDialog.tsx
-packages/client/src/pages/traductions/hooks/useLaunchTraduction.ts
-packages/client/src/pages/traductions/hooks/useTraductionPrefill.ts
-
+packages/client/src/lib/parametres.api.ts
+packages/client/src/lib/analytics.api.ts
+packages/client/src/lib/api.ts
 packages/client/src/lib/traductions.api.ts
-packages/client/src/lib/documents.api.ts
 
 packages/client/src/App.tsx
-packages/client/src/components/table
+packages/client/src/router.tsx
+packages/client/src/components/layouts/Layout.tsx
 packages/client/src/components/ui
-packages/client/src/index.css
-```
 
-Also inspect the actual translation editor page/component.
+Also inspect server-side modules for:
 
-The current editor supports:
+- parameters
+- parameter validation
+- parameter audit logging
+- job registry
+- job execution
+- scheduled jobs / cron configuration
+- Gemini usage status
+- translation engine status
+- backup jobs
+- monthly report generation
 
-- `texteOriginal`
-- `texteIA`
-- `texteFinal`
-- direction
-- status
-- engine used
-- glossary suggestions
-- save correction
-- approve
-- archive
-- delete
-- manual translation fallback
-
-Find the exact current file before changing anything.
-
-Also inspect the server-side translation module for:
-
-- OCR/document integration
-- translation creation
-- machine translation execution
-- engine fallback
-- status transitions
-- glossary suggestions
-- correction persistence
-- archive/restore behavior
+Confirm real behavior before changing UI.
 
 ---
 
-# 4. Existing real domain model
+# 5. Current real parameter model
 
-Known statuses:
+Current frontend shape:
 
-```text
-a_reviser
-en_relecture
-approuvee
-archivee
-manuelle_requise
-```
+interface Parametre {
+id: number
+cle: string
+valeur: string
+type: ParametreType
+module: string
+description?: string
+modifiePar?: number
+createdAt: string
+updatedAt: string
+}
 
-Visible labels:
+Known parameter types:
 
-```text
-À réviser
-En relecture
-Approuvée
-Archivée
-Manuelle requise
-```
+- entier
+- booleen
+- string or equivalent
 
-Known translation directions:
+Preserve backend keys.
 
-```text
-fr_en
-en_fr
-```
-
-Current API supports at least:
-
-```text
-GET    /traductions
-GET    /traductions/:id
-GET    /traductions/moteur/status
-
-POST   /traductions
-
-PATCH  /traductions/:id/correction
-PATCH  /traductions/:id/approuver
-PATCH  /traductions/:id/archiver
-PATCH  /traductions/:id/restaurer
-
-GET    /traductions/:id/suggestions
-
-DELETE /traductions/:id
-```
-
-Creation accepts:
-
-```text
-texteOriginal
-direction
-documentId?
-```
-
-Preserve these contracts unless a backend change is genuinely necessary.
+Do not rename stored keys.
 
 ---
 
-# 5. OCR / Documents integration
+# 6. Current known parameters
 
-The current Documents module can send extracted OCR text to Traductions using:
+Known current labels/keys include at least:
 
-```text
-sessionStorage['traduction_prefill']
-```
+accord_alerte_jours
+courrier_alerte_jours
+courrier_alerte_critique_jours
+recommandation_alerte_jours
 
-`useTraductionPrefill` reads that value and opens the new translation interface with text already populated.
+otp_expiration_minutes
+lockout_max_tentatives
+lockout_duree_minutes
 
-Preserve this capability.
+backup_retention_locale_jours
+backup_retention_nas_jours
 
-The new UI must distinguish:
+deepl_fallback_actif
 
-```text
-Source : Texte libre
-```
+Also inspect Gemini-related parameter keys such as:
+
+gemini_quota_journalier_par_modele
+gemini_rapports_manuels_max_jour
+
+Do not hardcode the redesign around only this exact list if parameters are returned dynamically.
+
+---
+
+# 7. Parameter grouping
+
+Current backend already exposes:
+
+module
+
+Use that as the basis for logical sections.
+
+Known module labels currently include:
+
+M1 → Accords & Partenariats
+M3 → Missions & Recommandations
+M4 → Correspondances
+NOTIF → Notifications
+ADMIN → Administration
+M10 → Sécurité & Système
+
+Audit all real module values.
+
+Do not invent categories that cannot map to existing settings.
+
+The UI can group them into friendlier presentation sections such as:
+
+Métier
+Sécurité
+Sauvegardes
+Traduction
+IA & Rapports
+
+while preserving the real backend module/key mapping.
+
+---
+
+# 8. Target information architecture
+
+Replace the single long page with a clearer administration console.
+
+Recommended top-level tabs:
+
+Paramètres
+Monitoring & Jobs
+
+Optional third tab only if justified:
+
+Infrastructure
+
+Do not split into too many routes unless necessary.
+
+Preferred:
+
+/admin
+
+with tabs driven by search params if useful:
+
+/admin?tab=settings
+/admin?tab=monitoring
+
+Preserve current route compatibility where practical.
+
+---
+
+# 9. Tab A — Paramètres
+
+Purpose:
+
+Configure system rules and thresholds.
+
+Recommended sections:
+
+- Métier
+- Sécurité & Authentification
+- Sauvegardes
+- Traduction
+- IA & Rapports
+
+Only display sections that contain real parameters.
+
+---
+
+# 10. Parameter cards
+
+Keep the current concise card idea, but normalize it.
+
+Each setting card should show:
+
+- friendly label
+- description
+- input/control
+- unit
+- current raw key as secondary technical metadata
+- save state
+- validation error
+- optional warning
+
+Example:
+
+Alerte échéance accord
+
+Nombre de jours avant expiration pour déclencher une alerte accord.
+
+[ 90 ] jours
+
+accord_alerte_jours
+
+Do not expose keys as primary content.
+
+---
+
+# 11. Parameter editing behavior
+
+Current behavior:
+
+- change local value
+- detect dirty state
+- save one parameter at a time
+- show inline success state
+- invalidate parameter query
+
+Preserve this unless a bulk-save approach is clearly better.
+
+Do not silently auto-save unless current server semantics and UX justify it.
+
+Given the administrative risk, explicit per-setting save is acceptable.
+
+---
+
+# 12. Validation
+
+Current integer validation checks positive integer syntax.
+
+Audit backend validation for:
+
+- min
+- max
+- allowed boolean values
+- key-specific constraints
+
+Frontend validation must not conflict with backend.
+
+Examples requiring scrutiny:
+
+OTP expiration
+Lockout attempts
+Lockout duration
+Retention days
+Alert thresholds
+Gemini quotas
+
+Do not allow obviously dangerous values such as:
+
+negative retention
+negative lockout
+invalid numeric strings
+
+If backend exposes constraints, centralize them.
+
+---
+
+# 13. Units
+
+Current helper derives:
+
+_jours → jours
+_minutes → min
+
+Preserve or improve this.
+
+Centralize unit mapping.
+
+Do not infer units for unknown keys incorrectly.
+
+Possible utility:
+
+getParameterUnit(parametre)
+
+Use explicit override map where necessary.
+
+---
+
+# 14. Save feedback
+
+Use compact inline states:
+
+Modifié
+
+Enregistrement...
+
+Enregistré
+
+Erreur
+
+Avoid excessive global toasts for normal success.
+
+Use toasts for errors.
+
+Do not reset user-entered values unexpectedly on failed save.
+
+---
+
+# 15. Audit warning
+
+The current page tells the administrator that changes are logged.
+
+Keep this prominently.
+
+Suggested wording:
+
+Les modifications de paramètres sont journalisées dans le Journal d’audit.
+
+If parameters take effect only on the next scheduled cycle, preserve that information where accurate.
+
+Example:
+
+Les nouveaux seuils seront utilisés lors du prochain cycle planifié.
+
+Do not generalize this statement to settings that take effect immediately unless true.
+
+---
+
+# 16. DeepL fallback setting
+
+Current parameter:
+
+deepl_fallback_actif
+
+Current engine status also exposes:
+
+deeplConfigure
+
+Preserve the useful cross-check.
+
+If fallback is enabled but API key is missing:
+
+Display a warning.
+
+Example:
+
+Fallback DeepL activé, mais la configuration serveur est incomplète.
+
+Do not expose API keys.
+
+Do not allow admins to edit secrets through this page unless a dedicated secure secret-management system exists.
+
+---
+
+# 17. Security settings
+
+Group:
+
+OTP expiration
+Failed-attempt threshold
+Lockout duration
+
+Potential title:
+
+Authentification & sécurité
+
+Show concise consequence descriptions.
+
+Example:
+
+Tentatives avant blocage
+Nombre d’échecs de connexion avant verrouillage temporaire.
+
+Do not turn these controls into generic text inputs without validation.
+
+---
+
+# 18. Backup retention settings
+
+Group:
+
+Rétention sauvegarde locale
+Rétention sauvegarde NAS
+
+Clearly distinguish:
+
+retention policy
 
 from:
 
-```text
-Source : Document #23
-Texte extrait par OCR
-```
+manual backup execution
 
-If source metadata beyond `documentId` is needed for a better display, inspect whether it can be fetched from the document API.
+Retention belongs in Paramètres.
 
-Do not duplicate OCR logic inside Traductions.
+Backup execution belongs in Monitoring & Jobs.
 
-OCR remains the responsibility of Documents.
+Do not mix them.
 
 ---
 
-# 6. Translation engine behavior
+# 19. IA & report quota settings
 
-Current engine health is checked through:
+Group current Gemini configuration separately.
 
-```text
-traductionsApi.moteurStatus()
-```
+Examples:
 
-The engine may be unavailable.
+Quota journalier Gemini par modèle
 
-Current expected behavior:
+Rapports IA manuels maximum par jour
 
-If engine is available:
+These are limits/configuration.
 
-```text
-Launch translation
-→ machine result generated
-→ open editor
-→ user reviews/corrects
-```
+Current usage belongs in Monitoring.
 
-If unavailable:
-
-```text
-Create translation record
-→ status = manuelle_requise
-→ source text remains available
-→ target editor becomes manual input workspace
-```
-
-Do not block creation merely because the engine is offline.
-
-This manual fallback is an important SICOT feature.
+Keep those concepts separate.
 
 ---
 
-# 7. Screen A — Translation work queue
+# 20. Tab B — Monitoring & Jobs
 
-Route:
+Purpose:
 
-```text
-/traductions
-```
+Observe system-operational state and manually trigger supported maintenance jobs.
 
-This is not a generic translation request registry.
+Recommended sections:
 
-It is the operator’s working queue.
+- Aperçu système
+- Traduction
+- Usage IA
+- Jobs manuels
 
-Header:
-
-```text
-Traductions
-```
-
-Subtitle:
-
-```text
-Traitez les traductions automatiques et manuelles.
-```
-
-Primary action:
-
-```text
-Nouvelle traduction
-```
+Only show real telemetry.
 
 ---
 
-# 8. Engine status
+# 21. Real Gemini monitoring
 
-Show engine health near the header.
+Current real query:
 
-Example:
+analyticsApi.getStatutGemini()
 
-```text
-LibreTranslate
-● Opérationnel
-```
+Current known response includes:
 
-or:
+modeles
 
-```text
-LibreTranslate
-● Hors ligne
-```
+with values such as:
 
-When offline, show a compact operational message:
+modele
+appelsAujourdhui
+plafond
+thinkingTokensAujourdhui
 
-```text
-LibreTranslate est indisponible.
-Les nouvelles traductions pourront être réalisées manuellement.
-```
+and:
 
-Do not turn the entire page red.
+rapportsIA.utilises
+rapportsIA.max
 
-Engine failure is a system condition, not necessarily a failed user workflow.
+and:
 
----
-
-# 9. Queue summary cards
-
-Suggested operational metrics:
-
-- Total
-- À réviser
-- En relecture
-- Manuelle requise
-- Approuvées
-
-Optional:
-
-- Archivées
-
-Only calculate accurate global totals.
-
-Do not calculate them from the current page.
-
-Suggested UI:
-
-```text
-Total
-128
-Toutes traductions
-
-À réviser
-34
-À corriger
-
-En relecture
-12
-En contrôle
-
-Manuelle requise
-8
-Traduction automatique indisponible
-
-Approuvées
-74
-Validées
-```
-
-Do not invent deadlines, priorities, requesters, or assignments.
-
----
-
-# 10. Queue search and filters
-
-Current filtering already supports:
-
-- Status
-- Direction
-
-Improve this with search if backend support exists.
-
-Suggested filters:
-
-```text
-Recherche
-Statut
-Direction
-Source
-```
-
-Source filter:
-
-```text
-Toutes
-Texte libre
-Document
-```
-
-Implement only if `documentId` makes this reliable.
-
-Potential search fields:
-
-- Original text
-- Document name
-- ID
-
-Do not add requester/service/deadline filters.
-
----
-
-# 11. Queue table
-
-Suggested desktop columns:
-
-- Source / aperçu
-- Direction
-- Statut
-- Source
-- Moteur
-- Date
-- Actions
-
-Example:
-
-```text
-PROFORMA INVOICE - NON-ACCOUNTING DOCUMENT
-Document #23
-
-FR → EN
-
-À réviser
-
-Document #23
-
-LibreTranslate
-
-10/08/2026 09:24
-```
-
-For free text:
-
-```text
-Bonjour, ceci est un test...
-Texte libre
-```
-
-Moteur should remain visible but secondary.
-
-Actions:
-
-- Réviser
-- Consulter
-- Restaurer, where appropriate
-- Supprimer, where allowed
-- Archive-related action where appropriate
-
-Prefer action menu over multiple inline links.
-
-Do not expose destructive actions prominently.
-
----
-
-# 12. Queue row behavior
-
-Row click should open:
-
-```text
-/traductions/:id
-```
-
-Primary action label depends on status:
-
-```text
-À réviser            → Réviser
-En relecture         → Relire
-Manuelle requise     → Traduire manuellement
-Approuvée            → Consulter
-Archivée             → Consulter
-```
-
-Use real existing transitions.
-
-Do not create fake workflow statuses.
-
----
-
-# 13. Mobile queue behavior
-
-Desktop:
-
-- Full table
-
-Tablet:
-
-- Hide engine/date if needed
-
-Mobile:
-
-Use cards showing:
-
-- Source preview
-- Direction
-- Status
-- Source type
-- Engine state
-- Date
-- Primary action
-
-No horizontal overflow.
-
----
-
-# 14. New translation interface
-
-Keep this interaction lightweight.
-
-Do NOT use a multi-step wizard.
-
-A dialog or side sheet is appropriate because the operation only requires:
-
-- Direction
-- Source text
-- Launch action
-
-Current supported languages:
-
-```text
-Français → Anglais
-Anglais → Français
-```
-
-Do not add arbitrary languages unless backend actually supports them.
-
----
-
-# 15. New translation dialog
-
-Title:
-
-```text
-Nouvelle traduction
-```
-
-Fields:
-
-```text
-Direction
-Texte à traduire
-```
-
-Show:
-
-- Character count
-- Source context
-- Engine status
-
-When launched from free text:
-
-```text
-Source : Texte libre
-```
-
-When launched from OCR:
-
-```text
-Texte prérempli depuis OCR
-Document #23
-```
-
-If document metadata is available:
-
-```text
-PROFORMA-INVOICE.pdf
-Page(s) OCR : 1
-```
-
-Do not invent page metadata if unavailable.
-
----
-
-# 16. New translation engine-online state
-
-If engine is online:
-
-```text
-LibreTranslate opérationnel
-```
-
-Primary action:
-
-```text
-Lancer la traduction
-```
-
-During processing:
-
-```text
-Traduction en cours...
-```
-
-The current timeout is intentionally long for large documents.
-
-Preserve the long-running behavior.
-
-Do not assume a slow request means failure.
-
----
-
-# 17. New translation engine-offline state
-
-If engine is unavailable:
-
-Display:
-
-```text
-LibreTranslate est actuellement hors ligne.
-
-La traduction sera créée avec le statut
-“Manuelle requise”.
-
-Vous pourrez saisir entièrement la traduction
-dans l’éditeur.
-```
-
-Primary action may still be:
-
-```text
-Créer la traduction
-```
-
-or:
-
-```text
-Continuer en traduction manuelle
-```
-
-Choose the wording that best matches backend behavior.
-
-Do not falsely say machine translation will run.
-
----
-
-# 18. Timeout behavior
-
-Current launch hook handles timeouts by telling the user that translation may already be running.
-
-Preserve this defensive behavior.
-
-Improve UX if useful:
-
-```text
-La traduction prend plus de temps que prévu.
-
-Elle peut continuer côté serveur.
-Actualisez la liste avant de relancer l’opération.
-```
-
-Avoid accidental duplicate jobs.
-
----
-
-# 19. Screen B — Translation workshop
-
-Route:
-
-```text
-/traductions/:id
-```
-
-This is the core screen.
-
-Do NOT redesign it into a generic entity detail page.
-
-The translation editor must dominate the viewport.
-
-Use the normalized SICOT shell around it, but optimize this screen for focused production work.
-
----
-
-# 20. Workshop header
-
-Breadcrumb:
-
-```text
-Traductions / #38
-```
-
-Header should show:
-
-- Status
-- Translation ID
-- Direction
-- Source
-- Engine
-- Date
-- Optional document reference
-
-Example:
-
-```text
-#38
-FR → EN
-À réviser
-Document #23
-LibreTranslate
-```
-
-Primary actions depend on status.
-
----
-
-# 21. Main editor layout
-
-Desktop layout:
-
-```text
-┌──────────────────────────┬──────────────────────────┬──────────────┐
-│ Texte original           │ Traduction               │ Assistance   │
-│                          │                          │              │
-│ read-only                │ editable                 │ État         │
-│                          │                          │ Glossaire    │
-│                          │                          │ Source       │
-│                          │                          │ Moteur       │
-└──────────────────────────┴──────────────────────────┴──────────────┘
-```
-
-Suggested grid:
-
-- Original: 5 columns
-- Translation: 5 columns
-- Assistance: 2 columns
-
-Do not overcompress the editor.
-
----
-
-# 22. Original text panel
-
-Display:
-
-```text
-Texte original
-Français
-```
-
-or:
-
-```text
-Original text
-English
-```
-
-Current source panel should remain read-only.
-
-Show:
-
-- Character count
-- Optional line count
-- Source type
-- Document information where relevant
-
-Allow text selection for glossary lookup.
-
-Do not allow accidental source modification.
-
----
-
-# 23. Translation panel
-
-Display:
-
-```text
-Traduction
-Anglais
-```
-
-or:
-
-```text
-Traduction
-Français
-```
-
-This panel is editable when status permits.
-
-Initialization logic must remain:
-
-```text
-texteFinal ?? texteIA ?? ''
-```
-
-Meaning:
-
-- Existing human correction wins
-- Otherwise machine output is used
-- Otherwise editor starts blank
-
-This is especially important for `manuelle_requise`.
-
----
-
-# 24. Manual translation mode
-
-When:
-
-```text
-statut === manuelle_requise
-```
-
-show a clear banner:
-
-```text
-Traduction manuelle requise
-
-Le moteur de traduction n’a pas pu produire de résultat.
-Le texte source est conservé.
-
-Saisissez la traduction dans le panneau de droite,
-puis sauvegardez et approuvez-la.
-```
-
-The editor must remain fully functional.
-
-Do not disable approval merely because the engine failed.
-
-Approval should depend on valid translated content and real backend rules.
-
----
-
-# 25. Save behavior
-
-Preserve:
-
-```text
-PATCH /traductions/:id/correction
-```
-
-Show dirty state clearly.
-
-Possible states:
-
-```text
-Modifications non sauvegardées
-Sauvegarde...
-Sauvegardé
-```
-
-Avoid excessive toast notifications for routine save actions.
-
-A subtle inline status is better.
-
----
-
-# 26. Approval behavior
-
-Preserve current approval behavior.
-
-When user clicks:
-
-```text
-Approuver
-```
-
-If local corrections are unsaved:
-
-1. Save correction
-2. Wait for successful save
-3. Approve
-
-Do not approve stale text.
-
-Current behavior already attempts this.
-
-Keep or improve it safely.
-
----
-
-# 27. Review status
-
-Audit actual behavior for:
-
-```text
-en_relecture
-```
-
-Determine how an item becomes `en_relecture`.
-
-If there is currently no explicit transition endpoint:
-
-Do not invent a button that cannot persist.
-
-Report the limitation.
-
-If workflow exists:
-
-Use action:
-
-```text
-Soumettre en relecture
-```
-
-or equivalent.
-
----
-
-# 28. Archive behavior
-
-Only approved translations should expose archive according to existing logic.
-
-Preserve:
-
-```text
-PATCH /traductions/:id/archiver
-```
-
-Archived translations are read-only.
-
-Provide restore where existing API supports:
-
-```text
-PATCH /traductions/:id/restaurer
-```
-
-Do not allow normal editing while archived.
-
----
-
-# 29. Delete behavior
-
-Current deletion is available only before approval/archive.
-
-Preserve business restrictions.
-
-Use an overflow action:
-
-```text
-Supprimer
-```
-
-with confirmation.
-
-Do not make Delete a primary button.
-
----
-
-# 30. Glossary assistance
-
-The current editor already supports querying:
-
-```text
-GET /traductions/:id/suggestions?texte=...
-```
+dernierRapportMensuel
 
 Preserve this.
 
-Workflow:
+Do not replace with fake telemetry.
 
-1. User selects source/target expression
-2. Query glossary suggestions
-3. Show FR/EN match
-4. Allow applying suggestion
+---
+
+# 22. Gemini usage cards
+
+Keep the current model cards, but normalize them.
+
+For each model show:
+
+- model label
+- calls today / configured cap
+- progress bar
+- thinking tokens today
 
 Example:
 
-```text
-Glossaire
+Gemini 2.5 Flash
 
-facture pro-forma
-→ proforma invoice
+4 / 15 appels aujourd’hui
 
-document non comptable
-→ non-accounting document
-```
+████░░░
 
-Do not make glossary lookup block editing.
+1 242 tokens de réflexion
 
-Failures remain non-blocking.
+Use actual response values.
 
 ---
 
-# 31. Applying glossary suggestions
+# 23. Usage thresholds
 
-Current implementation replaces the selected expression in `texteFinal`.
+Current visual logic:
 
-Audit this behavior.
+> = 90% → danger
+> = 70% → attention
+> otherwise → success
 
-Ensure:
+This is reasonable.
 
-- Exact selected text is handled safely
-- Special regex characters are escaped
-- Replacement does not accidentally change every unrelated occurrence unless intentional
-- User can undo changes naturally
+Centralize it.
 
-If the current replacement-all behavior is risky, improve it.
-
-Report any behavior change.
-
----
-
-# 32. Source information panel
-
-For text source:
-
-```text
-Source
-Texte libre
-```
-
-For document source:
-
-```text
-Source
-Document #23
-```
-
-If document API can provide metadata:
-
-```text
-Nom
-Type
-Pages
-OCR effectué le
-```
-
-Do not display fake OCR metadata.
-
-Add:
-
-```text
-Ouvrir le document
-```
-
-only if a valid route/download exists.
-
----
-
-# 33. Engine information
-
-Right sidebar:
-
-```text
-Moteur de traduction
-
-LibreTranslate
-● Opérationnel
-
-Dernière vérification...
-```
-
-When translation was generated by another engine:
-
-```text
-Moteur utilisé
-DeepL
-```
-
-Separate:
-
-- engine used for this translation
-- current engine health
-
-Do not imply that a previously translated record changes when engine health changes later.
-
----
-
-# 34. Status/actions panel
+Do not duplicate percentage thresholds across components.
 
 Suggested:
 
-```text
-État et actions
-
-Statut actuel
-À réviser
-
-[ Sauvegarder ]
-
-[ Approuver ]
-
-[ Soumettre en relecture ]
-if supported
-
-[ Archiver ]
-only when approved
-```
-
-Actions must be state-dependent.
-
-Avoid displaying impossible actions.
+getUsageTone(used, max)
 
 ---
 
-# 35. Editor metadata
+# 24. Reports IA monitoring
 
-Show compact metadata:
+Show:
 
-- Direction
-- Source
-- Engine used
-- Created date
-- Updated date
+Rapports IA à la demande
 
-Do not invent:
+X / Y générés aujourd’hui
 
-- Requester
-- Service
-- Priority
-- Deadline
-- Assignment
-- Progress percentage
+Also:
 
-unless they genuinely exist in the updated repository.
+Dernier rapport mensuel automatique
+
+with real creation date if available.
+
+Do not show fake generation history.
 
 ---
 
-# 36. Document source workflow
+# 25. Translation engine status
 
-A translation launched from Documents should keep its `documentId`.
+The page already fetches:
 
-Use that relationship to provide context in the editor.
+traductionsApi.moteurStatus()
 
-Do not copy the source document itself into another module.
+Audit response.
 
-The translation record should reference the document.
+Known:
 
----
+accessible
+deeplConfigure
 
-# 37. Free-text workflow
+Use this in Monitoring.
 
-User can click:
+Suggested card:
 
-```text
-Nouvelle traduction
-```
+Moteur de traduction
 
-Then:
+LibreTranslate
+Opérationnel / Indisponible
 
-1. Enter source text
-2. Choose FR→EN or EN→FR
-3. Launch
-4. Open generated translation
-5. Review
-6. Approve
+Fallback DeepL
+Configuré / Non configuré
 
-This must remain fast.
-
-Do not require unnecessary metadata.
+Do not imply DeepL is being actively used if only configured as fallback.
 
 ---
 
-# 38. Error states
+# 26. Jobs model
 
-Handle:
+Current frontend knows:
 
-- Translation queue fetch failure
-- Translation detail failure
-- Invalid translation ID
-- Engine status failure
-- Launch failure
-- Launch timeout
-- Save failure
-- Approval failure
-- Archive failure
-- Restore failure
-- Delete failure
-- Glossary suggestion failure
-- Document metadata failure
+interface JobDisponible {
+cle
+label
+description
+roleMinimum
+module
+}
 
-Do not return null for expected errors.
+Current execution result:
 
-Glossary failure should remain non-blocking.
+interface JobResultat {
+cle
+succes
+resume
+erreur?
+dureeMs
+}
 
----
-
-# 39. Loading states
-
-Queue:
-
-- Skeleton table/cards
-
-Editor:
-
-- Structured loading state
-
-Launch:
-
-```text
-Traduction en cours...
-```
-
-Large documents may take minutes.
-
-Do not use an aggressive spinner-only experience.
-
-Where useful show:
-
-```text
-Cette opération peut prendre plusieurs minutes pour les documents volumineux.
-```
+Preserve this model.
 
 ---
 
-# 40. Unsaved changes
+# 27. Current jobs
 
-Protect edited `texteFinal`.
+Audit the exact current list from:
 
-If user attempts to:
+jobsApi.lister()
 
-- Return to list
-- Navigate away
-- Archive
-- Delete
-- Close browser route
+Known examples include:
 
-while unsaved corrections exist:
+- Mise à jour statuts accords expirés
+- Alertes échéances accords
+- Vérification criticité courriers
+- Vérification recommandations en retard
+- Sauvegarde locale immédiate
+- Capture criticité courriers (historique)
+- Générer le rapport mensuel
+- Sauvegarde NAS immédiate
 
-Provide appropriate warning.
-
-Do not lose translation work silently.
-
-Use the normalized unsaved-changes pattern already introduced elsewhere if available.
-
----
-
-# 41. Keyboard productivity
-
-This is a production editor.
-
-Support efficient keyboard usage.
-
-At minimum:
-
-- Tab order logical
-- Source remains selectable
-- Target editor accessible
-- Buttons keyboard reachable
-- Glossary results keyboard usable
-
-Consider shortcuts only if they can be implemented cleanly:
-
-```text
-Ctrl/Cmd + S → Save
-```
-
-Do not introduce many custom shortcuts.
+Do not hardcode labels if backend already provides them.
 
 ---
 
-# 42. Accessibility
+# 28. Jobs registry
 
-Requirements:
+Render manual jobs as a structured operational list/table.
 
-- Clear language labels
-- Status not color-only
-- Editor panels have accessible names
-- Character counts not disruptive
-- Engine health has textual state
-- Glossary results keyboard accessible
-- Error messages announced appropriately
-- Focus preserved after save
-- Modal focus trapped/restored
-- Archived state clearly communicated
+Recommended columns:
 
----
+- Job
+- Module
+- Dernier résultat
+- Durée
+- Action
 
-# 43. Responsive behavior
+But:
 
-Desktop:
+Last result and duration are only available after current-session execution unless backend provides history.
 
-- Side-by-side editor
-- Assistance sidebar
+Do not fabricate historical execution metadata.
 
-Medium screens:
+If persistent job history is unavailable:
 
-- Source and translation remain side-by-side where viable
-- Assistance moves below or into sheet
+Show:
 
-Small tablet/mobile:
+Dernier résultat
+Non disponible
 
-Use tabs:
+until the job is executed in this session.
 
-```text
-Original
-Traduction
-Assistance
-```
-
-Do not squeeze two large text editors into unusably narrow columns.
-
-Preserve source context when switching tabs.
+Or omit the column.
 
 ---
 
-# 44. Registry responsive behavior
+# 29. Future monitoring placeholders
 
-Desktop:
+The mockup shows concepts such as:
 
-- Table
+- Jobs OK (24h)
+- Success rate
+- Last run timestamp
+- Warning count
+- Last backup timestamp
+- Job history
 
-Mobile:
+These are useful future monitoring fields.
 
-Translation cards showing:
+If backend does not currently expose them:
 
-```text
-Source preview
-FR → EN
-À réviser
-Document #23
-10/08/2026
+They may be implemented as clearly marked placeholders.
 
-[ Réviser ]
-```
+Rules:
 
----
+Do not hardcode fake numbers.
 
-# 45. Architecture
+Use:
 
-Suggested structure:
+Non disponible
+Historique non exposé
+À venir
 
-```text
-packages/client/src/pages/traductions/
-├── components/
-│   ├── TraductionStatusBadge.tsx
-│   ├── TraductionDirectionBadge.tsx
-│   ├── TranslationEngineStatus.tsx
-│   ├── TraductionsSummaryCards.tsx
-│   ├── TraductionsFilters.tsx
-│   ├── TraductionsRegistryTable.tsx
-│   ├── TraductionRegistryCard.tsx
-│   ├── NewTraductionDialog.tsx
-│   └── editor/
-│       ├── TranslationEditorHeader.tsx
-│       ├── TranslationMetadataStrip.tsx
-│       ├── SourceTextPanel.tsx
-│       ├── TargetTextPanel.tsx
-│       ├── TranslationActionsPanel.tsx
-│       ├── GlossaryAssistancePanel.tsx
-│       ├── TranslationSourcePanel.tsx
-│       └── TranslationEnginePanel.tsx
-├── hooks/
-│   ├── useTraductionsQueries.ts
-│   ├── useTranslationDetailQuery.ts
-│   ├── useTranslationMutations.ts
-│   ├── useLaunchTranslation.ts
-│   ├── useTranslationPrefill.ts
-│   └── useGlossarySuggestions.ts
-├── traduction.types.ts
-├── traduction.utils.ts
-├── traduction.constants.ts
-├── TraductionsPage.tsx
-└── TraductionEditorPage.tsx
-```
-
-Adapt to the actual existing structure.
-
-Do not rename everything just to match this proposal.
+If a card would be visually useless with no real data, omit it instead.
 
 ---
 
-# 46. Shared normalization
+# 30. Placeholder architecture
 
-Reuse visual primitives from updated SICOT modules:
+As with the Utilisateurs redesign:
 
-- Page headers
-- Summary cards
-- Filter toolbar
-- Table shell
-- Pagination
-- Status badges
-- Error states
-- Empty states
-- Breadcrumbs
-- Mobile cards
+classify monitoring elements as:
 
-But do NOT force the translation editor into generic detail-page abstractions that hurt usability.
+available
+future
+unsupported
 
-Translation editing is specialized.
+Do not scatter hardcoded placeholder values.
 
----
+Suggested presentation model:
 
-# 47. Business utilities
+interface MonitoringMetric {
+label: string
+value?: string | number
+availability: 'available' | 'future'
+}
 
-Centralize:
-
-```text
-getTranslationStatusLabel
-getTranslationDirectionLabel
-isTranslationEditable
-canApproveTranslation
-canArchiveTranslation
-canDeleteTranslation
-getTranslationSourceType
-```
-
-Avoid repeating status condition chains in multiple components.
+Keep it simple.
 
 ---
 
-# 48. Queue aggregates
+# 31. Manual job execution safety
 
-Audit whether global status counts exist.
+Manual jobs are privileged operational actions.
 
-If not, propose the minimum backend addition.
+Do not use casual one-click execution for sensitive jobs without confirmation.
+
+Recommended categories:
+
+Low-risk:
+
+- recompute status
+- capture analytics
+
+Medium/high risk:
+
+- backups
+- monthly report generation
+- bulk alert emails
+
+For jobs with side effects:
+
+Open a confirmation dialog.
 
 Example:
 
-```text
-{
-  data,
-  total,
-  aggregates: {
-    total,
-    toReview,
-    inReview,
-    manualRequired,
-    approved,
-    archived
-  }
-}
-```
+Lancer “Alertes échéances accords” ?
 
-Do not derive full counts from the current page.
+Cette opération peut envoyer des notifications aux utilisateurs concernés.
+
+[Annuler] [Lancer]
+
+Use backend job description to inform the user.
 
 ---
 
-# 49. Search backend
+# 32. Duplicate execution protection
 
-If queue search is not supported, do not fake it by searching only the current page.
+While a job is running:
 
-Either:
+- disable its action
+- show spinner/progress state
+- prevent repeated submission
 
-- Add server-side search
-- Or omit search and report it
+Current code already tracks:
 
-A lightweight search can cover:
+jobEnCours
 
-- texteOriginal
-- documentId
-- possibly document filename via safe join if supported
+Preserve this.
+
+Do not block every job if only one job is running unless backend requires serialized execution.
+
+Audit whether concurrent job execution is safe.
 
 ---
 
-# 50. Testing and validation
+# 33. Job results
+
+After execution, show:
+
+Succès
+
+or:
+
+Échec
+
+Then:
+
+summary
+
+duration
+
+error if present
+
+Example:
+
+Succès
+
+12 accords mis à jour.
+
+1.8 s
+
+For failure:
+
+Échec
+
+Connexion NAS impossible.
+
+Do not hide server error summaries.
+
+Do not expose stack traces.
+
+---
+
+# 34. Job result persistence
+
+Current result state appears frontend-local:
+
+resultatsJobs
+
+This disappears on reload.
+
+Preserve this behavior unless job history exists server-side.
+
+Do not imply persistent history.
+
+If no history API exists, remove mockup action:
+
+Voir l’historique des jobs
+
+or present it as a future placeholder only if explicitly desired.
+
+---
+
+# 35. System overview cards
+
+Use only metrics available from real APIs.
+
+Possible real cards:
+
+Moteur traduction
+
+Gemini usage
+
+Dernier rapport mensuel
+
+Number of available jobs
+
+Number of configurable parameters
+
+The counts of parameters/jobs can be derived from complete returned arrays, not pagination.
+
+Acceptable.
+
+Do not create:
+
+System health score
+
+unless a meaningful health model exists.
+
+---
+
+# 36. Admin vs Super Admin capabilities
+
+Audit:
+
+JobDisponible.roleMinimum
+
+This is important.
+
+Use it to determine whether a job action is executable.
+
+Example:
+
+roleMinimum === super_admin
+
+Then admin may see the job but cannot launch it, if that is desired.
+
+Preferred UX:
+
+show:
+
+Réservé Super Admin
+
+rather than a mysteriously disabled launch button.
+
+Do not rely only on frontend enforcement.
+
+---
+
+# 37. Parameter permissions
+
+Audit parameter update role.
+
+If only Super Admin can update settings:
+
+Admins may potentially get a read-only monitoring view.
+
+Do not expose editable controls to unauthorized admins.
+
+Build capabilities centrally.
+
+Example:
+
+canEditParameter
+canRunJob
+
+---
+
+# 38. Capability architecture
+
+Suggested utility/hook:
+
+getAdminCapabilities(user)
+
+and:
+
+canRunJob(user, job)
+
+Do not scatter role comparisons throughout components.
+
+---
+
+# 39. Search/filter for jobs
+
+If the job list remains small, do not overbuild.
+
+Useful filter:
+
+Module
+Status of current-session result
+
+Only implement when helpful.
+
+No search required for fewer than ~10 jobs.
+
+---
+
+# 40. Monitoring refresh
+
+Current Gemini status refreshes every 60 seconds.
+
+Preserve this.
+
+Show subtle:
+
+Actualisé automatiquement
+
+Do not show a manual refresh button unless useful.
+
+Translation engine status may use similar periodic refresh if appropriate.
+
+Avoid excessive polling.
+
+---
+
+# 41. Responsive behavior
+
+Desktop:
+
+- tabs
+- parameter cards in 2–4 column grid
+- monitoring cards
+- jobs table/list
+
+Tablet:
+
+- 2-column parameter cards
+- stacked monitoring groups
+
+Mobile:
+
+- single-column settings cards
+- jobs as cards
+- confirmation dialogs
+- no horizontal overflow
+
+Administration is likely desktop-first, but should remain usable on smaller screens.
+
+---
+
+# 42. Component architecture
+
+Suggested structure:
+
+packages/client/src/pages/admin/
+├── components/
+│ ├── AdminTabs.tsx
+│ ├── AdminInfoBanner.tsx
+│ ├── ParameterSection.tsx
+│ ├── ParameterCard.tsx
+│ ├── ParameterInput.tsx
+│ ├── TranslationEngineStatusCard.tsx
+│ ├── GeminiUsageSection.tsx
+│ ├── GeminiModelCard.tsx
+│ ├── AdminSystemOverview.tsx
+│ ├── JobsList.tsx
+│ ├── JobRow.tsx
+│ ├── JobExecutionDialog.tsx
+│ ├── JobResultBadge.tsx
+│ └── FutureMonitoringMetric.tsx
+├── hooks/
+│ ├── useParametersQuery.ts
+│ ├── useParameterMutations.ts
+│ ├── useAdminMonitoringQueries.ts
+│ └── useJobs.ts
+├── admin.permissions.ts
+├── admin.types.ts
+├── admin.utils.ts
+├── admin.constants.ts
+└── AdminPage.tsx
+
+Adapt to current structure.
+
+Do not restructure everything purely to match this suggestion.
+
+---
+
+# 43. Shared normalization
+
+Reuse existing normalized SICOT primitives:
+
+- page header
+- tabs
+- cards
+- alert/banner
+- status badges
+- confirmation dialog
+- loading/error states
+- responsive grids
+
+Do not duplicate the entire design system.
+
+---
+
+# 44. Error handling
+
+Handle:
+
+- parameter list failure
+- parameter update failure
+- jobs list failure
+- job execution failure
+- Gemini status failure
+- translation engine status failure
+
+Do not return null for significant operational failures.
+
+Monitoring sections should fail independently where possible.
+
+Example:
+
+Gemini monitoring unavailable.
+
+should not prevent editing authentication settings.
+
+---
+
+# 45. Loading states
+
+Use section-level loading.
+
+Do not block the entire Administration page while one monitoring API loads.
+
+Examples:
+
+Parameters skeleton
+
+Gemini cards skeleton
+
+Jobs list skeleton
+
+Translation status skeleton
+
+---
+
+# 46. Security
+
+Administration contains sensitive controls.
+
+Audit:
+
+- CSRF
+- server authorization
+- parameter key allowlisting
+- job allowlisting
+
+Do not allow arbitrary job key execution from frontend.
+
+Use only jobs returned by jobsApi.lister() or known secure server identifiers.
+
+Do not expose:
+
+- environment variables
+- API keys
+- database connection strings
+- backup credentials
+- Gemini secrets
+- DeepL secrets
+
+---
+
+# 47. Audit integration
+
+Parameter changes are already stated to be audit logged.
+
+Confirm this server-side.
+
+If job execution is also audit logged, surface this in the UI.
+
+Suggested:
+
+Cette action sera enregistrée dans le Journal d’audit.
+
+Do not claim audit coverage if absent.
+
+If jobs are not currently logged, report that as a security recommendation rather than pretending.
+
+---
+
+# 48. Future monitoring telemetry recommendations
+
+If backend lacks job history, recommend later adding:
+
+job_executions:
+
+- id
+- jobKey
+- startedAt
+- finishedAt
+- success
+- durationMs
+- triggeredBy
+- summary
+
+This is a recommendation only.
+
+Do not implement a new persistence subsystem unless explicitly approved.
+
+Similarly useful future fields:
+
+lastBackupAt
+lastSuccessfulBackupAt
+lastJobRunAt
+
+Keep them out of current fake data.
+
+---
+
+# 49. Testing and validation
 
 At minimum validate:
 
+## Access
+
+- admin access
+- super_admin access
+- unauthorized role blocked
+- direct URL protected
+
+## Parameters
+
+- list
+- integer edit
+- boolean edit
+- save
+- unchanged save disabled
+- invalid integer
+- API validation error
+- success state
+- units
+- DeepL configuration warning
+
+## Security parameters
+
+- OTP expiration
+- lockout attempts
+- lockout duration
+
+## Backup parameters
+
+- local retention
+- NAS retention
+
+## Business thresholds
+
+- agreement alert threshold
+- courrier thresholds
+- recommendation threshold
+
+## IA configuration
+
+- Gemini quotas
+- manual report limit
+
+## Monitoring
+
+- Gemini models
+- quota progress
+- usage tone
+- reports IA
+- last automated report
+- translation engine online
+- translation engine offline
+- DeepL configured / unconfigured
+- monitoring API failure
+
+## Jobs
+
+- jobs load
+- roleMinimum honored
+- launch
+- confirmation
+- duplicate launch prevented
+- success result
+- failure result
+- duration
+- summary
+- job API failure
+
+## Placeholders
+
+- no fake last-run timestamps
+- no fake success percentages
+- no fake backup times
+- future telemetry clearly marked or omitted
+
+## Responsive
+
+- desktop
+- tablet
+- mobile
+- no overflow
+
+## Accessibility
+
+- tabs
+- inputs
+- units
+- save buttons
+- job confirmation
+- result status
+- monitoring progress semantics
+
+Also run:
+
 - TypeScript
 - ESLint
-- Production build
-- `/traductions`
-- `/traductions/:id`
+- production build
+- no console errors
 
-Queue:
-
-- Pagination
-- Status filter
-- Direction filter
-- Source filter if implemented
-- Search if implemented
-- Engine online state
-- Engine offline state
-
-Creation:
-
-- Free text FR→EN
-- Free text EN→FR
-- OCR-prefilled translation
-- Empty-text validation
-- Launch success
-- Engine offline fallback
-- Timeout handling
-- Network failure
-- Duplicate-launch risk
-
-Editor:
-
-- `texteIA` initialization
-- `texteFinal` initialization
-- Manual-required blank target
-- Edit target
-- Save correction
-- Dirty state
-- Navigation with unsaved changes
-- Approve saved text
-- Approve after unsaved edits
-- Archive
-- Restore
-- Delete restrictions
-- Archived read-only state
-
-Glossary:
-
-- Select expression
-- Suggestion lookup
-- Apply suggestion
-- No suggestions
-- Suggestion API failure
-
-Responsive:
-
-- Desktop queue
-- Mobile queue
-- Desktop editor
-- Tablet editor
-- Mobile editor
-- No horizontal page overflow
-
-Accessibility:
-
-- Keyboard navigation
-- Modal focus
-- Editor labels
-- Action labels
-
-Do not claim checks passed unless actually executed.
+Do not claim validation passed unless executed.
 
 ---
 
-# 51. Expected implementation sequence
+# 50. Expected implementation sequence
 
 ## Phase 1 — Audit
 
 Return:
 
-1. Current translation file structure
-2. Current queue behavior
-3. Current editor behavior
-4. Current statuses
-5. Current status transitions
-6. Machine translation flow
-7. Engine-offline behavior
-8. OCR/document prefill flow
-9. Glossary behavior
-10. Save/approval/archive behavior
-11. Existing shared SICOT components
-12. Data limitations
-13. Backend dependencies
-14. Proposed file changes
-15. Risks
+1. Current Administration files
+2. Parameter API contracts
+3. All current parameter keys/types/modules
+4. Parameter validation
+5. Parameter permissions
+6. Job API contracts
+7. Current jobs
+8. roleMinimum behavior
+9. Job audit behavior
+10. Gemini monitoring payload
+11. Translation engine status payload
+12. Current cron/scheduled behavior
+13. Real mockup metrics
+14. Future placeholder metrics
+15. Unsupported mockup metrics
+16. Existing shared SICOT components
+17. Backend dependencies
+18. Proposed file changes
+19. Risks
 
 Do not implement yet.
 
@@ -1588,163 +1358,175 @@ Do not implement yet.
 
 Return:
 
-1. Queue design
-2. Queue metrics strategy
-3. New translation dialog redesign
-4. OCR prefill integration strategy
-5. Translation workshop architecture
-6. Manual fallback UX
-7. Glossary UX
-8. State/action matrix
-9. Unsaved-change strategy
-10. Responsive strategy
-11. Accessibility strategy
-12. Backend changes if unavoidable
-13. Implementation order
+1. Administration information architecture
+2. Settings-tab structure
+3. Parameter grouping
+4. Monitoring structure
+5. Gemini presentation
+6. Translation engine presentation
+7. Jobs presentation
+8. Job safety/confirmation strategy
+9. Capability architecture
+10. Placeholder strategy
+11. Responsive strategy
+12. Accessibility strategy
+13. Backend changes if unavoidable
+14. Implementation order
 
-## Phase 3 — Queue
-
-Implement:
-
-1. Shared types/utilities
-2. Header
-3. Engine health
-4. Summary cards
-5. Filters
-6. Registry table
-7. Mobile cards
-8. Pagination
-9. States
-
-Validate.
-
-## Phase 4 — New translation
+## Phase 3 — Parameters redesign
 
 Implement:
 
-1. Dialog redesign
-2. Direction selector
-3. Text editor
-4. OCR-source context
-5. Engine status
-6. Launch
-7. Timeout UX
-8. Offline/manual fallback UX
+1. tabs/shell
+2. information banner
+3. parameter grouping
+4. parameter cards
+5. validation
+6. units
+7. save states
+8. permissions
+9. error states
 
 Validate.
 
-## Phase 5 — Translation workshop
+## Phase 4 — Monitoring redesign
 
 Implement:
 
-1. Header
-2. Metadata strip
-3. Original panel
-4. Editable translated panel
-5. Save behavior
-6. Manual-required mode
-7. Glossary assistance
-8. Source context
-9. Engine context
-10. Approval
-11. Review action if supported
-12. Archive/restore
-13. Unsaved-change protection
-14. Responsive behavior
+1. system overview using real data
+2. translation engine status
+3. Gemini usage
+4. report quota/status
+5. monitoring failures
+6. placeholder telemetry only where deliberately retained
 
 Validate.
 
-## Phase 6 — Final validation
+## Phase 5 — Jobs redesign
 
-Run all relevant checks.
+Implement:
+
+1. jobs registry
+2. role capability
+3. execution confirmation
+4. running state
+5. success/failure result
+6. duration/summary
+7. safe handling
+
+Validate.
+
+## Phase 6 — Security/audit regression
+
+Verify:
+
+- route guards
+- backend permissions
+- parameter audit
+- job audit if supported
+- no secret exposure
+
+## Phase 7 — Final validation
+
+Run:
+
+TypeScript
+ESLint
+build
+targeted functional checks
 
 Fix regressions.
 
-## Phase 7 — Final report
+## Phase 8 — Final report
 
 Return:
 
 1. Summary
 2. Files created
 3. Files modified
-4. Queue changes
-5. New translation changes
-6. OCR integration
-7. Editor changes
-8. Manual translation fallback
-9. Glossary behavior
-10. Workflow transitions
-11. Engine health behavior
-12. Shared components
-13. Backend/API changes
-14. Accessibility
-15. Responsive behavior
-16. Validation commands
-17. Validation results
-18. Remaining recommendations
+4. Settings architecture
+5. Parameter changes
+6. Monitoring changes
+7. Gemini monitoring
+8. Translation engine monitoring
+9. Jobs redesign
+10. Safety confirmations
+11. Capability handling
+12. Placeholder telemetry implemented
+13. Future telemetry recommendations
+14. Backend/API changes
+15. Security/audit decisions
+16. Accessibility
+17. Responsive behavior
+18. Validation commands
+19. Validation results
+20. Remaining recommendations
 
 ---
 
-# 52. Acceptance criteria
+# 51. Acceptance criteria
 
 The task is complete when:
 
-- Traductions remains clearly separate from Demandes.
-- The page acts as a translation production queue.
-- Engine health is visible but not dominant.
-- Queue KPIs reflect translation workload.
-- Queue filters work correctly.
-- New translation remains lightweight.
-- Free text translation still works.
-- FR→EN and EN→FR still work.
-- OCR/document prefill still works.
-- Document relationship is preserved.
-- Engine success opens generated translation for review.
-- Engine failure still allows manual translation.
-- `manuelle_requise` is a fully usable workflow.
-- Source text remains read-only.
-- Target text is editable when appropriate.
-- Existing corrections remain highest-priority editor content.
-- Glossary suggestions remain available.
-- Corrections can be saved.
-- Approval saves pending correction first.
-- Archived translations are read-only.
-- Restore remains supported.
-- Delete restrictions remain correct.
-- Unsaved work is protected.
-- Editor remains usable on tablet/mobile.
-- Design aligns visually with normalized SICOT modules.
-- No unrelated module is changed.
-- TypeScript, lint, and build pass.
-- Final implementation report is returned.
+- Administration follows normalized SICOT styling.
+- Settings and operational jobs are clearly separated.
+- Current parameters remain editable.
+- Current parameter keys/backend contracts remain intact.
+- Security parameters are grouped coherently.
+- Backup retention is separated from backup execution.
+- Translation fallback configuration remains functional.
+- Gemini quotas remain configurable.
+- Gemini usage monitoring remains functional.
+- Translation engine state remains visible.
+- Manual jobs remain functional.
+- Job role restrictions are respected.
+- Sensitive jobs require appropriate confirmation.
+- Running jobs cannot be accidentally triggered repeatedly.
+- Execution results are visible.
+- No fake persistent job history is introduced.
+- No fake job success-rate data is introduced.
+- No fake last-backup timestamp is introduced.
+- Future monitoring placeholders are explicit when retained.
+- Parameter changes remain auditable.
+- Admin/security permissions remain enforced server-side and client-side.
+- Sections fail independently when monitoring services are unavailable.
+- Desktop/tablet/mobile are supported.
+- Accessibility requirements are met.
+- TypeScript/lint/build pass.
+- No unrelated modules are modified.
+- Final report is returned.
 
 ---
 
-# 53. Restrictions
+# 52. Restrictions
 
 Do not:
 
-- Turn Traductions into Demandes de traduction.
-- Add requester management.
-- Add service ownership.
-- Add priority.
-- Add deadlines.
-- Add assignments.
-- Add fake progress percentages.
-- Add arbitrary languages unsupported by backend.
-- Replace the current translation engine logic unnecessarily.
-- Remove manual fallback.
-- Remove OCR prefill.
-- Remove glossary support.
-- Make source text editable.
-- Approve stale unsaved text.
-- Block translation creation only because the engine is offline.
-- Add a multi-step wizard for new free-text translation.
-- Rewrite Documents/OCR logic.
-- Derive global KPIs from the current page.
+- Rewrite the complete administration backend.
+- Rename persisted parameter keys.
+- Add arbitrary parameter keys from the frontend.
+- Expose environment secrets.
+- Expose Gemini API keys.
+- Expose DeepL API keys.
+- Expose backup credentials.
+- Allow arbitrary job execution.
+- Fake job history.
+- Fake last-run times.
+- Fake success rates.
+- Fake warning counts.
+- Fake backup timestamps.
+- Add monitoring data unsupported by the backend without marking it as future.
+- Mix backup retention configuration with backup execution.
+- Remove existing Gemini monitoring.
+- Remove DeepL configuration warning.
+- Remove existing manual jobs.
+- Allow unauthorized admins to run super_admin-only jobs.
+- Replace React Query.
+- Replace Tailwind.
+- Introduce another UI library.
 - Modify unrelated modules.
 - Commit or push changes.
 
-Start with **Phase 1 only**.
+Start with Phase 1 only.
 
 Inspect the updated repository and return the audit report before writing implementation code.

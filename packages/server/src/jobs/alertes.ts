@@ -6,6 +6,7 @@ import { accords, users } from '../db/schema.js';
 import { and, eq, lte } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
+import { enregistrerExecutionJob } from '@/modules/jobs/services/job-executions.service.js';
 
 // ── Envoyer les alertes échéances accords ─────────────────────────────────
 export async function envoyerAlertesAccords(jours: number): Promise<{
@@ -105,19 +106,74 @@ export async function mettreAJourAccordsExpires(): Promise<{
 }
 
 // ── Cron : tous les jours à 08h00 ────────────────────────────────────────
+// Deux entrées d'historique distinctes par run — une par job du registre
+// (accords_expiration / accords_alertes) — pour que le monitoring cron
+// s'aligne exactement sur ce que montre la liste des jobs manuels.
 export function demarrerJobsAlertes(): void {
   cron.schedule('0 8 * * *', async () => {
     console.log('⏰ Vérification échéances accords...');
 
-    await mettreAJourAccordsExpires();
+    const debut1 = Date.now();
+    try {
+      const resultat = await mettreAJourAccordsExpires();
+      await enregistrerExecutionJob({
+        jobCle: 'accords_expiration',
+        module: 'M1',
+        source: 'cron',
+        succes: true,
+        resume:
+          resultat.nombreMisAJour > 0
+            ? `${resultat.nombreMisAJour} accord(s) repassé(s) en "expire" : ${resultat.references.join(', ')}`
+            : 'Aucun accord à mettre à jour — tout est déjà cohérent.',
+        dureeMs: Date.now() - debut1,
+      });
+    } catch (error) {
+      await enregistrerExecutionJob({
+        jobCle: 'accords_expiration',
+        module: 'M1',
+        source: 'cron',
+        succes: false,
+        resume: "Échec de l'exécution.",
+        erreur: error instanceof Error ? error.message : 'Erreur inconnue',
+        dureeMs: Date.now() - debut1,
+      });
+    }
 
-    const seuilPrincipal = await getValeurEntier('accord_alerte_jours', 90);
-    const palier1 = Math.round(seuilPrincipal / 3);
-    const palier2 = Math.round((seuilPrincipal / 3) * 2);
+    const debut2 = Date.now();
+    try {
+      const seuilPrincipal = await getValeurEntier('accord_alerte_jours', 90);
+      const palier1 = Math.round(seuilPrincipal / 3);
+      const palier2 = Math.round((seuilPrincipal / 3) * 2);
 
-    await envoyerAlertesAccords(palier1);
-    await envoyerAlertesAccords(palier2);
-    await envoyerAlertesAccords(seuilPrincipal);
+      const r1 = await envoyerAlertesAccords(palier1);
+      const r2 = await envoyerAlertesAccords(palier2);
+      const r3 = await envoyerAlertesAccords(seuilPrincipal);
+
+      const totalAccords = r1.accordsNotifies + r2.accordsNotifies + r3.accordsNotifies;
+      const totalEmails = r1.emailsEnvoyes + r2.emailsEnvoyes + r3.emailsEnvoyes;
+
+      await enregistrerExecutionJob({
+        jobCle: 'accords_alertes',
+        module: 'M1',
+        source: 'cron',
+        succes: true,
+        resume:
+          totalAccords > 0
+            ? `${totalAccords} accord(s) notifié(s), ${totalEmails} email(s) envoyé(s).`
+            : `Aucun accord dans les seuils configurés (${palier1}j, ${palier2}j, ${seuilPrincipal}j).`,
+        dureeMs: Date.now() - debut2,
+      });
+    } catch (error) {
+      await enregistrerExecutionJob({
+        jobCle: 'accords_alertes',
+        module: 'M1',
+        source: 'cron',
+        succes: false,
+        resume: "Échec de l'exécution.",
+        erreur: error instanceof Error ? error.message : 'Erreur inconnue',
+        dureeMs: Date.now() - debut2,
+      });
+    }
   });
 
   console.log('📅 Alertes échéances planifiées à 08h00 quotidiennement (seuils dynamiques)');

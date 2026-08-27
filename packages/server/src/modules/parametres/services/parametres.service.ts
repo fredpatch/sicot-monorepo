@@ -40,6 +40,12 @@ export async function getValeurBooleen(cle: string, defaut: boolean): Promise<bo
   return param.valeur === 'true';
 }
 
+export async function getValeurTexte(cle: string, defaut: string): Promise<string> {
+  const [param] = await db.select().from(parametres).where(eq(parametres.cle, cle));
+  if (!param || !param.valeur) return defaut;
+  return param.valeur;
+}
+
 // ── SERVICE : Mettre à jour un paramètre ──────────────────────────────────
 export async function mettreAJourParametre(
   cle: string,

@@ -1,5 +1,10 @@
 import { REGISTRE_JOBS, getJobParCle } from '@/jobs/registre.js';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
+import { enregistrerExecutionJob, listerExecutionsJobs } from './job-executions.service.js';
+import type { JobExecutionFilters } from './job-executions.service.js';
+
+export { listerExecutionsJobs };
+export type { JobExecutionFilters };
 
 export interface JobResultat {
   cle: string;
@@ -46,6 +51,15 @@ export async function executerJobManuel(
       module: job.module,
       details: { cle, resume, dureeMs },
     });
+    await enregistrerExecutionJob({
+      jobCle: cle,
+      module: job.module,
+      source: 'manuel',
+      succes: true,
+      resume,
+      dureeMs,
+      declenchePar: userId,
+    });
 
     return { cle, succes: true, resume, details, dureeMs };
   } catch (error) {
@@ -57,6 +71,16 @@ export async function executerJobManuel(
       action: 'JOB_ECHEC_MANUEL',
       module: job.module,
       details: { cle, erreur, dureeMs },
+    });
+    await enregistrerExecutionJob({
+      jobCle: cle,
+      module: job.module,
+      source: 'manuel',
+      succes: false,
+      resume: "Échec de l'exécution.",
+      erreur,
+      dureeMs,
+      declenchePar: userId,
     });
 
     return { cle, succes: false, resume: "Échec de l'exécution.", erreur, dureeMs };

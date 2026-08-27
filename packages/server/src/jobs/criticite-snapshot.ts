@@ -3,6 +3,7 @@ import { db } from '@/db/index.js';
 import { courriersCriticiteSnapshots } from '@/db/schema';
 import { getValeurEntier } from '@/modules/parametres/services/parametres.service.js';
 import { sql } from 'drizzle-orm';
+import { enregistrerExecutionJob } from '@/modules/jobs/services/job-executions.service.js';
 
 // ── Capturer l'état de criticité du jour ───────────────────────────────────
 // Reproduit la logique de calculerCriticite() (courriers.helpers.ts) en SQL
@@ -68,7 +69,28 @@ export async function snapshotCriticiteCourriers(): Promise<{
 export function demarrerJobSnapshotCriticite(): void {
   cron.schedule('55 23 * * *', async () => {
     console.log('📸 Capture criticité courriers du jour...');
-    await snapshotCriticiteCourriers();
+    const debut = Date.now();
+    try {
+      const resultat = await snapshotCriticiteCourriers();
+      await enregistrerExecutionJob({
+        jobCle: 'courriers_criticite_snapshot',
+        module: 'M11',
+        source: 'cron',
+        succes: true,
+        resume: `Snapshot du ${resultat.date} : ${resultat.normal} normal, ${resultat.aSurveiller} à surveiller, ${resultat.critique} critique.`,
+        dureeMs: Date.now() - debut,
+      });
+    } catch (error) {
+      await enregistrerExecutionJob({
+        jobCle: 'courriers_criticite_snapshot',
+        module: 'M11',
+        source: 'cron',
+        succes: false,
+        resume: "Échec de l'exécution.",
+        erreur: error instanceof Error ? error.message : 'Erreur inconnue',
+        dureeMs: Date.now() - debut,
+      });
+    }
   });
 
   console.log('📅 Snapshot criticité courriers planifié à 23h55 quotidiennement');
