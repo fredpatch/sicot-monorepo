@@ -13,13 +13,19 @@ import { eq, and } from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { snapshotCriticiteCourriers } from './criticite-snapshot.js';
 import { genererRapportMensuel } from './rapport-mensuel.js';
+import type { Capability } from '@sicot/shared';
 
 export interface JobDefinition {
   cle: string;
   label: string;
   description: string;
   module: string;
-  roleMinimum: 'admin' | 'super_admin';
+  // Capacité requise pour exécuter ce job manuellement — JOB_EXECUTE pour
+  // les jobs ordinaires (admin+), SYSTEM_ADMIN_OPERATION pour les jobs à
+  // haut risque (sauvegardes/système, super_admin only). Remplace l'ancien
+  // champ roleMinimum ('admin' | 'super_admin') — plus de terminologie de
+  // rôle dans le contrat du registre (Phase 4.8.3 cleanup).
+  executionCapability: Capability;
   executer: () => Promise<{ resume: string; details?: Record<string, unknown> }>;
 }
 
@@ -30,7 +36,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Repasse en statut "expire" tous les accords actifs dont la date d\'expiration est dépassée.',
     module: 'M1',
-    roleMinimum: 'admin',
+    executionCapability: 'JOB_EXECUTE',
     executer: async () => {
       const resultat = await mettreAJourAccordsExpires();
       return {
@@ -48,7 +54,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       "Envoie les emails d'alerte aux admins/CCIT pour les accords approchant de leur échéance (seuils configurés).",
     module: 'M1',
-    roleMinimum: 'admin',
+    executionCapability: 'JOB_EXECUTE',
     executer: async () => {
       const seuilPrincipal = await getValeurEntier('accord_alerte_jours', 90);
       const palier1 = Math.round(seuilPrincipal / 3);
@@ -76,7 +82,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Recalcule la criticité de tous les courriers en attente et signale ceux passés en seuil critique au dashboard.',
     module: 'M4',
-    roleMinimum: 'admin',
+    executionCapability: 'JOB_EXECUTE',
     executer: async () => {
       const seuilSurveiller = await getValeurEntier('courrier_alerte_jours', 60);
       const seuilCritique = await getValeurEntier('courrier_alerte_critique_jours', 90);
@@ -126,7 +132,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Identifie les recommandations dont la date limite est dépassée sans être marquées réalisées.',
     module: 'M3',
-    roleMinimum: 'admin',
+    executionCapability: 'JOB_EXECUTE',
     executer: async () => {
       const maintenant = new Date();
 
@@ -164,7 +170,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       "Déclenche immédiatement la sauvegarde du palier quotidien, vers le dossier local et le NAS indépendamment (en plus du cycle automatique de minuit).",
     module: 'M10',
-    roleMinimum: 'super_admin',
+    executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
       const resultat = await effectuerSauvegardeTier('quotidien');
       if (!resultat.succesGlobal) throw new Error(resumerResultat(resultat));
@@ -177,7 +183,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Crée la sauvegarde hebdomadaire du jour puis purge les sauvegardes quotidiennes au-delà du nombre configuré à conserver (seulement si la promotion a réussi).',
     module: 'M10',
-    roleMinimum: 'super_admin',
+    executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
       const { resultat, supprimesLocal, supprimesNas } = await promouvoirPalier(
         'hebdomadaire',
@@ -198,7 +204,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Crée la sauvegarde mensuelle du jour puis purge les sauvegardes hebdomadaires au-delà du nombre configuré à conserver (seulement si la promotion a réussi).',
     module: 'M10',
-    roleMinimum: 'super_admin',
+    executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
       const { resultat, supprimesLocal, supprimesNas } = await promouvoirPalier(
         'mensuel',
@@ -219,7 +225,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Crée la sauvegarde annuelle du jour puis purge les sauvegardes mensuelles au-delà du nombre configuré à conserver. La sauvegarde annuelle elle-même est conservée indéfiniment.',
     module: 'M10',
-    roleMinimum: 'super_admin',
+    executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
       const { resultat, supprimesLocal, supprimesNas } = await promouvoirPalier(
         'annuel',
@@ -240,7 +246,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       "Copie vers le NAS les sauvegardes présentes en local mais absentes du NAS — utile après une coupure réseau pendant laquelle seule la sauvegarde locale a pu s'exécuter.",
     module: 'M10',
-    roleMinimum: 'super_admin',
+    executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
       const { copies, erreurs } = await synchroniserVersNas();
       return {
@@ -258,7 +264,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       "Enregistre l'état du jour (normal/à surveiller/critique) pour alimenter l'évolution dans le temps en Analytics. Utile en dev pour peupler l'historique sans attendre plusieurs jours.",
     module: 'M11',
-    roleMinimum: 'admin',
+    executionCapability: 'JOB_EXECUTE',
     executer: async () => {
       const resultat = await snapshotCriticiteCourriers();
       return {
@@ -273,7 +279,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     description:
       'Génère manuellement le rapport du mois précédent (PDF + Excel), archivé dans M8. Utile en dev pour tester sans attendre le 1er du mois.',
     module: 'M11',
-    roleMinimum: 'admin',
+    executionCapability: 'JOB_EXECUTE',
     executer: async () => {
       const resultat = await genererRapportMensuel();
       return {
@@ -284,7 +290,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
   },
   // ── Réservé Sprint 5/9 — rapport mensuel automatique ──────────────────
   // {
-  //   cle: 'rapport_mensuel', roleMinimum: 'admin', module: 'M9', ...
+  //   cle: 'rapport_mensuel', executionCapability: 'JOB_EXECUTE', module: 'M9', ...
   // },
 ];
 

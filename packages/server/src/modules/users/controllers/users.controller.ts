@@ -3,6 +3,9 @@ import * as usersService from '../services/users.service';
 import { UserRole } from '@sicot/shared';
 import { handleUsersError } from '@/utils/error';
 
+// ── Rôles assignables via la gestion des utilisateurs ───────────────────
+const ROLES_ASSIGNABLES: UserRole[] = ['agent', 'operateur', 'admin', 'super_admin'];
+
 // ── GET /api/users ────────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
@@ -62,8 +65,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
     }
 
     // Validation du rôle
-    const rolesValides: UserRole[] = ['agent', 'traducteur', 'relecteur', 'admin', 'super_admin'];
-    if (!rolesValides.includes(role)) {
+    if (!ROLES_ASSIGNABLES.includes(role)) {
       res.status(400).json({ message: 'Rôle invalide.' });
       return;
     }
@@ -105,6 +107,15 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
 
      if (email !== undefined && !/^\S+@\S+\.\S+$/.test(email)) {
       res.status(400).json({ message: 'Email invalide.' });
+      return;
+    }
+
+    // Validation du rôle — absente avant ce correctif (Phase 4.8) : PATCH
+    // /:id acceptait n'importe quelle chaîne dans `role` sans contrôle,
+    // contrairement à POST / (creer) qui valide déjà. Même liste que la
+    // création.
+    if (role !== undefined && !ROLES_ASSIGNABLES.includes(role)) {
+      res.status(400).json({ message: 'Rôle invalide.' });
       return;
     }
 

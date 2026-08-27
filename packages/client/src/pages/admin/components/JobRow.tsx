@@ -1,6 +1,7 @@
 // packages/client/src/pages/admin/components/JobRow.tsx
 import { CheckCircle2, Loader2, Play, XCircle } from 'lucide-react';
 
+import type { UserRole } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { canRunJob } from '../admin.permissions';
@@ -8,7 +9,7 @@ import type { JobDisponible, JobResultat } from '../admin.types';
 
 interface JobRowProps {
   job: JobDisponible;
-  role: string | undefined;
+  role: UserRole | undefined;
   enCours: boolean;
   resultat?: JobResultat;
   onExecuter: (cle: string) => void;
@@ -23,7 +24,10 @@ export function JobRow({ job, role, enCours, resultat, onExecuter }: JobRowProps
       title: `Lancer « ${job.label} » ?`,
       description: `${job.description} Cette action sera enregistrée dans le Journal d'audit.`,
       confirmLabel: 'Lancer',
-      variant: job.roleMinimum === 'super_admin' ? 'destructive' : 'default',
+      // Préserve le traitement visuel existant (confirmation "destructive"
+      // pour les jobs à haut risque) — SYSTEM_ADMIN_OPERATION remplace
+      // roleMinimum === 'super_admin' comme signal, sans changer l'UI.
+      variant: job.executionCapability === 'SYSTEM_ADMIN_OPERATION' ? 'destructive' : 'default',
     });
     if (ok) onExecuter(job.cle);
   }

@@ -110,6 +110,7 @@ export function toMissionView(
     participants,
     recommandations: recommandationsList,
     rapportDocumentId: mission.rapportDocumentId ?? undefined,
+    rapportResponsableId: mission.rapportResponsableId ?? undefined,
     confirmationLogistique: mission.confirmationLogistique as LogistiqueStatut,
     logistiqueBilletReserve: mission.logistiqueBilletReserve,
     logistiqueHebergementConfirme: mission.logistiqueHebergementConfirme,

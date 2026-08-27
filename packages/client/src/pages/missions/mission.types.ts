@@ -48,6 +48,7 @@ export interface Mission {
   logistiqueFinancementValide: boolean;
   contactSurPlace?: ContactResume;
   rapportDocumentId?: number;
+  rapportResponsableId?: number;
   createdPar?: number;
   createdAt: string;
   updatedAt: string;

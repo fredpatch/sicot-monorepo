@@ -72,7 +72,7 @@ export function OngletTraductions({ periode }: { periode: Periode }) {
         <div className="card p-4">
           <p className="text-sm font-semibold text-anac-navy mb-0.5">Fiabilité de l&apos;IA</p>
           <p className="text-xs text-anac-muted mb-3">
-            Traductions approuvées : validées telles quelles par un relecteur vs corrigées avant
+            Traductions approuvées : validées telles quelles par un opérateur vs corrigées avant
             validation.
           </p>
           {valideesTelQuelles + corrigees === 0 ? (

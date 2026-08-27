@@ -223,6 +223,19 @@ export async function creerMission(params: CreateMissionParams): Promise<Mission
   return toMissionView(mission, participants, [], contactSurPlace);
 }
 
+// ── Validation : rapportResponsableId doit nommer un participant actuel ───
+// Pure (aucun I/O) — la relation "responsable ⇒ participant" est une règle
+// de domaine, pas un rôle : validée ici contre la liste de participants que
+// l'appelant fait autorité (voir mettreAJourMission), jamais contre un rôle.
+export function validerResponsableRapport(
+  rapportResponsableId: number | null,
+  participantsIds: number[]
+): void {
+  if (rapportResponsableId !== null && !participantsIds.includes(rapportResponsableId)) {
+    throw new Error('RESPONSABLE_RAPPORT_NON_PARTICIPANT');
+  }
+}
+
 // ── SERVICE : Mettre à jour une mission ───────────────────────────────────
 export async function mettreAJourMission(
   id: number,
@@ -261,6 +274,32 @@ export async function mettreAJourMission(
   }
   if (params.contactSurPlaceId !== undefined) {
     updates.contactSurPlaceId = params.contactSurPlaceId;
+  }
+
+  // rapportResponsableId must always name a current participant of this
+  // mission (Phase 8) — checked against the participant list this same
+  // update is about to leave in place (params.participantsIds if the
+  // caller is also changing it in this request, otherwise the existing
+  // membership). Never a role check: purely a domain relationship.
+  const participantsFinaux =
+    params.participantsIds !== undefined
+      ? params.participantsIds
+      : (await getParticipantsMission(id)).map((p) => p.id);
+
+  if (params.rapportResponsableId !== undefined) {
+    validerResponsableRapport(params.rapportResponsableId, participantsFinaux);
+    updates.rapportResponsableId = params.rapportResponsableId;
+  } else if (
+    params.participantsIds !== undefined &&
+    existante.rapportResponsableId !== null &&
+    !participantsFinaux.includes(existante.rapportResponsableId)
+  ) {
+    // The participant list changed underneath the current report
+    // responsible (e.g. they were removed) without the caller explicitly
+    // reassigning it in the same request — silently clear rather than
+    // fail an otherwise-unrelated participant-list edit, and never leave
+    // a dangling reference to a non-participant.
+    updates.rapportResponsableId = null;
   }
 
   // confirmationLogistique is derived from the checklist, never set
@@ -399,6 +438,40 @@ export async function mettreAJourRecommandation(
   });
 
   return toRecommandationView(updated);
+}
+
+// ── SERVICE : L'utilisateur est-il le responsable de cette recommandation ──
+// Relation métier (recommandations.responsableId) utilisée pour le repli
+// personnel des notifications de relance (module notifications — Phase 7.1) :
+// un agent qui n'a pas MISSION_REGISTRY_VIEW peut quand même relancer/
+// consulter l'historique d'une recommandation dont il est explicitement
+// responsable, sans devenir admin.
+export async function estResponsableRecommandation(
+  recommandationId: number,
+  userId: number
+): Promise<boolean> {
+  const [rec] = await db
+    .select({ responsableId: recommandations.responsableId })
+    .from(recommandations)
+    .where(eq(recommandations.id, recommandationId));
+
+  return !!rec && rec.responsableId === userId;
+}
+
+// ── SERVICE : L'utilisateur est-il le responsable du rapport de mission ────
+// Relation métier (missions.rapportResponsableId) — Phase 8 : seul le
+// participant explicitement désigné peut soumettre/remplacer le rapport
+// officiel via le workflow personnel, sans passer par MISSION_MANAGE.
+export async function estResponsableRapportMission(
+  missionId: number,
+  userId: number
+): Promise<boolean> {
+  const [mission] = await db
+    .select({ rapportResponsableId: missions.rapportResponsableId })
+    .from(missions)
+    .where(eq(missions.id, missionId));
+
+  return !!mission && mission.rapportResponsableId === userId;
 }
 
 // ── SERVICE : Recommandations en attente ──────────────────────────────────

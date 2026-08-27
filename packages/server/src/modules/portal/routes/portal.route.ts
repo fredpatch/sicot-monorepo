@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { authenticate } from '@/middleware/auth';
-import { requireRole } from '@/middleware/requiredRole';
+import { requireCapability } from '@/middleware/requireCapability';
 import * as portailController from '../controllers/portal.controller';
 
 const router = Router();
@@ -40,7 +40,7 @@ router.get('/telecharger/:token', portailController.telecharger);
 router.patch(
   '/documents/:id/visibilite',
   authenticate,
-  requireRole('admin'),
+  requireCapability('PORTAL_PUBLICATION_MANAGE'),
   portailController.toggleVisibilite
 );
 

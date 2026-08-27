@@ -39,6 +39,7 @@ export interface UpdateMissionParams {
   logistiqueFinancementValide?: boolean;
   contactSurPlaceId?: number | null;
   rapportDocumentId?: number | null;
+  rapportResponsableId?: number | null;
   updatedByUserId: number;
 }
 
@@ -120,6 +121,7 @@ export interface MissionView {
   logistiqueFinancementValide: boolean;
   contactSurPlace?: ContactResume;
   rapportDocumentId?: number;
+  rapportResponsableId?: number;
   createdPar?: number;
   createdAt: Date;
   updatedAt: Date;

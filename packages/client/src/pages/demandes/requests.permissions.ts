@@ -1,77 +1,82 @@
 // packages/client/src/pages/demandes/requests.permissions.ts
 //
-// Centralizes the request action matrix — mirrors the server's guards exactly
-// (demandes.service.ts) so a button is only ever shown when the matching API
-// call would actually succeed. Role check mirrors the hierarchical
-// requireRole() in packages/server/src/middleware/requiredRole.ts.
+// Centralizes the request action matrix — mirrors the server's guards
+// exactly (demandes.route.ts / demandes.controller.ts): a capability check
+// per action, matching requireCapability() server-side, plus the same
+// contextual ownership/workflow-state predicates the server enforces
+// independently (Phase 4.5). Capabilities answer "may this role attempt
+// this category of action"; ownership/state answer "on this specific
+// record, right now" — kept as separate, explicit predicates rather than
+// collapsed into a single role check (Phase 5.3).
+import { hasCapability, type UserRole } from '@sicot/shared';
 import type { Demande } from './requests.types';
 
 interface RequestUser {
   id: number;
-  role: string;
+  role: UserRole;
 }
 
-const ROLE_LEVEL: Record<string, number> = {
-  agent: 1,
-  traducteur: 2,
-  relecteur: 3,
-  admin: 4,
-  super_admin: 5,
-};
-
-function roleAtLeast(user: RequestUser | null | undefined, minimum: string): boolean {
-  if (!user) return false;
-  return (ROLE_LEVEL[user.role] ?? 0) >= ROLE_LEVEL[minimum];
+function can(user: RequestUser | null | undefined, capability: Parameters<typeof hasCapability>[1]): boolean {
+  return !!user && hasCapability(user.role, capability);
 }
 
 export function canTakeRequest(demande: Demande, user: RequestUser | null | undefined): boolean {
-  return demande.statut === 'soumise' && !demande.verrou && roleAtLeast(user, 'traducteur');
+  return demande.statut === 'soumise' && !demande.verrou && can(user, 'REQUEST_TAKE');
 }
 
+// Ownership (demandeurId === user.id) — not a capability question at all;
+// REQUEST_RECALL_OWN is held by every target role, so the capability check
+// here is a no-op in practice today, kept for parity with the server's
+// requireCapability('REQUEST_RECALL_OWN') + ownership check shape.
 export function canRecallRequest(demande: Demande, user: RequestUser | null | undefined): boolean {
-  return demande.statut === 'soumise' && demande.demandeurId === user?.id;
+  return demande.statut === 'soumise' && demande.demandeurId === user?.id && can(user, 'REQUEST_RECALL_OWN');
 }
 
+// Assigned-translator ownership (traducteurId === user.id) stays an
+// explicit predicate — REQUEST_SUBMIT_REVIEW alone would let any
+// operateur+ submit someone else's in-progress translation for review.
 export function canSubmitForReview(
   demande: Demande,
   user: RequestUser | null | undefined
 ): boolean {
-  return demande.statut === 'en_cours' && demande.traducteurId === user?.id;
+  return demande.statut === 'en_cours' && demande.traducteurId === user?.id && can(user, 'REQUEST_SUBMIT_REVIEW');
 }
 
-// Reste disponible même après une première validation — un relecteur doit
+// Reste disponible même après une première validation — un opérateur doit
 // pouvoir revenir changer la priorité (ex. le demandeur avait sous-estimé
 // l'urgence), pas seulement la valider une fois pour toutes.
 export function canValidatePriority(
   demande: Demande,
   user: RequestUser | null | undefined
 ): boolean {
-  return demande.statut !== 'archivee' && roleAtLeast(user, 'relecteur');
+  return demande.statut !== 'archivee' && can(user, 'REQUEST_PRIORITY_VALIDATE');
 }
 
 export function canValidateRequest(
   demande: Demande,
   user: RequestUser | null | undefined
 ): boolean {
-  return demande.statut === 'en_relecture' && roleAtLeast(user, 'relecteur');
+  return demande.statut === 'en_relecture' && can(user, 'REQUEST_VALIDATE');
 }
 
 export function canArchiveRequest(
   demande: Demande,
   user: RequestUser | null | undefined
 ): boolean {
-  return demande.statut === 'validee' && roleAtLeast(user, 'relecteur');
+  return demande.statut === 'validee' && can(user, 'REQUEST_ARCHIVE');
 }
 
-// Deliberately traducteur+ only — the destination (/traductions/:id) is the
-// full admin editing workshop (correction/approbation/suppression), not a
-// read-only viewer. An agent's own linked translation isn't safe to open
+// Deliberately gated on TRANSLATION_VIEW — matches the destination route's
+// own guard (/traductions/:id in router.tsx) exactly, so this button never
+// shows for a role the route itself would bounce. The destination is the
+// full editing workshop (correction/approbation/suppression), not a
+// read-only viewer — an agent's own linked translation isn't safe to open
 // here until a real read-only preview exists (tracked in the backlog).
 export function canOpenTranslation(
   demande: Demande,
   user: RequestUser | null | undefined
 ): boolean {
-  return demande.traductionId !== undefined && roleAtLeast(user, 'traducteur');
+  return demande.traductionId !== undefined && can(user, 'TRANSLATION_VIEW');
 }
 
 export type RequestActionId =

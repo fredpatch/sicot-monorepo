@@ -1,23 +1,24 @@
 import { Router } from 'express';
 import { authenticate } from '@/middleware/auth.js';
-import { requireRole } from '@/middleware/requiredRole.js';
+import { requireCapability } from '@/middleware/requireCapability.js';
 import * as notificationsController from '../controllers/notifications.controller.js';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get('/recentes', requireRole('admin'), notificationsController.recentes);
-router.get(
-  '/historique/:type/:entiteId',
-  requireRole('agent'),
-  notificationsController.historiqueEntite
-);
+// Résumé multi-domaines pour le dashboard (pas de relation propriétaire par
+// entité possible ici, contrairement à historique/envoyer) — ANALYTICS_VIEW,
+// même capacité que le reste du dashboard.
+router.get('/recentes', requireCapability('ANALYTICS_VIEW'), notificationsController.recentes);
 
-// Envoi réservé CCIT (admin minimum), sauf relance de recommandation de
-// mission — agent minimum, restriction de type appliquée dans le contrôleur
-// (cf. Missions §12 du plan de refonte : un agent doit pouvoir relancer une
-// recommandation dont il est responsable sans devenir admin).
-router.post('/envoyer', requireRole('agent'), notificationsController.envoyer);
+// historique/:type/:entiteId et envoyer : l'autorisation dépend du type de
+// notification ciblé (domaine différent par type) et, pour
+// recommandation_rappel, de la relation responsableId — impossible à
+// exprimer comme une seule capacité statique au niveau du routeur. Voir
+// notifications.policies.ts (Phase 7.1) : chaque contrôleur vérifie
+// peutConsulterHistorique/peutEnvoyerNotification avant d'agir.
+router.get('/historique/:type/:entiteId', notificationsController.historiqueEntite);
+router.post('/envoyer', notificationsController.envoyer);
 
 export default router;

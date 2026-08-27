@@ -2,6 +2,7 @@ import { REGISTRE_JOBS, getJobParCle } from '@/jobs/registre.js';
 import { logAudit } from '@/modules/auth/services/auth.service.js';
 import { enregistrerExecutionJob, listerExecutionsJobs } from './job-executions.service.js';
 import type { JobExecutionFilters } from './job-executions.service.js';
+import { hasCapability, UserRole } from '@sicot/shared';
 
 export { listerExecutionsJobs };
 export type { JobExecutionFilters };
@@ -22,7 +23,7 @@ export function listerJobs() {
     label: j.label,
     description: j.description,
     module: j.module,
-    roleMinimum: j.roleMinimum,
+    executionCapability: j.executionCapability,
   }));
 }
 
@@ -35,7 +36,13 @@ export async function executerJobManuel(
   const job = getJobParCle(cle);
   if (!job) throw new Error('JOB_INTROUVABLE');
 
-  if (job.roleMinimum === 'super_admin' && userRole !== 'super_admin') {
+  // Autorisation directe via la capacité requise par CE job — distincte de
+  // la garde JOB_EXECUTE au niveau route (voir jobs.route.ts), qui ne fait
+  // que vérifier l'accès général à l'écran Jobs. Un job ordinaire exige
+  // JOB_EXECUTE (déjà garanti par la route) ; un job à haut risque exige en
+  // plus SYSTEM_ADMIN_OPERATION — plus aucune comparaison de rôle brute ni
+  // de champ roleMinimum ici (Phase 4.8.3 contract cleanup).
+  if (!hasCapability(userRole as UserRole, job.executionCapability)) {
     throw new Error('ROLE_INSUFFISANT');
   }
 

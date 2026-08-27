@@ -138,7 +138,7 @@ export function NouvelleDemandeDialog({
                   )}
                 />
                 <p className="text-[11px] text-anac-muted">
-                  La priorité pourra être confirmée ou ajustée par un relecteur.
+                  La priorité pourra être confirmée ou ajustée par un opérateur.
                 </p>
               </div>
             </div>

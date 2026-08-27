@@ -1,4 +1,6 @@
 // packages/client/src/pages/admin/admin.types.ts
+import type { Capability } from '@sicot/shared';
+
 export type ParametreType = 'entier' | 'booleen' | 'texte';
 
 export interface Parametre {
@@ -17,7 +19,7 @@ export interface JobDisponible {
   cle: string;
   label: string;
   description: string;
-  roleMinimum: 'admin' | 'super_admin';
+  executionCapability: Capability;
   module: string;
 }
 

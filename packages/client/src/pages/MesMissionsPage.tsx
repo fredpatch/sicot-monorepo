@@ -34,7 +34,7 @@ export default function MesMissionsPage() {
 
   const linkReportMutation = useMutation({
     mutationFn: ({ missionId, documentId }: { missionId: number; documentId: number }) =>
-      missionsApi.mettreAJour(missionId, { rapportDocumentId: documentId }),
+      missionsApi.definirRapportPersonnel(missionId, documentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['missions'] });
       queryClient.invalidateQueries({ queryKey: ['missions-aggregates'] });
@@ -98,7 +98,7 @@ export default function MesMissionsPage() {
                       <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
                         <CheckCircle2 size={13} aria-hidden="true" /> Déposé
                       </span>
-                    ) : mission.statut === 'terminee' ? (
+                    ) : mission.statut === 'terminee' && mission.rapportResponsableId === user.id ? (
                       <Button
                         type="button"
                         variant="link"
@@ -136,7 +136,7 @@ export default function MesMissionsPage() {
                 <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
                   <CheckCircle2 size={13} aria-hidden="true" /> Rapport déposé
                 </span>
-              ) : mission.statut === 'terminee' ? (
+              ) : mission.statut === 'terminee' && mission.rapportResponsableId === user.id ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -147,6 +147,10 @@ export default function MesMissionsPage() {
                 >
                   <Upload size={13} aria-hidden="true" /> Déposer le rapport
                 </Button>
+              ) : mission.statut === 'terminee' ? (
+                <span className="text-xs text-anac-muted">
+                  {mission.rapportResponsableId ? "En attente du responsable désigné" : 'Aucun responsable désigné'}
+                </span>
               ) : (
                 <span className="text-xs text-anac-muted">Mission non terminée</span>
               )}

@@ -2,6 +2,16 @@ import { Request, Response } from 'express';
 import * as documentsService from '@/modules/document/services/documents.service.js';
 import { handleDocumentsError } from './documents.errors';
 import fs from 'fs';
+import { hasCapability, UserRole } from '@sicot/shared';
+
+// ── Portée personnelle — dérivée de la capacité, pas du rôle ───────────────
+// Quiconque n'a pas DOCUMENT_UPLOAD (le signal "accès bibliothèque
+// générale", operateur+) ne voit que les documents visibles en interne +
+// ceux qu'il a lui-même uploadés (Phase 4.7, même principe que
+// documents.service.ts:verifierAccesDocument).
+function aSeulementSesPropresDocuments(req: Request): boolean {
+  return !hasCapability(req.user!.role as UserRole, 'DOCUMENT_UPLOAD');
+}
 
 // ── POST /api/documents/upload ────────────────────────────────────────────
 export async function upload(req: Request, res: Response): Promise<void> {
@@ -13,11 +23,19 @@ export async function upload(req: Request, res: Response): Promise<void> {
     }
 
     const { categorie, visibiliteInterne } = req.body;
-    // POST /upload n'a aucune garde de rôle (les agents y déposent leurs
-    // propres fichiers) — visibiliteInterne ne peut donc jamais venir du
-    // client pour ce rôle, même s'il est fourni dans le corps de la
-    // requête, sinon un agent pourrait s'auto-publier en interne.
-    const estAgent = req.user!.role === 'agent';
+    // POST /upload n'a délibérément aucune garde de capacité — audité en
+    // Phase 4.7 : ce même endpoint sert à la fois l'upload de bibliothèque
+    // générale (page Documents, operateur+ côté UI) ET les workflows
+    // personnels (pièce jointe d'une demande de traduction, rapport de
+    // mission), où un agent doit pouvoir déposer son propre fichier. Le
+    // scoping se fait après coup, pas à la porte : un agent ne peut jamais
+    // rendre son upload visible en interne (visibiliteInterne forcé à
+    // false), donc le document reste privé (visible seulement par lui-même
+    // et par quiconque a DOCUMENT_UPLOAD) jusqu'à ce qu'un opérateur+ le
+    // rende visible via DOCUMENT_INTERNAL_VISIBILITY_MANAGE. Voir le rapport
+    // de phase pour la distinction complète upload-personnel vs
+    // gestion-de-bibliothèque.
+    const aSeulementLaPorteePersonnelle = !hasCapability(req.user!.role as UserRole, 'DOCUMENT_UPLOAD');
 
     const result = await documentsService.uploaderDocument({
       buffer: req.file.buffer,
@@ -25,7 +43,7 @@ export async function upload(req: Request, res: Response): Promise<void> {
       mimeType: req.file.mimetype,
       categorie: categorie ?? 'autre',
       uploadePar: req.user!.userId,
-      visibiliteInterne: !estAgent && visibiliteInterne === '1',
+      visibiliteInterne: !aSeulementLaPorteePersonnelle && visibiliteInterne === '1',
     });
 
     // 207 Multi-Status si doublon détecté — succès mais avec avertissement
@@ -45,12 +63,12 @@ export async function upload(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/documents ────────────────────────────────────────────────────
-// Un agent ne voit que les documents visibles en interne + ceux qu'il a
-// lui-même uploadés ; traducteur+ voit tout, comme aujourd'hui.
+// Sans DOCUMENT_UPLOAD (portée personnelle uniquement), on ne voit que les
+// documents visibles en interne + ceux qu'on a soi-même uploadés ;
+// operateur+ voit tout, comme aujourd'hui.
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
     const { search, categorie, statutOCR, page, pageSize, finalesUniquement } = req.query;
-    const estAgent = req.user!.role === 'agent';
 
     const result = await documentsService.listerDocuments({
       search: search as string | undefined,
@@ -59,7 +77,7 @@ export async function lister(req: Request, res: Response): Promise<void> {
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
       finalesUniquement: finalesUniquement === '1',
-      visibleOuUploadePar: estAgent ? req.user!.userId : undefined,
+      visibleOuUploadePar: aSeulementSesPropresDocuments(req) ? req.user!.userId : undefined,
     });
 
     res.json(result);
@@ -71,9 +89,8 @@ export async function lister(req: Request, res: Response): Promise<void> {
 // ── GET /api/documents/aggregates ─────────────────────────────────────────
 export async function aggregates(req: Request, res: Response): Promise<void> {
   try {
-    const estAgent = req.user!.role === 'agent';
     const result = await documentsService.getDocumentsAggregates(
-      estAgent ? req.user!.userId : undefined
+      aSeulementSesPropresDocuments(req) ? req.user!.userId : undefined
     );
     res.json(result);
   } catch (error) {

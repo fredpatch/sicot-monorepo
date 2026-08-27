@@ -4,7 +4,9 @@
 // ─────────────────────────────────────────────
 
 // ── Rôles utilisateur ──────────────────────────────────────────────────────
-export type UserRole = 'agent' | 'traducteur' | 'relecteur' | 'admin' | 'super_admin';
+// Canonical definition lives in ./auth/roles.
+export * from './auth';
+import type { UserRole } from './auth';
 
 export interface User {
   id: number;

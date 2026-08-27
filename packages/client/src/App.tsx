@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import axios from 'axios';
+import type { Capability, UserRole } from '@sicot/shared';
+import { hasCapability } from '@sicot/shared';
 import { authApi } from './lib/auth.api';
 import { getLandingRoute } from './lib/landing';
 import { Toaster } from './components/ui/sonner';
@@ -11,7 +13,7 @@ interface AuthUser {
   matricule: string;
   nom: string;
   prenom: string;
-  role: string;
+  role: UserRole;
 }
 
 interface AuthContextType {
@@ -49,50 +51,34 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// ── Route réservée aux admins ─────────────────────────────────────────────
-export function AdminRoute({ children }: { children: React.ReactNode }) {
+// ── Route réservée à une capacité ─────────────────────────────────────────
+// Remplace AgentRoute/NonAgentRoute/AdminRoute/RoleRoute (rôles codés en
+// dur) — un seul garde générique, dérivé de hasCapability() comme partout
+// ailleurs dans ce refactor d'autorisation (Phase 5.1). Le frontend reste
+// UX seulement : le backend est la source de vérité, ce garde évite juste
+// d'afficher un écran que l'API refusera de toute façon.
+//
+// Redirige vers getLandingRoute(role) plutôt qu'une destination fixe — la
+// cible dépend du niveau de capacité du rôle, donc "où renvoyer quelqu'un
+// qui n'a pas telle capacité" n'a pas de réponse unique. Sans boucle : les
+// trois destinations de getLandingRoute (/mon-espace, /demandes,
+// /dashboard) sont choisies pour être exactement ce que chaque palier peut
+// atteindre (voir lib/landing.ts).
+export function CapabilityRoute({
+  capability,
+  children,
+}: {
+  capability: Capability;
+  children: React.ReactNode;
+}) {
   const { user } = useAuth();
 
-  if (!user || !['admin', 'super_admin'].includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
-}
-
-// ── Route réservée aux agents (espace de travail dédié) ───────────────────
-export function AgentRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-
-  if (!user || user.role !== 'agent') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-// ── Route interdite aux agents (ex. /dashboard, hors de leur portée) ──────
-export function NonAgentRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-
-  if (user?.role === 'agent') {
-    return <Navigate to="/mon-espace" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-// ── Route réservée à une liste de rôles explicite ─────────────────────────
-// Générique — pour tout écran dont l'accès ne se limite pas à "admin" ou
-// "agent" (ex. Traductions/Demandes/Glossaire, réservés traducteur et plus).
-// Ferme la même faille que AdminRoute/AgentRoute/NonAgentRoute : la barre de
-// navigation masquait déjà ces liens par rôle, mais rien n'empêchait d'y
-// accéder par URL directe avant l'ajout de ce garde.
-export function RoleRoute({ roles, children }: { roles: string[]; children: React.ReactNode }) {
-  const { user } = useAuth();
-
-  if (!user || !roles.includes(user.role)) {
-    return <Navigate to={getLandingRoute(user?.role)} replace />;
+  if (!hasCapability(user.role, capability)) {
+    return <Navigate to={getLandingRoute(user.role)} replace />;
   }
 
   return <>{children}</>;

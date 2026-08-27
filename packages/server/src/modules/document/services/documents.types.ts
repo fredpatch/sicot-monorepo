@@ -48,7 +48,7 @@ export interface DocumentFilters {
   finalesUniquement?: boolean;
   // Restreint la lecture à "visible en interne OU uploadé par cet
   // utilisateur" — utilisé pour le rôle agent uniquement ; omis (undefined)
-  // pour traducteur+ qui voit tout, comme aujourd'hui.
+  // pour operateur+ qui voit tout, comme aujourd'hui.
   visibleOuUploadePar?: number;
 }
 

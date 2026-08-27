@@ -55,12 +55,19 @@ export const missionsApi = {
       statut?: MissionStatut;
       participantsIds?: number[];
       rapportDocumentId?: number | null; // null clears a mistakenly-linked report
+      rapportResponsableId?: number | null; // null clears the designated report responsible
       logistiqueBilletReserve?: boolean;
       logistiqueHebergementConfirme?: boolean;
       logistiqueFinancementValide?: boolean;
       contactSurPlaceId?: number | null; // null clears a mistakenly-set contact
     }
   ) => api.patch(`/missions/${id}`, data),
+
+  // Workflow personnel (Phase 8) — seul le participant désigné
+  // rapportResponsableId (ou un admin/super_admin) peut soumettre/remplacer
+  // le rapport officiel par ce chemin ; documentId: null retire le rapport.
+  definirRapportPersonnel: (id: number, documentId: number | null) =>
+    api.patch(`/missions/${id}/rapport`, { documentId }),
 
   // ── Recommandations ───────────────────────────────────────────────────────
 

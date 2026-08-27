@@ -3,8 +3,7 @@ import type { UserRole } from '@sicot/shared';
 
 export const ROLES: { value: UserRole; label: string }[] = [
   { value: 'agent', label: 'Agent' },
-  { value: 'traducteur', label: 'Traducteur' },
-  { value: 'relecteur', label: 'Relecteur' },
+  { value: 'operateur', label: 'Opérateur' },
   { value: 'admin', label: 'Admin' },
   { value: 'super_admin', label: 'Super Admin' },
 ];

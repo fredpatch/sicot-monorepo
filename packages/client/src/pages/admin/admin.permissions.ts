@@ -1,27 +1,23 @@
 // packages/client/src/pages/admin/admin.permissions.ts
 //
-// Mirrors the real server-side gates exactly (Phase 1 audit):
-// GET /parametres → admin+, PATCH /parametres/:cle → super_admin only;
-// GET/POST /jobs → admin+ at the route, then a per-job roleMinimum check in
-// jobs.service.ts. Centralized here instead of scattered role comparisons.
+// Mirrors the real server-side gates exactly (Phase 1 audit, Phase 4.8.2/
+// 4.8.3): GET /parametres → SYSTEM_SETTINGS_VIEW, PATCH /parametres/:cle →
+// SYSTEM_SETTINGS_MANAGE (super_admin only); GET/POST /jobs → JOB_EXECUTE
+// at the route, then each job's own executionCapability checked directly
+// in jobs.service.ts. Centralized here instead of scattered role
+// comparisons.
+import { hasCapability, type UserRole } from '@sicot/shared';
 import type { JobDisponible } from './admin.types';
 
-const ROLE_LEVEL: Record<string, number> = {
-  agent: 1,
-  traducteur: 2,
-  relecteur: 3,
-  admin: 4,
-  super_admin: 5,
-};
-
-function roleAtLeast(role: string | undefined, minimum: string): boolean {
-  return (ROLE_LEVEL[role ?? ''] ?? 0) >= ROLE_LEVEL[minimum];
+// SYSTEM_SETTINGS_MANAGE is deliberately absent from ADMIN_CAPABILITIES in
+// the shared role-capability matrix (packages/shared/src/auth/
+// role-capabilities.ts) — super_admin only, enforced by the capability
+// mapping itself rather than a role-literal comparison here (Phase 5.3).
+export function canEditParameter(role: UserRole | undefined): boolean {
+  return !!role && hasCapability(role, 'SYSTEM_SETTINGS_MANAGE');
 }
 
-export function canEditParameter(role: string | undefined): boolean {
-  return role === 'super_admin';
-}
-
-export function canRunJob(role: string | undefined, job: JobDisponible): boolean {
-  return roleAtLeast(role, job.roleMinimum);
+export function canRunJob(role: UserRole | undefined, job: JobDisponible): boolean {
+  if (!role) return false;
+  return hasCapability(role, job.executionCapability);
 }

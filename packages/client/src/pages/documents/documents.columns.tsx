@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Download, Eye, EyeOff } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TFunction } from 'i18next';
+import type { UserRole } from '@sicot/shared';
 
 import { Button } from '@/components/ui/button';
 import { BadgeOCR } from './components/BadgeOCR';
@@ -22,7 +23,7 @@ const COLONNES_MASQUEES_AGENT = ['statutOCR', 'visibiliteInterne', 'portail'];
 
 interface UseDocumentsColumnsParams {
   t: TFunction;
-  role: string | undefined;
+  role: UserRole | undefined;
   onCorrigerOCR: (doc: Document) => void;
   onRetraiterOCR: (id: number) => void;
   retraiterOCREnCours: boolean;
@@ -223,8 +224,11 @@ export function useDocumentsColumns({
       },
     ];
 
+    // Masque ces colonnes pour qui n'a que la portée personnelle
+    // (DOCUMENT_UPLOAD absent) — même frontière que le scoping de lecture
+    // côté serveur (documents.controller.ts aSeulementSesPropresDocuments).
     return colonnes.filter(
-      (colonne) => role !== 'agent' || !COLONNES_MASQUEES_AGENT.includes(colonne.id ?? '')
+      (colonne) => canManageDocuments(role) || !COLONNES_MASQUEES_AGENT.includes(colonne.id ?? '')
     );
   }, [
       t,

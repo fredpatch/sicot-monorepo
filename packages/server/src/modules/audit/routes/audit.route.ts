@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import { authenticate } from '@/middleware/auth';
-import { requireAdmin } from '@/middleware/requiredRole';
+import { requireCapability } from '@/middleware/requireCapability';
 import * as auditController from '../controllers/audit.controller';
 
 const router = Router();
 
-// Toutes les routes audit nécessitent d'être connecté ET admin minimum
-router.use(authenticate, requireAdmin);
+// Toutes les routes audit nécessitent d'être connecté ET AUDIT_VIEW —
+// une seule garde au niveau routeur pour tout le module, lectures ET
+// exports inclus (même limite d'autorisation partout). Was requireAdmin,
+// même ensemble effectif (admin+).
+router.use(authenticate, requireCapability('AUDIT_VIEW'));
 
 // ── Métadonnées pour les filtres ──────────────────────────────────────────
 // Ces routes doivent être déclarées AVANT /:id

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { FileDown, Loader2, LoaderIcon, Sparkles } from 'lucide-react';
 
+import { hasCapability } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -29,9 +30,14 @@ export function OngletRapports() {
   const [periodeDebut, setPeriodeDebut] = useState('');
   const [periodeFin, setPeriodeFin] = useState('');
 
-  // On ne montre l'onglet "Rapports" qu'aux admins et super-admins, car il permet de générer des rapports globaux.
+  // Génération/approbation de l'analyse IA — ADMIN_MONITORING_VIEW, la même
+  // capacité que PATCH /analytics/rapports/:id/analyse-ia côté serveur
+  // (Phase 4.8.4), pas un littéral de rôle. Toute la page Analytics est déjà
+  // gardée ANALYTICS_VIEW (admin+) au niveau route, donc ce test est
+  // aujourd'hui plus strict que "peut voir la page" par construction, pas
+  // redondant avec elle.
   const { user } = useAuth();
-  const estAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const estAdmin = !!user && hasCapability(user.role, 'ADMIN_MONITORING_VIEW');
 
   const [rapportEnRevue, setRapportEnRevue] = useState<RapportHistorique | null>(null);
   const [texteEdite, setTexteEdite] = useState('');

@@ -1,5 +1,13 @@
 import { Request, Response } from 'express';
+import type { UserRole } from '@sicot/shared';
 import * as notificationsService from '../services/notifications.service.js';
+import { peutConsulterHistorique, peutEnvoyerNotification } from '../services/notifications.policies.js';
+
+const TYPES_CONNUS: notificationsService.NotificationType[] = [
+  'accord_echeance',
+  'courrier_relance',
+  'recommandation_rappel',
+];
 
 function handleNotificationsError(res: Response, error: unknown): void {
   const message = error instanceof Error ? error.message : 'ERREUR_INCONNUE';
@@ -26,12 +34,12 @@ function handleNotificationsError(res: Response, error: unknown): void {
 }
 
 // ── POST /api/notifications/envoyer ───────────────────────────────────────
-// Route ouverte à partir du rôle 'agent', mais un agent ne peut envoyer que
-// des relances de recommandation de mission ('recommandation_rappel') — les
-// autres types (échéance d'accord, relance de courrier) restent réservés
-// admin+, cette route n'étant pas admin-only au niveau du routeur.
-const TYPES_AUTORISES_AGENT = ['recommandation_rappel'];
-
+// Autorisation dérivée du domaine de chaque type de notification, pas d'un
+// rôle statique au niveau du routeur (Phase 7.1 — voir notifications.policies.ts).
+// accord_echeance/courrier_relance restent admin+ (AGREEMENT_MANAGE /
+// CORRESPONDENCE_MANAGE) ; recommandation_rappel autorise en plus le
+// responsable personnel de la recommandation ciblée (MISSION_VIEW_OWN +
+// relation responsableId), sans élargir aux autres types.
 export async function envoyer(req: Request, res: Response): Promise<void> {
   try {
     const { type, entiteId, destinataireEmail, destinataireNom, objet, message } = req.body;
@@ -43,15 +51,31 @@ export async function envoyer(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const roleAppelant = req.user!.role;
-    if (roleAppelant !== 'admin' && roleAppelant !== 'super_admin' && !TYPES_AUTORISES_AGENT.includes(type)) {
-      res.status(403).json({ message: 'Accès refusé - droits insuffisants pour ce type de notification.' });
+    if (!TYPES_CONNUS.includes(type)) {
+      res.status(400).json({ message: 'Type de notification invalide.' });
+      return;
+    }
+
+    const id = parseInt(entiteId);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const autorise = await peutEnvoyerNotification(
+      req.user!.role as UserRole,
+      type,
+      id,
+      req.user!.userId
+    );
+    if (!autorise) {
+      res.status(403).json({ message: 'Accès refusé - droits insuffisants pour cette notification.' });
       return;
     }
 
     const notification = await notificationsService.envoyerNotificationCiblee({
       type,
-      entiteId: parseInt(entiteId),
+      entiteId: id,
       destinataireEmail,
       destinataireNom,
       objet,
@@ -72,6 +96,22 @@ export async function historiqueEntite(req: Request, res: Response): Promise<voi
     const id = parseInt(entiteId);
     if (isNaN(id)) {
       res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    if (!TYPES_CONNUS.includes(type as notificationsService.NotificationType)) {
+      res.status(400).json({ message: 'Type de notification invalide.' });
+      return;
+    }
+
+    const autorise = await peutConsulterHistorique(
+      req.user!.role as UserRole,
+      type as notificationsService.NotificationType,
+      id,
+      req.user!.userId
+    );
+    if (!autorise) {
+      res.status(403).json({ message: 'Accès refusé - droits insuffisants pour cet historique.' });
       return;
     }
 

@@ -119,5 +119,3 @@ export interface DeadlineItem {
   countdown: string;
   href: string;
 }
-
-export type UserRole = 'agent' | 'traducteur' | 'relecteur' | 'admin' | 'super_admin' | string;

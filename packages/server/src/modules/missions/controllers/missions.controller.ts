@@ -2,6 +2,27 @@ import { Request, Response } from 'express';
 import * as missionsService from '../services/missions.service.js';
 import { genererPDFMission } from '../services/missions.export.service.js';
 import { handleMissionsError } from '@/utils/error.js';
+import { hasCapability, UserRole } from '@sicot/shared';
+
+// ── Filtre participantId — dérivation d'identité, pas de confiance client ──
+// participantId sert deux usages sous la même route : le registre global
+// filtré (admin) et "mes missions" (n'importe quel rôle, cf. MesMissionsPage
+// / MonEspacePage côté client, qui envoient toujours participantId=user.id).
+// Seuls les détenteurs de MISSION_REGISTRY_VIEW (admin/super_admin) peuvent
+// consulter les missions d'un autre utilisateur ; pour tout le monde, un
+// participantId demandé différent de l'utilisateur authentifié est
+// silencieusement remplacé par req.user.userId — l'appelant ne peut jamais
+// obtenir la liste "personnelle" de quelqu'un d'autre en modifiant ce
+// paramètre (IDOR corrigé Phase 4.3). Un appel sans participantId reste
+// inchangé (lecture globale non filtrée, comportement préexistant préservé).
+function resolveParticipantFilter(req: Request, requested: number | undefined): number | undefined {
+  if (requested === undefined) return undefined;
+
+  const role = req.user!.role as UserRole;
+  if (hasCapability(role, 'MISSION_REGISTRY_VIEW')) return requested;
+
+  return requested === req.user!.userId ? requested : req.user!.userId;
+}
 
 // ── GET /api/missions ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
@@ -13,7 +34,10 @@ export async function lister(req: Request, res: Response): Promise<void> {
       search: search as string | undefined,
       statut: statut as missionsService.MissionStatut | undefined,
       pays: pays as string | undefined,
-      participantId: participantId ? parseInt(participantId as string) : undefined,
+      participantId: resolveParticipantFilter(
+        req,
+        participantId ? parseInt(participantId as string) : undefined
+      ),
       confirmationLogistique: confirmationLogistique as missionsService.LogistiqueStatut | undefined,
       rapportStatut: rapportStatut as 'disponible' | 'manquant' | undefined,
       page: page ? parseInt(page as string) : undefined,
@@ -31,7 +55,7 @@ export async function aggregates(req: Request, res: Response): Promise<void> {
   try {
     const { participantId } = req.query;
     const result = await missionsService.getMissionsAggregates(
-      participantId ? parseInt(participantId as string) : undefined
+      resolveParticipantFilter(req, participantId ? parseInt(participantId as string) : undefined)
     );
     res.json(result);
   } catch (error) {
@@ -139,6 +163,7 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       statut,
       participantsIds,
       rapportDocumentId,
+      rapportResponsableId,
       logistiqueBilletReserve,
       logistiqueHebergementConfirme,
       logistiqueFinancementValide,
@@ -154,6 +179,7 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       !statut &&
       !participantsIds &&
       rapportDocumentId === undefined &&
+      rapportResponsableId === undefined &&
       logistiqueBilletReserve === undefined &&
       logistiqueHebergementConfirme === undefined &&
       logistiqueFinancementValide === undefined &&
@@ -181,6 +207,14 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       // undefined (field absent) leaves it untouched.
       rapportDocumentId:
         rapportDocumentId === null ? null : rapportDocumentId !== undefined ? parseInt(rapportDocumentId) : undefined,
+      // null clears the designated report responsible (mission keeps
+      // existing without one); undefined (field absent) leaves it untouched.
+      rapportResponsableId:
+        rapportResponsableId === null
+          ? null
+          : rapportResponsableId !== undefined
+            ? parseInt(rapportResponsableId)
+            : undefined,
       logistiqueBilletReserve,
       logistiqueHebergementConfirme,
       logistiqueFinancementValide,
@@ -189,6 +223,51 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       contactSurPlaceId:
         contactSurPlaceId === null ? null : contactSurPlaceId !== undefined ? parseInt(contactSurPlaceId) : undefined,
       updatedByUserId: req.user!.userId,
+    });
+
+    res.json(mission);
+  } catch (error) {
+    handleMissionsError(res, error);
+  }
+}
+
+// ── PATCH /api/missions/:id/rapport ───────────────────────────────────────
+// Workflow personnel (Phase 8) : seul le participant explicitement désigné
+// comme rapportResponsableId peut soumettre/remplacer le rapport officiel
+// ici — MISSION_MANAGE (admin+) passe aussi, mais son chemin normal reste
+// le PATCH générique ci-dessus (MissionReportSection côté client). Ne
+// touche jamais titre/statut/participants/etc — seulement rapportDocumentId,
+// par construction (le body n'accepte que documentId).
+export async function definirRapportPersonnel(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'ID invalide.' });
+      return;
+    }
+
+    const { documentId } = req.body;
+    if (documentId !== null && documentId === undefined) {
+      res.status(400).json({ message: 'documentId requis (ou null pour retirer le rapport).' });
+      return;
+    }
+
+    const role = req.user!.role as UserRole;
+    const userId = req.user!.userId;
+
+    const autorise =
+      hasCapability(role, 'MISSION_MANAGE') ||
+      (hasCapability(role, 'MISSION_VIEW_OWN') &&
+        (await missionsService.estResponsableRapportMission(id, userId)));
+
+    if (!autorise) {
+      res.status(403).json({ message: "Vous n'êtes pas le responsable désigné du rapport de cette mission." });
+      return;
+    }
+
+    const mission = await missionsService.mettreAJourMission(id, {
+      rapportDocumentId: documentId === null ? null : parseInt(documentId),
+      updatedByUserId: userId,
     });
 
     res.json(mission);

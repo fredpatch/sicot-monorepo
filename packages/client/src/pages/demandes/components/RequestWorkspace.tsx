@@ -2,6 +2,7 @@
 import { ArrowUpRight, CheckCircle2, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import type { UserRole } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -244,7 +245,7 @@ function RequestWorkspaceActions({
   archiverEnCours,
 }: {
   demande: Demande;
-  user: { id: number; role: string } | null;
+  user: { id: number; role: UserRole } | null;
   navigate: ReturnType<typeof useNavigate>;
 } & Omit<RequestWorkspaceProps, 'demande' | 'onOpenChange'>) {
   const buttons: React.ReactNode[] = [];

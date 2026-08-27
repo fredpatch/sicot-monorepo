@@ -9,6 +9,14 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    // npm workspaces symlinks @sicot/shared into node_modules; Vite's
+    // default behavior resolves that symlink to its real path under
+    // packages/shared, which falls outside node_modules/ and so bypasses
+    // Rollup's commonjs plugin (whose default `include` only matches
+    // node_modules/**). @sicot/shared's dist is CJS, so unprocessed it
+    // gets misread as ESM with zero named exports. preserveSymlinks keeps
+    // the node_modules/@sicot/shared path, so the plugin actually runs.
+    preserveSymlinks: true,
   },
   server: {
     port: 5173,

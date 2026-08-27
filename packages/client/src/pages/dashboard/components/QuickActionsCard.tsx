@@ -1,8 +1,8 @@
 import { FilePlus2, FolderPlus, Languages, MailPlus, PlaneTakeoff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import type { UserRole } from '@sicot/shared';
 import { canAccessRoute } from '../dashboard.utils';
-import type { UserRole } from '../dashboard.types';
 
 const ACTIONS = [
   { label: 'Nouvel accord', href: '/accords/new', icon: FilePlus2 },

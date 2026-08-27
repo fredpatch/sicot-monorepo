@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Search, UserPlus, X } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { hasCapability } from '@sicot/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usersApi } from '@/lib/users.api';
@@ -34,7 +35,11 @@ export function ParticipantsPicker({
   error?: string;
 }) {
   const { user } = useAuth();
-  const canCreateUsers = user && ['admin', 'super_admin'].includes(user.role);
+  // Cet ajout rapide appelle POST /api/users (embarque CreerUtilisateurDialog)
+  // — même capacité que la page Utilisateurs, USER_MANAGE, pas un tableau de
+  // rôles codé en dur ici (Phase 5.3). Ce tableau avait été manqué par le
+  // grep initial (syntaxe .includes(), pas role === /!==).
+  const canCreateUsers = !!user && hasCapability(user.role, 'USER_MANAGE');
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');

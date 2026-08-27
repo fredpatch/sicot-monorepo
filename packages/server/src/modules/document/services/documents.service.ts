@@ -6,6 +6,7 @@ import { eq, ilike, or, desc, and, isNull, isNotNull, notInArray } from 'drizzle
 import { extraireTexte } from '@/utils/ocr';
 import { calculerMD5 } from '@/utils/hash';
 import { logAudit } from '@/modules/auth/services/auth.service';
+import { hasCapability, UserRole } from '@sicot/shared';
 import { DOSSIERS } from './documents.constants';
 import {
   assurerDossiers,
@@ -363,7 +364,7 @@ export async function getCheminDocument(
 }
 
 // ── Basculer la visibilité interne (agent) ────────────────────────────────
-// Distincte de visibilitePortail (public). traducteur+ uniquement (voir la
+// Distincte de visibilitePortail (public). operateur+ uniquement (voir la
 // route) — décision moins engageante que la publication externe, donc pas
 // réservée admin comme le portail.
 export async function toggleVisibiliteInterne(
@@ -390,15 +391,18 @@ export async function toggleVisibiliteInterne(
   return toDocumentView(updated);
 }
 
-// ── Vérifier qu'un agent a le droit de voir/télécharger un document donné
-// (GET /:id, GET /:id/telecharger) — traducteur+ n'est jamais restreint ici,
-// seul le rôle agent est concerné (voir listerDocuments#visibleOuUploadePar
-// pour la même règle appliquée au listing). ────────────────────────────────
+// ── Vérifier qu'un utilisateur a le droit de voir/télécharger un document
+// donné (GET /:id, GET /:id/telecharger) — quiconque a DOCUMENT_UPLOAD (le
+// signal "accès bibliothèque générale", operateur+) n'est jamais restreint
+// ici ; seule la portée personnelle (aujourd'hui : agent) est concernée
+// (voir listerDocuments#visibleOuUploadePar pour la même règle appliquée au
+// listing). Dérivé de la capacité plutôt que du littéral de rôle 'agent'
+// (Phase 4.7). ───────────────────────────────────────────────────────────
 export async function verifierAccesDocument(
   id: number,
   utilisateur: { role: string; userId: number }
 ): Promise<void> {
-  if (utilisateur.role !== 'agent') return;
+  if (hasCapability(utilisateur.role as UserRole, 'DOCUMENT_UPLOAD')) return;
 
   const [doc] = await db
     .select({ visibiliteInterne: documents.visibiliteInterne, uploadePar: documents.uploadePar })

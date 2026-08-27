@@ -1,5 +1,6 @@
 // packages/client/src/pages/documents/components/DocumentsMobileCards.tsx
 import { Download } from 'lucide-react';
+import type { UserRole } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import { documentsApi } from '@/lib/documents.api';
 import { BadgeOCR } from './BadgeOCR';
@@ -11,7 +12,7 @@ import type { Document } from '../documents.types';
 
 interface DocumentsMobileCardsProps {
   documents: Document[];
-  role: string | undefined;
+  role: UserRole | undefined;
   onOpen: (doc: Document) => void;
   onTraduire: (doc: Document) => void;
   onCorrigerOCR: (doc: Document) => void;

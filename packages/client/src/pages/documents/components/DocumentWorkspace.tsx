@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { FileSpreadsheet, FileText, Image as ImageIcon, Loader2, Paperclip } from 'lucide-react';
 
+import type { UserRole } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -39,7 +40,7 @@ function iconePourMime(mimeType: string) {
 
 interface DocumentWorkspaceProps {
   document: Document | null;
-  role: string | undefined;
+  role: UserRole | undefined;
   onOpenChange: (open: boolean) => void;
   onChangerCategorie: (id: number, cat: string) => void;
   onCorrigerOCR: (doc: Document) => void;

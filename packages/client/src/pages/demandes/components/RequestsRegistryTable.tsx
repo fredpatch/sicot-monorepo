@@ -2,6 +2,7 @@
 import { Archive, ArrowUpRight, CheckCircle2, Eye, Flag, Loader2, UserCheck, Undo2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import type { UserRole } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/App';
 import type { Demande } from '../requests.types';
@@ -51,7 +52,7 @@ function RequestActions({
   actions,
 }: {
   demande: Demande;
-  user: { id: number; role: string } | null;
+  user: { id: number; role: UserRole } | null;
   navigate: ReturnType<typeof useNavigate>;
   actions: RequestsActionsProps;
 }) {

@@ -1,13 +1,66 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, FileText, Loader2, Upload, X } from 'lucide-react';
+import { ExternalLink, FileText, Loader2, Upload, User, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { documentsApi } from '@/lib/documents.api';
 import { missionsApi } from '@/lib/missions.api';
 import type { Mission } from '../mission.types';
 import { isMissionReportMissing } from '../mission.utils';
+
+const AUCUN_RESPONSABLE = '__aucun__';
+
+// Assignation du participant responsable du rapport officiel (Phase 8) —
+// MISSION_MANAGE uniquement (cette section entière n'est atteignable que
+// via /missions/:id, déjà gardé MISSION_REGISTRY_VIEW côté routeur). Ne
+// peut désigner qu'un participant réel de la mission — validé aussi côté
+// serveur (missions.service.ts), ce select ne fait que refléter cette
+// contrainte pour éviter un aller-retour 400 évitable.
+function ReportResponsableAssignment({ mission }: { mission: Mission }) {
+  const queryClient = useQueryClient();
+
+  const assignMutation = useMutation({
+    mutationFn: (rapportResponsableId: number | null) =>
+      missionsApi.mettreAJour(mission.id, { rapportResponsableId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mission', mission.id] });
+      queryClient.invalidateQueries({ queryKey: ['missions'] });
+    },
+  });
+
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-md border border-anac-border bg-anac-gray/40 px-4 py-3">
+      <User size={16} className="shrink-0 text-anac-muted" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-anac-muted">Responsable du rapport</p>
+        <p className="text-xs text-anac-muted">
+          Seul ce participant peut déposer/remplacer le rapport depuis « Mes missions ».
+        </p>
+      </div>
+      <Select
+        value={mission.rapportResponsableId ? String(mission.rapportResponsableId) : AUCUN_RESPONSABLE}
+        onValueChange={(value) =>
+          assignMutation.mutate(value === AUCUN_RESPONSABLE ? null : Number(value))
+        }
+        disabled={assignMutation.isPending || mission.participants.length === 0}
+      >
+        <SelectTrigger className="h-8 w-48 shrink-0 text-xs">
+          <SelectValue placeholder="Aucun responsable" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={AUCUN_RESPONSABLE}>Aucun responsable</SelectItem>
+          {mission.participants.map((p) => (
+            <SelectItem key={p.id} value={String(p.id)}>
+              {p.prenom} {p.nom}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 interface DocumentSummary {
   id: number;
@@ -86,6 +139,9 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
     return (
       <section className="card p-5">
         <h3 className="font-bold text-anac-navy">Rapport de mission</h3>
+        <div className="mt-4">
+          <ReportResponsableAssignment mission={mission} />
+        </div>
         {reportQuery.isLoading ? (
           <div className="mt-4 flex items-center gap-2 text-anac-muted">
             <Loader2 size={15} className="animate-spin" aria-hidden="true" />
@@ -150,6 +206,10 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
           Mission terminée — rapport non déposé.
         </p>
       )}
+
+      <div className="mt-4">
+        <ReportResponsableAssignment mission={mission} />
+      </div>
 
       <div className="mt-4 inline-flex rounded-md border border-anac-border bg-white p-1">
         <button

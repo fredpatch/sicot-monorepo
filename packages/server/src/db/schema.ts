@@ -15,13 +15,10 @@ import { relations } from 'drizzle-orm';
 import { date } from 'drizzle-orm/pg-core';
 
 // ── Enums ──────────────────────────────────────────────────────────────────
-export const userRoleEnum = pgEnum('user_role', [
-  'agent',
-  'traducteur',
-  'relecteur',
-  'admin',
-  'super_admin',
-]);
+// Final persistent role model (Phase 6.1). 'traducteur'/'relecteur' were
+// migrated to 'operateur' and removed from the enum — see
+// packages/shared/src/auth/roles.ts.
+export const userRoleEnum = pgEnum('user_role', ['agent', 'operateur', 'admin', 'super_admin']);
 
 export const organisationTypeEnum = pgEnum('organisation_type', [
   'anac_etrangere',
@@ -405,6 +402,13 @@ export const missions = pgTable('missions', {
   dateFin: timestamp('date_fin').notNull(),
   statut: missionStatutEnum('statut').notNull().default('planifiee'),
   rapportDocumentId: integer('rapport_document_id').references(() => documents.id),
+  // Phase 8 — nullable by design: a mission may exist with no designated
+  // report-responsible participant yet, and legacy missions that already
+  // have a rapportDocumentId keep working with this left null. Must always
+  // reference a current mission_participants row for this mission (enforced
+  // in missions.service.ts, not a DB constraint — participant membership is
+  // itself mutable), never a persistent role.
+  rapportResponsableId: integer('rapport_responsable_id').references(() => users.id),
   createdPar: integer('cree_par').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

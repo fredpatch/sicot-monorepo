@@ -1,10 +1,10 @@
+import { hasCapability, type Capability, type UserRole } from '@sicot/shared';
 import type {
   ActiviteRecente,
   DashboardData,
   DeadlineItem,
   DemandeParStatut,
   PriorityItem,
-  UserRole,
 } from './dashboard.types';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -186,12 +186,22 @@ export function deriveNextDeadline(data: DashboardData, now = new Date()): Deadl
   return candidates.sort((a, b) => a.date.getTime() - b.date.getTime())[0] ?? null;
 }
 
+// Capacité requise par préfixe de route — doit rester alignée sur les
+// gardes réels de router.tsx (Phase 5.1). Cette table avait dérivé : /
+// traductions y était classée admin-only alors que la route elle-même
+// n'exige que TRANSLATION_VIEW (operateur+) — corrigé ici (Phase 5.3).
+const ROUTE_CAPABILITY: Record<string, Capability> = {
+  '/accords': 'AGREEMENT_VIEW',
+  '/courriers': 'CORRESPONDENCE_VIEW',
+  '/missions': 'MISSION_REGISTRY_VIEW',
+  '/traductions': 'TRANSLATION_VIEW',
+  '/analytics': 'ANALYTICS_VIEW',
+};
+
 export function canAccessRoute(role: UserRole | undefined, href: string) {
-  const adminOnly = ['/accords', '/courriers', '/missions', '/traductions', '/analytics'];
-  if (adminOnly.some((route) => href.startsWith(route))) {
-    return role === 'admin' || role === 'super_admin';
-  }
-  return true;
+  const prefix = Object.keys(ROUTE_CAPABILITY).find((route) => href.startsWith(route));
+  if (!prefix) return true;
+  return !!role && hasCapability(role, ROUTE_CAPABILITY[prefix]);
 }
 
 export function activityHref(activity: ActiviteRecente) {

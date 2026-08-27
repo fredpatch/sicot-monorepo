@@ -145,6 +145,10 @@ export const handleMissionsError = createErrorHandler(
       message: 'La date de début doit être antérieure à la date de fin.',
     },
     CONTACT_INTROUVABLE: { status: 404, message: 'Contact introuvable.' },
+    RESPONSABLE_RAPPORT_NON_PARTICIPANT: {
+      status: 400,
+      message: 'Le responsable du rapport doit être un participant de la mission.',
+    },
   },
   '[missions.controller]',
   [

@@ -4,6 +4,7 @@ import { genererPDFTraduction, genererDOCXTraduction } from '../services/traduct
 import { estDemandeurDeTraduction } from '@/modules/demandes/services/demandes.service.js';
 import { TraductionDirection } from '@/utils/traduction.js';
 import { handleTraductionError } from '@/utils/error.js';
+import { hasCapability, UserRole } from '@sicot/shared';
 
 // ── GET /api/traductions ──────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
@@ -46,11 +47,14 @@ export async function moteurStatus(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── Garde commune GET /:id, /:id/export/pdf, /:id/export/docx — un agent ne
-// peut accéder qu'à la traduction liée à l'une de ses propres demandes,
-// jamais une traduction arbitraire par ID (voir estDemandeurDeTraduction).
+// ── Garde commune GET /:id, /:id/export/pdf, /:id/export/docx ──────────────
+// Sans TRANSLATION_VIEW (l'atelier de traduction opérationnel), l'accès est
+// dérivé de la relation avec la demande liée — via estDemandeurDeTraduction,
+// pas du nom du rôle — de sorte que quiconque n'a que la portée personnelle
+// ne peut jamais accéder à une traduction arbitraire par ID, seulement celle
+// liée à l'une de ses propres demandes (Phase 4.6).
 async function verifierAcces(req: Request, id: number): Promise<void> {
-  if (req.user!.role === 'agent') {
+  if (!hasCapability(req.user!.role as UserRole, 'TRANSLATION_VIEW')) {
     const autorise = await estDemandeurDeTraduction(id, req.user!.userId);
     if (!autorise) throw new Error('TRADUCTION_NON_AUTORISEE');
   }

@@ -6,7 +6,7 @@ export const creerUtilisateurSchema = z.object({
   nom: z.string().min(1, 'Le nom est requis'),
   prenom: z.string().min(1, 'Le prénom est requis'),
   email: z.string().email('Email invalide'),
-  role: z.enum(['agent', 'traducteur', 'relecteur', 'admin', 'super_admin']),
+  role: z.enum(['agent', 'operateur', 'admin', 'super_admin']),
   // Non éditables dans le formulaire — reportés tels quels depuis la sélection
   // Personnel ANAC (voir CreateUserDialog.tsx), absents pour une création manuelle.
   poste: z.string().nullish(),
@@ -17,6 +17,6 @@ export type CreerUtilisateurFormData = z.infer<typeof creerUtilisateurSchema>;
 
 export const modifierUtilisateurSchema = z.object({
   email: z.string().email('Email invalide'),
-  role: z.enum(['agent', 'traducteur', 'relecteur', 'admin', 'super_admin']),
+  role: z.enum(['agent', 'operateur', 'admin', 'super_admin']),
 });
 export type ModifierUtilisateurFormData = z.infer<typeof modifierUtilisateurSchema>;
