@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Administration (M10) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-27)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Administration (M10) + Portail externe (M-Portail) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-27)
 
 Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 `exploration-cache/changelog.md` pour le détail complet et
@@ -800,6 +800,29 @@ seulement la protection de route côté client) — aucune télémétrie invent�
 - [x] ~~**Comptage de purge dédupliqué**~~ - `compterPurges(supprimesLocal, supprimesNas)` (`new Set(...).size`) corrige un double-comptage trouvé en validation live (un même fichier supprimé des deux destinations comptait pour 2 au lieu de 1)
 - [x] ~~**Onglet Monitoring & Jobs restructuré (retour utilisateur : "trop long")**~~ - audit `/ui-ux-pro-max` + `/frontend-design` présenté et approuvé avant code : 3 sous-onglets (Aperçu/Jobs/Historique, `?sub=` dans l'URL), les 12 jobs regroupés par module en sections repliables (repliées par défaut), lignes d'historique compressées sur une ligne (détail au clic), pagination réduite de 15 à 8 par page
 - [x] ~~**Aucune fonctionnalité inventée**~~ - pas de télémétrie serveur (CPU/RAM/latence) non exposée par une route réelle, pas de journal d'accès NAS fictif ; validé en direct (JWT signés + curl contre la DB de dev) : répertoire local personnalisé, isolation d'échec par destination, les 4 promotions de palier, purge correcte (test rétention=1), rattrapage NAS (fichier supprimé côté NAS puis restauré par le job de sync)
+
+### Refonte Portail externe documentaire (/portal) | ✅ COMPLÉTÉ (2026-08-27)
+
+Trois rounds successifs sur le même sprint : audit-first (bug critique
+trouvé avant tout style), puis une passe de correction visuelle contre une
+maquette approuvée, puis une passe de raffinement final avec intégration du
+sceau officiel ANAC. Périmètre volontairement limité au module portail —
+aucune route/contrat API/logique de sécurité modifiée hors nécessité.
+
+- [x] ~~**Bug critique trouvé et corrigé : lien de téléchargement sécurisé mort**~~ - le lien envoyé par email pointait vers `/portal/telecharger/:token`, une route qui n'existait dans aucun routeur client ; tout visiteur cliquant le lien atterrissait sur la redirection de connexion générique. Nouvelle page `PortalDownloadPage` + route, récupère le fichier en blob pour afficher un état d'erreur normalisé (lien expiré/invalide) plutôt que le JSON brut du serveur
+- [x] ~~**Limiteurs de débit ajoutés, scopés au seul module portail**~~ - `POST /documents/:id/token` (10/15min) et `GET /documents` (120/15min) dans `portal.route.ts` uniquement ; le limiteur global de l'app et `/api/auth` restent désactivés (hors périmètre, pas touchés)
+- [x] ~~**Compteurs de catégorie réels**~~ - nouvel endpoint `GET /portal/documents/aggregates` (même pattern `db.$count` que tous les autres modules), alimente les cartes de navigation par catégorie — jamais de chiffre décoratif
+- [x] ~~**Catégorie `rapport` manquante corrigée**~~ - existait en base (ajoutée lors du round Documents M8) mais absente du libellé/filtre public, confirmé en direct (3 documents `rapport` réellement publics)
+- [x] ~~**Aperçu MIME-safe**~~ - PDF → iframe, image → `<img>`, autre → repli "Aperçu non disponible" + action de repli, au lieu d'un `<img>` cassé pour tout type non-PDF
+- [x] ~~**Pré-vérification HEAD avant l'iframe PDF**~~ - un iframe ne déclenche pas `onError` de façon fiable sur un 404 ; requête `HEAD` (auto-routée par Express sur la route `GET` existante, aucune nouvelle route) avant affichage, montre "Impossible d'afficher ce document" plutôt qu'un cadre vide pour un document retiré/introuvable
+- [x] ~~**Restructuration en dossier de fonctionnalité**~~ - `pages/PortalPage.tsx` (490 lignes plates) → `pages/portal/` (composants/hooks/constants/utils), même convention que tous les autres modules du sprint
+- [x] ~~**Refonte visuelle contre maquette approuvée**~~ - conteneur élargi (`max-w-350`, 1400px), hero compact deux colonnes (hero + carte de confiance), recherche intégrée dans le hero (plus de bande sticky isolée), catégorie filtrée uniquement via les cartes (dropdown redondant supprimé), tableau catalogue public (en-tête clair, pas navy) au lieu du style `DataTable` interne
+- [x] ~~**Sémantique des actions corrigée**~~ - "Télécharger" renommé "Recevoir le lien" partout (tableau/carte mobile/viewer/dialog) — l'utilisateur ne télécharge pas immédiatement, il reçoit un lien par email ; bouton bleu SICOT, jamais noir
+- [x] ~~**Sceau officiel ANAC intégré**~~ - asset fourni par le porteur de projet (`packages/server/assets/anac-seal.png`, jamais redessiné/recoloré), copié dans `packages/client/public/`, utilisé dans le hero ; bandeau de certification ISO 9001/Bureau Veritas/UKAS ajouté en zone secondaire du footer
+- [x] ~~**États vides distincts**~~ - portail globalement vide (cartes de catégorie masquées) vs résultat filtré par catégorie vs résultat filtré par recherche — jamais le même message générique, chacun avec sa propre action de réinitialisation
+- [x] ~~**Garde-fou de pagination**~~ - si `totalPages` se réduit sous la page courante (document retiré en session), retour automatique à la dernière page valide plutôt qu'une page vide
+- [x] ~~**Validation email réelle**~~ - regex + `trim()` remplace `email.includes('@')`, dédoublonnage de soumission déjà couvert par l'état `isPending` + vue de succès
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas de filtre Partenaire/Pays/Date (aucune donnée réelle), pas de `Date de publication` (seul `createdAt` existe, libellé restreint à `Date`), pas de compteur décoratif ; validé en direct (curl : limite de débit déclenchée au 10e appel, frontière de publication confirmée sur IDs réels publiés/non publiés, HEAD 200/404 cohérent)
 
 ### Reporté (voir Notion Sprint 12, statut À faire)
 

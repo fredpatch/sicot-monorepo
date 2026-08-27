@@ -47,6 +47,16 @@ export async function lister(req: Request, res: Response): Promise<void> {
   }
 }
 
+// ── GET /api/portail/documents/aggregates — compteurs publics par catégorie
+export async function aggregates(_req: Request, res: Response): Promise<void> {
+  try {
+    const result = await portailService.getAggregatesPortail();
+    res.json(result);
+  } catch (error) {
+    handlePortailError(res, error);
+  }
+}
+
 // ── GET /api/portail/documents/:id — métadonnées document ────────────────
 export async function getDocument(req: Request, res: Response): Promise<void> {
   try {

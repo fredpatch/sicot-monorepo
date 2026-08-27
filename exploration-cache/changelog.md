@@ -1,5 +1,71 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-27 — feat(client/server): redesign External Portal (/portal) — critical download-link fix + visual polish
+
+Three successive rounds on the public external portal: an audit-first pass
+that found and fixed a critical functional bug before any styling, a visual
+correction pass against an approved mockup, and a final refinement pass
+integrating the real ANAC seal. Scope stayed deliberately narrow to the
+portal module — no other route/API contract/security rule touched unless
+strictly necessary.
+
+### Critical fix
+The secure-download email link pointed at `/portal/telecharger/:token`, a
+route that existed nowhere in the client router — every visitor clicking
+their emailed link landed on the generic login redirect instead of
+downloading anything. New `PortalDownloadPage` + matching route fetches the
+file as a blob (rather than a raw navigation) so an expired/invalid token
+shows a normalized public error page instead of raw server JSON. Verified
+live end-to-end: generated a real token, downloaded through it, confirmed
+headers/filename.
+
+### Backend (portal module only)
+- `GET /portal/documents/aggregates` — new endpoint, same `db.$count`
+  pattern used by every other module this sprint, powers real per-category
+  counts on the browse cards (no decorative numbers).
+- Rate limiting added inside `portal.route.ts` only: 10/15min on
+  `POST /documents/:id/token` (the email-bombing surface), 120/15min on
+  `GET /documents` — the app-wide limiter and `/api/auth` stay disabled,
+  untouched, out of scope.
+- Confirmed via live `curl`: publication boundary still 404s unpublished
+  IDs, rate limiter trips on the 10th request, `HEAD` pre-check returns
+  200/404 correctly for published/withdrawn documents.
+
+### Client
+- Restructured `pages/PortalPage.tsx` (490 flat lines) into a
+  `pages/portal/` feature folder, matching every other module's convention.
+- Fixed the missing `rapport` category label/filter — existed in the DB
+  enum since the Documents (M8) round but was absent from the portal's
+  category list; confirmed live (3 real public `rapport` documents).
+- MIME-safe preview: PDF → iframe, image → `<img>`, everything else →
+  "Aperçu non disponible" fallback instead of a broken `<img>`. A `HEAD`
+  pre-check (Express auto-routes it to the existing `GET` handler, no new
+  route) runs before rendering the PDF iframe, since iframes don't reliably
+  fire `onError` on a 404 — shows a proper failure state for a
+  withdrawn/missing document instead of a blank frame.
+- Visual pass against the approved mockup: widened container
+  (`max-w-350`/1400px), compact two-column hero (hero text + trust-info
+  card), search integrated directly into the hero band (no more isolated
+  sticky white strip), category filtering consolidated to the browse cards
+  only (redundant dropdown removed), document list rebuilt as a light
+  public-catalogue table instead of the internal-admin `DataTable` styling.
+- Action wording corrected: `Télécharger` → `Recevoir le lien` everywhere
+  (table/mobile card/viewer/dialog) — the user doesn't download
+  immediately, they receive an emailed link; SICOT blue, never black.
+- Official ANAC seal integrated (`packages/server/assets/anac-seal.png`,
+  provided by the project owner, never redrawn/recolored/approximated;
+  copied to `packages/client/public/`) in the hero; ISO 9001/Bureau
+  Veritas/UKAS certification banner added as a secondary footer element.
+- Distinct empty states: globally-empty portal (category cards hidden) vs.
+  category-filtered vs. search-filtered — never the same generic message,
+  each with its own reset action.
+- Pagination guard: if `totalPages` shrinks below the current page (a
+  document withdrawn mid-session), clamps back to the last valid page.
+- Real email validation (regex + `trim()`) replacing `email.includes('@')`.
+- No invented functionality: no Partenaire/Pays/date-range filters (no real
+  data backs them), no `Date de publication` label (only `createdAt`
+  exists, kept as plain `Date`), no decorative counts anywhere.
+
 ## [Unreleased] — 2026-08-27 — feat(client/server): redesign Administration module (M10) + GFS backup rotation
 
 Audit-first redesign of the Administration module, driven by a 52-section

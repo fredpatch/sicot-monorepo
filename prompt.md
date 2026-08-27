@@ -1,6 +1,6 @@
-You are acting as a Senior Frontend Engineer, UX/UI Architect, Product Usability Specialist, and Administration Console Reviewer.
+You are acting as a Senior Frontend Engineer, UX/UI Architect, Product Usability Specialist, and Public-Surface Security Reviewer.
 
-Your task is to redesign and implement the SICOT “Administration” section.
+Your task is to perform a focused final refinement pass on the SICOT External Portal.
 
 Repository:
 https://github.com/fredpatch/sicot-monorepo.git
@@ -8,39 +8,25 @@ https://github.com/fredpatch/sicot-monorepo.git
 Primary frontend location:
 packages/client
 
-The attached image is the visual reference for the target direction.
+Attached references:
 
-Use it to understand:
+1. Current implemented portal screenshot
+2. Approved portal visual direction
+3. Official ANAC Gabon logo asset
 
-- normalized SICOT administration styling
-- clear separation between configuration and operations
-- parameter grouping
-- monitoring hierarchy
-- manual jobs
-- system health visibility
-- AI usage monitoring
-- safety around administrative actions
-- responsive behavior
+This is NOT a redesign from scratch.
 
-Do NOT reproduce the mockup blindly.
+The current portal is already functionally correct and visually much improved.
 
-First inspect the current implementation and classify every element into:
+Your job is to polish the remaining UX/UI issues, strengthen the institutional/public identity, reduce unnecessary visual bulk, and harden edge cases.
 
-1. Real configurable setting
-2. Real monitoring data
-3. Real executable job
-4. Future monitoring placeholder
-5. Unsupported/mockup-only information
+Do not modify backend contracts unless a real blocker is discovered.
 
-Do not fabricate production telemetry.
-
-Do not modify unrelated modules.
-
-Do not commit or push changes unless explicitly requested.
+Do not commit or push changes.
 
 ---
 
-# 1. Collaboration mode
+# 1. Working mode
 
 Work incrementally.
 
@@ -50,1483 +36,985 @@ Use:
 ⏳ Current
 🔜 Next
 
-Follow:
+Follow this sequence:
 
-1. Audit current Administration implementation
-2. Report actual settings / monitoring / jobs
-3. Classify mockup data as real vs future placeholder
-4. Propose information architecture
-5. Implement incrementally
-6. Validate
-7. Return final report
+1. Audit the current implemented portal
+2. Compare it with the attached references
+3. Report the remaining UX/UI issues
+4. Propose a concise refinement plan
+5. Implement only the agreed frontend refinements
+6. Validate responsive behavior and edge cases
+7. Return a final report
 
-Do not start implementation before returning Phase 1.
-
----
-
-# 2. Product purpose
-
-The Administration section is SICOT’s privileged system-operations console.
-
-It currently combines:
-
-- configurable business thresholds
-- security configuration
-- backup retention settings
-- translation-engine fallback settings
-- AI/Gemini quota configuration
-- Gemini usage monitoring
-- translation engine status
-- automated report status
-- maintenance jobs
-- backup jobs
-- analytics snapshot jobs
-- monthly report generation
-- manual execution of scheduled operations
-
-The redesign must make these responsibilities easier to understand and safer to operate.
+Do not start coding before returning the refinement plan.
 
 ---
 
-# 3. Current access model
+# 2. Functional behavior that must remain untouched
 
-Current route:
+Preserve:
 
-/admin/*
+- public unauthenticated `/portal`
+- server-side search
+- category filtering
+- real category counts
+- pagination
+- public document listing
+- PDF preview
+- image preview
+- unsupported MIME fallback
+- email-based secure download request
+- tokenized download links
+- token duration display
+- publication boundary
+- public metadata minimization
+- current public API contracts
+- current security rules
 
-Current route protection:
-
-AdminRoute
-
-Audit whether all Administration endpoints require:
-
-admin
-or
-super_admin
-
-The existing page text appears to indicate some parameters are specifically reserved to Super Admin.
-
-Do not rely only on page-level route protection.
-
-Audit backend role requirements for:
-
-- parameter listing
-- parameter update
-- jobs listing
-- job execution
-- Gemini monitoring
-- translation engine monitoring
-
-If some operations are super_admin-only, reflect this in the capability layer and UI.
+Do not break working behavior for visual changes.
 
 ---
 
-# 4. Files to inspect first
+# 3. Main goals of this refinement
 
-Inspect at least:
+Improve:
 
-packages/client/src/pages/AdminParametresPage.tsx
+1. Hero branding
+2. Category-card density
+3. Category interaction state
+4. Search/hero integration
+5. Public document-list hierarchy
+6. Long filename handling
+7. Empty/filter states
+8. Download UX wording
+9. Public accessibility
+10. Public edge cases
 
-packages/client/src/lib/parametres.api.ts
-packages/client/src/lib/analytics.api.ts
-packages/client/src/lib/api.ts
-packages/client/src/lib/traductions.api.ts
-
-packages/client/src/App.tsx
-packages/client/src/router.tsx
-packages/client/src/components/layouts/Layout.tsx
-packages/client/src/components/ui
-
-Also inspect server-side modules for:
-
-- parameters
-- parameter validation
-- parameter audit logging
-- job registry
-- job execution
-- scheduled jobs / cron configuration
-- Gemini usage status
-- translation engine status
-- backup jobs
-- monthly report generation
-
-Confirm real behavior before changing UI.
+The portal should feel like an official ANAC public resource library, not an internal admin page.
 
 ---
 
-# 5. Current real parameter model
+# 4. Official ANAC logo
 
-Current frontend shape:
-
-interface Parametre {
-id: number
-cle: string
-valeur: string
-type: ParametreType
-module: string
-description?: string
-modifiePar?: number
-createdAt: string
-updatedAt: string
-}
-
-Known parameter types:
-
-- entier
-- booleen
-- string or equivalent
-
-Preserve backend keys.
-
-Do not rename stored keys.
-
----
-
-# 6. Current known parameters
-
-Known current labels/keys include at least:
-
-accord_alerte_jours
-courrier_alerte_jours
-courrier_alerte_critique_jours
-recommandation_alerte_jours
-
-otp_expiration_minutes
-lockout_max_tentatives
-lockout_duree_minutes
-
-backup_retention_locale_jours
-backup_retention_nas_jours
-
-deepl_fallback_actif
-
-Also inspect Gemini-related parameter keys such as:
-
-gemini_quota_journalier_par_modele
-gemini_rapports_manuels_max_jour
-
-Do not hardcode the redesign around only this exact list if parameters are returned dynamically.
-
----
-
-# 7. Parameter grouping
-
-Current backend already exposes:
-
-module
-
-Use that as the basis for logical sections.
-
-Known module labels currently include:
-
-M1 → Accords & Partenariats
-M3 → Missions & Recommandations
-M4 → Correspondances
-NOTIF → Notifications
-ADMIN → Administration
-M10 → Sécurité & Système
-
-Audit all real module values.
-
-Do not invent categories that cannot map to existing settings.
-
-The UI can group them into friendlier presentation sections such as:
-
-Métier
-Sécurité
-Sauvegardes
-Traduction
-IA & Rapports
-
-while preserving the real backend module/key mapping.
-
----
-
-# 8. Target information architecture
-
-Replace the single long page with a clearer administration console.
-
-Recommended top-level tabs:
-
-Paramètres
-Monitoring & Jobs
-
-Optional third tab only if justified:
-
-Infrastructure
-
-Do not split into too many routes unless necessary.
-
-Preferred:
-
-/admin
-
-with tabs driven by search params if useful:
-
-/admin?tab=settings
-/admin?tab=monitoring
-
-Preserve current route compatibility where practical.
-
----
-
-# 9. Tab A — Paramètres
-
-Purpose:
-
-Configure system rules and thresholds.
-
-Recommended sections:
-
-- Métier
-- Sécurité & Authentification
-- Sauvegardes
-- Traduction
-- IA & Rapports
-
-Only display sections that contain real parameters.
-
----
-
-# 10. Parameter cards
-
-Keep the current concise card idea, but normalize it.
-
-Each setting card should show:
-
-- friendly label
-- description
-- input/control
-- unit
-- current raw key as secondary technical metadata
-- save state
-- validation error
-- optional warning
-
-Example:
-
-Alerte échéance accord
-
-Nombre de jours avant expiration pour déclencher une alerte accord.
-
-[ 90 ] jours
-
-accord_alerte_jours
-
-Do not expose keys as primary content.
-
----
-
-# 11. Parameter editing behavior
-
-Current behavior:
-
-- change local value
-- detect dirty state
-- save one parameter at a time
-- show inline success state
-- invalidate parameter query
-
-Preserve this unless a bulk-save approach is clearly better.
-
-Do not silently auto-save unless current server semantics and UX justify it.
-
-Given the administrative risk, explicit per-setting save is acceptable.
-
----
-
-# 12. Validation
-
-Current integer validation checks positive integer syntax.
-
-Audit backend validation for:
-
-- min
-- max
-- allowed boolean values
-- key-specific constraints
-
-Frontend validation must not conflict with backend.
-
-Examples requiring scrutiny:
-
-OTP expiration
-Lockout attempts
-Lockout duration
-Retention days
-Alert thresholds
-Gemini quotas
-
-Do not allow obviously dangerous values such as:
-
-negative retention
-negative lockout
-invalid numeric strings
-
-If backend exposes constraints, centralize them.
-
----
-
-# 13. Units
-
-Current helper derives:
-
-_jours → jours
-_minutes → min
-
-Preserve or improve this.
-
-Centralize unit mapping.
-
-Do not infer units for unknown keys incorrectly.
-
-Possible utility:
-
-getParameterUnit(parametre)
-
-Use explicit override map where necessary.
-
----
-
-# 14. Save feedback
-
-Use compact inline states:
-
-Modifié
-
-Enregistrement...
-
-Enregistré
-
-Erreur
-
-Avoid excessive global toasts for normal success.
-
-Use toasts for errors.
-
-Do not reset user-entered values unexpectedly on failed save.
-
----
-
-# 15. Audit warning
-
-The current page tells the administrator that changes are logged.
-
-Keep this prominently.
-
-Suggested wording:
-
-Les modifications de paramètres sont journalisées dans le Journal d’audit.
-
-If parameters take effect only on the next scheduled cycle, preserve that information where accurate.
-
-Example:
-
-Les nouveaux seuils seront utilisés lors du prochain cycle planifié.
-
-Do not generalize this statement to settings that take effect immediately unless true.
-
----
-
-# 16. DeepL fallback setting
-
-Current parameter:
-
-deepl_fallback_actif
-
-Current engine status also exposes:
-
-deeplConfigure
-
-Preserve the useful cross-check.
-
-If fallback is enabled but API key is missing:
-
-Display a warning.
-
-Example:
-
-Fallback DeepL activé, mais la configuration serveur est incomplète.
-
-Do not expose API keys.
-
-Do not allow admins to edit secrets through this page unless a dedicated secure secret-management system exists.
-
----
-
-# 17. Security settings
-
-Group:
-
-OTP expiration
-Failed-attempt threshold
-Lockout duration
-
-Potential title:
-
-Authentification & sécurité
-
-Show concise consequence descriptions.
-
-Example:
-
-Tentatives avant blocage
-Nombre d’échecs de connexion avant verrouillage temporaire.
-
-Do not turn these controls into generic text inputs without validation.
-
----
-
-# 18. Backup retention settings
-
-Group:
-
-Rétention sauvegarde locale
-Rétention sauvegarde NAS
-
-Clearly distinguish:
-
-retention policy
-
-from:
-
-manual backup execution
-
-Retention belongs in Paramètres.
-
-Backup execution belongs in Monitoring & Jobs.
-
-Do not mix them.
-
----
-
-# 19. IA & report quota settings
-
-Group current Gemini configuration separately.
-
-Examples:
-
-Quota journalier Gemini par modèle
-
-Rapports IA manuels maximum par jour
-
-These are limits/configuration.
-
-Current usage belongs in Monitoring.
-
-Keep those concepts separate.
-
----
-
-# 20. Tab B — Monitoring & Jobs
-
-Purpose:
-
-Observe system-operational state and manually trigger supported maintenance jobs.
-
-Recommended sections:
-
-- Aperçu système
-- Traduction
-- Usage IA
-- Jobs manuels
-
-Only show real telemetry.
-
----
-
-# 21. Real Gemini monitoring
-
-Current real query:
-
-analyticsApi.getStatutGemini()
-
-Current known response includes:
-
-modeles
-
-with values such as:
-
-modele
-appelsAujourdhui
-plafond
-thinkingTokensAujourdhui
-
-and:
-
-rapportsIA.utilises
-rapportsIA.max
-
-and:
-
-dernierRapportMensuel
-
-Preserve this.
-
-Do not replace with fake telemetry.
-
----
-
-# 22. Gemini usage cards
-
-Keep the current model cards, but normalize them.
-
-For each model show:
-
-- model label
-- calls today / configured cap
-- progress bar
-- thinking tokens today
-
-Example:
-
-Gemini 2.5 Flash
-
-4 / 15 appels aujourd’hui
-
-████░░░
-
-1 242 tokens de réflexion
-
-Use actual response values.
-
----
-
-# 23. Usage thresholds
-
-Current visual logic:
-
-> = 90% → danger
-> = 70% → attention
-> otherwise → success
-
-This is reasonable.
-
-Centralize it.
-
-Do not duplicate percentage thresholds across components.
-
-Suggested:
-
-getUsageTone(used, max)
-
----
-
-# 24. Reports IA monitoring
-
-Show:
-
-Rapports IA à la demande
-
-X / Y générés aujourd’hui
-
-Also:
-
-Dernier rapport mensuel automatique
-
-with real creation date if available.
-
-Do not show fake generation history.
-
----
-
-# 25. Translation engine status
-
-The page already fetches:
-
-traductionsApi.moteurStatus()
-
-Audit response.
-
-Known:
-
-accessible
-deeplConfigure
-
-Use this in Monitoring.
-
-Suggested card:
-
-Moteur de traduction
-
-LibreTranslate
-Opérationnel / Indisponible
-
-Fallback DeepL
-Configuré / Non configuré
-
-Do not imply DeepL is being actively used if only configured as fallback.
-
----
-
-# 26. Jobs model
-
-Current frontend knows:
-
-interface JobDisponible {
-cle
-label
-description
-roleMinimum
-module
-}
-
-Current execution result:
-
-interface JobResultat {
-cle
-succes
-resume
-erreur?
-dureeMs
-}
-
-Preserve this model.
-
----
-
-# 27. Current jobs
-
-Audit the exact current list from:
-
-jobsApi.lister()
-
-Known examples include:
-
-- Mise à jour statuts accords expirés
-- Alertes échéances accords
-- Vérification criticité courriers
-- Vérification recommandations en retard
-- Sauvegarde locale immédiate
-- Capture criticité courriers (historique)
-- Générer le rapport mensuel
-- Sauvegarde NAS immédiate
-
-Do not hardcode labels if backend already provides them.
-
----
-
-# 28. Jobs registry
-
-Render manual jobs as a structured operational list/table.
-
-Recommended columns:
-
-- Job
-- Module
-- Dernier résultat
-- Durée
-- Action
-
-But:
-
-Last result and duration are only available after current-session execution unless backend provides history.
-
-Do not fabricate historical execution metadata.
-
-If persistent job history is unavailable:
-
-Show:
-
-Dernier résultat
-Non disponible
-
-until the job is executed in this session.
-
-Or omit the column.
-
----
-
-# 29. Future monitoring placeholders
-
-The mockup shows concepts such as:
-
-- Jobs OK (24h)
-- Success rate
-- Last run timestamp
-- Warning count
-- Last backup timestamp
-- Job history
-
-These are useful future monitoring fields.
-
-If backend does not currently expose them:
-
-They may be implemented as clearly marked placeholders.
-
-Rules:
-
-Do not hardcode fake numbers.
-
-Use:
-
-Non disponible
-Historique non exposé
-À venir
-
-If a card would be visually useless with no real data, omit it instead.
-
----
-
-# 30. Placeholder architecture
-
-As with the Utilisateurs redesign:
-
-classify monitoring elements as:
-
-available
-future
-unsupported
-
-Do not scatter hardcoded placeholder values.
-
-Suggested presentation model:
-
-interface MonitoringMetric {
-label: string
-value?: string | number
-availability: 'available' | 'future'
-}
-
-Keep it simple.
-
----
-
-# 31. Manual job execution safety
-
-Manual jobs are privileged operational actions.
-
-Do not use casual one-click execution for sensitive jobs without confirmation.
-
-Recommended categories:
-
-Low-risk:
-
-- recompute status
-- capture analytics
-
-Medium/high risk:
-
-- backups
-- monthly report generation
-- bulk alert emails
-
-For jobs with side effects:
-
-Open a confirmation dialog.
-
-Example:
-
-Lancer “Alertes échéances accords” ?
-
-Cette opération peut envoyer des notifications aux utilisateurs concernés.
-
-[Annuler] [Lancer]
-
-Use backend job description to inform the user.
-
----
-
-# 32. Duplicate execution protection
-
-While a job is running:
-
-- disable its action
-- show spinner/progress state
-- prevent repeated submission
-
-Current code already tracks:
-
-jobEnCours
-
-Preserve this.
-
-Do not block every job if only one job is running unless backend requires serialized execution.
-
-Audit whether concurrent job execution is safe.
-
----
-
-# 33. Job results
-
-After execution, show:
-
-Succès
-
-or:
-
-Échec
-
-Then:
-
-summary
-
-duration
-
-error if present
-
-Example:
-
-Succès
-
-12 accords mis à jour.
-
-1.8 s
-
-For failure:
-
-Échec
-
-Connexion NAS impossible.
-
-Do not hide server error summaries.
-
-Do not expose stack traces.
-
----
-
-# 34. Job result persistence
-
-Current result state appears frontend-local:
-
-resultatsJobs
-
-This disappears on reload.
-
-Preserve this behavior unless job history exists server-side.
-
-Do not imply persistent history.
-
-If no history API exists, remove mockup action:
-
-Voir l’historique des jobs
-
-or present it as a future placeholder only if explicitly desired.
-
----
-
-# 35. System overview cards
-
-Use only metrics available from real APIs.
-
-Possible real cards:
-
-Moteur traduction
-
-Gemini usage
-
-Dernier rapport mensuel
-
-Number of available jobs
-
-Number of configurable parameters
-
-The counts of parameters/jobs can be derived from complete returned arrays, not pagination.
-
-Acceptable.
-
-Do not create:
-
-System health score
-
-unless a meaningful health model exists.
-
----
-
-# 36. Admin vs Super Admin capabilities
-
-Audit:
-
-JobDisponible.roleMinimum
-
-This is important.
-
-Use it to determine whether a job action is executable.
-
-Example:
-
-roleMinimum === super_admin
-
-Then admin may see the job but cannot launch it, if that is desired.
-
-Preferred UX:
-
-show:
-
-Réservé Super Admin
-
-rather than a mysteriously disabled launch button.
-
-Do not rely only on frontend enforcement.
-
----
-
-# 37. Parameter permissions
-
-Audit parameter update role.
-
-If only Super Admin can update settings:
-
-Admins may potentially get a read-only monitoring view.
-
-Do not expose editable controls to unauthorized admins.
-
-Build capabilities centrally.
-
-Example:
-
-canEditParameter
-canRunJob
-
----
-
-# 38. Capability architecture
-
-Suggested utility/hook:
-
-getAdminCapabilities(user)
-
-and:
-
-canRunJob(user, job)
-
-Do not scatter role comparisons throughout components.
-
----
-
-# 39. Search/filter for jobs
-
-If the job list remains small, do not overbuild.
-
-Useful filter:
-
-Module
-Status of current-session result
-
-Only implement when helpful.
-
-No search required for fewer than ~10 jobs.
-
----
-
-# 40. Monitoring refresh
-
-Current Gemini status refreshes every 60 seconds.
-
-Preserve this.
-
-Show subtle:
-
-Actualisé automatiquement
-
-Do not show a manual refresh button unless useful.
-
-Translation engine status may use similar periodic refresh if appropriate.
-
-Avoid excessive polling.
-
----
-
-# 41. Responsive behavior
-
-Desktop:
-
-- tabs
-- parameter cards in 2–4 column grid
-- monitoring cards
-- jobs table/list
-
-Tablet:
-
-- 2-column parameter cards
-- stacked monitoring groups
-
-Mobile:
-
-- single-column settings cards
-- jobs as cards
-- confirmation dialogs
-- no horizontal overflow
-
-Administration is likely desktop-first, but should remain usable on smaller screens.
-
----
-
-# 42. Component architecture
-
-Suggested structure:
-
-packages/client/src/pages/admin/
-├── components/
-│ ├── AdminTabs.tsx
-│ ├── AdminInfoBanner.tsx
-│ ├── ParameterSection.tsx
-│ ├── ParameterCard.tsx
-│ ├── ParameterInput.tsx
-│ ├── TranslationEngineStatusCard.tsx
-│ ├── GeminiUsageSection.tsx
-│ ├── GeminiModelCard.tsx
-│ ├── AdminSystemOverview.tsx
-│ ├── JobsList.tsx
-│ ├── JobRow.tsx
-│ ├── JobExecutionDialog.tsx
-│ ├── JobResultBadge.tsx
-│ └── FutureMonitoringMetric.tsx
-├── hooks/
-│ ├── useParametersQuery.ts
-│ ├── useParameterMutations.ts
-│ ├── useAdminMonitoringQueries.ts
-│ └── useJobs.ts
-├── admin.permissions.ts
-├── admin.types.ts
-├── admin.utils.ts
-├── admin.constants.ts
-└── AdminPage.tsx
-
-Adapt to current structure.
-
-Do not restructure everything purely to match this suggestion.
-
----
-
-# 43. Shared normalization
-
-Reuse existing normalized SICOT primitives:
-
-- page header
-- tabs
-- cards
-- alert/banner
-- status badges
-- confirmation dialog
-- loading/error states
-- responsive grids
-
-Do not duplicate the entire design system.
-
----
-
-# 44. Error handling
-
-Handle:
-
-- parameter list failure
-- parameter update failure
-- jobs list failure
-- job execution failure
-- Gemini status failure
-- translation engine status failure
-
-Do not return null for significant operational failures.
-
-Monitoring sections should fail independently where possible.
-
-Example:
-
-Gemini monitoring unavailable.
-
-should not prevent editing authentication settings.
-
----
-
-# 45. Loading states
-
-Use section-level loading.
-
-Do not block the entire Administration page while one monitoring API loads.
-
-Examples:
-
-Parameters skeleton
-
-Gemini cards skeleton
-
-Jobs list skeleton
-
-Translation status skeleton
-
----
-
-# 46. Security
-
-Administration contains sensitive controls.
-
-Audit:
-
-- CSRF
-- server authorization
-- parameter key allowlisting
-- job allowlisting
-
-Do not allow arbitrary job key execution from frontend.
-
-Use only jobs returned by jobsApi.lister() or known secure server identifiers.
-
-Do not expose:
-
-- environment variables
-- API keys
-- database connection strings
-- backup credentials
-- Gemini secrets
-- DeepL secrets
-
----
-
-# 47. Audit integration
-
-Parameter changes are already stated to be audit logged.
-
-Confirm this server-side.
-
-If job execution is also audit logged, surface this in the UI.
-
-Suggested:
-
-Cette action sera enregistrée dans le Journal d’audit.
-
-Do not claim audit coverage if absent.
-
-If jobs are not currently logged, report that as a security recommendation rather than pretending.
-
----
-
-# 48. Future monitoring telemetry recommendations
-
-If backend lacks job history, recommend later adding:
-
-job_executions:
-
-- id
-- jobKey
-- startedAt
-- finishedAt
-- success
-- durationMs
-- triggeredBy
-- summary
-
-This is a recommendation only.
-
-Do not implement a new persistence subsystem unless explicitly approved.
-
-Similarly useful future fields:
-
-lastBackupAt
-lastSuccessfulBackupAt
-lastJobRunAt
-
-Keep them out of current fake data.
-
----
-
-# 49. Testing and validation
-
-At minimum validate:
-
-## Access
-
-- admin access
-- super_admin access
-- unauthorized role blocked
-- direct URL protected
-
-## Parameters
-
-- list
-- integer edit
-- boolean edit
-- save
-- unchanged save disabled
-- invalid integer
-- API validation error
-- success state
-- units
-- DeepL configuration warning
-
-## Security parameters
-
-- OTP expiration
-- lockout attempts
-- lockout duration
-
-## Backup parameters
-
-- local retention
-- NAS retention
-
-## Business thresholds
-
-- agreement alert threshold
-- courrier thresholds
-- recommendation threshold
-
-## IA configuration
-
-- Gemini quotas
-- manual report limit
-
-## Monitoring
-
-- Gemini models
-- quota progress
-- usage tone
-- reports IA
-- last automated report
-- translation engine online
-- translation engine offline
-- DeepL configured / unconfigured
-- monitoring API failure
-
-## Jobs
-
-- jobs load
-- roleMinimum honored
-- launch
-- confirmation
-- duplicate launch prevented
-- success result
-- failure result
-- duration
-- summary
-- job API failure
-
-## Placeholders
-
-- no fake last-run timestamps
-- no fake success percentages
-- no fake backup times
-- future telemetry clearly marked or omitted
-
-## Responsive
-
-- desktop
-- tablet
-- mobile
-- no overflow
-
-## Accessibility
-
-- tabs
-- inputs
-- units
-- save buttons
-- job confirmation
-- result status
-- monitoring progress semantics
-
-Also run:
-
-- TypeScript
-- ESLint
-- production build
-- no console errors
-
-Do not claim validation passed unless executed.
-
----
-
-# 50. Expected implementation sequence
-
-## Phase 1 — Audit
-
-Return:
-
-1. Current Administration files
-2. Parameter API contracts
-3. All current parameter keys/types/modules
-4. Parameter validation
-5. Parameter permissions
-6. Job API contracts
-7. Current jobs
-8. roleMinimum behavior
-9. Job audit behavior
-10. Gemini monitoring payload
-11. Translation engine status payload
-12. Current cron/scheduled behavior
-13. Real mockup metrics
-14. Future placeholder metrics
-15. Unsupported mockup metrics
-16. Existing shared SICOT components
-17. Backend dependencies
-18. Proposed file changes
-19. Risks
-
-Do not implement yet.
-
-## Phase 2 — Plan
-
-Return:
-
-1. Administration information architecture
-2. Settings-tab structure
-3. Parameter grouping
-4. Monitoring structure
-5. Gemini presentation
-6. Translation engine presentation
-7. Jobs presentation
-8. Job safety/confirmation strategy
-9. Capability architecture
-10. Placeholder strategy
-11. Responsive strategy
-12. Accessibility strategy
-13. Backend changes if unavoidable
-14. Implementation order
-
-## Phase 3 — Parameters redesign
-
-Implement:
-
-1. tabs/shell
-2. information banner
-3. parameter grouping
-4. parameter cards
-5. validation
-6. units
-7. save states
-8. permissions
-9. error states
-
-Validate.
-
-## Phase 4 — Monitoring redesign
-
-Implement:
-
-1. system overview using real data
-2. translation engine status
-3. Gemini usage
-4. report quota/status
-5. monitoring failures
-6. placeholder telemetry only where deliberately retained
-
-Validate.
-
-## Phase 5 — Jobs redesign
-
-Implement:
-
-1. jobs registry
-2. role capability
-3. execution confirmation
-4. running state
-5. success/failure result
-6. duration/summary
-7. safe handling
-
-Validate.
-
-## Phase 6 — Security/audit regression
-
-Verify:
-
-- route guards
-- backend permissions
-- parameter audit
-- job audit if supported
-- no secret exposure
-
-## Phase 7 — Final validation
-
-Run:
-
-TypeScript
-ESLint
-build
-targeted functional checks
-
-Fix regressions.
-
-## Phase 8 — Final report
-
-Return:
-
-1. Summary
-2. Files created
-3. Files modified
-4. Settings architecture
-5. Parameter changes
-6. Monitoring changes
-7. Gemini monitoring
-8. Translation engine monitoring
-9. Jobs redesign
-10. Safety confirmations
-11. Capability handling
-12. Placeholder telemetry implemented
-13. Future telemetry recommendations
-14. Backend/API changes
-15. Security/audit decisions
-16. Accessibility
-17. Responsive behavior
-18. Validation commands
-19. Validation results
-20. Remaining recommendations
-
----
-
-# 51. Acceptance criteria
-
-The task is complete when:
-
-- Administration follows normalized SICOT styling.
-- Settings and operational jobs are clearly separated.
-- Current parameters remain editable.
-- Current parameter keys/backend contracts remain intact.
-- Security parameters are grouped coherently.
-- Backup retention is separated from backup execution.
-- Translation fallback configuration remains functional.
-- Gemini quotas remain configurable.
-- Gemini usage monitoring remains functional.
-- Translation engine state remains visible.
-- Manual jobs remain functional.
-- Job role restrictions are respected.
-- Sensitive jobs require appropriate confirmation.
-- Running jobs cannot be accidentally triggered repeatedly.
-- Execution results are visible.
-- No fake persistent job history is introduced.
-- No fake job success-rate data is introduced.
-- No fake last-backup timestamp is introduced.
-- Future monitoring placeholders are explicit when retained.
-- Parameter changes remain auditable.
-- Admin/security permissions remain enforced server-side and client-side.
-- Sections fail independently when monitoring services are unavailable.
-- Desktop/tablet/mobile are supported.
-- Accessibility requirements are met.
-- TypeScript/lint/build pass.
-- No unrelated modules are modified.
-- Final report is returned.
-
----
-
-# 52. Restrictions
+Use the provided official ANAC Gabon logo asset.
 
 Do not:
 
-- Rewrite the complete administration backend.
-- Rename persisted parameter keys.
-- Add arbitrary parameter keys from the frontend.
-- Expose environment secrets.
-- Expose Gemini API keys.
-- Expose DeepL API keys.
-- Expose backup credentials.
-- Allow arbitrary job execution.
-- Fake job history.
-- Fake last-run times.
-- Fake success rates.
-- Fake warning counts.
-- Fake backup timestamps.
-- Add monitoring data unsupported by the backend without marking it as future.
-- Mix backup retention configuration with backup execution.
-- Remove existing Gemini monitoring.
-- Remove DeepL configuration warning.
-- Remove existing manual jobs.
-- Allow unauthorized admins to run super_admin-only jobs.
-- Replace React Query.
-- Replace Tailwind.
-- Introduce another UI library.
-- Modify unrelated modules.
-- Commit or push changes.
+- redraw it
+- recolor it
+- stylize it
+- approximate it with SVG
+- alter its proportions
+- recreate it manually
 
-Start with Phase 1 only.
+Use the original asset.
 
-Inspect the updated repository and return the audit report before writing implementation code.
+Preferred use:
+
+## Header
+
+Small institutional logo:
+
+~40–48px high
+
+beside:
+
+SICOT
+ANAC Gabon
+
+or equivalent current portal branding.
+
+## Hero
+
+Use the main ANAC emblem as the decorative/public identity anchor.
+
+Target desktop height:
+
+~90–120px
+
+Target mobile:
+
+~70–90px
+
+The logo must replace the current generic globe/document decorative illustration.
+
+Do not make it oversized.
+
+Keep sufficient whitespace around it.
+
+---
+
+# 5. Certification banner asset
+
+A second provided image contains:
+
+ANAC logo
+Bureau Veritas
+ISO 9001
+UKAS certification marks
+
+Do NOT use this as the primary portal logo.
+
+It may only be used in a secondary area such as:
+
+- footer
+- institutional information section
+
+and only if appropriate to existing ANAC public branding.
+
+If there is no clear need, omit it.
+
+Do not distort certification marks.
+
+---
+
+# 6. Hero refinement
+
+Current hero is much better but can be more polished.
+
+Recommended desktop structure:
+
+[ANAC LOGO]
+
+Bienvenue sur le portail documentaire SICOT
+
+Consultez les documents publiés et autorisés
+pour diffusion externe par l’ANAC Gabon.
+
+Aucun compte SICOT n’est requis.
+
+                                      [ À propos de ce portail ]
+
+[ 🔍 Rechercher un document........................................... ]
+
+Requirements:
+
+- Keep hero compact.
+- Do not increase current vertical height.
+- ANAC logo should strengthen identity without dominating.
+- Search should remain integrated into hero.
+- “À propos” stays secondary.
+
+Avoid decorative clutter.
+
+---
+
+# 7. Hero typography hierarchy
+
+Ensure hierarchy is:
+
+1. Portal title
+2. Public-purpose sentence
+3. “No account required” helper
+4. Search
+
+The ANAC logo is branding, not the main heading.
+
+Do not make the logo compete with the title.
+
+---
+
+# 8. Category cards — reduce height
+
+Current category cards are still slightly too large.
+
+Reduce overall card height by approximately:
+
+20–25%
+
+Target roughly:
+
+130–150px desktop
+
+depending on typography.
+
+Do not use excessive empty space.
+
+---
+
+# 9. Category-card layout
+
+Place icon and title on the same first row.
+
+Preferred structure:
+
+┌────────────────────────────┐
+│ [icon] Accords │
+│ │
+│ Accords et conventions │
+│ publiés. │
+│ │
+│ 12 documents → │
+└────────────────────────────┘
+
+Requirements:
+
+- icon ~28–32px container
+- title beside icon
+- description beneath
+- count + arrow aligned on bottom row
+- vertically compact
+- consistent heights
+
+Do not place icon alone on a large row above the title.
+
+---
+
+# 10. Category-card active state
+
+Clicking a category filters the document list.
+
+Make this interaction explicit.
+
+Selected category should have:
+
+- slightly stronger border
+- subtle tinted background
+- clear visual emphasis
+- accessible selected state
+
+Use:
+
+aria-pressed
+
+or equivalent semantic state.
+
+Do not rely only on color.
+
+---
+
+# 11. Zero-document categories
+
+Categories with zero results must remain handled.
+
+Preferred:
+
+- remain visible
+- slightly muted
+- still selectable
+- show `0 document`
+
+Do not disable them unless there is a product reason.
+
+Clicking one should show the filtered empty state correctly.
+
+---
+
+# 12. “Toutes les catégories”
+
+Provide an obvious reset mechanism.
+
+Recommended options:
+
+Option A:
+compact “Toutes les catégories” chip/button above cards
+
+or
+
+Option B:
+first compact category card
+
+Choose whichever fits the existing layout best.
+
+When active:
+
+all documents display.
+
+---
+
+# 13. Search behavior
+
+Preserve current server-side search.
+
+Ensure:
+
+- search remains visually integrated into hero
+- search field uses most available width
+- field height ~48–52px
+- clear focus state
+- search resets pagination to page 1
+
+If category is selected:
+
+search should normally remain active within that category.
+
+Do not automatically clear search when switching category unless necessary.
+
+---
+
+# 14. Filter reset behavior
+
+Provide one clear way to reset:
+
+search +
+category
+
+Suggested action:
+
+Réinitialiser
+
+or
+
+Afficher tous les documents
+
+Do not create multiple competing reset buttons.
+
+---
+
+# 15. Documents section heading
+
+Improve orientation.
+
+Instead of only:
+
+Documents disponibles (5)
+
+use something like:
+
+Documents disponibles
+
+5 documents
+
+If category active:
+
+Documents disponibles
+Accords · 5 documents
+
+If search active:
+
+Résultats
+5 documents
+
+Keep concise.
+
+---
+
+# 16. Document list appearance
+
+Current direction is acceptable.
+
+Polish it further as a public resource list.
+
+Keep:
+
+- light table header
+- generous rows
+- clear filename
+- restrained metadata
+- blue public action button
+
+Do not revert to internal SICOT DataTable styling.
+
+---
+
+# 17. Filename handling
+
+Long filenames are a real edge case.
+
+Implement:
+
+- truncation or line clamp
+- preserve row width
+- no layout shift
+- full filename available via accessible tooltip/title
+- keyboard users must also be able to access full text
+
+Do not let a filename push actions off-screen.
+
+---
+
+# 18. Technical filenames
+
+Some current files have generated names like:
+
+rapport-analytics-2026-07-04-1783163799519.pdf
+
+Do not invent friendly titles.
+
+Use the actual filename.
+
+But improve readability:
+
+- filename primary
+- MIME type secondary
+- stable truncation
+
+Future public-title metadata may be recommended separately.
+
+---
+
+# 19. Language display
+
+Current missing language shows:
+
+—
+
+Acceptable on desktop.
+
+For mobile/detail contexts prefer:
+
+Non précisée
+
+if space permits.
+
+Do not invent language detection here.
+
+---
+
+# 20. Date semantics
+
+Current data is `createdAt`.
+
+Keep table label:
+
+Date
+
+Do not rename to:
+
+Date de publication
+
+unless backend adds a real `publishedAt`.
+
+---
+
+# 21. Actions
+
+Keep:
+
+Consulter
+Recevoir le lien
+
+This wording is correct.
+
+Do not change back to:
+
+Télécharger
+
+because the user does not immediately download.
+
+Visual hierarchy:
+
+Consulter
+→ secondary
+
+Recevoir le lien
+→ primary SICOT blue
+
+Avoid black buttons.
+
+---
+
+# 22. Action responsiveness
+
+On narrower screens:
+
+actions should not crush the filename.
+
+Tablet:
+compact buttons or menu if needed.
+
+Mobile:
+actions move to card footer.
+
+Do not force desktop table actions into tiny widths.
+
+---
+
+# 23. Secure download dialog
+
+Keep current secure email flow.
+
+Recommended wording:
+
+Title:
+Obtenir le lien de téléchargement
+
+Body:
+Saisissez votre adresse email.
+Un lien sécurisé vous sera envoyé pour télécharger ce document.
+
+Field:
+Adresse email
+
+Primary:
+Envoyer le lien
+
+Success:
+Lien envoyé
+
+Consultez votre boîte email.
+
+If duration exists:
+
+Le lien sera valable pendant X jours.
+
+Do not say the file has already downloaded.
+
+---
+
+# 24. Email validation edge cases
+
+Handle:
+
+- empty email
+- malformed email
+- surrounding whitespace
+- uppercase domains
+- API validation error
+- server rejection
+- request already pending
+- repeated clicks
+
+Trim input before submission.
+
+Do not rely only on:
+
+email.includes('@')
+
+Use proper schema/browser validation aligned with backend.
+
+---
+
+# 25. Duplicate token requests
+
+Prevent accidental duplicates.
+
+While token request is pending:
+
+- disable primary action
+- show progress state
+- prevent repeated submission
+
+After success:
+
+do not allow immediate duplicate send from the same dialog unless intentionally reset.
+
+Backend rate limiting remains the real protection.
+
+---
+
+# 26. Email-success correctness
+
+Only display:
+
+Lien envoyé
+
+if backend confirms the email operation succeeded.
+
+If backend only creates token but email fails:
+
+show an error.
+
+Do not present false success.
+
+Audit current API semantics.
+
+---
+
+# 27. Unsupported preview MIME
+
+Audit MIME handling.
+
+Expected:
+
+application/pdf
+→ PDF viewer
+
+image/*
+→ image viewer
+
+Other:
+
+DOCX
+XLSX
+ZIP
+text types if unsupported
+
+→ friendly fallback:
+
+Aperçu non disponible pour ce type de fichier.
+
+[ Recevoir le lien ]
+
+Do not attempt to render arbitrary non-image files with `<img>`.
+
+---
+
+# 28. Preview failure
+
+If preview endpoint fails:
+
+Show:
+
+Impossible d’afficher ce document.
+
+Vous pouvez demander un lien sécurisé pour le télécharger.
+
+Actions:
+
+Recevoir le lien
+Fermer
+
+Do not leave blank iframe/black screen.
+
+---
+
+# 29. Withdrawn document edge case
+
+Scenario:
+
+1. visitor loads public list
+2. admin withdraws document
+3. visitor clicks Consult or Receive Link
+
+Expected:
+
+backend rejects access
+
+UI:
+
+Ce document n’est plus disponible sur le portail.
+
+Refresh/remove it from current list where practical.
+
+Do not show internal status.
+
+---
+
+# 30. Expired secure link
+
+If public download route handles expired tokens:
+
+Ensure public error state is clear:
+
+Ce lien de téléchargement a expiré.
+
+Retournez sur le portail pour demander un nouveau lien.
+
+Do not expose raw token details.
+
+---
+
+# 31. Empty portal state
+
+If there are zero published documents globally:
+
+Do not show:
+
+seven zero-category cards +
+empty table
+
+as the only experience.
+
+Use a stronger global empty state:
+
+Aucun document public n’est disponible pour le moment.
+
+Les documents publiés par l’ANAC apparaîtront ici.
+
+Category cards may be hidden or heavily simplified in this state.
+
+---
+
+# 32. Filtered empty state
+
+When documents exist globally but selected category/search has no results:
+
+Show:
+
+Aucun document ne correspond à votre recherche.
+
+If category active:
+
+Aucun document disponible dans cette catégorie.
+
+Provide reset action.
+
+Do not use the global-empty message.
+
+---
+
+# 33. Pagination edge cases
+
+Ensure:
+
+- category change → page 1
+- search change → page 1
+- clearing filters → page 1
+- page greater than new `totalPages` never leaves user on an empty page
+- deleted/withdrawn docs do not leave invalid pagination state
+
+---
+
+# 34. Category count consistency
+
+Category counts must represent real public documents.
+
+Do not calculate counts only from the current page.
+
+Audit current implementation.
+
+Counts should come from:
+
+- backend aggregates
+- or a complete public category-count response
+
+If currently derived incorrectly, report before changing API.
+
+---
+
+# 35. Responsive category behavior
+
+Desktop:
+5 cards per row if space allows.
+
+Tablet:
+2–3 cards per row.
+
+Mobile:
+prefer 2 compact columns
+or horizontally scrollable cards.
+
+Do not stack seven large cards vertically.
+
+---
+
+# 36. Mobile document cards
+
+On mobile replace table with cards.
+
+Each card:
+
+Filename
+Category
+Language
+Date
+Size
+
+[ Consulter ]
+[ Recevoir le lien ]
+
+Keep touch targets >=44px where practical.
+
+---
+
+# 37. Accessibility
+
+Verify:
+
+- category cards are buttons/links
+- active category exposed semantically
+- logo has appropriate alt text
+- purely decorative elements use empty alt/aria-hidden
+- search has visible label or accessible name
+- truncated filenames remain accessible
+- viewer close button labelled
+- download dialog focus trapped/restored
+- email errors associated with field
+- status messages announced
+- pagination keyboard accessible
+- actions do not depend on icon only
+
+---
+
+# 38. ANAC logo accessibility
+
+If logo is informative:
+
+alt="ANAC Gabon"
+
+If adjacent text already fully conveys it and logo is decorative:
+
+alt=""
+
+Choose one intentionally.
+
+Do not duplicate screen-reader text unnecessarily.
+
+---
+
+# 39. Footer
+
+Keep footer simple and institutional.
+
+Recommended:
+
+ANAC Gabon
+SICOT
+
+© 2026 ANAC Gabon. Tous droits réservés.
+
+Only include:
+
+Mentions légales
+Confidentialité
+Contact
+
+if those routes/pages really exist.
+
+Do not create dead links.
+
+---
+
+# 40. Visual details
+
+Use:
+
+- ANAC navy
+- SICOT blue
+- light gray/blue page background
+- white cards
+- subtle border
+- restrained shadow
+- compact radius consistency
+- consistent icon sizing
+
+Avoid:
+
+- heavy gradients
+- black CTA buttons
+- giant empty sections
+- admin-style navy table headers
+
+---
+
+# 41. Do not over-design
+
+The current version is already structurally correct.
+
+Do NOT:
+
+- rewrite the whole portal
+- change routes
+- change API contracts
+- introduce new public metadata
+- add partner/country filters
+- add fake descriptions
+- add fake publication dates
+- add login/signup
+- add internal navigation
+- add a large custom SVG if the official ANAC logo already provides the needed identity
+
+The goal is refinement, not another redesign.
+
+---
+
+# 42. Security regression checks
+
+Reconfirm:
+
+- only published documents appear
+- unpublished direct IDs rejected server-side
+- withdrawn documents rejected
+- download tokens scoped correctly
+- no internal metadata exposed
+- no OCR text exposed
+- no uploader exposed
+- no filesystem paths exposed
+- email token generation remains rate-limited if backend supports it
+
+Report missing server-side protections.
+
+Do not simulate security client-side.
+
+---
+
+# 43. Performance
+
+Keep:
+
+- server pagination
+- debounced search
+- lazy preview
+- no document preview preload
+- no token request before user action
+
+Optimize official logo asset:
+
+- use appropriate source file
+- avoid unnecessary huge raster dimensions
+- preserve quality
+- avoid layout shift
+
+If needed, create an optimized web asset from the provided logo without visually altering it.
+
+Do not change branding content.
+
+---
+
+# 44. Testing
+
+Validate at least:
+
+## Desktop
+
+1920×1080
+1440×900
+
+## Tablet
+
+1024px class viewport
+
+## Mobile
+
+390px class viewport
+
+Test:
+
+- all categories
+- zero-count category
+- active category
+- search only
+- search + category
+- reset
+- long filename
+- missing language
+- PDF
+- image
+- unsupported MIME
+- preview failure
+- valid email
+- invalid email
+- send success
+- send failure
+- repeated click
+- withdrawn document
+- no documents globally
+- filtered empty result
+- pagination after filter change
+
+Also run:
+
+TypeScript
+ESLint
+Production build
+
+Do not claim a check passed unless executed.
+
+---
+
+# 45. Expected final report
+
+Return:
+
+1. Remaining UX issues found
+2. Files modified
+3. ANAC branding integration
+4. Hero refinements
+5. Category-card refinements
+6. Category active/reset behavior
+7. Document-list refinements
+8. Filename handling
+9. Download-flow refinements
+10. Preview edge cases
+11. Empty states
+12. Responsive changes
+13. Accessibility changes
+14. Security checks
+15. Validation commands
+16. Validation results
+17. Remaining future recommendations
+
+Start with the audit/refinement plan only.
+
+Do not write implementation code until that plan is returned.

@@ -29,7 +29,8 @@ import TraductionEditeur from './pages/traductions/components/TraductionEditeur'
 import DemandesPage from './pages/DemandesPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/admin/AdminPage';
-import PortailPage from './pages/PortalPage';
+import PortailPage from './pages/portal/PortalPage';
+import PortailTelechargerPage from './pages/portal/PortalDownloadPage';
 import AuditPage from './pages/AuditPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
@@ -178,6 +179,7 @@ export const router = createBrowserRouter(
 
       {/* ── Portail documentaire ───────────────────────────────────── */}
       <Route path="/portal" element={<PortailPage />} />
+      <Route path="/portal/telecharger/:token" element={<PortailTelechargerPage />} />
     </Route>
   )
 );

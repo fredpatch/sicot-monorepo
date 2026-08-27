@@ -1,5 +1,5 @@
 import { db } from '@/db/index';
-import { documents, portailTokens } from '@/db/schema';
+import { documents, portailTokens, documentCategorieEnum } from '@/db/schema';
 import { eq, and, isNull, ilike, or, desc, isNotNull } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { logAudit } from '@/modules/auth/services/auth.service';
@@ -86,6 +86,38 @@ export async function listerDocumentsPortail(filters: {
     })),
     total,
   };
+}
+
+// ── SERVICE : Compteurs publics par catégorie (cartes de navigation) ──────
+// Même portée que listerDocumentsPortail (visibilitePortail + OCR traité +
+// non supprimé) — des compteurs cohérents avec ce que le portail liste
+// réellement, jamais des chiffres décoratifs.
+export async function getAggregatesPortail(): Promise<{
+  total: number;
+  parCategorie: Record<string, number>;
+}> {
+  const baseConditions = [
+    eq(documents.visibilitePortail, true),
+    isNull(documents.deletedAt),
+    eq(documents.statutOCR, 'traite'),
+  ];
+  const where = and(...baseConditions);
+
+  const categories = documentCategorieEnum.enumValues;
+
+  const [total, ...comptes] = await Promise.all([
+    db.$count(documents, where),
+    ...categories.map((categorie) =>
+      db.$count(documents, and(where, eq(documents.categorie, categorie)))
+    ),
+  ]);
+
+  const parCategorie: Record<string, number> = {};
+  categories.forEach((categorie, i) => {
+    parCategorie[categorie] = comptes[i];
+  });
+
+  return { total, parCategorie };
 }
 
 // ── SERVICE : Récupérer métadonnées d'un document exposé ──────────────────
