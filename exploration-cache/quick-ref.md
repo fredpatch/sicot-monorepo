@@ -60,7 +60,9 @@ POST /api/auth/refresh         Auto-called by Axios interceptor on 401
 GET  /api/auth/me              Returns current user (session check) — now includes email/poste/service/direction/actif/createdAt/derniereConnexion (derived from audit log: CONNEXION or MOT_DE_PASSE_DEFINI)
 POST /api/auth/logout
 POST /api/auth/changer-mot-de-passe  Self-service password change (verifies current password) — distinct from /set-password (first login)
-GET  /api/users                Admin only
+GET  /api/users                Agent minimum (list, read-only — used by Missions participant picker); admin required for create/get-by-id/update/activation/OTP
+GET  /api/users/aggregates     Global counts (total/actifs/inactifs/premiereConnexionEnAttente), admin only, independent of current filters
+GET  /api/users/:id            Admin only — now includes derniereConnexion (real, derived from audit log via auth.service.ts#getDerniereConnexion, same helper /auth/me uses for the caller's own account)
 POST /api/users/:id/reinitialiser-otp   Reset OTP + email user
 GET  /api/audit                Admin only, filter by module/action/date
 GET  /api/health               200 ok
@@ -150,7 +152,7 @@ GET  /api/documents              No longer returns texteExtrait/chemin on list r
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24 → 2026-08-27) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes demandes/Mes missions) + Profil page + self-service password
+🎯 Sprint 12 (2026-08-24 → 2026-08-27) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes demandes/Mes missions) + Profil page + self-service password
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -225,3 +227,6 @@ GET  /api/documents              No longer returns texteExtrait/chemin on list r
   burns tokens on checks the user can do themselves in seconds. Going
   forward: validate with tsc/eslint/build as usual, then hand UI changes to
   the user to check manually rather than reaching for browser automation.
+  The Utilisateurs redesign (2026-08-27) followed this rule throughout —
+  validated via tsc/eslint/build plus live HTTP checks against the dev DB
+  (signed JWTs + curl) only, no browser launched.

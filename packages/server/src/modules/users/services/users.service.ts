@@ -3,11 +3,25 @@ import { users } from '@/db/schema';
 import { eq, ilike, or, desc, and } from 'drizzle-orm';
 import { generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendOTPEmail } from '@/utils/email';
-import { logAudit } from '@/modules/auth/services/auth.service';
+import { logAudit, getDerniereConnexion } from '@/modules/auth/services/auth.service';
 import { toUserView } from './users.helpers';
-import type { CreateUserParams, UpdateUserParams, UserFilters, UserView } from './users.types';
+import type {
+  CreateUserParams,
+  UpdateUserParams,
+  UserFilters,
+  UserView,
+  UserDetailView,
+  UsersAggregates,
+} from './users.types';
 
-export type { CreateUserParams, UpdateUserParams, UserFilters, UserView } from './users.types';
+export type {
+  CreateUserParams,
+  UpdateUserParams,
+  UserFilters,
+  UserView,
+  UserDetailView,
+  UsersAggregates,
+} from './users.types';
 
 // ── SERVICE : Lister les utilisateurs ────────────────────────────────────
 export async function listerUtilisateurs(filters: UserFilters): Promise<{
@@ -58,10 +72,23 @@ export async function listerUtilisateurs(filters: UserFilters): Promise<{
 }
 
 // ── SERVICE : Récupérer un utilisateur par ID ─────────────────────────────
-export async function getUtilisateur(id: number): Promise<UserView> {
+export async function getUtilisateur(id: number): Promise<UserDetailView> {
   const [user] = await db.select().from(users).where(eq(users.id, id));
   if (!user) throw new Error('UTILISATEUR_INTROUVABLE');
-  return toUserView(user);
+  const derniereConnexion = await getDerniereConnexion(id);
+  return { ...toUserView(user), derniereConnexion };
+}
+
+// ── SERVICE : Compteurs globaux (non limités à la page courante) ─────────
+export async function getUsersAggregates(): Promise<UsersAggregates> {
+  const [total, actifs, inactifs, premiereConnexionEnAttente] = await Promise.all([
+    db.$count(users),
+    db.$count(users, eq(users.actif, true)),
+    db.$count(users, eq(users.actif, false)),
+    db.$count(users, eq(users.premiereConnexion, true)),
+  ]);
+
+  return { total, actifs, inactifs, premiereConnexionEnAttente };
 }
 
 // ── SERVICE : Créer un utilisateur et envoyer son OTP ────────────────────

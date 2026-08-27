@@ -891,3 +891,51 @@ module rather than improve it. The "signature" move was compositional
   change; UI-visual confirmation is the user's to do, not something to
   reach for browser automation to replicate. See
   `exploration-cache/quick-ref.md` § Active Blockers for the updated note.
+
+### Utilisateurs (M10) redesign — 2026-08-27
+
+- **The brief's placeholder assumptions didn't survive the audit.** The
+  task brief assumed `poste`/`direction`/`service` and "dernière connexion"
+  were unavailable and should render as `Non renseigné`/`À venir`
+  placeholders. Reading `users.service.ts`/`users.types.ts` showed
+  `poste/service/direction` are real columns, populated whenever an account
+  is created from a Personnel ANAC prefill, and already present in the
+  server's `UserView` — only the client's `Utilisateur` type and every UI
+  surface were missing them. Separately, `/auth/me` already computed a real
+  last-login timestamp per request from `auditLogs` (no stored column,
+  filtered by `CONNEXION`/`MOT_DE_PASSE_DEFINI`) for the caller's own
+  account — the exact same query just needed parametrizing by an arbitrary
+  `userId` to work for any selected user. Confirmed both with the user
+  before implementing them as real, read-only fields instead of
+  placeholders — a case where following the brief literally would have
+  hidden data that already existed.
+- **`getDerniereConnexion` extracted rather than duplicated.** Moved from
+  an inline query inside `auth.controller.ts#me` into `auth.service.ts` as
+  a standalone export, then imported by `users.service.ts#getUtilisateur`.
+  Both `/auth/me` (self) and `GET /users/:id` (admin viewing another
+  account) now call the same function — one audit-log query pattern, not
+  two copies that could drift.
+- **`derniereConnexion` deliberately kept off the list payload.** Added
+  only to `UserDetailView` (`GET /users/:id`), not `UserView` (`GET
+  /users`) — same reasoning as Documents' `texteExtrait` removal: an
+  audit-log lookup per row on every page load would be real, avoidable
+  cost. One query on selection, not N per page.
+- **Account status and onboarding split into two badges.** The pre-existing
+  `BadgeStatutCompte` conflated `actif` and `premiereConnexion` into one
+  three-state badge (Inactif / 1ère connexion en attente / Actif) — an
+  account that's both active and awaiting first login was indistinguishable
+  from one that's simply inactive at a glance. Split into
+  `BadgeStatutCompte` (actif/inactif only) and a new
+  `BadgePremiereConnexion` (onboarding only), shown side by side.
+- **Personnel ANAC enrichment tab: same "fetch on selection, hide on
+  failure" pattern as Documents' portal badge.** `GET
+  /personnel-anac/matricule/:matricule` is called once when a user is
+  selected (never per table row); the tab renders only if that call
+  resolves. Verified live that it fails cleanly (503
+  `PERSONNEL_ANAC_INDISPONIBLE` in this dev environment — the external
+  service is Tailscale-only) and the tab simply doesn't appear, no error
+  surfaced to the admin mid-workflow.
+- **No Chromium/Playwright used for this round**, per the standing
+  instruction from the Documents round above — validated via
+  tsc/eslint/build plus live HTTP checks (signed JWTs + curl against the
+  real dev DB) only.

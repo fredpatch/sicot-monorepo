@@ -11,6 +11,8 @@ export const usersApi = {
 
   getById: (id: number) => api.get(`/users/${id}`),
 
+  aggregates: () => api.get('/users/aggregates'),
+
   creer: (data: {
     matricule: string;
     nom: string;

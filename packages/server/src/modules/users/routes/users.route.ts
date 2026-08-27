@@ -15,6 +15,9 @@ router.use(authenticate);
 // ── Liste — agent minimum (lecture seule) ─────────────────────────────────
 router.get('/', requireRole('agent'), usersController.lister);
 
+// ⚠️ Déclarée avant /:id pour éviter que 'aggregates' soit capturé comme un ID
+router.get('/aggregates', requireAdmin, usersController.aggregates);
+
 // ── Création — admin minimum ──────────────────────────────────────────────
 router.post('/', requireAdmin, usersController.creer);
 

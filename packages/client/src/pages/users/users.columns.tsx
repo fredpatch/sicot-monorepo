@@ -1,18 +1,20 @@
 // packages/client/src/pages/utilisateurs/utilisateurs.columns.tsx
 import { useMemo } from 'react';
-import { KeyRound, Pencil, Power, PowerOff } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TFunction } from 'i18next';
 
 import { Button } from '@/components/ui/button';
-import { confirmToast } from '@/lib/confirm-toast';
-import { useAuth } from '@/App';
+import { getInitiales } from './users.utils';
 import { BadgeRole } from './components/RolesBadge';
 import { BadgeStatutCompte } from './components/AccountStatusBadge';
+import { BadgePremiereConnexion } from './components/OnboardingBadge';
+import { UserActionsMenu } from './components/UserActionsMenu';
 import type { Utilisateur } from './users.types';
 
 interface UseUtilisateursColumnsParams {
   t: TFunction;
+  currentUserId: number | undefined;
+  onVoir: (utilisateur: Utilisateur) => void;
   onModifier: (utilisateur: Utilisateur) => void;
   onToggleActivation: (id: number, actif: boolean) => void;
   toggleActivationEnCours: boolean;
@@ -22,37 +24,45 @@ interface UseUtilisateursColumnsParams {
 
 export function useUtilisateursColumns({
   t,
+  currentUserId,
+  onVoir,
   onModifier,
   onToggleActivation,
   toggleActivationEnCours,
   onReinitialiserOTP,
   reinitialiserOTPEnCours,
 }: UseUtilisateursColumnsParams): ColumnDef<Utilisateur>[] {
-  const { user } = useAuth();
-
   return useMemo<ColumnDef<Utilisateur>[]>(
     () => [
+      {
+        id: 'utilisateur',
+        header: 'Utilisateur',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const u = row.original;
+          return (
+            <div className="flex items-center gap-2.5">
+              <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-anac-navy/8 text-xs font-semibold text-anac-navy"
+                aria-hidden="true"
+              >
+                {getInitiales(u.prenom, u.nom)}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-medium text-anac-navy">
+                  {u.prenom} {u.nom}
+                </p>
+                <p className="truncate text-xs text-anac-muted">{u.email}</p>
+              </div>
+            </div>
+          );
+        },
+      },
       {
         accessorKey: 'matricule',
         header: 'Matricule',
         enableSorting: false,
         cell: ({ row }) => <span className="font-mono text-xs text-anac-text">{row.original.matricule}</span>,
-      },
-      {
-        id: 'nomComplet',
-        header: 'Nom',
-        enableSorting: false,
-        cell: ({ row }) => (
-          <span className="font-medium text-anac-navy">
-            {row.original.prenom} {row.original.nom}
-          </span>
-        ),
-      },
-      {
-        accessorKey: 'email',
-        header: 'Email',
-        enableSorting: false,
-        cell: ({ row }) => <span className="text-anac-muted text-xs">{row.original.email}</span>,
       },
       {
         accessorKey: 'role',
@@ -64,7 +74,26 @@ export function useUtilisateursColumns({
         id: 'statut',
         header: 'Statut',
         enableSorting: false,
-        cell: ({ row }) => <BadgeStatutCompte utilisateur={row.original} />,
+        cell: ({ row }) => <BadgeStatutCompte actif={row.original.actif} />,
+        meta: { className: 'hidden sm:table-cell' },
+      },
+      {
+        id: 'premiereConnexion',
+        header: 'Première connexion',
+        enableSorting: false,
+        cell: ({ row }) => <BadgePremiereConnexion premiereConnexion={row.original.premiereConnexion} />,
+        meta: { className: 'hidden lg:table-cell' },
+      },
+      {
+        id: 'createdAt',
+        header: 'Créé le',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-xs text-anac-muted">
+            {new Date(row.original.createdAt).toLocaleDateString('fr-FR')}
+          </span>
+        ),
+        meta: { className: 'hidden xl:table-cell' },
       },
       {
         id: 'actions',
@@ -72,74 +101,34 @@ export function useUtilisateursColumns({
         enableSorting: false,
         cell: ({ row }) => {
           const u = row.original;
-          const estSoiMeme = u.id === user?.id;
           return (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => onModifier(u)}
-                className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-              >
-                <Pencil size={11} className="mr-1" />
-                Modifier
+            <div className="flex items-center gap-1" data-stop-row-click onClick={(e) => e.stopPropagation()}>
+              <Button variant="secondary" size="sm" onClick={() => onVoir(u)}>
+                Voir
               </Button>
-
-              <span className="text-anac-border">·</span>
-
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() =>
-                  confirmToast(
-                    `Réinitialiser l'OTP de ${u.prenom} ${u.nom} ? Un nouveau code sera envoyé par email.`,
-                    () => onReinitialiserOTP(u.id)
-                  )
-                }
-                disabled={reinitialiserOTPEnCours || !u.actif}
-                className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-              >
-                <KeyRound size={11} className="mr-1" />
-                Réinitialiser OTP
-              </Button>
-
-              {!estSoiMeme && (
-                <>
-                  <span className="text-anac-border">·</span>
-                  {u.actif ? (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() =>
-                        confirmToast(`Désactiver le compte de ${u.prenom} ${u.nom} ?`, () =>
-                          onToggleActivation(u.id, false)
-                        )
-                      }
-                      disabled={toggleActivationEnCours}
-                      className="h-auto p-0 text-xs text-anac-muted hover:text-anac-danger"
-                    >
-                      <PowerOff size={11} className="mr-1" />
-                      Désactiver
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => onToggleActivation(u.id, true)}
-                      disabled={toggleActivationEnCours}
-                      className="h-auto p-0 text-xs text-green-600 hover:text-green-800"
-                    >
-                      <Power size={11} className="mr-1" />
-                      Activer
-                    </Button>
-                  )}
-                </>
-              )}
+              <UserActionsMenu
+                utilisateur={u}
+                currentUserId={currentUserId}
+                onModifier={onModifier}
+                onReinitialiserOTP={onReinitialiserOTP}
+                reinitialiserOTPEnCours={reinitialiserOTPEnCours}
+                onToggleActivation={onToggleActivation}
+                toggleActivationEnCours={toggleActivationEnCours}
+              />
             </div>
           );
         },
       },
     ],
-    [t, user, onModifier, onToggleActivation, toggleActivationEnCours, onReinitialiserOTP, reinitialiserOTPEnCours]
+    [
+      t,
+      currentUserId,
+      onVoir,
+      onModifier,
+      onToggleActivation,
+      toggleActivationEnCours,
+      onReinitialiserOTP,
+      reinitialiserOTPEnCours,
+    ]
   );
 }

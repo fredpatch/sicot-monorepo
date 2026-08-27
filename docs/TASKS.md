@@ -615,7 +615,7 @@ plus lisibles, plus stables et plus rapides à parcourir.
 - Origine des termes glossaire détectée par convention de texte libre, pas un enum dédié
 - Historique de criticité courriers : s'accumule seulement depuis juillet 2026, pas de reconstruction rétroactive possible
 
-## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-26)
+## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-27)
 
 Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 `exploration-cache/changelog.md` pour le détail complet et
@@ -764,11 +764,26 @@ Suite du même sprint, sur la base de l'audit du module (structure, contrats API
 - [x] ~~**Bug survol en-tête de tableau**~~ - `TableRow` (même composant pour lignes d'en-tête et de corps) portait un `hover:bg-anac-gray` générique qui cassait le fond navy de l'en-tête au survol ; corrigé au niveau du composant partagé `table.tsx`, bénéficie à toutes les pages utilisant `DataTable`
 - [x] ~~**Aucune fonctionnalité inventée**~~ - pas d'aperçu pour les types non PDF/image, pas de nom d'uploader, pas de compteur de pages/mots OCR, pas d'historique d'activité (aucune donnée serveur)
 
+### Refonte Utilisateurs (M10) | ✅ COMPLÉTÉ (2026-08-27)
+
+Suite du même sprint, sur la base de l'audit du module (modèle utilisateur réel, contrats API, rôles, Personnel ANAC) réalisé avant toute implémentation.
+
+- [x] ~~**Poste/Direction/Service enfin affichés**~~ - déjà stockés en base et renvoyés par `GET /users`/`GET /users/:id` depuis la création ANAC-préremplie, mais absents du type client et de toute l'UI ; ajoutés en lecture seule (pas de nouvel endpoint d'édition, cf. audit — aucune capacité d'édition n'existait)
+- [x] ~~**`GET /users/aggregates`**~~ - nouvel endpoint (total/actifs/inactifs/premiereConnexionEnAttente), admin-gated — le `total` du listing était borné au filtre courant, jamais un compteur global
+- [x] ~~**Dernière connexion réelle par utilisateur**~~ - `getDerniereConnexion(userId)` extrait de `auth.controller.ts` (`/auth/me`) vers `auth.service.ts`, réutilisé par `GET /users/:id` (`UserDetailView`) ; même requête sur le journal d'audit (CONNEXION / MOT_DE_PASSE_DEFINI), pas de nouvelle colonne
+- [x] ~~**Statut de compte et onboarding séparés**~~ - `BadgeStatutCompte` (Actif/Désactivé) et le nouveau `BadgePremiereConnexion` (Première connexion requise/Compte initialisé) remplacent l'ancien badge unique qui mélangeait les deux faits
+- [x] ~~**`getUserCapabilities(currentUserId, u)`**~~ - point d'entrée unique (`canResetOtp`/`canActivate`/`canDeactivate`) miroir exact des règles serveur (auto-désactivation bloquée, super_admin jamais désactivable) — remplace les vérifications dispersées
+- [x] ~~**Registre allégé**~~ - cellule Utilisateur (avatar initiales + nom + email), ligne cliquable ouvre le workspace, actions réduites à « Voir » + menu « ⋯ » (Modifier/Réinitialiser OTP/Activer-Désactiver), même `dropdown-menu.tsx` que Documents
+- [x] ~~**Workspace utilisateur sélectionné (`UserWorkspace`)**~~ - Dialog à onglets Informations/Compte & accès/Sécurité, + onglet Personnel ANAC affiché uniquement si un rapprochement par matricule réussit réellement (un seul appel à la sélection, jamais par ligne de tableau ; échec/indisponibilité du service externe = onglet simplement absent, pas d'erreur bloquante)
+- [x] ~~**Cartes mobile (`UsersMobileCards`)**~~ - repli `< md`, même logique de capacités que le registre desktop
+- [x] ~~**Cartes de synthèse réelles (`UsersSummaryCards`)**~~ - Total/Actifs/Désactivés/Première connexion, pas de carte « Invités » (aucun état d'invitation réel dans le modèle)
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas de téléphone/sessions actives/méthode de connexion/notes administratives/activité par utilisateur (aucune donnée serveur) ; validé en direct : `GET /personnel-anac/matricule/:matricule` renvoie 503 en dev (réseau Tailscale ANAC injoignable hors production) et l'onglet Personnel ANAC reste correctement masqué plutôt que d'afficher une erreur
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)
 - [ ] **Chaîne de versions documents non groupée à l'affichage** - `VerserVersionAction` relie une nouvelle version à son parent via `parentId`, mais le registre Documents affiche toujours chaque version comme une ligne indépendante ; pas vérifié si c'est source de confusion en pratique
-- [ ] **Composant SummaryCard partagé** - dupliqué 8× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire/Demandes/Mon espace)
+- [ ] **Composant SummaryCard partagé** - dupliqué 10× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire/Demandes/Mon espace/Documents/Utilisateurs)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
 - [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
 - [ ] **Fils de correspondance multi-niveaux** - `getFilCorrespondance` ne remonte qu'un niveau de réponse

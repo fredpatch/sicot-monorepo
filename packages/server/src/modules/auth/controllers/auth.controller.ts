@@ -9,8 +9,8 @@ import {
   REFRESH_TOKEN_COOKIE,
 } from '@/middleware/auth';
 import { db } from '@/db/index';
-import { users, auditLogs } from '@/db/schema';
-import { eq, and, or, desc } from 'drizzle-orm';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 // ── POST /api/auth/login ───────────────────────────────────────────────────
 export async function login(req: Request, res: Response): Promise<void> {
@@ -154,22 +154,7 @@ export async function me(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Dérivé du journal d'audit plutôt que stocké — pas de colonne dédiée.
-    // Deux actions démarrent réellement une session (buildTokens() appelé) :
-    // CONNEXION (connexion normale par mot de passe) et MOT_DE_PASSE_DEFINI
-    // (fin de première connexion — l'OTP seul ne donne qu'un token temporaire
-    // de 5 min, donc OTP_VALIDE n'est pas une "connexion" en soi).
-    const [derniereConnexion] = await db
-      .select({ createdAt: auditLogs.createdAt })
-      .from(auditLogs)
-      .where(
-        and(
-          eq(auditLogs.userId, user.id),
-          or(eq(auditLogs.action, 'CONNEXION'), eq(auditLogs.action, 'MOT_DE_PASSE_DEFINI'))
-        )
-      )
-      .orderBy(desc(auditLogs.createdAt))
-      .limit(1);
+    const derniereConnexion = await authService.getDerniereConnexion(user.id);
 
     res.json({
       id: user.id,
@@ -183,7 +168,7 @@ export async function me(req: Request, res: Response): Promise<void> {
       role: user.role,
       actif: user.actif,
       createdAt: user.createdAt,
-      derniereConnexion: derniereConnexion?.createdAt ?? null,
+      derniereConnexion,
     });
   } catch (error) {
     console.error('[auth/me]', error);

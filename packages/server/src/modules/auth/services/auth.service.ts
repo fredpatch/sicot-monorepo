@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { db } from '@/db/index.js';
 import { users, auditLogs } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, or, desc } from 'drizzle-orm';
 import { signAccessToken, verifyRefreshToken } from '@/utils/jwt';
 import { verifyOTP, isOTPExpired, generateOTP, hashOTP, otpExpiresAt } from '@/utils/otp';
 import { sendCompteActiveEmail, sendOTPEmail } from '@/utils/email.js';
@@ -37,6 +37,26 @@ export async function logAudit(params: {
     details: params.details,
     ip: params.ip,
   });
+}
+
+// ── SERVICE : Dernière connexion réelle d'un utilisateur ──────────────────
+// Dérivé du journal d'audit plutôt que stocké — pas de colonne dédiée. Deux
+// actions démarrent réellement une session (buildTokens() appelé) : CONNEXION
+// (connexion normale par mot de passe) et MOT_DE_PASSE_DEFINI (fin de première
+// connexion — l'OTP seul ne donne qu'un token temporaire de 5 min, donc
+// OTP_VALIDE n'est pas une « connexion » en soi). Utilisé par /auth/me (soi-
+// même) et GET /users/:id (vue admin d'un autre compte) — même requête.
+export async function getDerniereConnexion(userId: number): Promise<Date | null> {
+  const [ligne] = await db
+    .select({ createdAt: auditLogs.createdAt })
+    .from(auditLogs)
+    .where(
+      and(eq(auditLogs.userId, userId), or(eq(auditLogs.action, 'CONNEXION'), eq(auditLogs.action, 'MOT_DE_PASSE_DEFINI')))
+    )
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(1);
+
+  return ligne?.createdAt ?? null;
 }
 
 // ── SERVICE : Connexion ───────────────────────────────────────────────────

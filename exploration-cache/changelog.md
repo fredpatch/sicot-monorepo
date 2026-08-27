@@ -1,5 +1,69 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-27 — feat(client/server): redesign Utilisateurs module (M10)
+
+Same audit-first process as the Documents (M8) round just before it: Phase 1
+audit report returned before any code (challenged the mockup's own field
+list against the real `users`/`personnel_anac` data model), then a Phase 2
+plan, then incremental implementation.
+
+### Key audit finding
+The brief assumed `poste`/`direction`/`service` and "dernière connexion"
+were unavailable placeholders. They weren't: `users.poste/service/direction`
+are real columns already populated on ANAC-prefilled account creation and
+already returned by `GET /users`/`GET /users/:id` — just missing from the
+client type and never rendered anywhere. And `/auth/me` already computed a
+real last-login timestamp from the audit log for the caller's own account;
+the same query just needed generalizing to an arbitrary `userId`. Both
+confirmed with the user before treating them as real fields instead of
+`Non renseigné` placeholders — the one genuine placeholder left in scope
+(téléphone) still renders as `Non renseigné`, nothing fabricated.
+
+### Backend
+- `GET /users/aggregates` — new endpoint (`total`, `actifs`, `inactifs`,
+  `premiereConnexionEnAttente`), admin-gated, `db.$count`-based, same
+  pattern as the Documents/Courriers/Traductions/Glossaire/Demandes/Missions
+  aggregates endpoints. The list endpoint's `total` was scoped to the
+  current filter, not global.
+- `getDerniereConnexion(userId)` extracted from `auth.controller.ts`'s
+  inline `/auth/me` query into `auth.service.ts`, reused by `GET /users/:id`
+  (new `UserDetailView`) so an admin can see any user's real last login, not
+  just their own.
+- Live-validated over real HTTP: aggregates return correct counts against
+  the dev DB, `GET /users/:id` returns a real `derniereConnexion` sourced
+  from the audit log, an `agent` token gets 403 on `/users/aggregates` but
+  still 200 on the list (unchanged, used by the Missions participant
+  picker), self-deactivation still blocked.
+
+### Client
+- `Utilisateur` type gained `poste`/`service`/`direction` (already in the
+  API response, just unused); new `UtilisateurDetail` adds
+  `derniereConnexion` — kept off the list type deliberately, so it's one
+  audit-log query on selection, not one per table row.
+- `getUserCapabilities(currentUserId, u)` (`users.permissions.ts`) —
+  mirrors the server's self-deactivation and super_admin-never-deactivatable
+  rules in one place instead of scattering `u.id === user?.id`/`!u.actif`
+  checks across columns/menu/workspace.
+- Account status and onboarding state split into two badges
+  (`BadgeStatutCompte`: Actif/Désactivé, new `BadgePremiereConnexion`:
+  Première connexion requise/Compte initialisé) — the old single badge
+  conflated two independent facts.
+- `UserWorkspace` — selected-user panel (click a row to open), Dialog+Tabs
+  (Informations/Compte & accès/Sécurité), same pattern as
+  `DocumentWorkspace`/`RequestWorkspace`/`TermWorkspace`. A fourth
+  "Personnel ANAC" tab renders only when a live matricule lookup actually
+  resolves — one request on selection, never per row; confirmed the tab
+  stays correctly hidden (no error banner) when the external ANAC service
+  is unreachable (503 in this dev environment, expected — Tailscale-only).
+- `UserActionsMenu` — reuses the `dropdown-menu.tsx` primitive introduced
+  for Documents (Modifier/Réinitialiser OTP/Activer-Désactiver behind a
+  single "⋯"), row actions collapse to "Voir" + that menu.
+- `UsersSummaryCards`/`UsersMobileCards` — same conventions as every other
+  module's registry this sprint.
+- No new fake data anywhere: sessions/connection method/admin notes/
+  per-user activity were all deliberately omitted (no backing data), not
+  built as decorative empty sections.
+
 ## [Unreleased] — 2026-08-27 — feat(client/server): redesign Documents module (M8)
 
 Full audit-first redesign of the Documents module, following the same

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { usersApi } from '@/lib/users.api';
 import { personnelAnacApi } from '@/lib/personnel-anac.api';
 import type { UserRole } from '@sicot/shared';
-import type { Utilisateur, PersonnelAnacResultat } from '../users.types';
+import type { Utilisateur, PersonnelAnacResultat, UsersAggregates } from '../users.types';
 
 const PAGE_SIZE = 10;
 
@@ -26,6 +26,18 @@ export function useUtilisateursQuery({ search, role, actif, page }: UseUtilisate
         pageSize: PAGE_SIZE,
       });
       return res.data as { data: Utilisateur[]; total: number };
+    },
+  });
+}
+
+// Compteurs globaux — jamais dérivés de la page courante (voir
+// users.service.ts#getUsersAggregates côté serveur).
+export function useUtilisateursAggregatesQuery() {
+  return useQuery({
+    queryKey: ['utilisateurs', 'aggregates'],
+    queryFn: async () => {
+      const res = await usersApi.aggregates();
+      return res.data as UsersAggregates;
     },
   });
 }

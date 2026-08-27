@@ -22,6 +22,16 @@ export async function lister(req: Request, res: Response): Promise<void> {
   }
 }
 
+// ── GET /api/users/aggregates ─────────────────────────────────────────────
+export async function aggregates(_req: Request, res: Response): Promise<void> {
+  try {
+    const result = await usersService.getUsersAggregates();
+    res.json(result);
+  } catch (error) {
+    handleUsersError(res, error);
+  }
+}
+
 // ── GET /api/users/:id ────────────────────────────────────────────────────
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
