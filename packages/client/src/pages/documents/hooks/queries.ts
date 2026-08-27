@@ -1,7 +1,7 @@
 // packages/client/src/pages/documents/hooks/useDocumentsQueries.ts
 import { useQuery } from '@tanstack/react-query';
 import { documentsApi } from '@/lib/api';
-import type { Categorie, Document } from '../documents.types';
+import type { Categorie, Document, DocumentsAggregates } from '../documents.types';
 
 interface UseDocumentsQueryParams {
   search: string;
@@ -37,3 +37,13 @@ export function useDocumentsQuery({
 }
 
 export { PAGE_SIZE };
+
+export function useDocumentsAggregatesQuery() {
+  return useQuery({
+    queryKey: ['documents', 'aggregates'],
+    queryFn: async () => {
+      const response = await documentsApi.aggregates();
+      return response.data as DocumentsAggregates;
+    },
+  });
+}

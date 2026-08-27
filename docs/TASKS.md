@@ -746,6 +746,24 @@ Suite directe de la découvrabilité des traductions : l'utilisateur a remarqué
 - [x] ~~**Aucun rétro-remplissage nécessaire**~~ - données existantes = seed/test selon l'utilisateur, le défaut `false` s'applique uniformément
 - [x] ~~**Colonnes admin masquées pour l'agent**~~ - OCR/Visibilité interne/Portail Externe retirées entièrement (pas juste désactivées) de la table Documents quand `role === 'agent'` — aucune n'est actionnable pour ce rôle
 
+### Refonte Documents (M8) | ✅ COMPLÉTÉ (2026-08-26 → 2026-08-27)
+
+Suite du même sprint, sur la base de l'audit du module (structure, contrats API, permissions, workflow OCR/portail/traduction) réalisé avant toute implémentation.
+
+- [x] ~~**`GET /documents/aggregates`**~~ - nouvel endpoint (total/ocrTraites/ocrEnAttente/ocrEchecs/categories/portailExposes), scope agent identique à `listerDocuments` — n'existait pas avant, cartes de synthèse calculées sur la page courante sinon
+- [x] ~~**Listing allégé**~~ - `GET /documents` ne renvoie plus `texteExtrait`/`chemin` (projection de colonnes dédiée, `DocumentListView`) ; le détail complet reste sur `GET /:id`. Corrige un vrai risque de payload (texte OCR complet renvoyé sur chaque ligne de chaque page) signalé dans l'audit
+- [x] ~~**`getDocumentCapabilities(role, doc)`**~~ - point d'entrée unique consolidant les vérifications `role === 'agent'` auparavant dispersées (colonnes, menu d'actions, panneau de détail)
+- [x] ~~**Menu d'actions groupé**~~ - nouveau `dropdown-menu.tsx` (Radix, même convention que `select.tsx`/`dialog.tsx`) : Corriger OCR/Relancer OCR/Verser version/Publier-Retirer portail/Supprimer regroupés derrière un « ⋯ », remplace la rangée de liens texte inline ; action principale (Traduire/Télécharger) reste directement visible
+- [x] ~~**Badge portail compact**~~ - remplace l'ancien bloc d'alerte pleine largeur dans la cellule du tableau
+- [x] ~~**Workspace document sélectionné (`DocumentWorkspace`)**~~ - Dialog à onglets Aperçu/Informations/OCR/Portail (même motif que `RequestWorkspace`/`TermWorkspace`, aucun composant Sheet dans le dépôt) ; catégorie éditable déplacée du registre vers l'onglet Informations (badge seul dans le tableau) ; aperçu en `<iframe>` sur `/telecharger` pour PDF/image uniquement, "Aperçu non disponible" honnête sinon (aucune infra de prévisualisation inventée)
+- [x] ~~**`DataTable` : ligne cliquable + colonnes responsives**~~ - nouveau `onRowClick` (clavier Entrée/Espace, `data-stop-row-click` pour les cellules à contrôle propre) et lecture de `columnDef.meta.className`, réutilisables par toute autre page ; Langue/Version masquées `< lg` en tablette
+- [x] ~~**Cartes mobile (`DocumentsMobileCards`)**~~ - repli `< md`, même logique de capacités que le registre desktop
+- [x] ~~**Régression upload-agent corrigée**~~ - la zone d'upload s'affichait sans condition de rôle avant même câblage du reste ; gardée par `canManageDocuments`
+- [x] ~~**Corrections mineures trouvées en chemin**~~ - `mettreAJourCategorie` rejetait silencieusement `'rapport'` (absent de sa liste de validation, présent dans celle de `nouvelle-version`) ; lien portail mort (`/portail` vs route réelle `/portal`)
+- [x] ~~**Bug menu d'actions muet**~~ - `DropdownMenuTrigger asChild` (Radix) enveloppant le `Button` du projet (`@base-ui/react`) ne composait pas — aucun précédent de cette combinaison dans le dépôt (le seul autre `asChild` porte sur un sous-composant Radix natif) ; corrigé en stylant directement le trigger Radix plutôt que de l'envelopper
+- [x] ~~**Bug survol en-tête de tableau**~~ - `TableRow` (même composant pour lignes d'en-tête et de corps) portait un `hover:bg-anac-gray` générique qui cassait le fond navy de l'en-tête au survol ; corrigé au niveau du composant partagé `table.tsx`, bénéficie à toutes les pages utilisant `DataTable`
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas d'aperçu pour les types non PDF/image, pas de nom d'uploader, pas de compteur de pages/mots OCR, pas d'historique d'activité (aucune donnée serveur)
+
 ### Reporté (voir Notion Sprint 12, statut À faire)
 
 - [ ] **Filtre Période Missions** - à venir/en cours/30j/cette année/terminées (Courriers a le sien depuis le 2026-08-24, à porter sur Missions si voulu)

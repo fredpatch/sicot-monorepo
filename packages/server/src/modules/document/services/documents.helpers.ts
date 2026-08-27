@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { documents } from '@/db/schema';
 import { DOSSIERS, MOTS_CLES_CATEGORIES } from './documents.constants';
-import type { DocumentCategorie, DocumentView } from './documents.types';
+import type { DocumentCategorie, DocumentListView, DocumentView } from './documents.types';
 
 export function assurerDossiers(): void {
   Object.values(DOSSIERS).forEach((dossier) => {
@@ -23,6 +23,49 @@ export function toDocumentView(doc: typeof documents.$inferSelect): DocumentView
     categorie: doc.categorie as DocumentCategorie,
     langue: doc.langue ?? undefined,
     texteExtrait: doc.texteExtrait ?? undefined,
+    statutOCR: doc.statutOCR,
+    hashMD5: doc.hashMD5,
+    version: doc.version,
+    parentId: doc.parentId ?? undefined,
+    uploadePar: doc.uploadePar,
+    createdAt: doc.createdAt,
+    visibilitePortail: doc.visibilitePortail,
+    portailTokenDureeJours: doc.portailTokenDureeJours ?? undefined,
+    visibiliteInterne: doc.visibiliteInterne,
+  };
+}
+
+// Ligne de listing — colonnes exactes de la projection utilisée par
+// listerDocuments (sans texteExtrait/chemin, voir DocumentListView).
+type DocumentListRow = Pick<
+  typeof documents.$inferSelect,
+  | 'id'
+  | 'nom'
+  | 'nomOriginal'
+  | 'mimeType'
+  | 'taille'
+  | 'categorie'
+  | 'langue'
+  | 'statutOCR'
+  | 'hashMD5'
+  | 'version'
+  | 'parentId'
+  | 'uploadePar'
+  | 'createdAt'
+  | 'visibilitePortail'
+  | 'portailTokenDureeJours'
+  | 'visibiliteInterne'
+>;
+
+export function toDocumentListView(doc: DocumentListRow): DocumentListView {
+  return {
+    id: doc.id,
+    nom: doc.nom,
+    nomOriginal: doc.nomOriginal,
+    mimeType: doc.mimeType,
+    taille: doc.taille,
+    categorie: doc.categorie as DocumentCategorie,
+    langue: doc.langue ?? undefined,
     statutOCR: doc.statutOCR,
     hashMD5: doc.hashMD5,
     version: doc.version,

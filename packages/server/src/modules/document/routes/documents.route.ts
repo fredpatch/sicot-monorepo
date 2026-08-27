@@ -14,6 +14,8 @@ router.use(authenticate);
 router.get('/doublon', documentsController.verifierDoublon);
 
 // ── Lecture ───────────────────────────────────────────────────────────────
+// ⚠️  Déclaré avant /:id pour éviter que "aggregates" soit capturé comme un ID
+router.get('/aggregates', documentsController.aggregates);
 router.get('/', documentsController.lister);
 router.get('/:id', documentsController.getById);
 

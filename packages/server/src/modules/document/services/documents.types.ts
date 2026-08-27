@@ -56,3 +56,17 @@ export interface DoublonInfo {
   existe: boolean;
   document?: DocumentView;
 }
+
+// Forme allégée retournée par le listing — sans texteExtrait ni chemin
+// (potentiellement volumineux / chemin serveur non destiné au client), voir
+// listerDocuments. Le détail complet reste disponible via GET /:id.
+export type DocumentListView = Omit<DocumentView, 'texteExtrait' | 'chemin'>;
+
+export interface DocumentsAggregates {
+  total: number;
+  ocrTraites: number;
+  ocrEnAttente: number;
+  ocrEchecs: number;
+  categories: number;
+  portailExposes: number;
+}

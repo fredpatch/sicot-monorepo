@@ -10,18 +10,29 @@ import { DOSSIERS } from './documents.constants';
 import {
   assurerDossiers,
   toDocumentView,
+  toDocumentListView,
   genererNomFichier,
   classerAutomatiquement,
 } from './documents.helpers';
 import type {
   DocumentCategorie,
   DocumentFilters,
+  DocumentListView,
+  DocumentsAggregates,
   DocumentView,
   DoublonInfo,
   UploadDocumentParams,
 } from './documents.types';
 
-export type { DocumentCategorie, DocumentFilters, DocumentView, DoublonInfo, UploadDocumentParams };
+export type {
+  DocumentCategorie,
+  DocumentFilters,
+  DocumentListView,
+  DocumentsAggregates,
+  DocumentView,
+  DoublonInfo,
+  UploadDocumentParams,
+};
 
 // ── Vérifier doublon par MD5 ──────────────────────────────────────────────
 export async function verifierDoublon(hashMD5: string): Promise<DoublonInfo> {
@@ -101,8 +112,11 @@ export async function uploaderDocument(
 }
 
 // ── Lister les documents ──────────────────────────────────────────────────
+// Projection allégée (sans texteExtrait/chemin) — potentiellement volumineux
+// et non nécessaire pour l'affichage en registre ; le détail complet reste
+// disponible via getDocument(id). Voir DocumentListView.
 export async function listerDocuments(filters: DocumentFilters): Promise<{
-  data: DocumentView[];
+  data: DocumentListView[];
   total: number;
 }> {
   const page = filters.page ?? 1;
@@ -166,7 +180,24 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const rows = await db
-    .select()
+    .select({
+      id: documents.id,
+      nom: documents.nom,
+      nomOriginal: documents.nomOriginal,
+      mimeType: documents.mimeType,
+      taille: documents.taille,
+      categorie: documents.categorie,
+      langue: documents.langue,
+      statutOCR: documents.statutOCR,
+      hashMD5: documents.hashMD5,
+      version: documents.version,
+      parentId: documents.parentId,
+      uploadePar: documents.uploadePar,
+      createdAt: documents.createdAt,
+      visibilitePortail: documents.visibilitePortail,
+      portailTokenDureeJours: documents.portailTokenDureeJours,
+      visibiliteInterne: documents.visibiliteInterne,
+    })
     .from(documents)
     .where(where)
     .orderBy(desc(documents.createdAt))
@@ -175,7 +206,51 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
 
   const total = await db.$count(documents, where);
 
-  return { data: rows.map(toDocumentView), total };
+  return { data: rows.map(toDocumentListView), total };
+}
+
+// ── Agrégats globaux ────────────────────────────────────────────────────
+// Même portée que listerDocuments (agent restreint à visibleOuUploadePar) —
+// des compteurs cohérents avec ce que ce rôle peut effectivement lister,
+// jamais calculés sur la page courante.
+export async function getDocumentsAggregates(
+  visibleOuUploadePar?: number
+): Promise<DocumentsAggregates> {
+  const base = [isNull(documents.deletedAt)];
+  if (visibleOuUploadePar !== undefined) {
+    base.push(
+      or(
+        eq(documents.visibiliteInterne, true),
+        eq(documents.uploadePar, visibleOuUploadePar)
+      )!
+    );
+  }
+  const where = and(...base);
+
+  const [total, ocrTraites, ocrEnAttente, ocrEchecs, portailExposes, categorieRows] =
+    await Promise.all([
+      db.$count(documents, where),
+      db.$count(documents, and(where, eq(documents.statutOCR, 'traite'))),
+      db.$count(
+        documents,
+        and(
+          where,
+          or(eq(documents.statutOCR, 'en_attente'), eq(documents.statutOCR, 'a_retraiter'))
+        )
+      ),
+      db.$count(documents, and(where, eq(documents.statutOCR, 'echec'))),
+      db.$count(documents, and(where, eq(documents.visibilitePortail, true))),
+      db.selectDistinct({ categorie: documents.categorie }).from(documents).where(where),
+    ]);
+
+  return {
+    total,
+    ocrTraites,
+    ocrEnAttente,
+    ocrEchecs,
+    categories: categorieRows.length,
+    portailExposes,
+  };
 }
 
 // ── Récupérer un document par ID ──────────────────────────────────────────

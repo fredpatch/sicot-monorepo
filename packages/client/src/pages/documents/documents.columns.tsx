@@ -1,22 +1,16 @@
 // packages/client/src/pages/documents/documents.columns.tsx
 import { useMemo } from 'react';
-import { Download, Eye, EyeOff, Globe, GlobeLock, Loader2 } from 'lucide-react';
+import { Download, Eye, EyeOff } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TFunction } from 'i18next';
 
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { BadgeOCR } from './components/BadgeOCR';
-import { VerserVersionAction } from './components/VerserVersionAction';
+import { DocumentActionsMenu } from './components/DocumentActionsMenu';
+import { DocumentPortailBadge } from './components/DocumentPortailBadge';
 import { CATEGORIES } from './documents.constants';
 import { formaterTaille } from './documents.utils';
-import { canManageDocuments, canManagePortail } from './documents.permissions';
+import { canManageDocuments, getDocumentCapabilities } from './documents.permissions';
 import { documentsApi } from '@/lib/documents.api';
 import type { Document } from './documents.types';
 
@@ -29,7 +23,6 @@ const COLONNES_MASQUEES_AGENT = ['statutOCR', 'visibiliteInterne', 'portail'];
 interface UseDocumentsColumnsParams {
   t: TFunction;
   role: string | undefined;
-  onChangerCategorie: (id: number, cat: string) => void;
   onCorrigerOCR: (doc: Document) => void;
   onRetraiterOCR: (id: number) => void;
   retraiterOCREnCours: boolean;
@@ -48,7 +41,6 @@ interface UseDocumentsColumnsParams {
 export function useDocumentsColumns({
   t,
   role,
-  onChangerCategorie,
   onCorrigerOCR,
   onRetraiterOCR,
   retraiterOCREnCours,
@@ -82,32 +74,24 @@ export function useDocumentsColumns({
         accessorKey: 'categorie',
         header: 'Catégorie',
         enableSorting: false,
+        // Édition déplacée vers l'onglet Informations du workspace (voir
+        // DocumentWorkspace.tsx) — le registre n'affiche que le badge, pour
+        // éviter les modifications accidentelles au survol d'une ligne.
         cell: ({ row }) => {
-          const doc = row.original;
-          const label = CATEGORIES.find((c) => c.value === doc.categorie)?.label ?? doc.categorie;
-          if (!canManageDocuments(role)) {
-            return <span className="text-xs text-anac-muted">{label}</span>;
-          }
-          return (
-            <Select value={doc.categorie} onValueChange={(cat) => onChangerCategorie(doc.id, cat)}>
-              <SelectTrigger className="h-7 text-xs w-36 px-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.filter((c) => c.value !== 'tous').map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          );
+          const label =
+            CATEGORIES.find((c) => c.value === row.original.categorie)?.label ??
+            row.original.categorie;
+          return <span className="text-xs text-anac-muted">{label}</span>;
         },
       },
       {
         accessorKey: 'langue',
         header: 'Langue',
         enableSorting: false,
+        // Colonnes secondaires masquées en tablette pour réduire la
+        // largeur — restent consultables via le workspace (onglet
+        // Informations), pas perdues, juste retirées du registre étroit.
+        meta: { className: 'hidden lg:table-cell' },
         cell: ({ row }) => (
           <span className="uppercase text-xs font-medium text-anac-muted">
             {row.original.langue ?? '—'}
@@ -138,7 +122,7 @@ export function useDocumentsColumns({
           const peutGerer = canManageDocuments(role);
 
           return (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5" data-stop-row-click>
               {doc.visibiliteInterne ? (
                 <span className="inline-flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-xs text-green-700">
                   <Eye size={12} /> Visible en interne
@@ -165,32 +149,15 @@ export function useDocumentsColumns({
       },
       {
         id: 'portail',
-        header: 'Portail Externe',
+        header: 'Portail',
         enableSorting: false,
-        cell: ({ row }) => {
-          const doc = row.original;
-          return doc.visibilitePortail ? (
-            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2.5 text-xs flex items-center gap-2">
-              <Globe size={13} />
-              <span>
-                Document est visible sur le portail externe.
-                {doc.portailTokenDureeJours
-                  ? ` Liens de téléchargement valables ${doc.portailTokenDureeJours} jour(s).`
-                  : ' Liens de téléchargement sans expiration.'}
-              </span>
-            </div>
-          ) : (
-            <div className="bg-anac-gray border border-anac-border text-anac-muted rounded-lg px-3 py-2.5 text-xs flex items-center gap-2">
-              <GlobeLock size={13} />
-              <span>Document non exposé sur le portail externe.</span>
-            </div>
-          );
-        },
+        cell: ({ row }) => <DocumentPortailBadge expose={row.original.visibilitePortail} />,
       },
       {
         accessorKey: 'version',
         header: 'Version',
         enableSorting: false,
+        meta: { className: 'hidden lg:table-cell' },
         cell: ({ row }) => (
           <span className="text-anac-muted text-center block">v{row.original.version}</span>
         ),
@@ -211,124 +178,45 @@ export function useDocumentsColumns({
         enableSorting: false,
         cell: ({ row }) => {
           const doc = row.original;
-          const peutGerer = canManageDocuments(role);
-          const peutPublier = canManagePortail(role);
+          const cap = getDocumentCapabilities(role, doc);
 
           return (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => window.open(documentsApi.getUrlTelechargement(doc.id), '_blank')}
-                className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-              >
-                <Download size={11} className="inline mr-1" />
-                Télécharger
-              </Button>
-
-              {peutGerer && (
-                <>
-                  <span className="text-anac-border">·</span>
-                  {doc.statutOCR !== 'traite' && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => onCorrigerOCR(doc)}
-                      className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-                    >
-                      Corriger OCR
-                    </Button>
-                  )}
-
-                  {(doc.statutOCR === 'echec' || doc.statutOCR === 'a_retraiter') && (
-                    <>
-                      <span className="text-anac-border">·</span>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        onClick={() => onRetraiterOCR(doc.id)}
-                        disabled={retraiterOCREnCours}
-                        className="h-auto p-0 text-xs text-amber-600 hover:text-amber-800"
-                      >
-                        {retraiterOCREnCours ? (
-                          <>
-                            <Loader2 size={11} className="animate-spin inline mr-1" />
-                            OCR...
-                          </>
-                        ) : (
-                          'Relancer OCR'
-                        )}
-                      </Button>
-                    </>
-                  )}
-
-                  {doc.texteExtrait && doc.statutOCR === 'traite' && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => onTraduire(doc)}
-                      className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
-                    >
-                      Traduire
-                    </Button>
-                  )}
-
-                  <span className="text-anac-border">·</span>
-                  <VerserVersionAction
-                    onFileSelected={(fichier) => onVerserVersion(doc.id, fichier)}
-                    enCours={verserVersionEnCours}
-                  />
-
-                  <span className="text-anac-border">·</span>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => onSupprimer(doc)}
-                    disabled={supprimerEnCours}
-                    className="h-auto p-0 text-xs text-anac-muted hover:text-anac-danger"
-                  >
-                    Supprimer
-                  </Button>
-
-                  {doc.statutOCR === 'traite' && peutPublier && (
-                    <>
-                      <span className="text-anac-border">·</span>
-                      {doc.visibilitePortail ? (
-                        <div className="flex items-center gap-1.5">
-                          <a
-                            href="/portail"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
-                          >
-                            <Globe size={11} /> Exposé
-                          </a>
-                          <span className="text-anac-border">·</span>
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() => onRetirerPortail(doc.id)}
-                            disabled={retirerPortailEnCours}
-                            className="h-auto p-0 text-xs text-red-400 hover:text-red-600"
-                          >
-                            Retirer
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={() => onOuvrirPortail(doc)}
-                          className="h-auto p-0 text-xs text-anac-muted hover:text-anac-sky"
-                        >
-                          <GlobeLock size={11} className="inline mr-1" />
-                          Portail
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </>
+            <div className="flex items-center gap-1" data-stop-row-click>
+              {cap.canTranslate ? (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => onTraduire(doc)}
+                  className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
+                >
+                  Traduire
+                </Button>
+              ) : (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => window.open(documentsApi.getUrlTelechargement(doc.id), '_blank')}
+                  className="h-auto p-0 text-xs text-anac-sky hover:text-anac-navy"
+                >
+                  <Download size={11} className="inline mr-1" />
+                  Télécharger
+                </Button>
               )}
+
+              <DocumentActionsMenu
+                document={doc}
+                capabilities={cap}
+                onCorrigerOCR={onCorrigerOCR}
+                onRetraiterOCR={onRetraiterOCR}
+                retraiterOCREnCours={retraiterOCREnCours}
+                onVerserVersion={onVerserVersion}
+                verserVersionEnCours={verserVersionEnCours}
+                onOuvrirPortail={onOuvrirPortail}
+                onRetirerPortail={onRetirerPortail}
+                retirerPortailEnCours={retirerPortailEnCours}
+                onSupprimer={onSupprimer}
+                supprimerEnCours={supprimerEnCours}
+              />
             </div>
           );
         },
@@ -341,7 +229,6 @@ export function useDocumentsColumns({
   }, [
       t,
       role,
-      onChangerCategorie,
       onCorrigerOCR,
       onRetraiterOCR,
       retraiterOCREnCours,

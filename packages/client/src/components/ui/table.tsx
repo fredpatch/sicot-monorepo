@@ -17,7 +17,14 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   return (
     <thead
       data-slot="table-header"
-      className={cn('bg-anac-navy text-white text-sm font-semibold', className)}
+      // TableRow (utilisée aussi ici) porte un hover:bg-anac-gray générique
+      // pour les lignes du corps — sans cette surcharge, survoler l'en-tête
+      // bascule vers ce gris clair et casse le fond navy. [&_tr] a une
+      // spécificité supérieure au hover direct de TableRow, donc l'emporte.
+      className={cn(
+        'bg-anac-navy text-white text-sm font-semibold [&_tr]:hover:bg-anac-navy',
+        className
+      )}
       {...props}
     />
   );

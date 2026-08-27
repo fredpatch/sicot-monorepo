@@ -68,6 +68,19 @@ export async function lister(req: Request, res: Response): Promise<void> {
   }
 }
 
+// ── GET /api/documents/aggregates ─────────────────────────────────────────
+export async function aggregates(req: Request, res: Response): Promise<void> {
+  try {
+    const estAgent = req.user!.role === 'agent';
+    const result = await documentsService.getDocumentsAggregates(
+      estAgent ? req.user!.userId : undefined
+    );
+    res.json(result);
+  } catch (error) {
+    handleDocumentsError(res, error);
+  }
+}
+
 // ── GET /api/documents/:id ────────────────────────────────────────────────
 export async function getById(req: Request, res: Response): Promise<void> {
   try {
@@ -153,6 +166,7 @@ export async function mettreAJourCategorie(req: Request, res: Response): Promise
       'mission',
       'traduction',
       'glossaire',
+      'rapport',
       'autre',
     ];
 

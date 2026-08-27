@@ -17,6 +17,8 @@ export const documentsApi = {
 
   getById: (id: number) => api.get(`/documents/${id}`),
 
+  aggregates: () => api.get('/documents/aggregates'),
+
   // Upload avec FormData — timeout plus long pour les gros fichiers.
   // visibiliteInterne n'est honoré par le serveur que pour traducteur+ (un
   // agent ne peut jamais s'auto-publier, même en le passant ici).

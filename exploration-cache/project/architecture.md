@@ -806,3 +806,88 @@ an agent could see a document an admin had just uploaded, untranslated.
 - **No backfill/grandfathering migration** — confirmed with the user that
   existing rows are seed/test data, so the new column's DB default
   (`false`) was allowed to apply uniformly with no data migration step.
+
+## Documents module redesign (M8) — audit-first, then incremental (2026-08-26 → 27)
+
+Followed the same process as M3/M4/M6/M7/M5: a Phase 1 audit (file
+structure, API contracts, permissions, OCR/portail/traduction workflow —
+returned as a report before any code), then a Phase 2 plan informed by a
+`frontend-design` skill pass, deliberately calibrated toward reuse: this is
+an internal regulatory admin tool with an already-normalized visual
+language (`anac-*` tokens, `.card`/`badge-*` classes shared across 6+
+modules) — the plan explicitly rejected reproducing a reference mockup's
+own visual style, since that would fracture consistency with every other
+module rather than improve it. The "signature" move was compositional
+(registry + workspace split), not a new palette/typography choice.
+
+- **List payload trimmed via column projection, not a stripped mapper** —
+  `listerDocuments` now does `db.select({ ...explicit columns... })`
+  rather than `select()` + drop-fields-after; `DocumentListView` is a
+  distinct type (`Omit<DocumentView, 'texteExtrait'|'chemin'>`) with its
+  own `toDocumentListView()` helper. `getDocument` (detail) is untouched.
+  Chosen over lazy-loading texteExtrait per-row because the concern was
+  specifically "don't send it when not needed," and the projection is
+  free at the DB layer (no extra round-trip).
+- **`texteExtrait`'s removal from the list forced a small but real
+  consequence, fixed in the same pass**: the "Traduire" eligibility check
+  in `documents.columns.tsx` used to read `doc.texteExtrait && statutOCR
+  === 'traite'`; texteExtrait is no longer present on list rows.
+  `statutOCR === 'traite'` alone is proven equivalent (the server never
+  writes that status without a non-empty extracted text — confirmed by
+  reading every write site in `documents.service.ts`), so the check was
+  simplified rather than working around the missing field. The actual
+  translation handoff (`onTraduire`) now does a one-off `getById` fetch at
+  click time to retrieve the real text for the `sessionStorage` prefill.
+- **No Sheet/drawer primitive exists anywhere in this repo** — confirmed
+  by grep before committing to an implementation. The Phase 2 plan's
+  "persistent right-side panel" was adapted to a Dialog+Tabs `Document
+  Workspace`, the same pattern `RequestWorkspace` (Demandes) and
+  `TermWorkspace` (Glossaire) already use for exactly this reason. Noted
+  explicitly to the user as a deliberate adaptation, not a silent
+  downgrade of the plan.
+- **Category editing relocated, not duplicated** — moved from an inline
+  `<Select>` in the registry to the workspace's Informations tab (matches
+  the "badge only in the table, edit in the detail panel" goal from the
+  plan), sequenced so the capability was never actually unavailable
+  between rounds — the workspace shipped before the registry's inline
+  editor was removed.
+- **`DataTable` (shared component) gained two capabilities reusable by any
+  other page**, not just Documents: `onRowClick` (keyboard-accessible,
+  `data-stop-row-click` as an escape hatch for cells with their own
+  interactive controls — category select, visibility toggle, action menu
+  — so clicking those doesn't also open the row's detail panel), and
+  reading `columnDef.meta.className` for responsive per-column classes
+  (`ColumnMeta<TData,TValue>` is an empty interface in this project's
+  `@tanstack/table-core` version — no module augmentation exists, so the
+  className is read via an unsafe cast rather than a typed contract).
+- **Two library-mismatch bugs, both root-caused by inspecting actual
+  component sources rather than guessing**:
+  1. The project's `Button` (`components/ui/button.tsx`) is built on
+     `@base-ui/react`, while `Dialog`/`Select` are pure
+     `@radix-ui/react-*`. Wrapping `Button` in a Radix
+     `DropdownMenuTrigger asChild` doesn't compose — `asChild`'s
+     `cloneElement` merge only reliably works when the child is built for
+     that exact contract, and grepping the codebase turned up zero
+     existing precedent of this combination (the only other `asChild`
+     usage wraps Radix's own `Select` icon, not this `Button`). Fixed by
+     styling the raw Radix trigger directly instead of nesting `Button`
+     inside it — a pattern worth remembering before adding any future
+     Radix-trigger + `Button` composition in this codebase.
+  2. `TableRow` (`components/ui/table.tsx`) is shared between header and
+     body rows and carries a blanket `hover:bg-anac-gray`; hovering the
+     navy `TableHeader` triggered that light hover background, visually
+     "turning white." Fixed at the shared component
+     (`[&_tr]:hover:bg-anac-navy` on `TableHeader` — higher CSS specificity
+     than the row's own `:hover` class, wins regardless of source order)
+     rather than patching Documents alone, since every page using this
+     `Table` primitive had the same latent bug.
+- **Browser verification: used once, then explicitly told not to repeat.**
+  A local Playwright session (real dev servers, a signed JWT cookie) was
+  used to chase down and confirm both bugs above after the user reported
+  them from manual testing. The user then asked not to keep doing this —
+  spinning up Chromium locally to self-verify UI burns tokens on checks
+  they can do themselves in seconds ("we cowork here, u not alone"). Going
+  forward: tsc/eslint/build remain the standard validation for every
+  change; UI-visual confirmation is the user's to do, not something to
+  reach for browser automation to replicate. See
+  `exploration-cache/quick-ref.md` § Active Blockers for the updated note.

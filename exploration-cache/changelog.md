@@ -1,5 +1,90 @@
 # 📝 SICOT - Changelog
 
+## [Unreleased] — 2026-08-27 — feat(client/server): redesign Documents module (M8)
+
+Full audit-first redesign of the Documents module, following the same
+process as the M3/M4/M6/M7/M5 rounds earlier in the sprint: Phase 1 audit
+report returned before any code, Phase 2 plan (informed by a `frontend-design`
+pass calibrated to reuse the existing SICOT token system rather than the
+mockup's own visual style — this is an internal admin tool, not a fresh
+brand), then incremental implementation with validation after each step.
+
+### Backend
+- `GET /documents/aggregates` — new endpoint (`total`, `ocrTraites`,
+  `ocrEnAttente`, `ocrEchecs`, `categories`, `portailExposes`), agent-scoped
+  the same way `listerDocuments` already is. Didn't exist before — summary
+  cards were the one thing the audit flagged as needing a real backend
+  addition.
+- `GET /documents` no longer returns `texteExtrait`/`chemin` — new
+  `DocumentListView`/`toDocumentListView` with an explicit column
+  projection, list-only. Detail (`GET /:id`) is unchanged. Closes a payload
+  concern the audit predicted (full OCR text on every row of every page)
+  and confirmed live against the dev DB.
+- Two small bugs fixed in passing: `mettreAJourCategorie`'s validation list
+  was missing `'rapport'` (present in `nouvelle-version`'s list, silently
+  rejected here); the portal link in the actions cell pointed at `/portail`
+  when the real client route is `/portal`.
+- Live-validated over real HTTP (not just at the service layer): started
+  both dev servers, signed real JWTs for a `super_admin` and an `agent`,
+  confirmed `/documents/aggregates` scopes correctly per role, the list
+  payload is trimmed, and an agent gets a real `403` on another user's
+  document by ID.
+
+### Client
+- `getDocumentCapabilities(role, doc)` (`documents.permissions.ts`) —
+  consolidates what was previously scattered `role === 'agent'`/
+  `canManageDocuments` checks across columns, the actions menu, and the
+  detail panel.
+- New `dropdown-menu.tsx` primitive (`@radix-ui/react-dropdown-menu`, same
+  styling convention as the existing `select.tsx`/`dialog.tsx`) —
+  `DocumentActionsMenu` groups Corriger OCR/Relancer OCR/Verser
+  version/Publier-Retirer portail/Supprimer behind a single "⋯", replacing
+  the row of inline text links. The one primary contextual action
+  (Traduire/Télécharger) stays directly visible.
+- `DocumentPortailBadge` — compact icon+text badge, replaces the old
+  full-width alert block that lived inside the table cell.
+- `DocumentWorkspace` — the selected-document panel (click a row to open),
+  Dialog+Tabs (Aperçu/Informations/OCR/Portail), same pattern as
+  `RequestWorkspace`/`TermWorkspace` since no Sheet/drawer primitive exists
+  anywhere in this repo. Category editing moved out of the registry (badge
+  only there now) into the Informations tab. `DocumentPreview` renders an
+  `<iframe>` on the existing `/telecharger` endpoint for PDF/image only —
+  honest "Aperçu non disponible" fallback for everything else, no
+  fabricated preview infrastructure.
+- `DataTable` (shared, `components/table/data-table.tsx`) gained two
+  reusable capabilities: `onRowClick` (keyboard-accessible, with a
+  `data-stop-row-click` escape hatch for cells that own interactive
+  controls) and reading `columnDef.meta.className` for responsive
+  per-column classes. Both available to any other page using `DataTable`.
+- Responsive: `Langue`/`Version` columns hide `< lg` (tablet); a new
+  `DocumentsMobileCards` replaces the table entirely `< md`, same
+  capability logic as desktop.
+- Fixed a real regression found in the audit: the upload zone rendered
+  unconditionally regardless of role — now gated by `canManageDocuments`,
+  closing the one place agent behavior diverged from "read-only" before any
+  of the rest of this round.
+
+### Two bugs caught by the user after initial delivery, fixed same round
+- **Actions menu was inert** — `DropdownMenuTrigger asChild` (Radix)
+  wrapping this project's `Button` (built on `@base-ui/react`) doesn't
+  compose: `asChild`/`cloneElement` only reliably merges props/ref onto a
+  child built for that contract, and there was no existing precedent of
+  wrapping this particular `Button` in a Radix trigger anywhere in the
+  codebase (the only other `asChild` usage wraps Radix's own `Select` icon
+  subcomponent). Fixed by styling the raw Radix trigger directly instead of
+  nesting the incompatible `Button`.
+- **Table header turned white on hover** — `TableRow` (`components/ui/
+  table.tsx`) is shared between header and body rows and carries a blanket
+  `hover:bg-anac-gray`; hovering the navy header row triggered that light
+  hover background. Fixed at the shared component (`[&_tr]:hover:bg-anac-
+  navy` on `TableHeader`, higher specificity than the row's own hover) —
+  benefits every table in the app, not just Documents.
+- Verified both fixes live via a real browser session (Playwright + signed
+  session cookie) this one time — going forward, per user instruction,
+  UI-only verification is left to the user's own manual check rather than
+  spinning up local browser automation for every round (token cost vs.
+  value not worth it when the user can check in seconds).
+
 ## [Unreleased] — 2026-08-26 — fix(client): hide admin-only Documents columns from agent
 
 Quick follow-up to the visibility gate above: an agent could still see the

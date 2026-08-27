@@ -119,6 +119,8 @@ GET  /api/documents             Agent role only: implicitly scoped to visibilite
 GET  /api/documents/:id, /:id/telecharger   Same agent-only visibility check now enforced directly, not just on the list (verifierAccesDocument).
 PATCH /api/documents/:id/visibilite-interne   traducteur+ only — toggles internal (not portal) visibility.
 POST /api/documents/upload      Optional visibiliteInterne field, honored only for traducteur+ (agent value always ignored server-side).
+GET  /api/documents/aggregates  Global counts (total/ocrTraites/ocrEnAttente/ocrEchecs/categories/portailExposes), agent-scoped like the list. New (2026-08-27).
+GET  /api/documents              No longer returns texteExtrait/chemin on list rows (DocumentListView, column-projected query) — detail (GET /:id) unchanged. Client eligibility checks (Traduire) now use statutOCR==='traite' alone rather than texteExtrait presence.
 ```
 
 ## 🚫 Rules
@@ -148,7 +150,7 @@ POST /api/documents/upload      Optional visibiliteInterne field, honored only f
 ✅ Sprint 10 — Paramètres Système Élargis
 ✅ Sprint 11 — Analytics & Rapports (M11)
 🎨 UI Hardening Sprint (Jul 5-6) — shadcn Table/Tabs/feature-folder refactor
-🎯 Sprint 12 (2026-08-24 → 2026-08-26) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes demandes/Mes missions) + Profil page + self-service password
+🎯 Sprint 12 (2026-08-24 → 2026-08-27) — Deployment infra (Docker/CI-CD) + Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) redesigns + individual PDF export + services:up scripts + Agent workspace (Mon espace/Mes demandes/Mes missions) + Profil page + self-service password
 ⏳ Sprint 6 — Tests & Recette (deferred)
 🟡 Sprint 7 — Déploiement + Formation (VPS/Docker path ready, SERV-APPI install/formations still pending)
 ```
@@ -166,16 +168,18 @@ POST /api/documents/upload      Optional visibiliteInterne field, honored only f
 - **⚠️ tsc --noEmit** — broken client-wide (pre-existing: ignoreDeprecations vs TS 5.9.3)
 - **⚠️ exceljs version** — downgraded 4.x→3.x (2026-07-04), needs restore + re-test
 - **Pending Drizzle migration** — aggregates all schema changes from Sprints 9/10/11
-- **Portal route bug** — `/portail` href → `/portal` in DocumentsPage.tsx
+- ~~**Portal route bug**~~ — FIXED (2026-08-27): the stale `/portail` link
+  was removed entirely during the Documents redesign — publish/retirer are
+  now real mutations inside `DocumentActionsMenu`, not a dead `<a>` tag
 - **Missions Période filter** — deferred during the M3 redesign (à venir/en
   cours/30j/cette année/terminées needs more date-range logic than this
   pass covered). Courriers got its own Période filter during the M4
   redesign (2026-08-24) — the same could be ported to Missions — Notion
   Sprint 12, À faire
-- **Shared SummaryCard component** — still copy-pasted 6× now (Accords,
-  Partenaires, Missions, Courriers, Traductions, Glossaire), not extracted
-  to avoid touching modules outside each task's scope — Notion Sprint 12,
-  À faire
+- **Shared SummaryCard component** — still copy-pasted 7× now (Accords,
+  Partenaires, Missions, Courriers, Traductions, Glossaire, Documents), not
+  extracted to avoid touching modules outside each task's scope — Notion
+  Sprint 12, À faire
 - **PDF export — remaining Tier 2 fields** — courrier contact-level
   sender/recipient and multi-document attachment are now DONE
   (2026-08-24, Courriers M4 redesign) and already reflected in the PDF
@@ -211,10 +215,13 @@ POST /api/documents/upload      Optional visibiliteInterne field, honored only f
   toggling "Versions finales uniquement" hides superseded rows — but there's
   still no visual grouping/history view showing that two rows are the same
   document's lineage. Notion Sprint 12, À faire
-- **No browser/interactive testing this whole sprint** — every module
-  redesigned since 2026-08-24 (Missions through Demandes/Mon espace) was
-  validated at the type/lint/build/live-DB layer only; this environment
-  has no way to complete a real login session without mutating a real
-  account's credentials (attempted once via Playwright, correctly blocked
-  by the permission system). Worth an actual click-through pass before
-  considering any of this sprint's UI production-ready
+- **Browser testing — user-driven, not local automation** — Missions
+  through Demandes/Mon espace (2026-08-24 → 26) were validated at the
+  type/lint/build/live-DB layer only. For the Documents redesign
+  (2026-08-27), a local Playwright session was used once to chase down two
+  UI bugs the user found (dead dropdown menu, table-header hover) — it
+  worked (both confirmed fixed live), but the user then asked not to keep
+  doing this: spinning up Chromium/dev-servers locally to self-verify UI
+  burns tokens on checks the user can do themselves in seconds. Going
+  forward: validate with tsc/eslint/build as usual, then hand UI changes to
+  the user to check manually rather than reaching for browser automation.

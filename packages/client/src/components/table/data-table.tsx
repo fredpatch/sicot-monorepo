@@ -43,6 +43,22 @@ interface DataTableProps<TData, TValue> {
 
   className?: string;
   rowClassName?: (row: TData) => string | undefined;
+
+  /**
+   * Rend la ligne cliquable (curseur, focus clavier, Entrée/Espace) — utilisé
+   * par les pages avec un panneau de détail (ex. Documents). Les cellules
+   * contenant leurs propres contrôles interactifs (select, bouton, menu)
+   * doivent porter `data-stop-row-click` sur leur wrapper pour ne pas
+   * déclencher la sélection de ligne en même temps que leur propre action.
+   */
+  onRowClick?: (row: TData) => void;
+}
+
+// Lecture non typée du champ `meta` d'une colonne — ColumnMeta<TData,TValue>
+// est une interface vide par défaut dans ce projet (pas d'augmentation de
+// module @tanstack/table-core), donc pas de contrat officiel à étendre ici.
+function colonneClassName(meta: unknown): string | undefined {
+  return (meta as { className?: string } | undefined)?.className;
 }
 
 export function DataTable<TData, TValue>({
@@ -60,6 +76,7 @@ export function DataTable<TData, TValue>({
   onColumnFiltersChange,
   className,
   rowClassName,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const manualPagination = pagination !== undefined && onPaginationChange !== undefined;
   const manualSorting = sorting !== undefined && onSortingChange !== undefined;
@@ -96,7 +113,10 @@ export function DataTable<TData, TValue>({
                 const canSort = header.column.getCanSort();
                 const sortState = header.column.getIsSorted();
                 return (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={colonneClassName(header.column.columnDef.meta)}
+                  >
                     {header.isPlaceholder ? null : canSort ? (
                       <button
                         type="button"
@@ -137,9 +157,36 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} className={rowClassName?.(row.original)}>
+              <TableRow
+                key={row.id}
+                className={cn(
+                  onRowClick && 'cursor-pointer focus-visible:bg-anac-gray',
+                  rowClassName?.(row.original)
+                )}
+                tabIndex={onRowClick ? 0 : undefined}
+                role={onRowClick ? 'button' : undefined}
+                onClick={
+                  onRowClick
+                    ? (e) => {
+                        if ((e.target as HTMLElement).closest('[data-stop-row-click]')) return;
+                        onRowClick(row.original);
+                      }
+                    : undefined
+                }
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if ((e.target as HTMLElement).closest('[data-stop-row-click]')) return;
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onRowClick(row.original);
+                        }
+                      }
+                    : undefined
+                }
+              >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className={colonneClassName(cell.column.columnDef.meta)}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
