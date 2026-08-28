@@ -12,8 +12,8 @@ import {
 import { ARTICLE_CATEGORIES } from './article.schema';
 
 describe('article registry - loaded from docs/user-guide/**/*.md', () => {
-  it('loads exactly the twelve articles (5 from Phase 10.3 + 4 from Phase 10.4 + 3 from Phase 10.5)', () => {
-    expect(ARTICLES).toHaveLength(12);
+  it('loads exactly the sixteen articles (5 from Phase 10.3 + 4 from Phase 10.4 + 3 from Phase 10.5 + 4 from Phase 10.6)', () => {
+    expect(ARTICLES).toHaveLength(16);
   });
 
   it('every article has unique, kebab-case slugs (registry construction throws on duplicates)', () => {
@@ -55,6 +55,14 @@ describe('article registry - loaded from docs/user-guide/**/*.md', () => {
     expect(slugs.has('gerer-suivre-accords')).toBe(true);
     expect(slugs.has('gerer-partenaires')).toBe(true);
     expect(slugs.has('suivre-courriers')).toBe(true);
+  });
+
+  it('the Phase 10.6 required slugs are all present', () => {
+    const slugs = new Set(ARTICLES.map((a) => a.slug));
+    expect(slugs.has('gerer-comptes-utilisateurs')).toBe(true);
+    expect(slugs.has('gerer-parametres-systeme')).toBe(true);
+    expect(slugs.has('executer-operations-administratives')).toBe(true);
+    expect(slugs.has('consulter-journal-audit')).toBe(true);
   });
 });
 
@@ -178,33 +186,42 @@ describe('capability visibility - fails closed, affects listing and direct/relat
   });
 
   it('visibleArticles excludes gated articles for agent, includes TRANSLATION_PROCESS-only for operateur, includes all for admin+', () => {
-    // 12 total: 3 cooperation articles now require AGREEMENT_VIEW/
-    // PARTNER_VIEW/CORRESPONDENCE_VIEW (admin+ only today, Phase 10.5
-    // capability-visibility fix) - agent/operateur lose all three,
-    // admin/super_admin (who hold every capability) keep all 12.
+    // 16 total: 3 cooperation articles (Phase 10.5) + 4 administration
+    // articles (Phase 10.6) all require admin+-only capabilities
+    // (AGREEMENT_VIEW/PARTNER_VIEW/CORRESPONDENCE_VIEW/USER_MANAGE/
+    // SYSTEM_SETTINGS_VIEW/JOB_EXECUTE/AUDIT_VIEW) - agent/operateur lose
+    // all seven, admin/super_admin (who hold every capability) keep all 16.
+    const ADMIN_ONLY_SLUGS = [
+      'traiter-relire-approuver',
+      'publier-portail-externe',
+      'gerer-suivre-accords',
+      'gerer-partenaires',
+      'suivre-courriers',
+      'gerer-comptes-utilisateurs',
+      'gerer-parametres-systeme',
+      'executer-operations-administratives',
+      'consulter-journal-audit',
+    ];
+
     const forAgent = visibleArticles('agent').map((a) => a.slug);
+    for (const slug of ADMIN_ONLY_SLUGS.filter((s) => s !== 'traiter-relire-approuver')) {
+      expect(forAgent).not.toContain(slug);
+    }
     expect(forAgent).not.toContain('traiter-relire-approuver');
-    expect(forAgent).not.toContain('publier-portail-externe');
-    expect(forAgent).not.toContain('gerer-suivre-accords');
-    expect(forAgent).not.toContain('gerer-partenaires');
-    expect(forAgent).not.toContain('suivre-courriers');
     expect(forAgent).toHaveLength(7);
 
     const forOperateur = visibleArticles('operateur').map((a) => a.slug);
     expect(forOperateur).toContain('traiter-relire-approuver');
-    expect(forOperateur).not.toContain('publier-portail-externe');
-    expect(forOperateur).not.toContain('gerer-suivre-accords');
-    expect(forOperateur).not.toContain('gerer-partenaires');
-    expect(forOperateur).not.toContain('suivre-courriers');
+    for (const slug of ADMIN_ONLY_SLUGS.filter((s) => s !== 'traiter-relire-approuver')) {
+      expect(forOperateur).not.toContain(slug);
+    }
     expect(forOperateur).toHaveLength(8);
 
     const forAdmin = visibleArticles('admin').map((a) => a.slug);
-    expect(forAdmin).toContain('traiter-relire-approuver');
-    expect(forAdmin).toContain('publier-portail-externe');
-    expect(forAdmin).toContain('gerer-suivre-accords');
-    expect(forAdmin).toContain('gerer-partenaires');
-    expect(forAdmin).toContain('suivre-courriers');
-    expect(forAdmin).toHaveLength(12);
+    for (const slug of ADMIN_ONLY_SLUGS) {
+      expect(forAdmin).toContain(slug);
+    }
+    expect(forAdmin).toHaveLength(16);
   });
 
   it('getVisibleArticleBySlug denies direct access to a gated article for a role lacking the capability', () => {
@@ -308,6 +325,62 @@ describe('cooperation articles - gated on their module VIEW capability (Phase 10
   });
 });
 
+describe('administration articles - each gated on the capability matching its own module access (Phase 10.6)', () => {
+  it('each article carries the capability of its own module', () => {
+    expect(getArticleBySlug('gerer-comptes-utilisateurs')!.capability).toBe('USER_MANAGE');
+    expect(getArticleBySlug('gerer-parametres-systeme')!.capability).toBe('SYSTEM_SETTINGS_VIEW');
+    expect(getArticleBySlug('executer-operations-administratives')!.capability).toBe('JOB_EXECUTE');
+    expect(getArticleBySlug('consulter-journal-audit')!.capability).toBe('AUDIT_VIEW');
+  });
+
+  it('agent/operateur cannot discover or open any of the four administration articles', () => {
+    for (const slug of [
+      'gerer-comptes-utilisateurs',
+      'gerer-parametres-systeme',
+      'executer-operations-administratives',
+      'consulter-journal-audit',
+    ]) {
+      for (const role of ['agent', 'operateur'] as const) {
+        expect(visibleArticles(role).map((a) => a.slug)).not.toContain(slug);
+        expect(getVisibleArticleBySlug(slug, role)).toBeUndefined();
+      }
+    }
+  });
+
+  it('admin+ can find and open all four administration articles', () => {
+    for (const slug of [
+      'gerer-comptes-utilisateurs',
+      'gerer-parametres-systeme',
+      'executer-operations-administratives',
+      'consulter-journal-audit',
+    ]) {
+      for (const role of ['admin', 'super_admin'] as const) {
+        expect(visibleArticles(role).map((a) => a.slug)).toContain(slug);
+        expect(getVisibleArticleBySlug(slug, role)?.slug).toBe(slug);
+      }
+    }
+  });
+
+  it('gerer-parametres-systeme links to executer-operations-administratives and back, both admin+-only', () => {
+    const parametres = getArticleBySlug('gerer-parametres-systeme')!;
+    const operations = getArticleBySlug('executer-operations-administratives')!;
+    expect(parametres.relatedArticles).toContain('executer-operations-administratives');
+    expect(operations.relatedArticles).toContain('gerer-parametres-systeme');
+    for (const role of ['agent', 'operateur'] as const) {
+      const related = parametres.relatedArticles
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((a): a is NonNullable<typeof a> => Boolean(a));
+      expect(related).toHaveLength(0);
+    }
+    for (const role of ['admin', 'super_admin'] as const) {
+      const related = parametres.relatedArticles
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((a): a is NonNullable<typeof a> => Boolean(a));
+      expect(related.map((a) => a.slug)).toContain('executer-operations-administratives');
+    }
+  });
+});
+
 describe('searchArticles - case- and accent-insensitive over title/excerpt/category', () => {
   it('matches by title, case-insensitive', () => {
     const results = searchArticles(ARTICLES, 'PREMIERS PAS');
@@ -353,6 +426,29 @@ describe('searchArticles - case- and accent-insensitive over title/excerpt/categ
     );
   });
 
+  it('finds the Phase 10.6 administration articles by title/category', () => {
+    expect(searchArticles(ARTICLES, 'comptes utilisateurs').map((a) => a.slug)).toContain(
+      'gerer-comptes-utilisateurs'
+    );
+    expect(searchArticles(ARTICLES, 'paramètres du système').map((a) => a.slug)).toContain(
+      'gerer-parametres-systeme'
+    );
+    expect(searchArticles(ARTICLES, 'opérations administratives').map((a) => a.slug)).toContain(
+      'executer-operations-administratives'
+    );
+    expect(searchArticles(ARTICLES, 'journal').map((a) => a.slug)).toContain(
+      'consulter-journal-audit'
+    );
+    expect(searchArticles(ARTICLES, 'administration').map((a) => a.slug)).toEqual(
+      expect.arrayContaining([
+        'gerer-comptes-utilisateurs',
+        'gerer-parametres-systeme',
+        'executer-operations-administratives',
+        'consulter-journal-audit',
+      ])
+    );
+  });
+
   it('returns everything for an empty/whitespace query', () => {
     expect(searchArticles(ARTICLES, '')).toHaveLength(ARTICLES.length);
     expect(searchArticles(ARTICLES, '   ')).toHaveLength(ARTICLES.length);
@@ -360,6 +456,19 @@ describe('searchArticles - case- and accent-insensitive over title/excerpt/categ
 
   it('returns no results for a query matching nothing', () => {
     expect(searchArticles(ARTICLES, 'zzzznotarealword')).toHaveLength(0);
+  });
+
+  it('search over visibleArticles(role) - the real AidePage composition - excludes inaccessible admin articles for agent/operateur', () => {
+    for (const role of ['agent', 'operateur'] as const) {
+      const scoped = visibleArticles(role);
+      for (const query of ['comptes utilisateurs', 'paramètres du système', 'journal', 'administration']) {
+        const results = searchArticles(scoped, query).map((a) => a.slug);
+        expect(results).not.toContain('gerer-comptes-utilisateurs');
+        expect(results).not.toContain('gerer-parametres-systeme');
+        expect(results).not.toContain('executer-operations-administratives');
+        expect(results).not.toContain('consulter-journal-audit');
+      }
+    }
   });
 });
 

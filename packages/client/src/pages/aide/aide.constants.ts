@@ -8,4 +8,5 @@ export const CATEGORY_LABELS: Record<ArticleCategory, string> = {
   missions: 'Missions',
   documents: 'Documents',
   cooperation: 'Coopération internationale',
+  administration: 'Administration',
 };

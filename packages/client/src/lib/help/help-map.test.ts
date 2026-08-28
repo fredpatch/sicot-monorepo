@@ -52,7 +52,7 @@ describe('getHelpEntry - route matching', () => {
 
   it('returns undefined for a route with no contextual help', () => {
     expect(getHelpEntry('/dashboard')).toBeUndefined();
-    expect(getHelpEntry('/audit')).toBeUndefined();
+    expect(getHelpEntry('/portal')).toBeUndefined();
   });
 
   it('does not confuse /demandes with /mes-demandes (distinct segments)', () => {
@@ -427,6 +427,88 @@ describe('cooperation Help Drawer links never expose an inaccessible article (Ph
   });
 });
 
+describe('/utilisateurs - entire page requires USER_MANAGE, no separate view-only tier exists today (Phase 10.6)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/utilisateurs')!;
+
+  it('carries no capability-gated section - the whole route already requires USER_MANAGE to be reached', () => {
+    expect(entry.sections.every((s) => !s.capability)).toBe(true);
+  });
+
+  it('resolves for admin+ (the only roles reaching this route today)', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      expect(filterHelpEntry(entry, role).sections.length).toBe(entry.sections.length);
+    }
+  });
+});
+
+describe('/admin - settings read/write and JOB_EXECUTE distinction (Phase 10.6)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/admin')!;
+
+  it('the parameters section is ungated (visible to every real viewer, matching the route\'s own SYSTEM_SETTINGS_VIEW gate)', () => {
+    const parametres = entry.sections.find((s) => s.id === 'parametres')!;
+    expect(parametres.capability).toBeUndefined();
+  });
+
+  it('the jobs section requires JOB_EXECUTE specifically, distinct from the page\'s own SYSTEM_SETTINGS_VIEW gate', () => {
+    const jobs = entry.sections.find((s) => s.id === 'jobs')!;
+    expect(jobs.capability).toBe('JOB_EXECUTE');
+  });
+
+  it('admin+ (who all hold JOB_EXECUTE) sees both sections', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      const filtered = filterHelpEntry(entry, role);
+      expect(filtered.sections.map((s) => s.id)).toEqual(['parametres', 'jobs']);
+    }
+  });
+});
+
+describe('/audit - read-only journal, no mutation-specific section exists (Phase 10.6)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/audit')!;
+
+  it('carries no capability-gated section - nothing beyond AUDIT_VIEW (the route\'s own gate) governs this page', () => {
+    expect(entry.sections.every((s) => !s.capability)).toBe(true);
+  });
+
+  it('never implies records can be altered or deleted', () => {
+    const text = entry.sections.map((s) => `${s.heading} ${s.body}`).join(' ').toLowerCase();
+    expect(text).not.toMatch(/modifier une entrée|supprimer une entrée|annuler une action/);
+  });
+});
+
+describe('administration routes resolve and link only to accessible articles (Phase 10.6)', () => {
+  it('/utilisateurs, /admin, /audit all have a help entry with at least one linked article', () => {
+    for (const route of ['/utilisateurs', '/admin', '/audit']) {
+      const entry = getHelpEntry(route);
+      expect(entry, `${route} has no help entry`).toBeDefined();
+      expect(entry!.articles?.length ?? 0, `${route} has no linked article`).toBeGreaterThan(0);
+    }
+  });
+
+  it('agent/operateur resolve no linked article for any administration route (mirrors HelpDrawer.tsx)', () => {
+    for (const route of ['/utilisateurs', '/admin', '/audit']) {
+      const entry = getHelpEntry(route)!;
+      for (const role of ['agent', 'operateur'] as const) {
+        const resolved = (entry.articles ?? [])
+          .map((slug) => getVisibleArticleBySlug(slug, role))
+          .filter((a): a is NonNullable<typeof a> => Boolean(a));
+        expect(resolved).toHaveLength(0);
+      }
+    }
+  });
+
+  it('admin+ resolves every linked article for every administration route', () => {
+    for (const route of ['/utilisateurs', '/admin', '/audit']) {
+      const entry = getHelpEntry(route)!;
+      for (const role of ['admin', 'super_admin'] as const) {
+        const resolved = (entry.articles ?? [])
+          .map((slug) => getVisibleArticleBySlug(slug, role))
+          .filter((a): a is NonNullable<typeof a> => Boolean(a));
+        expect(resolved).toHaveLength(entry.articles?.length ?? 0);
+      }
+    }
+  });
+});
+
 describe('fallback contract (exercised via getHelpEntry + filterHelpEntry composition, mirrors useContextualHelp)', () => {
   function resolve(pathname: string, role: Parameters<typeof filterHelpEntry>[1]) {
     const entry = getHelpEntry(pathname);
@@ -436,7 +518,7 @@ describe('fallback contract (exercised via getHelpEntry + filterHelpEntry compos
   }
 
   it('a route with no entry resolves to undefined (fallback state)', () => {
-    expect(resolve('/audit', 'admin')).toBeUndefined();
+    expect(resolve('/portal', 'admin')).toBeUndefined();
   });
 
   it('a matched route with visible sections resolves to a filtered entry', () => {

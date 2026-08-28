@@ -713,6 +713,109 @@ export const HELP_MAP: HelpEntry[] = [
       },
     ],
   },
+  {
+    // Phase 10.6 — audited against AdminUsersPage.tsx, UsersTab.tsx,
+    // PersonnelAnacTab.tsx, UserActionsMenu.tsx, users.permissions.ts,
+    // router.tsx and Layout.tsx's nav config. The route guard (USER_MANAGE),
+    // the sidebar nav link, and the server's mutation endpoints all
+    // consistently require USER_MANAGE — the server's GET /utilisateurs
+    // list endpoint itself only requires the more lenient
+    // USER_DIRECTORY_VIEW (shared with mission-participant pickers
+    // elsewhere), but nothing in the actual UI (route, nav, or any button)
+    // exposes that wider access today, so this isn't a live mismatch to
+    // fix — reported to the user as a verified, consistently-applied
+    // design rather than a bug. No sections below are gated separately:
+    // the entire page (viewing and every mutation) already requires
+    // USER_MANAGE just to be reached.
+    routePattern: '/utilisateurs',
+    title: 'Aide - Gestion des utilisateurs',
+    articles: ['gerer-comptes-utilisateurs'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Gère les comptes SICOT (rôle, statut, réinitialisation OTP) et donne accès à l’annuaire Personnel ' +
+          'ANAC pour créer un compte à partir d’un agent existant.',
+      },
+      {
+        id: 'roles',
+        heading: 'Le modèle de rôles',
+        body:
+          'Chaque compte porte un seul rôle parmi Agent, Opérateur, Admin, Super Admin - modifiable depuis la ' +
+          'fiche du compte.',
+      },
+      {
+        id: 'protections',
+        heading: 'Protections de compte',
+        body:
+          'Un compte ne peut pas se désactiver lui-même, et le compte Super Admin ne peut jamais être ' +
+          'désactivé, par personne.',
+      },
+    ],
+  },
+  {
+    // Phase 10.6 — audited against AdminPage.tsx (Paramètres / Monitoring &
+    // Jobs tabs), ParameterSection/ParameterCard/AdminInfoBanner.tsx,
+    // JobsList/JobRow/JobHistoryTable.tsx, admin.permissions.ts, router.tsx.
+    // /admin is a single route (SYSTEM_SETTINGS_VIEW) hosting both tabs -
+    // there is no separate route per tab. Settings read/write already
+    // correctly split client-side (canEditParameter → SYSTEM_SETTINGS_MANAGE,
+    // super_admin only); jobs already correctly gated per-job via
+    // canRunJob(role, job.executionCapability), either JOB_EXECUTE (admin+)
+    // or SYSTEM_ADMIN_OPERATION (super_admin only, shown but disabled for
+    // admin) - no mismatch found on this route.
+    routePattern: '/admin',
+    title: 'Aide - Administration',
+    articles: ['gerer-parametres-systeme', 'executer-operations-administratives'],
+    sections: [
+      {
+        id: 'parametres',
+        heading: 'Paramètres du système',
+        body:
+          'Réglages regroupés par thème (Métier, Sécurité, Sauvegardes, Traduction, IA). Visibles par tout ' +
+          'compte ayant accès à cette page ; la modification est réservée au Super Admin.',
+      },
+      {
+        id: 'jobs',
+        heading: 'Jobs et historique',
+        body:
+          'L’onglet Monitoring &amp; Jobs permet de déclencher manuellement un job planifié et d’en consulter ' +
+          'l’historique. Certains jobs à risque élevé restent visibles mais non exécutables sans le droit ' +
+          'requis.',
+        capability: 'JOB_EXECUTE',
+      },
+    ],
+  },
+  {
+    // Phase 10.6 — audited against AuditPage.tsx, audit.columns.tsx,
+    // AuditDetailsDialog.tsx, router.tsx. Page explicitly states
+    // "lecture seule, non modifiable" - no delete/alter action exists.
+    routePattern: '/audit',
+    title: 'Aide - Journal d’audit',
+    articles: ['consulter-journal-audit'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Trace les actions effectuées dans SICOT, à des fins de traçabilité - en lecture seule, aucune ' +
+          'entrée ne peut être modifiée ou supprimée.',
+      },
+      {
+        id: 'filtrer',
+        heading: 'Trouver un événement',
+        body: 'Filtrez par module, par action ou par période (date de début / date de fin).',
+      },
+      {
+        id: 'lire-entree',
+        heading: 'Lire une entrée',
+        body:
+          'Le bouton Détails ouvre la fiche complète d’un événement : utilisateur à l’origine, entité ' +
+          'concernée, adresse IP et informations techniques additionnelles propres à l’action.',
+      },
+    ],
+  },
 ];
 
 function matchesPattern(pattern: string, pathname: string): boolean {
