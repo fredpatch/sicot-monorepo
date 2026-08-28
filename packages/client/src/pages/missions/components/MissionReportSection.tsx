@@ -7,8 +7,10 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { documentsApi } from '@/lib/documents.api';
 import { missionsApi } from '@/lib/missions.api';
+import { useAuth } from '@/App';
 import type { Mission } from '../mission.types';
 import { isMissionReportMissing } from '../mission.utils';
+import { canManageMission } from '../missions.permissions';
 
 const AUCUN_RESPONSABLE = '__aucun__';
 
@@ -73,12 +75,14 @@ interface DocumentSummary {
 // existing mission document — as their own workflow, out of the general
 // edit form per the Phase 2 plan (§6).
 export function MissionReportSection({ mission }: { mission: Mission }) {
+  const { user } = useAuth();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<'upload' | 'existing'>('upload');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const peutGerer = canManageMission(user);
 
   const reportQuery = useQuery({
     queryKey: ['document', mission.rapportDocumentId],
@@ -139,9 +143,11 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
     return (
       <section className="card p-5">
         <h3 className="font-bold text-anac-navy">Rapport de mission</h3>
-        <div className="mt-4">
-          <ReportResponsableAssignment mission={mission} />
-        </div>
+        {peutGerer && (
+          <div className="mt-4">
+            <ReportResponsableAssignment mission={mission} />
+          </div>
+        )}
         {reportQuery.isLoading ? (
           <div className="mt-4 flex items-center gap-2 text-anac-muted">
             <Loader2 size={15} className="animate-spin" aria-hidden="true" />
@@ -165,30 +171,32 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
               >
                 <ExternalLink size={16} aria-label="Ouvrir le rapport" />
               </a>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (
-                    await confirm({
-                      title: 'Retirer ce rapport ?',
-                      description: 'Vous pourrez ensuite en déposer un autre.',
-                      confirmLabel: 'Retirer',
-                      variant: 'destructive',
-                    })
-                  ) {
-                    unlinkMutation.mutate();
-                  }
-                }}
-                disabled={unlinkMutation.isPending}
-                className="text-anac-muted hover:text-anac-danger disabled:opacity-50"
-                aria-label="Retirer le rapport"
-              >
-                {unlinkMutation.isPending ? (
-                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                ) : (
-                  <X size={16} aria-hidden="true" />
-                )}
-              </button>
+              {peutGerer && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (
+                      await confirm({
+                        title: 'Retirer ce rapport ?',
+                        description: 'Vous pourrez ensuite en déposer un autre.',
+                        confirmLabel: 'Retirer',
+                        variant: 'destructive',
+                      })
+                    ) {
+                      unlinkMutation.mutate();
+                    }
+                  }}
+                  disabled={unlinkMutation.isPending}
+                  className="text-anac-muted hover:text-anac-danger disabled:opacity-50"
+                  aria-label="Retirer le rapport"
+                >
+                  {unlinkMutation.isPending ? (
+                    <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <X size={16} aria-hidden="true" />
+                  )}
+                </button>
+              )}
             </span>
           </div>
         ) : (
@@ -207,76 +215,80 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
         </p>
       )}
 
-      <div className="mt-4">
-        <ReportResponsableAssignment mission={mission} />
-      </div>
+      {peutGerer && (
+        <>
+          <div className="mt-4">
+            <ReportResponsableAssignment mission={mission} />
+          </div>
 
-      <div className="mt-4 inline-flex rounded-md border border-anac-border bg-white p-1">
-        <button
-          type="button"
-          onClick={() => setMode('upload')}
-          className={`rounded px-3 py-1.5 text-sm font-medium ${mode === 'upload' ? 'bg-blue-50 text-anac-blue' : 'text-anac-muted'}`}
-        >
-          Nouveau fichier
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('existing')}
-          className={`rounded px-3 py-1.5 text-sm font-medium ${mode === 'existing' ? 'bg-blue-50 text-anac-blue' : 'text-anac-muted'}`}
-        >
-          Document existant
-        </button>
-      </div>
+          <div className="mt-4 inline-flex rounded-md border border-anac-border bg-white p-1">
+            <button
+              type="button"
+              onClick={() => setMode('upload')}
+              className={`rounded px-3 py-1.5 text-sm font-medium ${mode === 'upload' ? 'bg-blue-50 text-anac-blue' : 'text-anac-muted'}`}
+            >
+              Nouveau fichier
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('existing')}
+              className={`rounded px-3 py-1.5 text-sm font-medium ${mode === 'existing' ? 'bg-blue-50 text-anac-blue' : 'text-anac-muted'}`}
+            >
+              Document existant
+            </button>
+          </div>
 
-      {mode === 'upload' ? (
-        <div className="mt-4 rounded-md border border-dashed border-anac-border px-5 py-8 text-center">
-          <Upload size={22} className="mx-auto text-anac-blue" aria-hidden="true" />
-          <p className="mt-3 font-semibold text-anac-navy">Déposer le rapport de mission</p>
-          <p className="mt-1 text-sm text-anac-muted">PDF, Word, image ou TIFF.</p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="mt-4 gap-2"
-          >
-            {uploading && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
-            Choisir un fichier
-          </Button>
-          {uploadError && <p className="mt-3 text-sm text-anac-danger">{uploadError}</p>}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.tiff"
-            onChange={handleUpload}
-          />
-        </div>
-      ) : (
-        <div className="mt-4 rounded-md border border-anac-border">
-          {existingDocsQuery.isLoading ? (
-            <p className="px-4 py-6 text-center text-sm text-anac-muted">Chargement...</p>
-          ) : existingDocsQuery.data?.data.length ? (
-            <div className="max-h-72 divide-y divide-anac-border overflow-y-auto">
-              {existingDocsQuery.data.data.map((doc) => (
-                <button
-                  key={doc.id}
-                  type="button"
-                  onClick={() => linkMutation.mutate(doc.id)}
-                  disabled={linkMutation.isPending}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-anac-gray"
-                >
-                  <FileText size={16} className="text-anac-muted" aria-hidden="true" />
-                  <span className="font-medium text-anac-navy">{doc.nomOriginal}</span>
-                </button>
-              ))}
+          {mode === 'upload' ? (
+            <div className="mt-4 rounded-md border border-dashed border-anac-border px-5 py-8 text-center">
+              <Upload size={22} className="mx-auto text-anac-blue" aria-hidden="true" />
+              <p className="mt-3 font-semibold text-anac-navy">Déposer le rapport de mission</p>
+              <p className="mt-1 text-sm text-anac-muted">PDF, Word, image ou TIFF.</p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="mt-4 gap-2"
+              >
+                {uploading && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+                Choisir un fichier
+              </Button>
+              {uploadError && <p className="mt-3 text-sm text-anac-danger">{uploadError}</p>}
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.tiff"
+                onChange={handleUpload}
+              />
             </div>
           ) : (
-            <p className="px-4 py-6 text-center text-sm text-anac-muted">
-              Aucun document de type Mission disponible.
-            </p>
+            <div className="mt-4 rounded-md border border-anac-border">
+              {existingDocsQuery.isLoading ? (
+                <p className="px-4 py-6 text-center text-sm text-anac-muted">Chargement...</p>
+              ) : existingDocsQuery.data?.data.length ? (
+                <div className="max-h-72 divide-y divide-anac-border overflow-y-auto">
+                  {existingDocsQuery.data.data.map((doc) => (
+                    <button
+                      key={doc.id}
+                      type="button"
+                      onClick={() => linkMutation.mutate(doc.id)}
+                      disabled={linkMutation.isPending}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-anac-gray"
+                    >
+                      <FileText size={16} className="text-anac-muted" aria-hidden="true" />
+                      <span className="font-medium text-anac-navy">{doc.nomOriginal}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-4 py-6 text-center text-sm text-anac-muted">
+                  Aucun document de type Mission disponible.
+                </p>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </section>
   );

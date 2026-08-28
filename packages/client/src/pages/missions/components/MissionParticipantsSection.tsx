@@ -13,27 +13,33 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { missionsApi } from '@/lib/missions.api';
+import { useAuth } from '@/App';
 import type { Mission } from '../mission.types';
+import { canManageMission } from '../missions.permissions';
 import { ParticipantsPicker } from './ParticipantsPicker';
 
 export function MissionParticipantsSection({ mission }: { mission: Mission }) {
+  const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const peutGerer = canManageMission(user);
 
   return (
     <section className="card p-5">
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-anac-navy">Participants ({mission.participants.length})</h3>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setDialogOpen(true)}
-          disabled={mission.statut === 'annulee'}
-          className="gap-1.5"
-        >
-          <Pencil size={13} aria-hidden="true" />
-          Modifier les participants
-        </Button>
+        {peutGerer && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setDialogOpen(true)}
+            disabled={mission.statut === 'annulee'}
+            className="gap-1.5"
+          >
+            <Pencil size={13} aria-hidden="true" />
+            Modifier les participants
+          </Button>
+        )}
       </div>
 
       {mission.participants.length === 0 ? (

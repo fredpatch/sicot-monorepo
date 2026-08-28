@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { PdfPreviewDialog } from '@/components/PdfPreviewDialog';
 import { missionsApi } from '@/lib/missions.api';
+import { useAuth } from '@/App';
 import type { Mission } from '../mission.types';
+import { canManageMission } from '../missions.permissions';
 import { MissionStatusBadge } from './MissionStatusBadge';
 import { MissionPeriod } from './MissionPeriod';
 
@@ -19,10 +21,12 @@ export function MissionDetailHeader({
   onEdit: () => void;
   onCancelMission: () => void;
 }) {
+  const { user } = useAuth();
   const confirm = useConfirm();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const isCancelled = mission.statut === 'annulee';
+  const peutGerer = canManageMission(user);
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -46,10 +50,12 @@ export function MissionDetailHeader({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" onClick={onEdit} disabled={isCancelled} className="gap-2">
-          <Pencil size={14} aria-hidden="true" />
-          Modifier
-        </Button>
+        {peutGerer && (
+          <Button type="button" variant="outline" onClick={onEdit} disabled={isCancelled} className="gap-2">
+            <Pencil size={14} aria-hidden="true" />
+            Modifier
+          </Button>
+        )}
         <div className="relative">
           <Button
             type="button"
@@ -88,7 +94,7 @@ export function MissionDetailHeader({
                 <FileDown size={14} aria-hidden="true" />
                 Exporter le rapport PDF
               </button>
-              {!isCancelled && (
+              {!isCancelled && peutGerer && (
                 <button
                   type="button"
                   onClick={async () => {

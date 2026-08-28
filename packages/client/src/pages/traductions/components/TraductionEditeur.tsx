@@ -9,6 +9,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { traductionsApi } from '@/lib/traductions.api';
 import { documentsApi } from '@/lib/documents.api';
+import { useAuth } from '@/App';
 import { WorkshopHeader } from './editor/WorkshopHeader';
 import { SourceTextPanel } from './editor/SourceTextPanel';
 import { TranslationPanel } from './editor/TranslationPanel';
@@ -16,6 +17,7 @@ import { AssistancePanel } from './editor/AssistancePanel';
 import type { SuggestionGlossaire } from './editor/GlossarySuggestions';
 import type { Traduction } from '../traductions.types';
 import { useMoteurStatusQuery } from '../hooks/queries';
+import { canSaveCorrection, canApproveTraduction, canArchiveTraduction } from '../traductions.permissions';
 
 function extractMessage(err: unknown, fallback: string): string {
   return (
@@ -28,6 +30,7 @@ export default function TraductionEditeur() {
   const navigate = useNavigate();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const traductionId = parseInt(id!);
 
@@ -214,11 +217,16 @@ export default function TraductionEditeur() {
 
   const estArchivee = traduction.statut === 'archivee';
   const estApprouvee = traduction.statut === 'approuvee';
-  const estEditable = !estArchivee && !estApprouvee;
-  const peutApprouver =
-    traduction.statut === 'a_reviser' ||
-    traduction.statut === 'en_relecture' ||
-    traduction.statut === 'manuelle_requise';
+  // Capability AND workflow-state, mirroring traduction.route.ts exactly
+  // (Phase 10.2 authorization-alignment fix) — previously these were
+  // workflow-state only, relying on the server's 403 as the only real
+  // gate. No live role could hit the gap in practice (TRANSLATION_PROCESS/
+  // REVIEW/APPROVE/ARCHIVE are bundled together for operateur+), but the
+  // frontend should express the actual contract rather than the current
+  // role bundling. See traductions.permissions.ts.
+  const peutSauvegarder = canSaveCorrection(traduction, user);
+  const peutApprouver = canApproveTraduction(traduction, user);
+  const peutArchiver = canArchiveTraduction(traduction, user);
   // Désactivé si des modifications locales non sauvegardées existent — la relance
   // ne touche que texteIA côté serveur, mais réinitialiser texteFinal depuis le
   // nouveau texteIA écraserait sinon un brouillon manuel en cours de saisie.
@@ -269,7 +277,7 @@ export default function TraductionEditeur() {
         traduction={traduction}
         modifie={modifie}
         sauvegarde={sauvegarde}
-        estEditable={estEditable}
+        peutSauvegarder={peutSauvegarder}
         estApprouvee={estApprouvee}
         estArchivee={estArchivee}
         peutApprouver={peutApprouver}
@@ -278,6 +286,7 @@ export default function TraductionEditeur() {
         saveEnCours={sauvegarderMutation.isPending}
         onApprove={handleApprove}
         approveEnCours={approuverMutation.isPending}
+        peutArchiver={peutArchiver}
         onArchive={() => archiverMutation.mutate()}
         archiveEnCours={archiverMutation.isPending}
         onDelete={() => supprimerMutation.mutate()}

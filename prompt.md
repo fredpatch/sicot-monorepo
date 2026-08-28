@@ -1,50 +1,39 @@
-Phase 10.1 implementation is approved.
+Phase 10.2 is approved.
 
-Before commit/push, resolve one verification discrepancy.
+Proceed to commit and push the full Phase 10.2 package, including:
 
-Previous full baseline was:
+contextual help expansion for:
+/traductions
+/traductions/:id
+/mes-missions
+/missions
+/missions/:id
+mission route guard correction
+translation action capability alignment
+mission action capability alignment
+pure permission helpers and tests
+router configuration testability refactor
+
+Final validated baseline:
 
 12 shared
 226 server
-40 client
-= 278
+86 client
+= 324 passing
 
-Phase 10.1 added 15 client tests, so assuming no other test-count changes, the expected complete baseline is:
-
-12 shared
-226 server
-55 client
-= 293
-
-Your report currently states:
-
-226 server + 55 client = 281
-
-which omits the shared package.
-
-Please verify whether the normal full test command actually ran the shared tests.
-
-If not, run the shared tests and then rerun/confirm the complete monorepo test baseline.
-
-Do not change implementation unless a test fails.
-
-If everything remains green:
-
-confirm exact totals for shared/server/client
-confirm build clean
-confirm client tsc --noEmit clean
-commit Phase 10.1
-push to origin/main
+Full build and client tsc --noEmit are already clean.
 
 Suggested commit:
 
-feat(help): add contextual help foundation
+feat(help): expand contextual guidance and align action permissions
 
-Then report:
+After commit:
 
-commit hash
-push result
-final test totals
-clean git status
+push to origin/main
+confirm commit hash
+confirm push result
+confirm clean git status
 
-Do not start Phase 10.2 yet.
+Do not start Phase 10.3 yet.
+
+Stop after reporting the commit/push result.

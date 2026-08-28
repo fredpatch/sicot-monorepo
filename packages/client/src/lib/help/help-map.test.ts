@@ -1,15 +1,16 @@
 // packages/client/src/lib/help/help-map.test.ts
 //
-// Pure-function tests for the Help Drawer's content-resolution logic (Phase
-// 10.1) — no React rendering: this matches the existing client test
-// strategy exactly (requests.permissions.test.ts, dashboard.utils
-// .permissions.test.ts, ...), which is plain node-environment vitest with
-// no jsdom/@testing-library/react in the client package at all. The
-// trigger/Sheet are Radix-composed UI with no bespoke logic of their own
-// (focus trap, ESC, focus-return are Radix's responsibility, already
-// exercised by the pre-existing Dialog), so there is nothing here that a
-// rendering test would verify that isn't already covered by testing the
-// route matcher and capability filter directly.
+// Pure-function tests for the Help Drawer's content-resolution logic
+// (Phase 10.1: /demandes, /mes-demandes; Phase 10.2: /traductions,
+// /traductions/:id, /mes-missions, /missions, /missions/:id) — no React
+// rendering: this matches the existing client test strategy exactly
+// (requests.permissions.test.ts, dashboard.utils.permissions.test.ts, ...),
+// which is plain node-environment vitest with no jsdom/@testing-library/react
+// in the client package at all. The trigger/Sheet are Radix-composed UI with
+// no bespoke logic of their own (focus trap, ESC, focus-return are Radix's
+// responsibility, already exercised by the pre-existing Dialog), so there is
+// nothing here that a rendering test would verify that isn't already covered
+// by testing the route matcher and capability filter directly.
 import { describe, it, expect } from 'vitest';
 import { getHelpEntry, filterHelpEntry, HELP_MAP, type HelpEntry } from './help-map';
 
@@ -47,6 +48,24 @@ describe('getHelpEntry — route matching', () => {
   it('does not match a pattern against a path of different segment length', () => {
     expect(getHelpEntry('/demandes/extra')).toBeUndefined();
     expect(getHelpEntry('/demandes/')).not.toBeUndefined(); // trailing slash is stripped, still matches
+  });
+
+  it('finds all five Phase 10.2 entries by exact route', () => {
+    expect(getHelpEntry('/traductions')?.routePattern).toBe('/traductions');
+    expect(getHelpEntry('/mes-missions')?.routePattern).toBe('/mes-missions');
+    expect(getHelpEntry('/missions')?.routePattern).toBe('/missions');
+  });
+
+  it('matches /traductions/:id and /missions/:id against real ids (real dynamic-route entries, not a synthetic one)', () => {
+    expect(getHelpEntry('/traductions/42')?.routePattern).toBe('/traductions/:id');
+    expect(getHelpEntry('/missions/7')?.routePattern).toBe('/missions/:id');
+  });
+
+  it('does not confuse the registry route with its own :id sub-route', () => {
+    expect(getHelpEntry('/traductions')?.routePattern).toBe('/traductions');
+    expect(getHelpEntry('/traductions/42')?.routePattern).not.toBe('/traductions');
+    expect(getHelpEntry('/missions')?.routePattern).toBe('/missions');
+    expect(getHelpEntry('/missions/7')?.routePattern).not.toBe('/missions');
   });
 });
 
@@ -100,6 +119,98 @@ describe('filterHelpEntry — capability gating', () => {
       const filtered = filterHelpEntry(mesDemandesEntry, role);
       expect(filtered.sections).toHaveLength(mesDemandesEntry.sections.length);
     }
+  });
+});
+
+describe('/traductions and /traductions/:id — capability filtering of translation action sections', () => {
+  const registryEntry = HELP_MAP.find((e) => e.routePattern === '/traductions')!;
+  const detailEntry = HELP_MAP.find((e) => e.routePattern === '/traductions/:id')!;
+
+  it('operateur+ (the only viewers today) see the process/approve/archive-gated sections', () => {
+    for (const role of ['operateur', 'admin', 'super_admin'] as const) {
+      const filteredRegistry = filterHelpEntry(registryEntry, role);
+      expect(filteredRegistry.sections.map((s) => s.id)).toContain('traiter-relire-approuver');
+
+      const filteredDetail = filterHelpEntry(detailEntry, role);
+      const ids = filteredDetail.sections.map((s) => s.id);
+      expect(ids).toContain('corriger');
+      expect(ids).toContain('approuver');
+      expect(ids).toContain('archiver');
+    }
+  });
+
+  it('a TRANSLATION_VIEW-only viewer (agent, hypothetically) receives no process/approve/archive instructions', () => {
+    // agent never actually reaches /traductions/:id today (route itself
+    // requires TRANSLATION_VIEW, which agent lacks) — this exercises the
+    // filter defensively, per the Phase 10.2 brief's explicit requirement.
+    const filteredRegistry = filterHelpEntry(registryEntry, 'agent');
+    expect(filteredRegistry.sections.map((s) => s.id)).not.toContain('traiter-relire-approuver');
+
+    const filteredDetail = filterHelpEntry(detailEntry, 'agent');
+    const ids = filteredDetail.sections.map((s) => s.id);
+    expect(ids).not.toContain('corriger');
+    expect(ids).not.toContain('approuver');
+    expect(ids).not.toContain('archiver');
+    // ungated, purely informational sections remain
+    expect(ids).toContain('statut-et-actions');
+    expect(ids).toContain('manuelle-requise');
+  });
+});
+
+describe('/mes-missions — no admin/assignment instructions regardless of role', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/mes-missions')!;
+
+  it('carries no capability-gated section at all', () => {
+    expect(entry.sections.every((s) => !s.capability)).toBe(true);
+  });
+
+  it('content is identical for every role (agent through super_admin)', () => {
+    for (const role of ['agent', 'operateur', 'admin', 'super_admin'] as const) {
+      expect(filterHelpEntry(entry, role).sections).toHaveLength(entry.sections.length);
+    }
+  });
+});
+
+describe('/missions and /missions/:id — capability filtering of mission management sections', () => {
+  const registryEntry = HELP_MAP.find((e) => e.routePattern === '/missions')!;
+  const detailEntry = HELP_MAP.find((e) => e.routePattern === '/missions/:id')!;
+
+  it('admin+ (the only viewers today) see MISSION_MANAGE and MISSION_RECOMMENDATION_MANAGE sections', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      const filteredRegistry = filterHelpEntry(registryEntry, role);
+      const registryIds = filteredRegistry.sections.map((s) => s.id);
+      expect(registryIds).toContain('gestion');
+      expect(registryIds).toContain('recommandations');
+      expect(registryIds).toContain('responsable-rapport');
+
+      const filteredDetail = filterHelpEntry(detailEntry, role);
+      const detailIds = filteredDetail.sections.map((s) => s.id);
+      expect(detailIds).toContain('participants');
+      expect(detailIds).toContain('rapport-officiel');
+      expect(detailIds).toContain('recommandations-detail');
+    }
+  });
+
+  it('a view-only MISSION_REGISTRY_VIEW holder receives registry/navigation guidance but not mutation instructions', () => {
+    // operateur lacks MISSION_REGISTRY_VIEW too (never reaches this route
+    // today), used here purely as "holds none of the mission-management
+    // capabilities" — exercises the filter the same way a hypothetical
+    // future view-only role would.
+    const filteredRegistry = filterHelpEntry(registryEntry, 'operateur');
+    const registryIds = filteredRegistry.sections.map((s) => s.id);
+    expect(registryIds).toContain('registre-global');
+    expect(registryIds).toContain('vs-mes-missions');
+    expect(registryIds).not.toContain('gestion');
+    expect(registryIds).not.toContain('recommandations');
+    expect(registryIds).not.toContain('responsable-rapport');
+
+    const filteredDetail = filterHelpEntry(detailEntry, 'operateur');
+    const detailIds = filteredDetail.sections.map((s) => s.id);
+    expect(detailIds).toContain('sections');
+    expect(detailIds).toContain('notifications-historique');
+    expect(detailIds).not.toContain('participants');
+    expect(detailIds).not.toContain('rapport-officiel');
+    expect(detailIds).not.toContain('recommandations-detail');
   });
 });
 

@@ -13,15 +13,19 @@ interface WorkshopHeaderProps {
   traduction: Traduction;
   modifie: boolean;
   sauvegarde: boolean;
-  estEditable: boolean;
+  /** Capability (TRANSLATION_PROCESS) AND workflow-state — see traductions.permissions.ts. */
+  peutSauvegarder: boolean;
   estApprouvee: boolean;
   estArchivee: boolean;
+  /** Capability (TRANSLATION_REVIEW + TRANSLATION_APPROVE) AND workflow-state. */
   peutApprouver: boolean;
   peutApprouverTexte: boolean;
   onSave: () => void;
   saveEnCours: boolean;
   onApprove: () => void;
   approveEnCours: boolean;
+  /** Capability (TRANSLATION_ARCHIVE) AND workflow-state — distinct from estApprouvee, which still gates export/deposit (unrelated to this fix's scope). */
+  peutArchiver: boolean;
   onArchive: () => void;
   archiveEnCours: boolean;
   onDelete: () => void;
@@ -37,7 +41,7 @@ export function WorkshopHeader({
   traduction,
   modifie,
   sauvegarde,
-  estEditable,
+  peutSauvegarder,
   estApprouvee,
   estArchivee,
   peutApprouver,
@@ -46,6 +50,7 @@ export function WorkshopHeader({
   saveEnCours,
   onApprove,
   approveEnCours,
+  peutArchiver,
   onArchive,
   archiveEnCours,
   onDelete,
@@ -99,7 +104,7 @@ export function WorkshopHeader({
           </Button>
         )}
 
-        {estEditable && (
+        {peutSauvegarder && (
           <Button
             variant="secondary"
             size="sm"
@@ -158,7 +163,7 @@ export function WorkshopHeader({
           </>
         )}
 
-        {estApprouvee && (
+        {peutArchiver && (
           <Button
             variant="secondary"
             size="sm"

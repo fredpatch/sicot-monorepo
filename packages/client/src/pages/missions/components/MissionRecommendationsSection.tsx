@@ -7,19 +7,23 @@ import HistoriqueNotifications from '@/pages/HistoriqueNotifications';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { missionsApi, type RecommandationStatut } from '@/lib/missions.api';
+import { useAuth } from '@/App';
 import { RECOMMANDATION_STATUS_LABELS } from '../mission.constants';
 import type { Mission, RecommandationView } from '../mission.types';
 import { isRecommendationOverdue } from '../mission.utils';
 import type { RecommandationFormData } from '../mission.schemas';
+import { canManageRecommendations } from '../missions.permissions';
 import { RecommendationDialog } from './RecommendationDialog';
 
 type RecFilter = 'toutes' | 'a_traiter' | 'depassees' | 'realisees';
 
 export function MissionRecommendationsSection({ mission }: { mission: Mission }) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filter, setFilter] = useState<RecFilter>('toutes');
   const [relanceRec, setRelanceRec] = useState<RecommandationView | null>(null);
+  const peutGerer = canManageRecommendations(user);
 
   const recommandations = useMemo(() => mission.recommandations ?? [], [mission.recommandations]);
 
@@ -72,10 +76,12 @@ export function MissionRecommendationsSection({ mission }: { mission: Mission })
             {pendingCount} en cours{overdueCount > 0 ? ` · ${overdueCount} dépassée${overdueCount > 1 ? 's' : ''}` : ''}
           </p>
         </div>
-        <Button type="button" onClick={() => setDialogOpen(true)} disabled={mission.statut === 'annulee'} className="gap-2 bg-anac-blue">
-          <Plus size={14} aria-hidden="true" />
-          Ajouter
-        </Button>
+        {peutGerer && (
+          <Button type="button" onClick={() => setDialogOpen(true)} disabled={mission.statut === 'annulee'} className="gap-2 bg-anac-blue">
+            <Plus size={14} aria-hidden="true" />
+            Ajouter
+          </Button>
+        )}
       </div>
 
       <div className="mt-4 flex gap-2 border-b border-anac-border pb-3">
@@ -112,23 +118,29 @@ export function MissionRecommendationsSection({ mission }: { mission: Mission })
                   <p className={`text-sm ${rec.statut === 'realisee' ? 'text-anac-muted line-through' : 'text-anac-navy'}`}>
                     {rec.texte}
                   </p>
-                  <Select
-                    value={rec.statut}
-                    onValueChange={(value) => statutMutation.mutate({ id: rec.id, statut: value as RecommandationStatut })}
-                  >
-                    <SelectTrigger className="h-8 w-36 shrink-0 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(Object.entries(RECOMMANDATION_STATUS_LABELS) as [RecommandationStatut, string][]).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  {peutGerer ? (
+                    <Select
+                      value={rec.statut}
+                      onValueChange={(value) => statutMutation.mutate({ id: rec.id, statut: value as RecommandationStatut })}
+                    >
+                      <SelectTrigger className="h-8 w-36 shrink-0 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.entries(RECOMMANDATION_STATUS_LABELS) as [RecommandationStatut, string][]).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="shrink-0 text-xs font-medium text-anac-muted">
+                      {RECOMMANDATION_STATUS_LABELS[rec.statut]}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-anac-muted">
                   <span>
@@ -140,7 +152,7 @@ export function MissionRecommendationsSection({ mission }: { mission: Mission })
                       </span>
                     )}
                   </span>
-                  {rec.statut !== 'realisee' && (
+                  {rec.statut !== 'realisee' && peutGerer && (
                     <Button
                       type="button"
                       variant="ghost"

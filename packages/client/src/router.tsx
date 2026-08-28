@@ -1,4 +1,4 @@
-import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+import { createRoutesFromElements, Route } from 'react-router-dom';
 
 import App, { ProtectedRoute, CapabilityRoute, LandingRedirect } from './App';
 import Layout from './components/layouts/Layout';
@@ -32,12 +32,15 @@ import MonEspacePage from './pages/MonEspacePage';
 import MesDemandesPage from './pages/MesDemandesPage';
 import MesMissionsPage from './pages/MesMissionsPage';
 
-// Data router (createBrowserRouter) rather than plain <BrowserRouter>/<Routes> —
-// required so react-router's useBlocker (unsaved-changes protection in the
-// Traductions workshop) works. App is the root element for every route: it
-// owns the auth-session check and renders <Outlet /> once resolved.
-export const router = createBrowserRouter(
-  createRoutesFromElements(
+// Route tree only — createBrowserRouter(routeConfig) itself now lives in
+// main.tsx (its only real caller), deliberately kept out of this module:
+// createBrowserRouter() calls createBrowserHistory() eagerly, which needs
+// `document` and so cannot be imported in this package's plain
+// node-environment vitest (no jsdom, see help-map.test.ts's header comment).
+// routeConfig is a plain RouteObject[] with no DOM dependency, which is
+// what router.routes.test.ts inspects to verify route-capability wiring
+// (Phase 10.2 authorization-alignment fix).
+export const routeConfig = createRoutesFromElements(
     <Route element={<App />}>
       {/* ── Bootstrap — premier démarrage ─────────────────────────── */}
       <Route path="/bootstrap" element={<BootstrapPage />} />
@@ -170,10 +173,14 @@ export const router = createBrowserRouter(
             </CapabilityRoute>
           }
         />
+        {/* Mutation-oriented — MISSION_MANAGE, distinct from the viewing
+            routes above (MISSION_REGISTRY_VIEW). Both happen to be granted
+            together today (admin+), but the guard should express the real
+            contract rather than that bundling (Phase 10.2 alignment fix). */}
         <Route
           path="/missions/new"
           element={
-            <CapabilityRoute capability="MISSION_REGISTRY_VIEW">
+            <CapabilityRoute capability="MISSION_MANAGE">
               <MissionFormPage />
             </CapabilityRoute>
           }
@@ -181,7 +188,7 @@ export const router = createBrowserRouter(
         <Route
           path="/missions/:id/edit"
           element={
-            <CapabilityRoute capability="MISSION_REGISTRY_VIEW">
+            <CapabilityRoute capability="MISSION_MANAGE">
               <MissionFormPage />
             </CapabilityRoute>
           }
@@ -312,5 +319,4 @@ export const router = createBrowserRouter(
       <Route path="/portal" element={<PortailPage />} />
       <Route path="/portal/telecharger/:token" element={<PortailTelechargerPage />} />
     </Route>
-  )
-);
+  );

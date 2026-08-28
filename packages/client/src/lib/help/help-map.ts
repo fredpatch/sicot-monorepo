@@ -128,6 +128,221 @@ export const HELP_MAP: HelpEntry[] = [
       },
     ],
   },
+  {
+    // Phase 10.2 — audited against TraductionsPage.tsx (registry) directly.
+    // Note: TRANSLATION_PROCESS/REVIEW/APPROVE/ARCHIVE are always granted
+    // together (operateur+, see role-capabilities.ts) — no real role holds
+    // TRANSLATION_VIEW alone today. Sections stay capability-gated anyway,
+    // both for correctness if that ever changes and because it's what a
+    // TRANSLATION_VIEW-only viewer should see.
+    routePattern: '/traductions',
+    title: 'Aide - Registre des traductions',
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Ce registre liste les traductions liées aux demandes soumises. Chaque traduction passe par un ' +
+          'atelier dédié (ouvert en cliquant dessus) où le texte peut être corrigé, puis approuvé.',
+      },
+      {
+        id: 'traiter-relire-approuver',
+        heading: 'Traiter, relire, approuver',
+        body:
+          'Ce sont des actions liées au statut de la traduction, pas des rôles fixes distincts : un même ' +
+          'utilisateur habilité peut corriger le texte puis l’approuver lui-même — il n’y a pas d’obligation ' +
+          'qu’une seconde personne relise ou valide.',
+        capability: 'TRANSLATION_PROCESS',
+      },
+      {
+        id: 'action-indisponible',
+        heading: 'Si une action n’est pas disponible',
+        body:
+          'Les actions visibles dépendent à la fois de votre profil et du statut actuel de la traduction ' +
+          '(par exemple : une traduction déjà Archivée ne peut plus être modifiée). Si une action attendue ' +
+          'manque, vérifiez d’abord le statut affiché sur la ligne.',
+      },
+    ],
+  },
+  {
+    // Audited against TraductionEditeur.tsx + WorkshopHeader.tsx. Statuses
+    // confirmed from traductions.api.ts: a_reviser, en_relecture,
+    // manuelle_requise (all editable/approvable) -> approuvee -> archivee.
+    // No OCR interaction is surfaced on this page (OCR happens earlier, at
+    // document level) — omitted per the Phase 10.2 brief.
+    routePattern: '/traductions/:id',
+    title: 'Aide - Atelier de traduction',
+    sections: [
+      {
+        id: 'statut-et-actions',
+        heading: 'Statut actuel et actions disponibles',
+        body:
+          'À réviser, En relecture et Manuelle requise sont des statuts modifiables : le texte peut être ' +
+          'corrigé et sauvegardé. Approuvée et Archivée sont verrouillés — plus aucune modification du texte ' +
+          'n’est possible.',
+      },
+      {
+        id: 'corriger',
+        heading: 'Corriger et sauvegarder',
+        body:
+          'Modifiez le texte dans le panneau de traduction, puis « Sauvegarder ». Le panneau d’assistance ' +
+          'propose des suggestions du glossaire sur le texte sélectionné.',
+        capability: 'TRANSLATION_PROCESS',
+      },
+      {
+        id: 'approuver',
+        heading: 'Approuver',
+        body:
+          'Disponible tant que la traduction n’est pas déjà Approuvée ou Archivée, dès qu’un texte final est ' +
+          'présent. Vous pouvez approuver une traduction que vous venez vous-même de corriger — aucune seconde ' +
+          'personne n’est requise.',
+        capability: 'TRANSLATION_APPROVE',
+      },
+      {
+        id: 'archiver',
+        heading: 'Archiver',
+        body: 'Disponible uniquement une fois la traduction Approuvée. L’archive et clôt son cycle.',
+        capability: 'TRANSLATION_ARCHIVE',
+      },
+      {
+        id: 'manuelle-requise',
+        heading: 'Traduction manuelle requise',
+        body:
+          'Le moteur de traduction automatique n’a pas produit de résultat exploitable. Le texte source reste ' +
+          'disponible ; saisissez la traduction manuellement dans le panneau de droite, puis sauvegardez et ' +
+          'approuvez normalement. Si le moteur redevient disponible, un bouton « Relancer la traduction » ' +
+          'apparaît.',
+      },
+    ],
+  },
+  {
+    // Audited against MesMissionsPage.tsx directly — the neutral wording
+    // below ("en attente du responsable désigné" / "aucun responsable
+    // désigné") mirrors the page's own copy so the drawer never contradicts
+    // what's on screen. No admin/assignment instructions here at all —
+    // /mes-missions carries only MISSION_VIEW_OWN, never MISSION_MANAGE.
+    routePattern: '/mes-missions',
+    title: 'Aide - Mes missions',
+    sections: [
+      {
+        id: 'vue-personnelle',
+        heading: 'Vue personnelle, pas le registre global',
+        body:
+          'Cette page ne montre que les missions auxquelles vous participez — pas l’ensemble des missions de ' +
+          'l’organisation.',
+      },
+      {
+        id: 'responsable-rapport',
+        heading: 'Rapport officiel et responsable désigné',
+        body:
+          'Une mission a un seul rapport officiel consolidé, pas un rapport par participant. Seul le ' +
+          'participant désigné comme responsable du rapport peut le déposer depuis cette page. Si un autre ' +
+          'participant est désigné, la ligne indique « En attente du responsable désigné ». Si personne n’a ' +
+          'encore été désigné, elle indique « Aucun responsable désigné » — dans les deux cas, le dépôt n’est ' +
+          'pas disponible pour vous ici.',
+      },
+    ],
+  },
+  {
+    // Audited against MissionsPage.tsx. MISSION_MANAGE and
+    // MISSION_RECOMMENDATION_MANAGE are both admin+-only today (bundled
+    // with MISSION_REGISTRY_VIEW itself), so a view-only MISSION_REGISTRY_VIEW
+    // holder is a theoretical case, same caveat as translations above —
+    // gated correctly regardless.
+    routePattern: '/missions',
+    title: 'Aide - Registre des missions',
+    sections: [
+      {
+        id: 'registre-global',
+        heading: 'Registre global des missions',
+        body:
+          'Cette page liste toutes les missions et déplacements officiels de l’organisation, quel que soit le ' +
+          'participant.',
+      },
+      {
+        id: 'vs-mes-missions',
+        heading: 'Différence avec « Mes missions »',
+        body:
+          '« Mes missions » (menu personnel) ne montre que les missions auxquelles un utilisateur participe. ' +
+          'Ce registre montre l’ensemble.',
+      },
+      {
+        id: 'gestion',
+        heading: 'Créer et modifier une mission',
+        body:
+          'La création, la modification et l’annulation d’une mission se font depuis cette page ou la fiche ' +
+          'détaillée d’une mission.',
+        capability: 'MISSION_MANAGE',
+      },
+      {
+        id: 'recommandations',
+        heading: 'Gestion des recommandations',
+        body:
+          'L’ajout et le suivi des recommandations d’une mission se font depuis sa fiche détaillée, onglet ' +
+          '« Recommandations ».',
+        capability: 'MISSION_RECOMMENDATION_MANAGE',
+      },
+      {
+        id: 'responsable-rapport',
+        heading: 'Désigner le responsable du rapport',
+        body:
+          'Le responsable désigné du rapport doit obligatoirement être un participant de la mission — il se ' +
+          'choisit depuis la fiche détaillée de la mission, onglet « Rapport ».',
+        capability: 'MISSION_MANAGE',
+      },
+    ],
+  },
+  {
+    // Audited against MissionDetailPage.tsx (section tabs) +
+    // MissionReportSection.tsx + MissionRecommendationsSection.tsx +
+    // MissionParticipantsSection.tsx. Report section explicitly enforces
+    // "one official report field, not one per participant" — reflected
+    // below. rapportResponsableId itself never appears in copy — the UI
+    // already says "Responsable du rapport" / "responsable désigné".
+    routePattern: '/missions/:id',
+    title: 'Aide - Fiche mission',
+    sections: [
+      {
+        id: 'sections',
+        heading: 'Sections de la fiche',
+        body:
+          'Aperçu, Participants, Logistique, Rapport, Recommandations, Notifications et Historique — ' +
+          'accessibles depuis le menu à gauche de la fiche.',
+      },
+      {
+        id: 'participants',
+        heading: 'Participants',
+        body:
+          'La liste des participants est visible par tous les consultants du registre. La modifier ' +
+          '(« Modifier les participants ») est réservé à la gestion des missions.',
+        capability: 'MISSION_MANAGE',
+      },
+      {
+        id: 'rapport-officiel',
+        heading: 'Rapport officiel consolidé',
+        body:
+          'Une mission n’a qu’un seul rapport officiel — pas un rapport par participant. L’onglet Rapport ' +
+          'permet de désigner le participant responsable de son dépôt, puis de déposer ou remplacer le fichier ' +
+          '(nouveau fichier ou document existant du dossier documentaire).',
+        capability: 'MISSION_MANAGE',
+      },
+      {
+        id: 'recommandations-detail',
+        heading: 'Recommandations',
+        body:
+          'Chaque recommandation a un statut et, si elle a un responsable et une échéance dépassée, apparaît ' +
+          'comme dépassée. L’ajout et la relance par notification se font depuis cet onglet.',
+        capability: 'MISSION_RECOMMENDATION_MANAGE',
+      },
+      {
+        id: 'notifications-historique',
+        heading: 'Notifications et historique',
+        body:
+          'L’onglet Notifications retrace les relances envoyées pour les recommandations de cette mission ; ' +
+          'l’onglet Historique indique les dates de création et de dernière modification.',
+      },
+    ],
+  },
 ];
 
 function matchesPattern(pattern: string, pathname: string): boolean {
