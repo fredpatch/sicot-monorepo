@@ -1,57 +1,50 @@
-Phase 9 baseline audit + validation is approved.
+Phase 10.1 implementation is approved.
 
-Proceed with the migration baseline replacement exactly as validated.
+Before commit/push, resolve one verification discrepancy.
 
-Required:
+Previous full baseline was:
 
-remove the old active migration chain under packages/server/drizzle/
-replace it with the validated clean baseline:
-drizzle/
-0000_initial_schema.sql
-meta/
-0000_snapshot.json
-_journal.json
-remove temporary drizzle_baseline/
-remove temporary drizzle.baseline.config.ts
-do not modify application code
-do not touch sicot_db
-do not add unaccent
-do not clean up the duplicate users.matricule unique indexes in this commit
+12 shared
+226 server
+40 client
+= 278
 
-After replacement, re-run:
+Phase 10.1 added 15 client tests, so assuming no other test-count changes, the expected complete baseline is:
 
-npx drizzle-kit migrate against a freshly reset disposable sicot_migration_check
-verify ledger contains exactly the new baseline migration
-verify user_role = agent, operateur, admin, super_admin
-verify missions.rapport_responsable_id nullable FK → users.id
-verify all tables are empty after migration
-run drizzle-kit generate and confirm No schema changes, nothing to migrate
-full build
-full test suite
-client tsc --noEmit
+12 shared
+226 server
+55 client
+= 293
 
-Then commit the baseline reset.
+Your report currently states:
 
-Suggested commit message:
+226 server + 55 client = 281
 
-chore(db): reset migrations to pre-production baseline
+which omits the shared package.
 
-Commit body should mention:
+Please verify whether the normal full test command actually ran the shared tests.
 
-old development migration history replaced by one clean baseline
-no staging/production environment had consumed the old chain
-baseline generated from current authoritative schema.ts
-fresh database migration validated successfully
-no seed/mock data included
+If not, run the shared tests and then rerun/confirm the complete monorepo test baseline.
 
-Push after the commit if validation remains green.
+Do not change implementation unless a test fails.
 
-Final report:
+If everything remains green:
+
+confirm exact totals for shared/server/client
+confirm build clean
+confirm client tsc --noEmit clean
+commit Phase 10.1
+push to origin/main
+
+Suggested commit:
+
+feat(help): add contextual help foundation
+
+Then report:
 
 commit hash
 push result
-exact baseline files
-fresh-DB ledger result
-schema verification result
 final test totals
 clean git status
+
+Do not start Phase 10.2 yet.

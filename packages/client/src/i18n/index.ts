@@ -101,6 +101,16 @@ const fr = {
     terminee: 'Terminée',
     annulee: 'Annulée',
   },
+  // Aide contextuelle (Phase 10.1) — chrome du tiroir d'aide uniquement ;
+  // le contenu contextuel par page (help-map.ts) reste FR-only pour l'instant.
+  aide: {
+    trigger: 'Aide',
+    close: 'Fermer',
+    contextualDescription: 'Guide rapide pour cette page.',
+    fallbackTitle: 'Aide générale',
+    fallbackBody:
+      'Aucune aide spécifique n’est encore disponible pour cette page. Un centre d’aide complet arrivera prochainement.',
+  },
 };
 
 // Traductions EN
@@ -196,6 +206,13 @@ const en = {
     planifiee: 'Planned',
     terminee: 'Completed',
     annulee: 'Cancelled',
+  },
+  aide: {
+    trigger: 'Help',
+    close: 'Close',
+    contextualDescription: 'Quick guide for this page.',
+    fallbackTitle: 'General help',
+    fallbackBody: 'No specific help is available for this page yet. A full help center is coming soon.',
   },
 };
 

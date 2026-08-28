@@ -30,6 +30,7 @@ import type { Capability } from '@sicot/shared';
 import { hasCapability } from '@sicot/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { HelpDrawer } from '@/components/help/HelpDrawer';
 import { authApi } from '../../lib/auth.api';
 import { useAuth } from '@/App';
 
@@ -188,6 +189,11 @@ export default function Layout() {
           </h1>
 
           <div className="flex items-center gap-1 flex-shrink-0 ml-4">
+            {/* Aide contextuelle (Phase 10.1) */}
+            <HelpDrawer />
+
+            <div className="w-px h-5 bg-anac-border mx-1" />
+
             {/* Toggle langue FR/EN */}
             <Button
               variant="ghost"
