@@ -1,7 +1,8 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -64,6 +65,30 @@
 
   .card {
     @apply bg-white border border-anac-border rounded-lg shadow-sm p-6;
+  }
+
+  /* @tailwindcss/typography color tokens, checked against .card's white
+     background (the only place `.prose` renders - see AideArticlePage) -
+     the plugin's default grayscale palette is close, but SICOT's own
+     tokens keep long-form articles visually consistent with the rest of
+     the app instead of a second, slightly-off gray scale. */
+  .prose {
+    --tw-prose-body: var(--color-anac-text);
+    --tw-prose-headings: var(--color-anac-navy);
+    --tw-prose-lead: var(--color-anac-muted);
+    --tw-prose-links: var(--color-anac-blue);
+    --tw-prose-bold: var(--color-anac-navy);
+    --tw-prose-counters: var(--color-anac-muted);
+    --tw-prose-bullets: var(--color-anac-border);
+    --tw-prose-hr: var(--color-anac-border);
+    --tw-prose-quotes: var(--color-anac-navy);
+    --tw-prose-quote-borders: var(--color-anac-border);
+    --tw-prose-captions: var(--color-anac-muted);
+    --tw-prose-code: var(--color-anac-navy);
+    --tw-prose-pre-code: var(--color-anac-text);
+    --tw-prose-pre-bg: var(--color-anac-gray);
+    --tw-prose-th-borders: var(--color-anac-border);
+    --tw-prose-td-borders: var(--color-anac-border);
   }
 
   .input {

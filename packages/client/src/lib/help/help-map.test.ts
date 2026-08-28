@@ -2,7 +2,7 @@
 //
 // Pure-function tests for the Help Drawer's content-resolution logic
 // (Phase 10.1: /demandes, /mes-demandes; Phase 10.2: /traductions,
-// /traductions/:id, /mes-missions, /missions, /missions/:id) — no React
+// /traductions/:id, /mes-missions, /missions, /missions/:id) - no React
 // rendering: this matches the existing client test strategy exactly
 // (requests.permissions.test.ts, dashboard.utils.permissions.test.ts, ...),
 // which is plain node-environment vitest with no jsdom/@testing-library/react
@@ -13,8 +13,35 @@
 // by testing the route matcher and capability filter directly.
 import { describe, it, expect } from 'vitest';
 import { getHelpEntry, filterHelpEntry, HELP_MAP, type HelpEntry } from './help-map';
+import { getArticleBySlug } from '@/lib/docs/articles';
 
-describe('getHelpEntry — route matching', () => {
+describe('HELP_MAP articles - every drawer article link resolves to a real, known slug (Phase 10.3)', () => {
+  it('every entry.articles slug exists in the article registry', () => {
+    for (const entry of HELP_MAP) {
+      for (const slug of entry.articles ?? []) {
+        expect(
+          getArticleBySlug(slug),
+          `${entry.routePattern} links to unknown slug "${slug}"`
+        ).toBeDefined();
+      }
+    }
+  });
+
+  it('the five Phase 10.3-required routes are wired to at least one article', () => {
+    for (const route of [
+      '/demandes',
+      '/mes-demandes',
+      '/traductions',
+      '/traductions/:id',
+      '/mes-missions',
+    ]) {
+      const entry = HELP_MAP.find((e) => e.routePattern === route);
+      expect(entry?.articles?.length ?? 0, `${route} has no linked article`).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('getHelpEntry - route matching', () => {
   it('finds the /demandes entry for an exact match', () => {
     expect(getHelpEntry('/demandes')?.routePattern).toBe('/demandes');
   });
@@ -40,7 +67,9 @@ describe('getHelpEntry — route matching', () => {
       e.routePattern
         .split('/')
         .filter(Boolean)
-        .every((seg, i) => seg.startsWith(':') || seg === '/missions/42'.split('/').filter(Boolean)[i])
+        .every(
+          (seg, i) => seg.startsWith(':') || seg === '/missions/42'.split('/').filter(Boolean)[i]
+        )
     );
     expect(match).toBeDefined();
   });
@@ -69,7 +98,7 @@ describe('getHelpEntry — route matching', () => {
   });
 });
 
-describe('filterHelpEntry — capability gating', () => {
+describe('filterHelpEntry - capability gating', () => {
   const demandesEntry = HELP_MAP.find((e) => e.routePattern === '/demandes')!;
 
   it('operateur sees capability-gated sections it holds (take, priority validate, validate, archive)', () => {
@@ -113,7 +142,7 @@ describe('filterHelpEntry — capability gating', () => {
 
   it('mes-demandes entry never carries operateur/admin-only content (no capability requiring more than REQUEST_VIEW_OWN holders lack)', () => {
     // every role that can reach /mes-demandes (REQUEST_VIEW_OWN) also holds
-    // REQUEST_CREATE_OWN and REQUEST_RECALL_OWN by design — filtering must
+    // REQUEST_CREATE_OWN and REQUEST_RECALL_OWN by design - filtering must
     // never actually drop a section for a real /mes-demandes viewer.
     for (const role of ['agent', 'operateur', 'admin', 'super_admin'] as const) {
       const filtered = filterHelpEntry(mesDemandesEntry, role);
@@ -122,7 +151,7 @@ describe('filterHelpEntry — capability gating', () => {
   });
 });
 
-describe('/traductions and /traductions/:id — capability filtering of translation action sections', () => {
+describe('/traductions and /traductions/:id - capability filtering of translation action sections', () => {
   const registryEntry = HELP_MAP.find((e) => e.routePattern === '/traductions')!;
   const detailEntry = HELP_MAP.find((e) => e.routePattern === '/traductions/:id')!;
 
@@ -141,7 +170,7 @@ describe('/traductions and /traductions/:id — capability filtering of translat
 
   it('a TRANSLATION_VIEW-only viewer (agent, hypothetically) receives no process/approve/archive instructions', () => {
     // agent never actually reaches /traductions/:id today (route itself
-    // requires TRANSLATION_VIEW, which agent lacks) — this exercises the
+    // requires TRANSLATION_VIEW, which agent lacks) - this exercises the
     // filter defensively, per the Phase 10.2 brief's explicit requirement.
     const filteredRegistry = filterHelpEntry(registryEntry, 'agent');
     expect(filteredRegistry.sections.map((s) => s.id)).not.toContain('traiter-relire-approuver');
@@ -157,7 +186,7 @@ describe('/traductions and /traductions/:id — capability filtering of translat
   });
 });
 
-describe('/mes-missions — no admin/assignment instructions regardless of role', () => {
+describe('/mes-missions - no admin/assignment instructions regardless of role', () => {
   const entry = HELP_MAP.find((e) => e.routePattern === '/mes-missions')!;
 
   it('carries no capability-gated section at all', () => {
@@ -171,7 +200,7 @@ describe('/mes-missions — no admin/assignment instructions regardless of role'
   });
 });
 
-describe('/missions and /missions/:id — capability filtering of mission management sections', () => {
+describe('/missions and /missions/:id - capability filtering of mission management sections', () => {
   const registryEntry = HELP_MAP.find((e) => e.routePattern === '/missions')!;
   const detailEntry = HELP_MAP.find((e) => e.routePattern === '/missions/:id')!;
 
@@ -194,7 +223,7 @@ describe('/missions and /missions/:id — capability filtering of mission manage
   it('a view-only MISSION_REGISTRY_VIEW holder receives registry/navigation guidance but not mutation instructions', () => {
     // operateur lacks MISSION_REGISTRY_VIEW too (never reaches this route
     // today), used here purely as "holds none of the mission-management
-    // capabilities" — exercises the filter the same way a hypothetical
+    // capabilities" - exercises the filter the same way a hypothetical
     // future view-only role would.
     const filteredRegistry = filterHelpEntry(registryEntry, 'operateur');
     const registryIds = filteredRegistry.sections.map((s) => s.id);

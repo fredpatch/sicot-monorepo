@@ -10,8 +10,9 @@
 // Content strategy (Phase 10 audit, §3): TS objects, not Markdown - this
 // content is short, changes alongside the workflow rules it documents, and
 // benefits from being type-checked against real Capability literals. Long-
-// form /aide and /docs content (not built yet, Phase 10.2+) is a different
-// shape and will be Markdown.
+// form /aide and /docs content (Phase 10.3, packages/client/src/lib/docs/)
+// is a different shape and is Markdown - entries here link out to it via
+// `articles` rather than duplicating it.
 //
 // i18n note: drawer chrome (trigger label, fallback copy) goes through
 // react-i18next (see i18n/index.ts, `aide` namespace). The contextual
@@ -37,12 +38,15 @@ export interface HelpEntry {
   routePattern: string;
   title: string;
   sections: HelpSection[];
+  /** Slugs of related long-form /aide articles (Phase 10.3) - resolved through getVisibleArticleBySlug() by the drawer, so a capability-gated article never appears as a link to a viewer who can't open it. Short "En savoir plus" links only, never a substitute for the section content above. */
+  articles?: string[];
 }
 
 export const HELP_MAP: HelpEntry[] = [
   {
     routePattern: '/demandes',
     title: 'Aide - File des demandes',
+    articles: ['statuts-demande'],
     sections: [
       {
         id: 'registre-vs-mes-demandes',
@@ -93,6 +97,7 @@ export const HELP_MAP: HelpEntry[] = [
   {
     routePattern: '/mes-demandes',
     title: 'Aide - Mes demandes',
+    articles: ['creer-suivre-demande', 'statuts-demande'],
     sections: [
       {
         id: 'creer',
@@ -129,14 +134,15 @@ export const HELP_MAP: HelpEntry[] = [
     ],
   },
   {
-    // Phase 10.2 — audited against TraductionsPage.tsx (registry) directly.
+    // Phase 10.2 - audited against TraductionsPage.tsx (registry) directly.
     // Note: TRANSLATION_PROCESS/REVIEW/APPROVE/ARCHIVE are always granted
-    // together (operateur+, see role-capabilities.ts) — no real role holds
+    // together (operateur+, see role-capabilities.ts) - no real role holds
     // TRANSLATION_VIEW alone today. Sections stay capability-gated anyway,
     // both for correctness if that ever changes and because it's what a
     // TRANSLATION_VIEW-only viewer should see.
     routePattern: '/traductions',
     title: 'Aide - Registre des traductions',
+    articles: ['traiter-relire-approuver'],
     sections: [
       {
         id: 'a-quoi-sert',
@@ -150,7 +156,7 @@ export const HELP_MAP: HelpEntry[] = [
         heading: 'Traiter, relire, approuver',
         body:
           'Ce sont des actions liées au statut de la traduction, pas des rôles fixes distincts : un même ' +
-          'utilisateur habilité peut corriger le texte puis l’approuver lui-même — il n’y a pas d’obligation ' +
+          'utilisateur habilité peut corriger le texte puis l’approuver lui-même - il n’y a pas d’obligation ' +
           'qu’une seconde personne relise ou valide.',
         capability: 'TRANSLATION_PROCESS',
       },
@@ -169,16 +175,17 @@ export const HELP_MAP: HelpEntry[] = [
     // confirmed from traductions.api.ts: a_reviser, en_relecture,
     // manuelle_requise (all editable/approvable) -> approuvee -> archivee.
     // No OCR interaction is surfaced on this page (OCR happens earlier, at
-    // document level) — omitted per the Phase 10.2 brief.
+    // document level) - omitted per the Phase 10.2 brief.
     routePattern: '/traductions/:id',
     title: 'Aide - Atelier de traduction',
+    articles: ['traiter-relire-approuver'],
     sections: [
       {
         id: 'statut-et-actions',
         heading: 'Statut actuel et actions disponibles',
         body:
           'À réviser, En relecture et Manuelle requise sont des statuts modifiables : le texte peut être ' +
-          'corrigé et sauvegardé. Approuvée et Archivée sont verrouillés — plus aucune modification du texte ' +
+          'corrigé et sauvegardé. Approuvée et Archivée sont verrouillés - plus aucune modification du texte ' +
           'n’est possible.',
       },
       {
@@ -194,7 +201,7 @@ export const HELP_MAP: HelpEntry[] = [
         heading: 'Approuver',
         body:
           'Disponible tant que la traduction n’est pas déjà Approuvée ou Archivée, dès qu’un texte final est ' +
-          'présent. Vous pouvez approuver une traduction que vous venez vous-même de corriger — aucune seconde ' +
+          'présent. Vous pouvez approuver une traduction que vous venez vous-même de corriger - aucune seconde ' +
           'personne n’est requise.',
         capability: 'TRANSLATION_APPROVE',
       },
@@ -216,19 +223,20 @@ export const HELP_MAP: HelpEntry[] = [
     ],
   },
   {
-    // Audited against MesMissionsPage.tsx directly — the neutral wording
+    // Audited against MesMissionsPage.tsx directly - the neutral wording
     // below ("en attente du responsable désigné" / "aucun responsable
     // désigné") mirrors the page's own copy so the drawer never contradicts
-    // what's on screen. No admin/assignment instructions here at all —
+    // what's on screen. No admin/assignment instructions here at all -
     // /mes-missions carries only MISSION_VIEW_OWN, never MISSION_MANAGE.
     routePattern: '/mes-missions',
     title: 'Aide - Mes missions',
+    articles: ['rapport-mission'],
     sections: [
       {
         id: 'vue-personnelle',
         heading: 'Vue personnelle, pas le registre global',
         body:
-          'Cette page ne montre que les missions auxquelles vous participez — pas l’ensemble des missions de ' +
+          'Cette page ne montre que les missions auxquelles vous participez - pas l’ensemble des missions de ' +
           'l’organisation.',
       },
       {
@@ -238,7 +246,7 @@ export const HELP_MAP: HelpEntry[] = [
           'Une mission a un seul rapport officiel consolidé, pas un rapport par participant. Seul le ' +
           'participant désigné comme responsable du rapport peut le déposer depuis cette page. Si un autre ' +
           'participant est désigné, la ligne indique « En attente du responsable désigné ». Si personne n’a ' +
-          'encore été désigné, elle indique « Aucun responsable désigné » — dans les deux cas, le dépôt n’est ' +
+          'encore été désigné, elle indique « Aucun responsable désigné » - dans les deux cas, le dépôt n’est ' +
           'pas disponible pour vous ici.',
       },
     ],
@@ -247,10 +255,11 @@ export const HELP_MAP: HelpEntry[] = [
     // Audited against MissionsPage.tsx. MISSION_MANAGE and
     // MISSION_RECOMMENDATION_MANAGE are both admin+-only today (bundled
     // with MISSION_REGISTRY_VIEW itself), so a view-only MISSION_REGISTRY_VIEW
-    // holder is a theoretical case, same caveat as translations above —
+    // holder is a theoretical case, same caveat as translations above -
     // gated correctly regardless.
     routePattern: '/missions',
     title: 'Aide - Registre des missions',
+    articles: ['rapport-mission'],
     sections: [
       {
         id: 'registre-global',
@@ -286,7 +295,7 @@ export const HELP_MAP: HelpEntry[] = [
         id: 'responsable-rapport',
         heading: 'Désigner le responsable du rapport',
         body:
-          'Le responsable désigné du rapport doit obligatoirement être un participant de la mission — il se ' +
+          'Le responsable désigné du rapport doit obligatoirement être un participant de la mission - il se ' +
           'choisit depuis la fiche détaillée de la mission, onglet « Rapport ».',
         capability: 'MISSION_MANAGE',
       },
@@ -296,17 +305,18 @@ export const HELP_MAP: HelpEntry[] = [
     // Audited against MissionDetailPage.tsx (section tabs) +
     // MissionReportSection.tsx + MissionRecommendationsSection.tsx +
     // MissionParticipantsSection.tsx. Report section explicitly enforces
-    // "one official report field, not one per participant" — reflected
-    // below. rapportResponsableId itself never appears in copy — the UI
+    // "one official report field, not one per participant" - reflected
+    // below. rapportResponsableId itself never appears in copy - the UI
     // already says "Responsable du rapport" / "responsable désigné".
     routePattern: '/missions/:id',
     title: 'Aide - Fiche mission',
+    articles: ['rapport-mission'],
     sections: [
       {
         id: 'sections',
         heading: 'Sections de la fiche',
         body:
-          'Aperçu, Participants, Logistique, Rapport, Recommandations, Notifications et Historique — ' +
+          'Aperçu, Participants, Logistique, Rapport, Recommandations, Notifications et Historique - ' +
           'accessibles depuis le menu à gauche de la fiche.',
       },
       {
@@ -321,7 +331,7 @@ export const HELP_MAP: HelpEntry[] = [
         id: 'rapport-officiel',
         heading: 'Rapport officiel consolidé',
         body:
-          'Une mission n’a qu’un seul rapport officiel — pas un rapport par participant. L’onglet Rapport ' +
+          'Une mission n’a qu’un seul rapport officiel - pas un rapport par participant. L’onglet Rapport ' +
           'permet de désigner le participant responsable de son dépôt, puis de déposer ou remplacer le fichier ' +
           '(nouveau fichier ou document existant du dossier documentaire).',
         capability: 'MISSION_MANAGE',
