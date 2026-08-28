@@ -5,11 +5,19 @@ import { Button } from '@/components/ui/button';
 const MIME_PREVISUALISABLES = ['application/pdf', 'image/png', 'image/jpeg', 'image/tiff'];
 
 // L'unique point d'accès existant est /:id/telecharger, servi en
-// Content-Disposition: inline — donc directement affichable par le
+// Content-Disposition: inline - donc directement affichable par le
 // navigateur pour PDF/image dans un <iframe>. Aucune autre infrastructure de
 // prévisualisation (miniature, rendu serveur) n'existe : pour tout autre
 // type, on l'assume franchement plutôt que d'en inventer une.
-export function DocumentPreview({ id, mimeType, url }: { id: number; mimeType: string; url: string }) {
+export function DocumentPreview({
+  id,
+  mimeType,
+  url,
+}: {
+  id: number;
+  mimeType: string;
+  url: string;
+}) {
   const previsualisable = MIME_PREVISUALISABLES.includes(mimeType);
 
   if (!previsualisable) {

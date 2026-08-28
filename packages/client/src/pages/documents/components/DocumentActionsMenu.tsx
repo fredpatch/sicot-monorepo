@@ -27,7 +27,7 @@ interface DocumentActionsMenuProps {
 }
 
 // Regroupe les actions de mutation secondaires derrière un menu « Plus
-// d'actions » — l'action contextuelle principale (Traduire/Ouvrir) reste
+// d'actions » - l'action contextuelle principale (Traduire/Ouvrir) reste
 // visible directement dans la cellule, voir documents.columns.tsx.
 export function DocumentActionsMenu({
   document: doc,
@@ -71,7 +71,7 @@ export function DocumentActionsMenu({
 
       <DropdownMenu>
         {/* Pas de Button ici (asChild) : ce Button est bâti sur @base-ui/react,
-            tandis que ce menu est du Radix — les deux ne composent pas de
+            tandis que ce menu est du Radix - les deux ne composent pas de
             façon fiable via asChild/cloneElement. Le Trigger Radix rend déjà
             un <button> natif, qu'on stylise directement. */}
         <DropdownMenuTrigger
@@ -86,7 +86,10 @@ export function DocumentActionsMenu({
           )}
 
           {cap.canRetryOcr && (
-            <DropdownMenuItem disabled={retraiterOCREnCours} onSelect={() => onRetraiterOCR(doc.id)}>
+            <DropdownMenuItem
+              disabled={retraiterOCREnCours}
+              onSelect={() => onRetraiterOCR(doc.id)}
+            >
               {retraiterOCREnCours ? 'Relance en cours…' : 'Relancer OCR'}
             </DropdownMenuItem>
           )}

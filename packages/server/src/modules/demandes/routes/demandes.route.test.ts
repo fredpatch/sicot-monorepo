@@ -32,10 +32,13 @@ vi.mock('../controllers/demandes.controller.js', async () => {
     ...actual,
     // real lister/aggregates/getById (to exercise the ownership fix), everything else stubbed
     creer: (_req: express.Request, res: express.Response) => res.status(201).json({ ok: true }),
-    prendreEnCharge: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
+    prendreEnCharge: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
     rappeler: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-    validerPriorite: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-    passerEnRelecture: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
+    validerPriorite: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
+    passerEnRelecture: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
     valider: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
     archiver: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
   };
@@ -59,7 +62,7 @@ const QUEUE_ROLES = ['operateur', 'admin', 'super_admin'];
 const NO_TAKE_ROLES = ['agent'];
 const TAKE_ROLES = ['operateur', 'admin', 'super_admin'];
 
-describe('demandes.route — creation/recall are personal capabilities, open to every role', () => {
+describe('demandes.route - creation/recall are personal capabilities, open to every role', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).post('/demandes').send({}).expect(401);
@@ -76,7 +79,7 @@ describe('demandes.route — creation/recall are personal capabilities, open to 
   );
 });
 
-describe('demandes.route — take/submit-review require REQUEST_TAKE / REQUEST_SUBMIT_REVIEW (operateur+)', () => {
+describe('demandes.route - take/submit-review require REQUEST_TAKE / REQUEST_SUBMIT_REVIEW (operateur+)', () => {
   it.each(NO_TAKE_ROLES)('403s role=%s (no REQUEST_TAKE/REQUEST_SUBMIT_REVIEW)', async (role) => {
     const app = buildApp();
     const cookie = cookieFor(role);
@@ -92,7 +95,7 @@ describe('demandes.route — take/submit-review require REQUEST_TAKE / REQUEST_S
   });
 });
 
-describe('demandes.route — priority/valider/archiver require REQUEST_PRIORITY_VALIDATE / REQUEST_VALIDATE / REQUEST_ARCHIVE', () => {
+describe('demandes.route - priority/valider/archiver require REQUEST_PRIORITY_VALIDATE / REQUEST_VALIDATE / REQUEST_ARCHIVE', () => {
   it.each(NO_TAKE_ROLES)('403s role=%s on priority/valider/archiver', async (role) => {
     const app = buildApp();
     const cookie = cookieFor(role);
@@ -105,30 +108,27 @@ describe('demandes.route — priority/valider/archiver require REQUEST_PRIORITY_
     await request(app).patch('/demandes/1/archiver').set('Cookie', cookie).expect(403);
   });
 
-  it.each(TAKE_ROLES)(
-    'allows role=%s on priority/valider/archiver',
-    async (role) => {
-      const app = buildApp();
-      const cookie = cookieFor(role);
-      await request(app)
-        .patch('/demandes/1/priorite')
-        .set('Cookie', cookie)
-        .send({ priorite: 'urgente' })
-        .expect(200);
-      await request(app).patch('/demandes/1/valider').set('Cookie', cookie).expect(200);
-      await request(app).patch('/demandes/1/archiver').set('Cookie', cookie).expect(200);
-    }
-  );
+  it.each(TAKE_ROLES)('allows role=%s on priority/valider/archiver', async (role) => {
+    const app = buildApp();
+    const cookie = cookieFor(role);
+    await request(app)
+      .patch('/demandes/1/priorite')
+      .set('Cookie', cookie)
+      .send({ priorite: 'urgente' })
+      .expect(200);
+    await request(app).patch('/demandes/1/valider').set('Cookie', cookie).expect(200);
+    await request(app).patch('/demandes/1/archiver').set('Cookie', cookie).expect(200);
+  });
 });
 
-describe('demandes.route — personal scoping decoupled from role === agent (GET /, /aggregates, /:id)', () => {
+describe('demandes.route - personal scoping decoupled from role === agent (GET /, /aggregates, /:id)', () => {
   beforeEach(() => {
     listerDemandes.mockClear();
     getDemandesAggregates.mockClear();
     getDemande.mockReset();
   });
 
-  it('agent sees only their own personal requests — client-supplied demandeurId is ignored', async () => {
+  it('agent sees only their own personal requests - client-supplied demandeurId is ignored', async () => {
     const app = buildApp();
     await request(app)
       .get('/demandes')
@@ -138,20 +138,25 @@ describe('demandes.route — personal scoping decoupled from role === agent (GET
     expect(listerDemandes).toHaveBeenCalledWith(expect.objectContaining({ demandeurId: 42 }));
   });
 
-  it.each(QUEUE_ROLES)('role=%s (REQUEST_QUEUE_VIEW) can still use their own personal request view', async (role) => {
-    const app = buildApp();
-    await request(app)
-      .get('/demandes')
-      .query({ demandeurId: '42' })
-      .set('Cookie', cookieFor(role, 42))
-      .expect(200);
-    expect(listerDemandes).toHaveBeenCalledWith(expect.objectContaining({ demandeurId: 42 }));
-  });
+  it.each(QUEUE_ROLES)(
+    'role=%s (REQUEST_QUEUE_VIEW) can still use their own personal request view',
+    async (role) => {
+      const app = buildApp();
+      await request(app)
+        .get('/demandes')
+        .query({ demandeurId: '42' })
+        .set('Cookie', cookieFor(role, 42))
+        .expect(200);
+      expect(listerDemandes).toHaveBeenCalledWith(expect.objectContaining({ demandeurId: 42 }));
+    }
+  );
 
-  it('operator queue access remains global — no demandeurId means unfiltered for REQUEST_QUEUE_VIEW roles', async () => {
+  it('operator queue access remains global - no demandeurId means unfiltered for REQUEST_QUEUE_VIEW roles', async () => {
     const app = buildApp();
     await request(app).get('/demandes').set('Cookie', cookieFor('operateur', 42)).expect(200);
-    expect(listerDemandes).toHaveBeenCalledWith(expect.objectContaining({ demandeurId: undefined }));
+    expect(listerDemandes).toHaveBeenCalledWith(
+      expect.objectContaining({ demandeurId: undefined })
+    );
   });
 
   it('aggregates: agent forced to own id regardless of query param', async () => {
@@ -164,7 +169,7 @@ describe('demandes.route — personal scoping decoupled from role === agent (GET
     expect(getDemandesAggregates).toHaveBeenCalledWith(42);
   });
 
-  it('getById: another user cannot access someone else\'s personal request', async () => {
+  it("getById: another user cannot access someone else's personal request", async () => {
     getDemande.mockResolvedValue({ id: 7, demandeurId: 99 });
     const app = buildApp();
     // agent 42 tries to fetch a demande belonging to user 99
@@ -184,7 +189,7 @@ describe('demandes.route — personal scoping decoupled from role === agent (GET
   });
 });
 
-describe('demandes.route — direct API access denied when capability missing (401/403 matrix)', () => {
+describe('demandes.route - direct API access denied when capability missing (401/403 matrix)', () => {
   it('401s every write route when unauthenticated', async () => {
     const app = buildApp();
     await request(app).patch('/demandes/1/prendre-en-charge').expect(401);

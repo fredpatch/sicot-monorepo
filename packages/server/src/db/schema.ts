@@ -16,7 +16,7 @@ import { date } from 'drizzle-orm/pg-core';
 
 // ── Enums ──────────────────────────────────────────────────────────────────
 // Final persistent role model (Phase 6.1). 'traducteur'/'relecteur' were
-// migrated to 'operateur' and removed from the enum — see
+// migrated to 'operateur' and removed from the enum - see
 // packages/shared/src/auth/roles.ts.
 export const userRoleEnum = pgEnum('user_role', ['agent', 'operateur', 'admin', 'super_admin']);
 
@@ -178,7 +178,7 @@ export const users = pgTable(
     prenom: varchar('prenom', { length: 100 }).notNull(),
     email: varchar('email', { length: 255 }).notNull().unique(),
     // Renseignés uniquement quand le compte est créé depuis l'annuaire
-    // Personnel ANAC (voir personnel-anac.service.ts) — null pour les comptes
+    // Personnel ANAC (voir personnel-anac.service.ts) - null pour les comptes
     // créés manuellement.
     poste: varchar('poste', { length: 150 }),
     service: varchar('service', { length: 150 }),
@@ -296,7 +296,7 @@ export const documents = pgTable(
     visibilitePortail: boolean('visibilite_portail').notNull().default(false),
     portailTokenDureeJours: integer('portail_token_duree_jours'), // null = permanent
 
-    // Visibilité interne (agent) — distincte du portail public. false par
+    // Visibilité interne (agent) - distincte du portail public. false par
     // défaut ; passe à true automatiquement quand une traduction est
     // déposée (voir nouvellVersionDocument), ou manuellement via le bouton
     // "Rendre visible en interne" (traducteur+). Un agent voit toujours ses
@@ -351,7 +351,7 @@ export const courriers = pgTable(
     destinataireOrganisationId: integer('destinataire_organisation_id').references(
       () => organisations.id
     ),
-    // Optional refinement — a specific contact within the organisation
+    // Optional refinement - a specific contact within the organisation
     // above, not a replacement for it (the organisation stays the primary
     // interlocutor; the contact is who to reach there).
     expediteurContactId: integer('expediteur_contact_id').references(() => contacts.id),
@@ -374,7 +374,7 @@ export const courriers = pgTable(
   ]
 );
 
-// Multi-document attachment — courriers.documentId (above) is kept for
+// Multi-document attachment - courriers.documentId (above) is kept for
 // backward compatibility but is no longer written to by new code; this
 // join table is now the source of truth for "documents joints".
 export const courrierDocuments = pgTable(
@@ -402,27 +402,29 @@ export const missions = pgTable('missions', {
   dateFin: timestamp('date_fin').notNull(),
   statut: missionStatutEnum('statut').notNull().default('planifiee'),
   rapportDocumentId: integer('rapport_document_id').references(() => documents.id),
-  // Phase 8 — nullable by design: a mission may exist with no designated
+  // Phase 8 - nullable by design: a mission may exist with no designated
   // report-responsible participant yet, and legacy missions that already
   // have a rapportDocumentId keep working with this left null. Must always
   // reference a current mission_participants row for this mission (enforced
-  // in missions.service.ts, not a DB constraint — participant membership is
+  // in missions.service.ts, not a DB constraint - participant membership is
   // itself mutable), never a persistent role.
   rapportResponsableId: integer('rapport_responsable_id').references(() => users.id),
   createdPar: integer('cree_par').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   // confirmationLogistique is DERIVED (see missions.service.ts) from the
-  // three checklist items below — none checked → a_planifier, all checked
+  // three checklist items below - none checked → a_planifier, all checked
   // → confirme, otherwise → en_cours. Kept as its own stored column (not
   // computed on read) so it stays filterable/sortable/aggregatable exactly
-  // like the rest of the missions list — same tradeoff as every other
+  // like the rest of the missions list - same tradeoff as every other
   // enum column here.
   confirmationLogistique: logistiqueStatutEnum('confirmation_logistique')
     .notNull()
     .default('a_planifier'),
   logistiqueBilletReserve: boolean('logistique_billet_reserve').notNull().default(false),
-  logistiqueHebergementConfirme: boolean('logistique_hebergement_confirme').notNull().default(false),
+  logistiqueHebergementConfirme: boolean('logistique_hebergement_confirme')
+    .notNull()
+    .default(false),
   logistiqueFinancementValide: boolean('logistique_financement_valide').notNull().default(false),
   contactSurPlaceId: integer('contact_sur_place_id').references(() => contacts.id),
 });
@@ -576,13 +578,13 @@ export const rapports = pgTable('rapports', {
   genereParUserId: integer('genere_par_user_id').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 
-  // ── Narratif IA (Gemini) — brouillon distinct, jamais dans le document tant que non validé ──
+  // ── Narratif IA (Gemini) - brouillon distinct, jamais dans le document tant que non validé ──
   contenuIA: text('contenu_ia'), // texte brut généré par le modèle
-  contenuIAValide: text('contenu_ia_valide'), // texte final après relecture/édition humaine — figé
+  contenuIAValide: text('contenu_ia_valide'), // texte final après relecture/édition humaine - figé
   statutRelectureIA: statutRelectureIAEnum('statut_relecture_ia')
     .notNull()
     .default('non_applicable'),
-  moteurIA: varchar('moteur_ia', { length: 50 }), // ex: 'gemini-2.5-pro' — pinné, jamais "latest"
+  moteurIA: varchar('moteur_ia', { length: 50 }), // ex: 'gemini-2.5-pro' - pinné, jamais "latest"
   relecteurIAId: integer('relecteur_ia_id').references(() => users.id),
   relusLeIA: timestamp('relus_le_ia'),
 });

@@ -40,7 +40,7 @@ function cookieFor(role: string) {
 const AGENT = ['agent'];
 const OPERATEUR_PLUS = ['operateur', 'admin', 'super_admin'];
 
-describe('glossaire.route — all routes require at least GLOSSARY_VIEW; agent denied entirely', () => {
+describe('glossaire.route - all routes require at least GLOSSARY_VIEW; agent denied entirely', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).get('/glossaire').expect(401);
@@ -57,7 +57,11 @@ describe('glossaire.route — all routes require at least GLOSSARY_VIEW; agent d
     await request(app).patch('/glossaire/1').set('Cookie', cookie).send({}).expect(403);
     await request(app).patch('/glossaire/1/desactiver').set('Cookie', cookie).expect(403);
     await request(app).patch('/glossaire/1/reactiver').set('Cookie', cookie).expect(403);
-    await request(app).post('/glossaire/import').set('Cookie', cookie).send({ termes: [] }).expect(403);
+    await request(app)
+      .post('/glossaire/import')
+      .set('Cookie', cookie)
+      .send({ termes: [] })
+      .expect(403);
   });
 
   it.each(OPERATEUR_PLUS)('role=%s can read the glossary (GLOSSARY_VIEW)', async (role) => {
@@ -76,6 +80,10 @@ describe('glossaire.route — all routes require at least GLOSSARY_VIEW; agent d
     await request(app).patch('/glossaire/1').set('Cookie', cookie).send({}).expect(200);
     await request(app).patch('/glossaire/1/desactiver').set('Cookie', cookie).expect(200);
     await request(app).patch('/glossaire/1/reactiver').set('Cookie', cookie).expect(200);
-    await request(app).post('/glossaire/import').set('Cookie', cookie).send({ termes: [] }).expect(200);
+    await request(app)
+      .post('/glossaire/import')
+      .set('Cookie', cookie)
+      .send({ termes: [] })
+      .expect(200);
   });
 });

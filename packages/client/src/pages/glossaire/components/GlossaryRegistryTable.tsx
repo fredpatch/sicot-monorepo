@@ -68,7 +68,7 @@ export function GlossaryRegistryTable({
                       {terme.domaine}
                     </span>
                   ) : (
-                    <span className="text-xs text-anac-muted">—</span>
+                    <span className="text-xs text-anac-muted">-</span>
                   )}
                 </td>
                 <td className="px-4 py-3 align-top">
@@ -78,7 +78,10 @@ export function GlossaryRegistryTable({
                   {formaterDate(terme.updatedAt)}
                 </td>
                 <td className="px-4 py-3 align-top">
-                  <div className="flex justify-end gap-1" onClick={(event) => event.stopPropagation()}>
+                  <div
+                    className="flex justify-end gap-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <ActionTooltip label="Voir">
                       <Button
                         type="button"
@@ -186,7 +189,7 @@ export function GlossaryRegistryMobileCards({
                   {terme.domaine}
                 </span>
               ) : (
-                <span className="text-xs text-anac-muted">—</span>
+                <span className="text-xs text-anac-muted">-</span>
               )}
               <span className="text-xs text-anac-muted">{formaterDate(terme.updatedAt)}</span>
             </div>

@@ -14,7 +14,7 @@
 ## Sprint 1 - Administration & Auth (M10) | ✅ COMPLÉTÉ (Personnel ANAC API intégrée, commit 6e20415)
 
 - [x] ~~**Structure projet**~~ - Monorepo 3 packages (shared/server/client), routing, middleware, modèles BDD de base (juin 2026)
-- [x] ~~**Intégration API Personnel ANAC**~~ - Fetch liste agents en temps réel, AdminUsersPage.tsx + personnel-anac.api.ts + module serveur personnel-anac (commit 6e20415). Usage production dépend encore de la connectivité Tailscale du serveur vers PERSONNEL_ANAC_BASE_URL — voir Waiting On.
+- [x] ~~**Intégration API Personnel ANAC**~~ - Fetch liste agents en temps réel, AdminUsersPage.tsx + personnel-anac.api.ts + module serveur personnel-anac (commit 6e20415). Usage production dépend encore de la connectivité Tailscale du serveur vers PERSONNEL_ANAC_BASE_URL - voir Waiting On.
 - [x] ~~**Flux bootstrap admin**~~ - Page BootstrapPage.tsx + service/controller/route, création Super Admin sans API Personnel ANAC (juin 2026)
 - [x] ~~**Page connexion**~~ - LoginPage.tsx avec OTP + mot de passe, indicateur de force, 2 étapes (juin 2026)
 - [x] ~~**Gestion des rôles**~~ - Middleware requireRole avec hiérarchie agent/traducteur/relecteur/admin/super_admin (juin 2026)
@@ -54,7 +54,7 @@
 
 ## Sprint 2 - Documentaire & Partenaires (M8 + M2) | ✅ COMPLÉTÉ
 
-- [x] ~~**Module upload fichiers**~~ - PDF, Word, Doc, Txt, Excel, images — Multer memoryStorage, stockage structuré /sicot/documents/ par catégorie (juin 2026)
+- [x] ~~**Module upload fichiers**~~ - PDF, Word, Doc, Txt, Excel, images - Multer memoryStorage, stockage structuré /sicot/documents/ par catégorie (juin 2026)
 - [ ] **Dossier surveillé /temp/** - Détection auto nouveaux fichiers, import sans action utilisateur
 - [x] ~~**Microservice OCR Python**~~ - Flask+Waitress opérationnel port 5001, extraction validée PDF/DOCX/PNG/TXT/XLS, détection langue FR/EN (juin 2026)
 - [x] ~~**Détection automatique PDF natif vs scanné**~~ - pdfplumber→Tesseract fallback implémenté et testé (juin 2026)
@@ -166,7 +166,7 @@
 - [x] ~~**Script import glossaire CSV/Excel**~~ - Route POST /glossaire/import, détection doublons, log audit (juin 2026)
 - [x] ~~**Microservice translate-service**~~ - Port 5002, appelle LibreTranslate port 5000, /translate, /translate/batch, /detect, /health (juin 2026)
 - [x] ~~**Intégration LibreTranslate on-prem**~~ - Traduction FR↔EN par segments via microservice, timeout 3 minutes (juin 2026)
-- [ ] **Configuration DeepL fallback** - Activable/désactivable par admin — en attente décision DG
+- [ ] **Configuration DeepL fallback** - Activable/désactivable par admin - en attente décision DG
 - [x] ~~**Éditeur côte-à-côte (M6)**~~ - Original gauche / traduction droite modifiable, page dédiée /traductions/:id (juin 2026)
 - [x] ~~**Workflow traduction**~~ - Statuts : À réviser → Approuver / Archiver (archivage bloqué sans approbation humaine) (juin 2026)
 - [x] ~~**Suggestions glossaire dans éditeur**~~ - Surligné auto si terme connu détecté sur sélection, clic pour appliquer (juin 2026)
@@ -210,7 +210,7 @@
 - [x] ~~`/traductions`, `/traductions/:id`~~ (juin 2026)
 - [x] ~~`/demandes`~~ (juin 2026)
 
-## Sprint 5 - Dashboard & Statistiques (M9) | ✅ COMPLÉTÉ (V1 — gaps identifiés, voir Sprint 8)
+## Sprint 5 - Dashboard & Statistiques (M9) | ✅ COMPLÉTÉ (V1 - gaps identifiés, voir Sprint 8)
 
 - [x] ~~**Dashboard général (8 KPI cards)**~~ - Accords actifs / Courriers sans réponse / Missions en cours / Traductions à réviser / Documents archivés / Termes glossaire / Demandes ouvertes / Recommandations en attente (juin 2026)
 - [x] ~~**Courriers sans réponse flagués**~~ - Bloc dédié avec jours d'attente, lien direct vers le courrier (juin 2026)
@@ -244,7 +244,7 @@
 
 - [x] ~~`/dashboard`~~ (juin 2026)
 
-### Gaps identifiés après revue terrain CCIT (juin 2026) — voir Sprint 8/9/10
+### Gaps identifiés après revue terrain CCIT (juin 2026) - voir Sprint 8/9/10
 
 Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier exprimé : rappels ciblés actionnables, seuils configurables, traçabilité des relances, suivi logistique missions, contact partenaire lié aux missions, portail externe documentaire. Détail complet dans Sprint 8, 9, 10 ci-dessous.
 
@@ -259,7 +259,7 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [ ] **Rédaction manuel utilisateur complet** - Tous profils (M. NDONG N'NANG)
 - [ ] **Rapport de recette v1.0 signé** - Mme NGO MYTOULOU
 
-## Sprint 7 - Déploiement Production & Formation | 🟡 PARTIEL (infra Docker/VPS prête, voir Sprint 12 — SERV-APPI abandonné le 2026-08-24, formations restent à faire)
+## Sprint 7 - Déploiement Production & Formation | 🟡 PARTIEL (infra Docker/VPS prête, voir Sprint 12 - SERV-APPI abandonné le 2026-08-24, formations restent à faire)
 
 - [x] ~~**Installation SICOT v1.0 sur SERV-APPI**~~ - ABANDONNÉ : SERV-APPI n'hébergera plus l'application (problème de sécurité). Déjà installé sur un serveur de test Ubuntu séparé via le chemin Docker/VPS.
 - [ ] **Configuration réseau LAN ANAC** - Accès postes clients toutes directions
@@ -273,9 +273,9 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 ## Sprint 8 - Centre de Notifications & Rappels CCIT (transverse M1+M3+M4+M9) | ✅ COMPLÉTÉ
 
-### Principe directeur — validé avec CCIT (juin 2026)
+### Principe directeur - validé avec CCIT (juin 2026)
 
-**Toutes les alertes système (cron, seuils dépassés) sont envoyées à la CCIT en premier — jamais directement à l'agent, au demandeur, ou à la DG.** C'est la CCIT qui juge de la pertinence et de l'opportunité d'une relance. Une fois informée, la CCIT peut déclencher manuellement, depuis l'interface, une notification ciblée vers la personne ou le service concerné (email avec message contextualisé). Aucun envoi automatique vers un tiers externe à la CCIT.
+**Toutes les alertes système (cron, seuils dépassés) sont envoyées à la CCIT en premier - jamais directement à l'agent, au demandeur, ou à la DG.** C'est la CCIT qui juge de la pertinence et de l'opportunité d'une relance. Une fois informée, la CCIT peut déclencher manuellement, depuis l'interface, une notification ciblée vers la personne ou le service concerné (email avec message contextualisé). Aucun envoi automatique vers un tiers externe à la CCIT.
 
 - [x] ~~**Table `parametres` (Administration)**~~ - Stockage clé-valeur générique (cle/valeur/type/module), enum entier/booleen/texte, seed 4 valeurs par défaut (juillet 2026)
 - [x] ~~**Refactor cron alertes.ts**~~ - Lecture de `accord_alerte_jours` depuis parametres (défaut 90j), paliers 1/3-2/3-complet calculés dynamiquement (juillet 2026)
@@ -287,9 +287,9 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [x] ~~**Bouton "Relancer" sur CourrierDetail**~~ - ModalRelance branchée, destinataire = contact principal expéditeur/destinataire selon direction, message pré-rempli avec contexte (juillet 2026)
 - [x] ~~**Bouton "Relancer responsable" sur recommandation (MissionDetail)**~~ - ModalRelance par recommandation, fallback saisie libre si responsable sans email (juillet 2026)
 - [x] ~~**`HistoriqueNotifications.tsx` composant réutilisable**~~ - Affiché en lecture passive sur AccordDetail, CourrierDetail, et par recommandation sur MissionDetail (juillet 2026)
-- [x] ~~**Indicateur visuel de criticité Courriers — 3 paliers**~~ - normal / à surveiller / critique, seuils lus depuis parametres, badge couleur sur CourriersPage, CourrierDetail et dashboard (juillet 2026)
+- [x] ~~**Indicateur visuel de criticité Courriers - 3 paliers**~~ - normal / à surveiller / critique, seuils lus depuis parametres, badge couleur sur CourriersPage, CourrierDetail et dashboard (juillet 2026)
 - [x] ~~**Bloc dashboard "Notifications envoyées récemment"**~~ - Traçabilité visible pour CCIT, navigation directe vers l'entité (juillet 2026)
-- [x] ~~**Bloc dashboard "Accords expirés — action requise"**~~ - Liste des accords expiré(s) avec jours depuis expiration, lien direct vers la fiche, message d'invite à décider (juillet 2026)
+- [x] ~~**Bloc dashboard "Accords expirés - action requise"**~~ - Liste des accords expiré(s) avec jours depuis expiration, lien direct vers la fiche, message d'invite à décider (juillet 2026)
 - [x] ~~**KPI dashboard enrichis avec criticité réelle**~~ - Accords/Courriers/Missions/Recommandations portent leur propre niveau d'alerte avec sous-ligne contextuelle, compteur accords expirés inclus dans KPI accords (juillet 2026)
 - [x] ~~**Filtre "Accords par partenaire" sur AccordsPage**~~ - Filtre back-end `partenairesId` branché, sélecteur organisation côté UI (juillet 2026)
 - [x] ~~**Navigation croisée M2→M1**~~ - Bouton "Accords" sur PartenairesPage, lecture param URL `partenaireId`, indicateur de filtre actif (juillet 2026)
@@ -304,12 +304,12 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 - [x] ~~Notification déclenchée deux fois le même jour~~ - Avertissement non bloquant dans ModalRelance (juillet 2026)
 - [x] ~~Contact destinataire sans email renseigné~~ - Fallback automatique sur saisie libre (juillet 2026)
 - [x] ~~Recommandation sans responsable assigné~~ - Bascule sur saisie libre, CCIT choisit le destinataire (juillet 2026)
-- [x] ~~Accord avec plusieurs partenaires — notification unique~~ - Bouton "Notifier tous" envoie en séquence à chaque contact principal, rapport envoyes/ignores détaillé (juillet 2026)
-- [x] ~~Accord expiré mais statut BDD resté "actif"~~ - Job `accords_expiration` corrige (cron 08h00 ou manuel), bloc dashboard dédié "Accords expirés — action requise" (juillet 2026)
+- [x] ~~Accord avec plusieurs partenaires - notification unique~~ - Bouton "Notifier tous" envoie en séquence à chaque contact principal, rapport envoyes/ignores détaillé (juillet 2026)
+- [x] ~~Accord expiré mais statut BDD resté "actif"~~ - Job `accords_expiration` corrige (cron 08h00 ou manuel), bloc dashboard dédié "Accords expirés - action requise" (juillet 2026)
 - [x] ~~Jobs cron non fiables en environnement dev~~ - Registre de jobs manuels pilotable depuis l'UI admin (juillet 2026)
 - [x] ~~Seed table parametres non exécuté~~ - Identifié et corrigé ; à surveiller en migration production (juillet 2026)
 - [x] ~~pg_dump introuvable en PATH Windows dev~~ - Documenté : PG_DUMP_PATH + BACKUP_LOCAL_DIR dans .env (juillet 2026)
-- [ ] pg_dump sur SERV-APPI (Linux production) — à valider que pg_dump est accessible en PATH sur l'environnement de production
+- [ ] pg_dump sur SERV-APPI (Linux production) - à valider que pg_dump est accessible en PATH sur l'environnement de production
 
 ### Fichiers complétés Sprint 8
 
@@ -365,9 +365,9 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 ### Architecture retenue (juillet 2026)
 
-- Route `/portail` dans la même app React (pas d'app séparée) — hors ProtectedRoute
+- Route `/portail` dans la même app React (pas d'app séparée) - hors ProtectedRoute
 - Navigation libre sans authentification pour la consultation
-- Téléchargement via token UUID envoyé par email — traçabilité complète sans compte permanent
+- Téléchargement via token UUID envoyé par email - traçabilité complète sans compte permanent
 - Consultation = stream inline (PDF viewer natif navigateur)
 - Téléchargement = email → lien tokené → stream attachment
 
@@ -432,26 +432,26 @@ Le dashboard V1 affiche des compteurs mais ne couvre pas le vrai besoin métier 
 
 ## Sprint 10 - Paramètres Système Élargis | ✅ COMPLÉTÉ (upload max reporté volontairement)
 
-### Reporté du Sprint 8 — chantier de fond distinct, hors urgence rappels CCIT
+### Reporté du Sprint 8 - chantier de fond distinct, hors urgence rappels CCIT
 
 - [x] ~~**Délai expiration OTP configurable**~~ - Migré vers `parametres` (`otp_expiration_minutes`, défaut 10 min), `otp.ts` ne lit plus l'env var (juillet 2026)
-- [x] ~~**Seuil blocage compte configurable**~~ - Migré vers `parametres` (`lockout_max_tentatives` défaut 5, `lockout_duree_minutes` défaut 30) — nom final diffère du `compte_tentatives_max` prévu à la planification, et la durée de blocage (`BLOCAGE_MINUTES`, aussi en dur) a été migrée avec, non prévue séparément à l'origine (juillet 2026)
-- [x] ~~**Toggle fallback DeepL**~~ - Paramètre `deepl_fallback_actif` (booléen, défaut false), résolu côté Flask `translate-service` par requête (`resoudre_deepl_actif`) au lieu de l'env var figé au démarrage ; avertissement UI si activé sans `DEEPL_API_KEY` configuré. Implémentation technique terminée — **activation réelle toujours en attente validation DG/contrat RGPD** (voir Waiting On) (juillet 2026)
-- [x] ~~**Rétention sauvegardes configurable**~~ - Migré vers `parametres` (`backup_retention_locale_jours` défaut 30, `backup_retention_nas_jours` défaut 360) — NAS en jours et non en mois comme prévu initialement, pour rester cohérent avec les autres seuils déjà exprimés en jours (juillet 2026)
+- [x] ~~**Seuil blocage compte configurable**~~ - Migré vers `parametres` (`lockout_max_tentatives` défaut 5, `lockout_duree_minutes` défaut 30) - nom final diffère du `compte_tentatives_max` prévu à la planification, et la durée de blocage (`BLOCAGE_MINUTES`, aussi en dur) a été migrée avec, non prévue séparément à l'origine (juillet 2026)
+- [x] ~~**Toggle fallback DeepL**~~ - Paramètre `deepl_fallback_actif` (booléen, défaut false), résolu côté Flask `translate-service` par requête (`resoudre_deepl_actif`) au lieu de l'env var figé au démarrage ; avertissement UI si activé sans `DEEPL_API_KEY` configuré. Implémentation technique terminée - **activation réelle toujours en attente validation DG/contrat RGPD** (voir Waiting On) (juillet 2026)
+- [x] ~~**Rétention sauvegardes configurable**~~ - Migré vers `parametres` (`backup_retention_locale_jours` défaut 30, `backup_retention_nas_jours` défaut 360) - NAS en jours et non en mois comme prévu initialement, pour rester cohérent avec les autres seuils déjà exprimés en jours (juillet 2026)
 - [ ] **Taille max upload et formats acceptés configurables** - Reporté volontairement, limite actuelle (50 Mo, en dur dans `upload.ts`) jugée suffisante pour l'instant ; nécessiterait une factory middleware pour lire la valeur par requête, non prioritaire
 - [x] ~~**Job manuel rapport mensuel**~~ - Implémenté en Sprint 11 (`rapport_mensuel` dans `registre.ts`), en même temps que le cron automatique et la génération à la demande (juillet 2026)
-- [x] ~~**Seed parametres sans SQL manuel**~~ - Approche différente de celle prévue : plutôt qu'intégré à une migration Drizzle, seed idempotent (`ON CONFLICT DO NOTHING`) exécuté au démarrage serveur via `start/services/parametres-seed.service.ts`, avant `app.listen` — même résultat (zéro étape manuelle), mécanisme différent (juillet 2026)
+- [x] ~~**Seed parametres sans SQL manuel**~~ - Approche différente de celle prévue : plutôt qu'intégré à une migration Drizzle, seed idempotent (`ON CONFLICT DO NOTHING`) exécuté au démarrage serveur via `start/services/parametres-seed.service.ts`, avant `app.listen` - même résultat (zéro étape manuelle), mécanisme différent (juillet 2026)
 - [x] ~~**Réorganisation UI `AdminParametresPage.tsx`**~~ - Non planifiée initialement, ajoutée en cours de sprint : grille par module (au lieu de liste), libellés lisibles via `PARAMETRE_LABELS`, unité correcte par clé (`uniteDepuisCle`), clé technique reléguée en tag discret (juillet 2026)
-- [x] ~~**Journal d'audit — interface de consultation**~~ - Non planifiée dans Sprint 10, mais chantier ouvert depuis Sprint 1 (backend fait, UI restée en `ComingSoon`). `AuditPage.tsx` : filtres Module/Action/Date, tableau paginé, modal détails JSON. Filtre `search` du type `AuditFilters` constaté déclaré mais jamais utilisé côté service — volontairement exclu de l'UI plutôt que branché sur un filtre inopérant (juillet 2026)
-- [x] ~~**Journal d'audit — export PDF/Excel**~~ - Première utilisation de `puppeteer`/`exceljs` dans le projet (dépendances présentes depuis le début, jamais câblées). `utils/pdf.ts` conçu générique et réutilisable pour les futurs exports (Accords/Courriers/Missions, cf. Sprint 3/11). Export plafonné à 10 000 lignes avec détection de troncature ; l'export lui-même est audité (`AUDIT_EXPORT_PDF` / `AUDIT_EXPORT_EXCEL`) (juillet 2026)
+- [x] ~~**Journal d'audit - interface de consultation**~~ - Non planifiée dans Sprint 10, mais chantier ouvert depuis Sprint 1 (backend fait, UI restée en `ComingSoon`). `AuditPage.tsx` : filtres Module/Action/Date, tableau paginé, modal détails JSON. Filtre `search` du type `AuditFilters` constaté déclaré mais jamais utilisé côté service - volontairement exclu de l'UI plutôt que branché sur un filtre inopérant (juillet 2026)
+- [x] ~~**Journal d'audit - export PDF/Excel**~~ - Première utilisation de `puppeteer`/`exceljs` dans le projet (dépendances présentes depuis le début, jamais câblées). `utils/pdf.ts` conçu générique et réutilisable pour les futurs exports (Accords/Courriers/Missions, cf. Sprint 3/11). Export plafonné à 10 000 lignes avec détection de troncature ; l'export lui-même est audité (`AUDIT_EXPORT_PDF` / `AUDIT_EXPORT_EXCEL`) (juillet 2026)
 
 ## Sprint 11 - Module Analytics & Rapports (M11) | ✅ COMPLÉTÉ
 
-### Positionnement — distinction claire avec le Dashboard M9
+### Positionnement - distinction claire avec le Dashboard M9
 
 Le dashboard M9 est un outil d'**action rapide** (que dois-je faire aujourd'hui ?).
 Le module M11 est un outil de **pilotage stratégique** (comment l'activité évolue-t-elle, quelles tendances, quels volumes ?).
-Les rapports générés par M11 puisent dans les agrégats analytics — analytics = couche de calcul, rapport = couche de présentation.
+Les rapports générés par M11 puisent dans les agrégats analytics - analytics = couche de calcul, rapport = couche de présentation.
 
 ### Serveur
 
@@ -471,7 +471,7 @@ Les rapports générés par M11 puisent dans les agrégats analytics — analyti
 **M4 Courriers**
 
 - [x] ~~Volume entrant vs sortant par mois~~
-- [x] ~~Temps moyen de réponse~~ - _Proxy `updated_at`, pas de colonne `date_reponse` dédiée — caveat affiché dans l'UI (voir dette technique ci-dessous)_
+- [x] ~~Temps moyen de réponse~~ - _Proxy `updated_at`, pas de colonne `date_reponse` dédiée - caveat affiché dans l'UI (voir dette technique ci-dessous)_
 - [x] ~~Taux de réponse~~
 - [x] ~~Répartition par organisation expéditrice (top 5)~~
 - [x] ~~Évolution de la criticité dans le temps~~ - Nécessitait une nouvelle table `courriers_criticite_snapshots` + cron quotidien 23h55, la criticité n'étant jamais persistée nativement. S'accumule à partir du déploiement (juillet 2026)
@@ -485,7 +485,7 @@ Les rapports générés par M11 puisent dans les agrégats analytics — analyti
 
 **M6 Traduction**
 
-- [x] ~~Volume traduit par mois~~ - _Décompte des traductions uniquement — aucune colonne/table "segments" n'existe, dropped plutôt que fabriqué (voir dette technique)_
+- [x] ~~Volume traduit par mois~~ - _Décompte des traductions uniquement - aucune colonne/table "segments" n'existe, dropped plutôt que fabriqué (voir dette technique)_
 - [x] ~~Taux de correction IA~~
 - [x] ~~Temps moyen de traitement~~ - _Proxy `updated_at`, même caveat que courriers_
 - [x] ~~Répartition FR→EN vs EN→FR~~
@@ -532,74 +532,74 @@ Les rapports générés par M11 puisent dans les agrégats analytics — analyti
 - [x] ~~`/analytics`~~ - accessible à tous les rôles connectés (lecture)
 - [ ] `/analytics/:module` - **Non implémenté tel que prévu.** Choix différent : une seule page avec navigation par onglets côté client (état React), pas de sous-routes URL par module. Fonctionnellement équivalent, mais un lien direct vers un onglet précis (ex: partagé par email) n'est pas possible sans état d'URL. À revoir si ce besoin se manifeste.
 
-### Ajout post-clôture — Rapports IA (Gemini)
+### Ajout post-clôture - Rapports IA (Gemini)
 
-Non planifié dans le périmètre initial de Sprint 11 — proposé et scopé en cours de route, implémenté immédiatement après clôture du sprint plutôt que reporté (dépendait directement des fondations analytics déjà en place).
+Non planifié dans le périmètre initial de Sprint 11 - proposé et scopé en cours de route, implémenté immédiatement après clôture du sprint plutôt que reporté (dépendait directement des fondations analytics déjà en place).
 
 - [x] ~~**Architecture brouillon séparé**~~ - Narratif IA jamais inclus dans un PDF téléchargeable avant validation (modèle `texteIA`/`texteFinal` de M6, transposé aux rapports). Validation = rôle Admin minimum. Texte validé figé définitivement, jamais régénéré silencieusement
-- [x] ~~**Anonymisation obligatoire**~~ - Noms/matricules des agents (top participants, top demandeurs) systématiquement retirés du payload envoyé à Gemini, remplacés par "Agent A/B/C..." — appliqué par défaut, indépendamment de toute décision de gouvernance
+- [x] ~~**Anonymisation obligatoire**~~ - Noms/matricules des agents (top participants, top demandeurs) systématiquement retirés du payload envoyé à Gemini, remplacés par "Agent A/B/C..." - appliqué par défaut, indépendamment de toute décision de gouvernance
 - [x] ~~**Deltas déterministes**~~ - Comparaison vs le dernier rapport _validé_ calculée en code (jamais par le modèle), gère l'absence de rapport précédent et les écarts d'historique
 - [x] ~~**Garde-fou activité insuffisante**~~ - Seuil dur en code (pas une instruction de prompt) : en dessous d'un volume minimal, aucun appel Gemini n'est fait, message fixe déterministe renvoyé à la place
 - [x] ~~**Rotation de modèles + quota auto-imposé**~~ - 3 modèles candidats (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.1-flash-lite`), plafond auto-imposé de 15/jour/modèle (sur un quota réel de 20), très large marge sous le vrai quota. Limite globale de 10 rapports IA à la demande/jour, tous utilisateurs confondus, paramétrable via `parametres`
-- [x] ~~**Contrôle du thinking budget**~~ - `thinkingBudget: 0` (Gemini 2.5) / `ThinkingLevel.LOW` (Gemini 3.x) explicitement fixé sur chaque appel — laissé par défaut, un test a montré jusqu'à 2092 tokens de réflexion facturés pour une réponse triviale
+- [x] ~~**Contrôle du thinking budget**~~ - `thinkingBudget: 0` (Gemini 2.5) / `ThinkingLevel.LOW` (Gemini 3.x) explicitement fixé sur chaque appel - laissé par défaut, un test a montré jusqu'à 2092 tokens de réflexion facturés pour une réponse triviale
 - [x] ~~**Workflow de relecture**~~ - Génération → `en_attente` → admin édite/valide/rejette, avec confirmation avant rejet (bug initial : rejet sans confirmation déclenché par un simple clic d'exploration)
 - [x] ~~**Disclaimer à 3 endroits**~~ - Bannière dans la modale de relecture, badge de statut dans l'historique, modèle/version tracé sur chaque enregistrement (`moteurIA`)
 - [x] ~~**Régénération après rejet**~~ - Bouton dédié pour les rapports `rejete`, absent initialement (gap découvert en test)
-- [x] ~~**Rendu Markdown sécurisé**~~ - `react-markdown` plutôt que `dangerouslySetInnerHTML` + regex — le contenu vient d'un LLM externe, non fiable par défaut (risque d'injection identifié dans le scoping)
+- [x] ~~**Rendu Markdown sécurisé**~~ - `react-markdown` plutôt que `dangerouslySetInnerHTML` + regex - le contenu vient d'un LLM externe, non fiable par défaut (risque d'injection identifié dans le scoping)
 
 **Bugs réels trouvés et corrigés pendant l'implémentation** (pour référence future) :
 
-- `listerRapports()` retournait un objet reconstruit manuellement, sans les champs IA — chaque ligne de l'historique affichait "IA - rejeté" par défaut (`undefined` ne correspondant à aucun cas du switch), quel que soit le vrai statut
-- Tri par `createdAt` ascendant plutôt que descendant — nouveaux rapports invisibles en haut de tableau
-- `cn()` utilisait `clsx` seul, sans `tailwind-merge` — une classe `className` personnalisée (ex: `max-w-4xl`) ne l'emportait pas de façon fiable sur les styles par défaut d'un composant (`max-w-lg`). Corrigé à la racine (`lib/utils.ts`), corrige potentiellement le même bug latent ailleurs dans l'app
-- Catégorie de document `rapport` ajoutée côté serveur (schéma) mais oubliée côté client (`DocumentsPage.tsx` avait sa propre liste de catégories non synchronisée) — catégorie vide affichée pour tout document de type rapport
+- `listerRapports()` retournait un objet reconstruit manuellement, sans les champs IA - chaque ligne de l'historique affichait "IA - rejeté" par défaut (`undefined` ne correspondant à aucun cas du switch), quel que soit le vrai statut
+- Tri par `createdAt` ascendant plutôt que descendant - nouveaux rapports invisibles en haut de tableau
+- `cn()` utilisait `clsx` seul, sans `tailwind-merge` - une classe `className` personnalisée (ex: `max-w-4xl`) ne l'emportait pas de façon fiable sur les styles par défaut d'un composant (`max-w-lg`). Corrigé à la racine (`lib/utils.ts`), corrige potentiellement le même bug latent ailleurs dans l'app
+- Catégorie de document `rapport` ajoutée côté serveur (schéma) mais oubliée côté client (`DocumentsPage.tsx` avait sa propre liste de catégories non synchronisée) - catégorie vide affichée pour tout document de type rapport
 
 **Reporté** :
 
 - [x] ~~**Écran de suivi Gemini dans `AdminParametresPage.tsx`**~~ - Barres d'usage par modèle vs plafond (15/jour), compteur global rapports IA (X/10), dernier rapport mensuel auto, cumul tokens de réflexion. Rafraîchissement automatique toutes les 60s (juillet 2026)
 - [ ] **Export PDF/DOCX du narratif IA validé** - PDF réutilise `utils/pdf.ts` ; DOCX nécessiterait la lib `docx` (aucune génération DOCX n'existe encore dans le projet, même gap que Sprint 4). Décision à prendre : narratif seul ou fusionné avec les tableaux numériques ?
 
-### Ajout post-clôture — Sprint de durcissement UI (shadcn/ui)
+### Ajout post-clôture - Sprint de durcissement UI (shadcn/ui)
 
 Planifié dans Sprint 11 comme suivi ("à migrer plus tard"), réalisé en session dédiée juillet 2026.
 
 - [x] ~~**`components/ui/table.tsx`**~~ - Composant Table shadcn générique (via CLI shadcn, style `data-slot`), remplace les balises `<table>` HTML brutes
-- [x] ~~**`components/table/data-table.tsx`**~~ - Wrapper générique sur `@tanstack/react-table` : sorting/pagination/filtering en mode manuel (serveur), rendu via les primitives `table.tsx`. Pas de filtrage colonne générique — chaque page garde sa propre barre de filtres métier
+- [x] ~~**`components/table/data-table.tsx`**~~ - Wrapper générique sur `@tanstack/react-table` : sorting/pagination/filtering en mode manuel (serveur), rendu via les primitives `table.tsx`. Pas de filtrage colonne générique - chaque page garde sa propre barre de filtres métier
 - [x] ~~**`components/table/data-table-pagination.tsx`**~~ - Composant de pagination extrait et partagé (initialement dupliqué sur PartenairesPage puis Audit, extrait dès la 2ème occurrence identique)
 - [x] ~~**`components/ui/tabs.tsx`**~~ - Nouveau composant Tabs shadcn sur `@radix-ui/react-tabs` (nouvellement installé), remplace les tabs faits maison (`role="tab"` + state manuel) d'AnalyticsPage
-- [x] ~~**Migration des 7 pages à tableaux HTML bruts**~~ - PartenairesPage, AuditPage, DocumentsPage, GlossairePage, DemandesPage, TraductionsPage, AnalyticsPage — toutes basculées sur `Table`/`DataTable`
+- [x] ~~**Migration des 7 pages à tableaux HTML bruts**~~ - PartenairesPage, AuditPage, DocumentsPage, GlossairePage, DemandesPage, TraductionsPage, AnalyticsPage - toutes basculées sur `Table`/`DataTable`
 - [x] ~~**Éclatement en sous-dossiers `pages/{module}/`**~~ - Chaque page refactorée avec colonnes (`{module}.columns.tsx`), hooks (`hooks/queries.ts` + `hooks/mutations.ts`), types, constants, et composants (filtres, dialogs) séparés du fichier page (devenu un simple orchestrateur)
-- [x] ~~**`pages/analytics/` — éclatement complet**~~ - Le plus gros morceau (2150 lignes, 9 onglets) : un fichier par onglet sous `onglets/`, dialog IA extrait (`AnalyseIADialog.tsx`), sélecteur de période extrait (`PeriodeSelector.tsx`)
-- [x] ~~**PartenairesPage — tri serveur ajouté**~~ - Colonnes triables (`sortBy`/`sortOrder`) branchées jusqu'au service Drizzle, profitant du passage à `DataTable`/TanStack Table — extension au-delà du périmètre initial du ticket
-- [x] ~~**Bug corrigé gratuitement — `colSpan` incorrect**~~ - AuditPage et DocumentsPage avaient un `colSpan` désynchronisé du nombre réel de colonnes sur les lignes vide/chargement ; `DataTable` le calcule automatiquement depuis `columns.length`
+- [x] ~~**`pages/analytics/` - éclatement complet**~~ - Le plus gros morceau (2150 lignes, 9 onglets) : un fichier par onglet sous `onglets/`, dialog IA extrait (`AnalyseIADialog.tsx`), sélecteur de période extrait (`PeriodeSelector.tsx`)
+- [x] ~~**PartenairesPage - tri serveur ajouté**~~ - Colonnes triables (`sortBy`/`sortOrder`) branchées jusqu'au service Drizzle, profitant du passage à `DataTable`/TanStack Table - extension au-delà du périmètre initial du ticket
+- [x] ~~**Bug corrigé gratuitement - `colSpan` incorrect**~~ - AuditPage et DocumentsPage avaient un `colSpan` désynchronisé du nombre réel de colonnes sur les lignes vide/chargement ; `DataTable` le calcule automatiquement depuis `columns.length`
 - [x] ~~**`sonner` + `confirmToast`**~~ - Remplacement de `window.confirm`/`alert` par des toasts sonner non bloquants, adopté en cours de route sur Documents/Demandes/Traductions (`lib/confirm-toast.ts`)
 
 **Décisions de scope prises pendant l'implémentation** :
 
 - Pas de composant `DataTable` générique avec props `data`/`columns`/`filters`/`extra` construit à la main : `@tanstack/react-table` (bibliothèque mûre) utilisé à la place, évite de réinventer un moteur de tri/pagination/filtrage
-- Les 6 tableaux d'AnalyticsPage (petits, statiques, sans pagination ni actions par ligne au-delà d'un bouton) utilisent les primitives `Table` simples, pas `DataTable` — `DataTable` réservé aux tableaux avec état serveur réel (pagination/tri/filtres)
+- Les 6 tableaux d'AnalyticsPage (petits, statiques, sans pagination ni actions par ligne au-delà d'un bouton) utilisent les primitives `Table` simples, pas `DataTable` - `DataTable` réservé aux tableaux avec état serveur réel (pagination/tri/filtres)
 
-### Ajout post-clôture — Dashboard et Accords UX hardening
+### Ajout post-clôture - Dashboard et Accords UX hardening
 
 Réalisé le 29 juillet 2026 dans la continuité du durcissement UI shadcn, avec
 un objectif terrain : rendre le tableau de bord opérationnel et le module M1
 plus lisibles, plus stables et plus rapides à parcourir.
 
-- [x] ~~**Dashboard M9 — refonte opérationnelle**~~ - `DashboardPage.tsx` extrait vers `pages/dashboard/` avec composants dédiés, en-tête de supervision, priorités du jour, actions rapides, KPI, suivi dossiers, activité récente et graphiques intégrés
-- [x] ~~**Graphiques — suppression du CDN Chart.js**~~ - `ChartCanvas.tsx` importe `chart.js` depuis npm et enregistre les `registerables`, ce qui restaure les animations et évite les pertes de rendu liées au chargement CDN au changement de section
-- [x] ~~**Accords M1 — registre complet**~~ - `AccordsPage.tsx` remplacé par une vue registre avec cartes de synthèse, filtres URL-backed, recherche débouncée, pagination à 8 lignes, table desktop et cartes mobiles
-- [x] ~~**Accords M1 — découpage feature-folder**~~ - Ajout de `accord.constants.ts`, `accord.types.ts`, `accord.utils.ts` et composants dédiés (`AccordFilters`, `AccordRegistryTable`, `AccordSummaryCards`, badges statut/échéance)
-- [x] ~~**Accords M1 — fiche détail durcie**~~ - Navigation latérale iconifiée, timeline de validité réalignée, dossier lié avec icônes, onglets métier (aperçu, partenaires, document, validité, notifications), relance et notification groupée
-- [x] ~~**Accords M1 — modal renouvellement shadcn**~~ - Dialog renouvellement restructuré avec header, résumé accord, message d'impact, validation dates, notes et footer d'actions stable
-- [x] ~~**Accords M1 — actions de table clarifiées**~~ - Tooltips hover/focus sur voir/modifier/renouveler/relancer, icône détail remplacée par `Eye`
-- [x] ~~**Accords M1 — pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS plutôt qu'en emoji, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
-- [x] ~~**Accords M1 — formulaire guidé**~~ - `AccordFormPage.tsx` restructuré en étapes : informations générales, partenaires, contenu/scope, validité, document, révision
-- [x] ~~**Partenaires M2 — registre opérationnel complet**~~ - `PartenairesPage.tsx` remplacé par une vue registre dense avec cartes de synthèse, filtres URL-backed, tri/recherche, pagination à 8 lignes, table desktop et cartes mobiles
-- [x] ~~**Partenaires M2 — indicateurs serveur**~~ - `organisations.service.ts` enrichit la liste avec contact principal, compteurs contacts actif/total, nombre d'accords liés, agrégats de synthèse et filtre qualité de contact
-- [x] ~~**Partenaires M2 — pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS dans la liste et la fiche détail, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
-- [x] ~~**Partenaires M2 — formulaire guidé**~~ - `PartenaireFormPage.tsx` ajoute un parcours création/édition par étapes, avec création optionnelle du contact principal après sauvegarde de l'organisation
-- [x] ~~**Partenaires M2 — fiche détail durcie**~~ - `PartenaireDetailPage.tsx` ajoute une fiche workspace avec aperçu, contacts, informations, accords liés et métadonnées système, sans données factices de documents/activité
-- [x] ~~**Partenaires M2 — actions de table clarifiées**~~ - Tooltips hover/focus sur consulter/modifier/contacts/accords, icônes plus explicites et état contact visible directement dans les lignes
+- [x] ~~**Dashboard M9 - refonte opérationnelle**~~ - `DashboardPage.tsx` extrait vers `pages/dashboard/` avec composants dédiés, en-tête de supervision, priorités du jour, actions rapides, KPI, suivi dossiers, activité récente et graphiques intégrés
+- [x] ~~**Graphiques - suppression du CDN Chart.js**~~ - `ChartCanvas.tsx` importe `chart.js` depuis npm et enregistre les `registerables`, ce qui restaure les animations et évite les pertes de rendu liées au chargement CDN au changement de section
+- [x] ~~**Accords M1 - registre complet**~~ - `AccordsPage.tsx` remplacé par une vue registre avec cartes de synthèse, filtres URL-backed, recherche débouncée, pagination à 8 lignes, table desktop et cartes mobiles
+- [x] ~~**Accords M1 - découpage feature-folder**~~ - Ajout de `accord.constants.ts`, `accord.types.ts`, `accord.utils.ts` et composants dédiés (`AccordFilters`, `AccordRegistryTable`, `AccordSummaryCards`, badges statut/échéance)
+- [x] ~~**Accords M1 - fiche détail durcie**~~ - Navigation latérale iconifiée, timeline de validité réalignée, dossier lié avec icônes, onglets métier (aperçu, partenaires, document, validité, notifications), relance et notification groupée
+- [x] ~~**Accords M1 - modal renouvellement shadcn**~~ - Dialog renouvellement restructuré avec header, résumé accord, message d'impact, validation dates, notes et footer d'actions stable
+- [x] ~~**Accords M1 - actions de table clarifiées**~~ - Tooltips hover/focus sur voir/modifier/renouveler/relancer, icône détail remplacée par `Eye`
+- [x] ~~**Accords M1 - pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS plutôt qu'en emoji, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
+- [x] ~~**Accords M1 - formulaire guidé**~~ - `AccordFormPage.tsx` restructuré en étapes : informations générales, partenaires, contenu/scope, validité, document, révision
+- [x] ~~**Partenaires M2 - registre opérationnel complet**~~ - `PartenairesPage.tsx` remplacé par une vue registre dense avec cartes de synthèse, filtres URL-backed, tri/recherche, pagination à 8 lignes, table desktop et cartes mobiles
+- [x] ~~**Partenaires M2 - indicateurs serveur**~~ - `organisations.service.ts` enrichit la liste avec contact principal, compteurs contacts actif/total, nombre d'accords liés, agrégats de synthèse et filtre qualité de contact
+- [x] ~~**Partenaires M2 - pays lisibles avec indicateurs visuels**~~ - Indicateurs pays rendus en CSS dans la liste et la fiche détail, pour éviter les fallbacks Windows affichant `CM`, `FR`, etc.
+- [x] ~~**Partenaires M2 - formulaire guidé**~~ - `PartenaireFormPage.tsx` ajoute un parcours création/édition par étapes, avec création optionnelle du contact principal après sauvegarde de l'organisation
+- [x] ~~**Partenaires M2 - fiche détail durcie**~~ - `PartenaireDetailPage.tsx` ajoute une fiche workspace avec aperçu, contacts, informations, accords liés et métadonnées système, sans données factices de documents/activité
+- [x] ~~**Partenaires M2 - actions de table clarifiées**~~ - Tooltips hover/focus sur consulter/modifier/contacts/accords, icônes plus explicites et état contact visible directement dans les lignes
 
 **Validation 29 juillet 2026** :
 
@@ -617,14 +617,14 @@ plus lisibles, plus stables et plus rapides à parcourir.
 
 ## Sprint 12 - Infrastructure de déploiement + Refonte Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Administration (M10) + Portail externe (M-Portail) + Espace Agent + Export PDF individuel | ✅ COMPLÉTÉ (2026-08-24 → 2026-08-27)
 
-Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
+Sprint non planifié, réalisé sur plusieurs jours consécutifs - voir
 `exploration-cache/changelog.md` pour le détail complet et
 `docs/deployment/production-guide.md` pour le runbook.
 
 ### Infrastructure de déploiement
 
 - [x] ~~**Docker Compose (local/staging/prod)**~~ - Les 5 services (client, api, ocr-service, translate-service, libretranslate auto-hébergé), suivant `docs/deployment-documentation.md`
-- [x] ~~**CI/CD GitHub Actions**~~ - 3 workflows séparés (ci, docker-publish, deploy-prod — ce dernier en `workflow_dispatch` manuel uniquement)
+- [x] ~~**CI/CD GitHub Actions**~~ - 3 workflows séparés (ci, docker-publish, deploy-prod - ce dernier en `workflow_dispatch` manuel uniquement)
 - [x] ~~**Rôles agent élargis**~~ - GET /api/users (lecture seule) et POST /api/notifications/envoyer (uniquement recommandation_rappel) accessibles agent, pour débloquer les besoins Missions
 - [x] ~~**Vérification end-to-end**~~ - Déploiement staging réel, 7 conteneurs healthy, migrations appliquées, réseau inter-conteneurs confirmé
 - [x] ~~**Corrections trouvées en construisant l'infra**~~ - Migrations Drizzle jamais committées (gitignore), `*.tsbuildinfo` cassant les builds propres, OCR/translate-service bindés 127.0.0.1 au lieu de 0.0.0.0
@@ -643,7 +643,7 @@ Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 
 - [x] ~~**Fiches PDF individuelles**~~ - `GET /:id/export/pdf` sur accords/courriers/missions, gabarit partagé (`ficheHTML.ts` + `genererPDFFiche()`), sceau ANAC intégré, badges de statut, section Historique adossée au vrai journal d'audit (nouveau filtre `entiteId`)
 - [x] ~~**Aperçu avant téléchargement**~~ - `PdfPreviewDialog` (iframe + `?apercu=1` en Content-Disposition inline) sur les 3 pages détail, plutôt qu'un téléchargement direct au clic
-- [x] ~~**Sections mockup sans champ réel volontairement omises**~~ - pas de contenu inventé (contenu courrier, stepper 5 étapes, documents multiples, type/durée accord, objectif/activités mission, fonction participant) — voir "Reporté" ci-dessous pour le suivi
+- [x] ~~**Sections mockup sans champ réel volontairement omises**~~ - pas de contenu inventé (contenu courrier, stepper 5 étapes, documents multiples, type/durée accord, objectif/activités mission, fonction participant) - voir "Reporté" ci-dessous pour le suivi
 
 ### Refonte Courriers (M4)
 
@@ -653,12 +653,12 @@ Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 - [x] ~~**Contact-level expéditeur/destinataire**~~ - Migration 0013, `expediteurContactId`/`destinataireContactId` (FK contacts, affinement de l'organisation, pas un remplacement) ; le serveur rejette un changement d'organisation sans mise à jour explicite du contact
 - [x] ~~**Documents multiples par courrier**~~ - Migration 0013, table de jointure `courrier_documents`, backfill des liens existants, endpoints POST/DELETE dédiés
 - [x] ~~**Création rapide organisation/contact**~~ - `QuickCreateOrganisationDialog` + `QuickCreateContactDialog`, réutilisent FormulaireOrganisation/FormulaireContact existants
-- [x] ~~**Champs débloqués en édition**~~ - Expéditeur/destinataire, date, réponse requise (direction reste immuable) — étaient silencieusement ignorés par le serveur avant
+- [x] ~~**Champs débloqués en édition**~~ - Expéditeur/destinataire, date, réponse requise (direction reste immuable) - étaient silencieusement ignorés par le serveur avant
 
 ### Refonte Traductions (M6)
 
 - [x] ~~**Registre plein écran**~~ - Cartes de synthèse (GET /api/traductions/aggregates), badge moteur compact (remplace la bannière rouge pleine largeur), filtre Source (texte libre/document, server-side), recherche plein texte server-side (`ilike` sur `texteOriginal`), onglet Supprimées (accès à `restaurer`, jusque-là inaccessible depuis l'UI), pagination alignée à 8
-- [x] ~~**Alignement UI registre sur Courriers/Missions**~~ - Remplacement du `DataTable` générique (en-tête `bg-anac-navy` + `TableRow` réutilisé pour la ligne d'en-tête, provoquant un survol visuellement cassé — fond gris clair sous du texte blanc) par une table/cartes mobiles construites à la main (`TraductionsRegistryTable`), même filtre (recherche + Select + "Plus de filtres" + puces + reset) que `MissionsFilters`/`CourriersFilters`
+- [x] ~~**Alignement UI registre sur Courriers/Missions**~~ - Remplacement du `DataTable` générique (en-tête `bg-anac-navy` + `TableRow` réutilisé pour la ligne d'en-tête, provoquant un survol visuellement cassé - fond gris clair sous du texte blanc) par une table/cartes mobiles construites à la main (`TraductionsRegistryTable`), même filtre (recherche + Select + "Plus de filtres" + puces + reset) que `MissionsFilters`/`CourriersFilters`
 - [x] ~~**Correctif rattachement document OCR**~~ - `documentId` était silencieusement perdu entre le préremplissage OCR (Documents → Traductions) et le lancement de la traduction ; toute traduction lancée depuis un document perdait son lien. Corrigé de bout en bout (hook préremplissage → page → lancement → API)
 - [x] ~~**Atelier de traduction éclaté**~~ - `TraductionEditeur.tsx` (628 lignes) scindé en en-tête/panneaux/assistance (`components/editor/`), disposition responsive (grille 12 col. desktop / empilé medium / onglets mobile)
 - [x] ~~**Relance traduction manuelle**~~ - `PATCH /:id/relancer`, ré-exécute le moteur sur `texteOriginal` d'une traduction `manuelle_requise` sans jamais écraser une correction manuelle déjà saisie (bouton désactivé tant qu'il y a des modifications non sauvegardées)
@@ -670,12 +670,12 @@ Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 ### Refonte Glossaire (M7)
 
 - [x] ~~**Registre concept-first**~~ - Cartes de synthèse réelles (`GET /api/glossaire/aggregates` : total/actifs/inactifs/domaines, remplace tout calcul sur la page courante), colonnes Terme principal/Traductions disponibles/Domaine/Statut/Dernière mise à jour au lieu de colonnes FR/EN figées, table + cartes mobiles construites à la main (retrait du `DataTable` générique, même convention que Missions/Courriers/Traductions)
-- [x] ~~**Couche de normalisation multilingue-ready**~~ - `glossary.adapters.ts` (`GlossaryConceptViewModel`/`TermVariant`/`getPrimaryVariant`/`toApiPayload`) : le registre et la fiche terme consomment une liste de variantes générique, jamais `termeFr`/`termeEn` directement — une langue future (ES/PT) n'exige qu'une entrée d'adaptateur, pas une refonte du registre. Aucune migration backend multilingue effectuée (`termeFr`/`termeEn` inchangés)
+- [x] ~~**Couche de normalisation multilingue-ready**~~ - `glossary.adapters.ts` (`GlossaryConceptViewModel`/`TermVariant`/`getPrimaryVariant`/`toApiPayload`) : le registre et la fiche terme consomment une liste de variantes générique, jamais `termeFr`/`termeEn` directement - une langue future (ES/PT) n'exige qu'une entrée d'adaptateur, pas une refonte du registre. Aucune migration backend multilingue effectuée (`termeFr`/`termeEn` inchangés)
 - [x] ~~**Fiche terminologique (workspace)**~~ - `TermWorkspace` (Dialog à onglets, pas de nouveau composant Sheet) : Traductions / Contexte d'utilisation / Informations / Historique, ouverte au clic ligne ou action "Voir"
-- [x] ~~**Réactivation de terme**~~ - `PATCH /:id/reactiver` (n'existait à aucune couche avant), bouton "Réactiver" dans le registre et la fiche — auparavant aucun chemin UI pour annuler une désactivation
+- [x] ~~**Réactivation de terme**~~ - `PATCH /:id/reactiver` (n'existait à aucune couche avant), bouton "Réactiver" dans le registre et la fiche - auparavant aucun chemin UI pour annuler une désactivation
 - [x] ~~**Garde-fou doublon à la création**~~ - `creerTerme` applique désormais la même vérification exacte FR+EN (insensible à la casse) que l'import CSV, qui en était jusque-là le seul endroit ; erreur serveur "Ce terme existe déjà dans le glossaire." remontée dans le formulaire
 - [x] ~~**Langue toujours textuelle**~~ - `LanguageVariantBadge` (code ISO + libellé, jamais un drapeau seul)
-- [x] ~~**Aucune fonctionnalité inventée**~~ - pas de statuts En révision/Approuvé/Brouillon, pas de "Ajouter une langue" fonctionnel, pas de champs Définition/Source/Référence — historique étiqueté honnêtement (suivi des renommages FR/EN uniquement, pas un audit trail complet)
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas de statuts En révision/Approuvé/Brouillon, pas de "Ajouter une langue" fonctionnel, pas de champs Définition/Source/Référence - historique étiqueté honnêtement (suivi des renommages FR/EN uniquement, pas un audit trail complet)
 
 ### Refonte Demandes (M5) | ✅ COMPLÉTÉ (2026-08-26)
 
@@ -683,32 +683,32 @@ Sprint non planifié, réalisé sur plusieurs jours consécutifs — voir
 - [x] ~~**Recherche server-side**~~ - `demandeurNom`/`traducteurNom`/`documentNom`/`texteLibre`, absente avant (résolution par IDs candidats plutôt que jointure, cohérent avec le reste du module)
 - [x] ~~**Permissions centralisées**~~ - `requests.permissions.ts` reproduit exactement la hiérarchie de rôles serveur (`agent < traducteur < relecteur < admin < super_admin`), remplace 3 implémentations légèrement différentes (route/service/UI) trouvées lors de l'audit
 - [x] ~~**Workspace demande (Dialog à onglets)**~~ - `RequestWorkspace` : Aperçu/Source/Workflow/Traduction liée, même pattern que `TermWorkspace` (Glossaire) faute de composant Sheet dans le dépôt
-- [x] ~~**Aucune fonctionnalité inventée**~~ - pas d'échéance/SLA, pas de champ commentaire, pas de fusion `demande.valider`/`traduction.approuver` (restent deux machines à états indépendantes, documentées comme telles — écart de conception réel, non corrigé, hors périmètre de cette tâche)
+- [x] ~~**Aucune fonctionnalité inventée**~~ - pas d'échéance/SLA, pas de champ commentaire, pas de fusion `demande.valider`/`traduction.approuver` (restent deux machines à états indépendantes, documentées comme telles - écart de conception réel, non corrigé, hors périmètre de cette tâche)
 
-### Espace Agent — "Mon espace" + "Mes missions" + Profil utilisateur | ✅ COMPLÉTÉ (2026-08-26)
+### Espace Agent - "Mon espace" + "Mes missions" + Profil utilisateur | ✅ COMPLÉTÉ (2026-08-26)
 
 - [x] ~~**Atterrissage par rôle**~~ - `lib/landing.ts` (`getLandingRoute`) source unique utilisée par login/set-password/redirection racine ; agent → `/mon-espace`, tout le reste → `/dashboard` inchangé
 - [x] ~~**Fermeture de la faille de route**~~ - `/dashboard` était masqué du menu pour les agents mais restait joignable par URL directe (aucun garde de route) ; nouveaux `AgentRoute`/`NonAgentRoute` dans `App.tsx` ferment cette faille dans les deux sens
 - [x] ~~**`/mon-espace`**~~ - 4 cartes réelles (mes demandes/en cours/mes missions/rapports en attente), panneau "Mes demandes" (réutilise le registre M5 tel quel, scope `demandeurId`), CTA "Nouvelle demande", panneau "Mes missions" (scope `participantId`, dépôt de rapport), carte Documents, carte "Besoin d'aide ?" honnêtement étiquetée "Bientôt disponible" (aucun système d'aide n'existe)
-- [x] ~~**`/mes-missions`**~~ - Vue missions restreinte à l'agent (scope `participantId`, dépôt de rapport), pas d'actions de planification/admin — distincte du registre `/missions` complet qui reste réservé admin/super_admin
-- [x] ~~**`/mes-demandes`**~~ - Écran dédié agent, promu du panneau compact "Mon espace" (qui pointait vers `/demandes?assignation=mes_demandes`) : réutilise `RequestsSummaryCards`/`RequestsRegistryTable`/`RequestWorkspace`/`NouvelleDemandeDialog` tels quels (scope `demandeurId`), plus un rail latéral réel — donut "Répartition par statut" (`ChartCanvas`/chart.js déjà utilisé au Dashboard, dérivé des agrégats existants, aucune nouvelle dépendance), barre "Priorité des demandes" (nouveau breakdown `urgentes`/`normales` sur `DemandesAggregates`), carte "Actions rapides" (3 liens réels), carte "Besoin d'aide ?" honnête. Nouveau filtre `direction` (FR→EN/EN→FR) sur `listerDemandes`, absent jusque-là
+- [x] ~~**`/mes-missions`**~~ - Vue missions restreinte à l'agent (scope `participantId`, dépôt de rapport), pas d'actions de planification/admin - distincte du registre `/missions` complet qui reste réservé admin/super_admin
+- [x] ~~**`/mes-demandes`**~~ - Écran dédié agent, promu du panneau compact "Mon espace" (qui pointait vers `/demandes?assignation=mes_demandes`) : réutilise `RequestsSummaryCards`/`RequestsRegistryTable`/`RequestWorkspace`/`NouvelleDemandeDialog` tels quels (scope `demandeurId`), plus un rail latéral réel - donut "Répartition par statut" (`ChartCanvas`/chart.js déjà utilisé au Dashboard, dérivé des agrégats existants, aucune nouvelle dépendance), barre "Priorité des demandes" (nouveau breakdown `urgentes`/`normales` sur `DemandesAggregates`), carte "Actions rapides" (3 liens réels), carte "Besoin d'aide ?" honnête. Nouveau filtre `direction` (FR→EN/EN→FR) sur `listerDemandes`, absent jusque-là
 - [x] ~~**Agrégats scopés par utilisateur**~~ - `getDemandesAggregates(demandeurId?)`/`getMissionsAggregates(participantId?)` acceptent désormais un paramètre optionnel (comportement global inchangé si omis) ; `MissionsAggregates` gagne `rapportsEnAttente` (`terminee` + `rapportDocumentId` manquant, aucune fenêtre de délai inventée) ; `DemandesAggregates` gagne `urgentes`/`normales`
-- [x] ~~**Dialog de téléversement réutilisable**~~ - `QuickUploadDialog` (générique : upload + retourne le document créé, l'appelant décide de la suite) utilisé à la fois par `NewRequestDialog` (Demandes) et les cartes mission de "Mon espace"/"Mes missions" — évite deux implémentations d'upload dupliquées
+- [x] ~~**Dialog de téléversement réutilisable**~~ - `QuickUploadDialog` (générique : upload + retourne le document créé, l'appelant décide de la suite) utilisé à la fois par `NewRequestDialog` (Demandes) et les cartes mission de "Mon espace"/"Mes missions" - évite deux implémentations d'upload dupliquées
 - [x] ~~**Cloisonnement Documents par rôle (client)**~~ - `documents.permissions.ts` reproduit les gardes serveur déjà en place (`traducteur+` pour supprimer/retraiter OCR/changer catégorie, `admin+` pour publier au portail) ; auparavant tout rôle voyait des boutons qui échouaient en 403 au clic
 - [x] ~~**Page Profil (`/profil`)**~~ - Onglets Informations personnelles (identité, matricule, poste/direction/service si connu, membre depuis, dernière connexion dérivée du journal d'audit, statut) / Sécurité (changement de mot de passe réel, réutilise `<PasswordStrength>` déjà construit pour Bootstrap)
 - [x] ~~**`POST /api/auth/changer-mot-de-passe`**~~ - Distinct de `set-password` (première connexion) : vérifie le mot de passe actuel, ne touche pas à `premiereConnexion`/OTP, n'envoie pas l'email d'activation
-- [x] ~~**Politique de mot de passe appliquée partout**~~ - `validerForceMotDePasse()` (longueur + majuscule + chiffre + caractère spécial) désormais vérifiée côté serveur dans `changer-mot-de-passe`, `set-password` ET `bootstrap` (premier super admin) — auparavant seule la première connexion l'affichait côté client sans jamais la vérifier côté serveur, à aucun endroit
+- [x] ~~**Politique de mot de passe appliquée partout**~~ - `validerForceMotDePasse()` (longueur + majuscule + chiffre + caractère spécial) désormais vérifiée côté serveur dans `changer-mot-de-passe`, `set-password` ET `bootstrap` (premier super admin) - auparavant seule la première connexion l'affichait côté client sans jamais la vérifier côté serveur, à aucun endroit
 - [x] ~~**Champs poste/service/direction**~~ - 3 colonnes nullable sur `users` (migration 0014), alimentées uniquement à la création depuis l'annuaire Personnel ANAC (`personnel-anac.service.ts` exposait déjà ces champs bruts, jusque-là aplatis en une seule chaîne d'affichage et jamais persistés) ; `null` pour un compte créé manuellement, plutôt que d'inventer une valeur
 
 ### Durcissement accès agent + export traduction + reversionnement document | ✅ COMPLÉTÉ (2026-08-26)
 
 Déclenché par l'utilisateur constatant en test manuel qu'un agent voyait encore Demandes/Documents/Glossaire au menu et pouvait atterrir dans l'atelier admin de traduction complet depuis un lien Documents.
 
-- [x] ~~**Gardes de route généralisées (`RoleRoute`)**~~ - `/traductions`, `/demandes`, `/glossaire` (traducteur+), `/accords`, `/partenaires`, `/missions`, `/courriers`, `/analytics` (admin+) n'étaient masqués que du menu, jamais gardés au niveau route — faille identique à celle déjà fermée pour `/dashboard`, généralisée à tous les registres
+- [x] ~~**Gardes de route généralisées (`RoleRoute`)**~~ - `/traductions`, `/demandes`, `/glossaire` (traducteur+), `/accords`, `/partenaires`, `/missions`, `/courriers`, `/analytics` (admin+) n'étaient masqués que du menu, jamais gardés au niveau route - faille identique à celle déjà fermée pour `/dashboard`, généralisée à tous les registres
 - [x] ~~**Bug menu Traductions découvert en marge**~~ - réglé admin/super_admin uniquement, privant traducteur/relecteur de tout lien vers leur propre outil de travail ; corrigé
-- [x] ~~**Lecture serveur non gardée (le vrai trou)**~~ - `GET /demandes`, `/demandes/aggregates`, `/demandes/:id` forcent désormais le scope `demandeurId` d'un agent côté serveur (valeur client ignorée) ; `GET /traductions`/`aggregates`/`suggestions` et `GET /glossaire`/`:id`/`aggregates`/`suggestions` passent en `traducteur+` ; `GET /traductions/:id` reste ouvert mais vérifie la propriété via `estDemandeurDeTraduction()` (nouveau helper) — un agent ne peut plus lire une traduction arbitraire par ID
+- [x] ~~**Lecture serveur non gardée (le vrai trou)**~~ - `GET /demandes`, `/demandes/aggregates`, `/demandes/:id` forcent désormais le scope `demandeurId` d'un agent côté serveur (valeur client ignorée) ; `GET /traductions`/`aggregates`/`suggestions` et `GET /glossaire`/`:id`/`aggregates`/`suggestions` passent en `traducteur+` ; `GET /traductions/:id` reste ouvert mais vérifie la propriété via `estDemandeurDeTraduction()` (nouveau helper) - un agent ne peut plus lire une traduction arbitraire par ID
 - [x] ~~**`POST /documents/:id/nouvelle-version` non gardée**~~ - trouvée sans aucun contrôle de rôle en câblant sa première UI ; alignée sur les autres mutations documentaires (`traducteur+`)
-- [x] ~~**Export traduction PDF/DOCX**~~ - `GET /traductions/:id/export/pdf` (réutilise `ficheHTML.ts`/`genererPDFFiche()`) et `/export/docx` (nouvelle dépendance `docx`, texte éditable sans mise en page institutionnelle) — disponibles uniquement une fois `approuvee`/`archivee`, même garde d'accès que `GET /:id`
+- [x] ~~**Export traduction PDF/DOCX**~~ - `GET /traductions/:id/export/pdf` (réutilise `ficheHTML.ts`/`genererPDFFiche()`) et `/export/docx` (nouvelle dépendance `docx`, texte éditable sans mise en page institutionnelle) - disponibles uniquement une fois `approuvee`/`archivee`, même garde d'accès que `GET /:id`
 - [x] ~~**Aperçu lecture seule agent (`TraductionPreview`)**~~ - remplace le lien "Ouvrir la traduction" (qui menait à l'atelier admin complet) dans l'onglet "Traduction liée" de `RequestWorkspace` ; boutons de téléchargement affichés seulement si approuvée
 - [x] ~~**Reversionnement document (`VerserVersionAction`)**~~ - première UI câblée sur l'endpoint `nouvelle-version` existant côté serveur mais jamais appelé ; répond au scénario "admin reformate un rapport traduit et doit le reverser" sans inventer un concept d'archive séparé
 
@@ -720,21 +720,21 @@ Déclenché par l'utilisateur constatant en test manuel qu'un agent voyait encor
 - [x] ~~**Mise en page PDF traduction**~~ - source/traduit n'est plus en colonnes côte à côte ; chacun occupe la pleine largeur, saut de page avant "Texte traduit"
 - [x] ~~**DOCX aligné sur la mise en forme PDF**~~ - était du texte brut ; reprend désormais le même masthead ANAC (sceau inclus via `ImageRun`), le même tableau Informations, la même page pleine largeur par section
 - [x] ~~**Bouton "Télécharger" manquant sur Documents**~~ - trouvé en marge de la discussion : `documentsApi.getUrlTelechargement()` existait, la route serveur était déjà ouverte à tous, mais aucun composant ne l'appelait ; ajouté, visible à tous les rôles (télécharger n'est pas une action de gestion)
-- [x] ~~**Filtre "Versions finales uniquement"**~~ - `GET /documents?finalesUniquement=1` exclut les versions remplacées (référencées comme `parentId` par une autre ligne) tout en incluant correctement la dernière version d'une chaîne ET les documents jamais versionnés (aucun enfant = final par construction) — validé en direct sur la BDD dev avec des chaînes de versions synthétiques
+- [x] ~~**Filtre "Versions finales uniquement"**~~ - `GET /documents?finalesUniquement=1` exclut les versions remplacées (référencées comme `parentId` par une autre ligne) tout en incluant correctement la dernière version d'une chaîne ET les documents jamais versionnés (aucun enfant = final par construction) - validé en direct sur la BDD dev avec des chaînes de versions synthétiques
 - [x] ~~**Décision Archives**~~ - discuté avec l'utilisateur : une section `/archives` séparée a été écartée au profit d'un filtre sur l'écran Documents existant (moins de surface, même modèle d'autorisation) ; un flag booléen explicite a d'abord été retenu puis abandonné une fois démontré que l'inférence par chaîne de versions couvre déjà tous les cas sans migration
 
 ### Découvrabilité des traductions déposées (modèle 3 niveaux) | ✅ COMPLÉTÉ (2026-08-26)
 
-Discussion produit avec scénarios nommés (Fred demande/télécharge sa traduction, Yan — un autre agent — doit retrouver la traduction de Fred, Patrick — externe — passe par le portail public). Modèle retenu : privé en cours (demande/traduction, scope propriétaire, round précédent) / partagé interne fini (Documents, déjà en lecture ouverte à tous, il manquait juste la découvrabilité) / public curé (`/portail`, inchangé).
+Discussion produit avec scénarios nommés (Fred demande/télécharge sa traduction, Yan - un autre agent - doit retrouver la traduction de Fred, Patrick - externe - passe par le portail public). Modèle retenu : privé en cours (demande/traduction, scope propriétaire, round précédent) / partagé interne fini (Documents, déjà en lecture ouverte à tous, il manquait juste la découvrabilité) / public curé (`/portail`, inchangé).
 
 - [x] ~~**`categorieOverride` sur `nouvellVersionDocument`**~~ - héritait auparavant toujours la catégorie du document parent ; une traduction reversionnée gardait silencieusement la catégorie du document source au lieu d'utiliser `'traduction'` (valeur déjà existante dans l'enum, jamais réellement appliquée)
-- [x] ~~**`DeposerDocumentAction` (atelier de traduction)**~~ - nouveau bouton dans `WorkshopHeader`, même garde que les exports PDF/DOCX (approuvée/archivée) : dépose le fichier officiel directement dans Documents, catégorisé `traduction` — nouvelle version du document source si `traduction.documentId` existe, sinon upload autonome
+- [x] ~~**`DeposerDocumentAction` (atelier de traduction)**~~ - nouveau bouton dans `WorkshopHeader`, même garde que les exports PDF/DOCX (approuvée/archivée) : dépose le fichier officiel directement dans Documents, catégorisé `traduction` - nouvelle version du document source si `traduction.documentId` existe, sinon upload autonome
 - [x] ~~**Aucune nouvelle route/migration**~~ - le filtre `categorie=traduction` et l'option "Traductions" du Select existaient déjà côté Documents ; seul le tag manquait
 - [x] ~~**Section `/archives` et flag booléen écartés**~~ - discutés et rejetés au profit de l'inférence par catégorie existante, voir `project/architecture.md`
 
 ### Gate de visibilité interne des documents (documents.visibiliteInterne) | ✅ COMPLÉTÉ (2026-08-26)
 
-Suite directe de la découvrabilité des traductions : l'utilisateur a remarqué qu'un agent voyait un document tout juste uploadé par un admin, pas encore traduit. Révise la décision "Documents en lecture ouverte à tous" prise plus tôt dans la session — juste pour du contenu fini, pas pour du contenu frais non révisé.
+Suite directe de la découvrabilité des traductions : l'utilisateur a remarqué qu'un agent voyait un document tout juste uploadé par un admin, pas encore traduit. Révise la décision "Documents en lecture ouverte à tous" prise plus tôt dans la session - juste pour du contenu fini, pas pour du contenu frais non révisé.
 
 - [x] ~~**Migration `0015_fast_songbird.sql`**~~ - `documents.visibiliteInterne boolean not null default false`, distincte de `visibilitePortail`
 - [x] ~~**Restreint uniquement le rôle agent**~~ - `GET /documents` force `visibleOuUploadePar` pour agent seulement ; traducteur+ voit tout, inchangé
@@ -744,13 +744,13 @@ Suite directe de la découvrabilité des traductions : l'utilisateur a remarqué
 - [x] ~~**`POST /upload` accepte `visibiliteInterne` mais uniquement honoré pour traducteur+**~~ - un agent ne peut jamais s'auto-publier même en modifiant la requête
 - [x] ~~**Nouvelle colonne "Visibilité interne" + bouton bascule**~~ - même emplacement/pattern que la colonne Portail existante, traducteur+ uniquement
 - [x] ~~**Aucun rétro-remplissage nécessaire**~~ - données existantes = seed/test selon l'utilisateur, le défaut `false` s'applique uniformément
-- [x] ~~**Colonnes admin masquées pour l'agent**~~ - OCR/Visibilité interne/Portail Externe retirées entièrement (pas juste désactivées) de la table Documents quand `role === 'agent'` — aucune n'est actionnable pour ce rôle
+- [x] ~~**Colonnes admin masquées pour l'agent**~~ - OCR/Visibilité interne/Portail Externe retirées entièrement (pas juste désactivées) de la table Documents quand `role === 'agent'` - aucune n'est actionnable pour ce rôle
 
 ### Refonte Documents (M8) | ✅ COMPLÉTÉ (2026-08-26 → 2026-08-27)
 
 Suite du même sprint, sur la base de l'audit du module (structure, contrats API, permissions, workflow OCR/portail/traduction) réalisé avant toute implémentation.
 
-- [x] ~~**`GET /documents/aggregates`**~~ - nouvel endpoint (total/ocrTraites/ocrEnAttente/ocrEchecs/categories/portailExposes), scope agent identique à `listerDocuments` — n'existait pas avant, cartes de synthèse calculées sur la page courante sinon
+- [x] ~~**`GET /documents/aggregates`**~~ - nouvel endpoint (total/ocrTraites/ocrEnAttente/ocrEchecs/categories/portailExposes), scope agent identique à `listerDocuments` - n'existait pas avant, cartes de synthèse calculées sur la page courante sinon
 - [x] ~~**Listing allégé**~~ - `GET /documents` ne renvoie plus `texteExtrait`/`chemin` (projection de colonnes dédiée, `DocumentListView`) ; le détail complet reste sur `GET /:id`. Corrige un vrai risque de payload (texte OCR complet renvoyé sur chaque ligne de chaque page) signalé dans l'audit
 - [x] ~~**`getDocumentCapabilities(role, doc)`**~~ - point d'entrée unique consolidant les vérifications `role === 'agent'` auparavant dispersées (colonnes, menu d'actions, panneau de détail)
 - [x] ~~**Menu d'actions groupé**~~ - nouveau `dropdown-menu.tsx` (Radix, même convention que `select.tsx`/`dialog.tsx`) : Corriger OCR/Relancer OCR/Verser version/Publier-Retirer portail/Supprimer regroupés derrière un « ⋯ », remplace la rangée de liens texte inline ; action principale (Traduire/Télécharger) reste directement visible
@@ -760,7 +760,7 @@ Suite du même sprint, sur la base de l'audit du module (structure, contrats API
 - [x] ~~**Cartes mobile (`DocumentsMobileCards`)**~~ - repli `< md`, même logique de capacités que le registre desktop
 - [x] ~~**Régression upload-agent corrigée**~~ - la zone d'upload s'affichait sans condition de rôle avant même câblage du reste ; gardée par `canManageDocuments`
 - [x] ~~**Corrections mineures trouvées en chemin**~~ - `mettreAJourCategorie` rejetait silencieusement `'rapport'` (absent de sa liste de validation, présent dans celle de `nouvelle-version`) ; lien portail mort (`/portail` vs route réelle `/portal`)
-- [x] ~~**Bug menu d'actions muet**~~ - `DropdownMenuTrigger asChild` (Radix) enveloppant le `Button` du projet (`@base-ui/react`) ne composait pas — aucun précédent de cette combinaison dans le dépôt (le seul autre `asChild` porte sur un sous-composant Radix natif) ; corrigé en stylant directement le trigger Radix plutôt que de l'envelopper
+- [x] ~~**Bug menu d'actions muet**~~ - `DropdownMenuTrigger asChild` (Radix) enveloppant le `Button` du projet (`@base-ui/react`) ne composait pas - aucun précédent de cette combinaison dans le dépôt (le seul autre `asChild` porte sur un sous-composant Radix natif) ; corrigé en stylant directement le trigger Radix plutôt que de l'envelopper
 - [x] ~~**Bug survol en-tête de tableau**~~ - `TableRow` (même composant pour lignes d'en-tête et de corps) portait un `hover:bg-anac-gray` générique qui cassait le fond navy de l'en-tête au survol ; corrigé au niveau du composant partagé `table.tsx`, bénéficie à toutes les pages utilisant `DataTable`
 - [x] ~~**Aucune fonctionnalité inventée**~~ - pas d'aperçu pour les types non PDF/image, pas de nom d'uploader, pas de compteur de pages/mots OCR, pas d'historique d'activité (aucune donnée serveur)
 
@@ -768,11 +768,11 @@ Suite du même sprint, sur la base de l'audit du module (structure, contrats API
 
 Suite du même sprint, sur la base de l'audit du module (modèle utilisateur réel, contrats API, rôles, Personnel ANAC) réalisé avant toute implémentation.
 
-- [x] ~~**Poste/Direction/Service enfin affichés**~~ - déjà stockés en base et renvoyés par `GET /users`/`GET /users/:id` depuis la création ANAC-préremplie, mais absents du type client et de toute l'UI ; ajoutés en lecture seule (pas de nouvel endpoint d'édition, cf. audit — aucune capacité d'édition n'existait)
-- [x] ~~**`GET /users/aggregates`**~~ - nouvel endpoint (total/actifs/inactifs/premiereConnexionEnAttente), admin-gated — le `total` du listing était borné au filtre courant, jamais un compteur global
+- [x] ~~**Poste/Direction/Service enfin affichés**~~ - déjà stockés en base et renvoyés par `GET /users`/`GET /users/:id` depuis la création ANAC-préremplie, mais absents du type client et de toute l'UI ; ajoutés en lecture seule (pas de nouvel endpoint d'édition, cf. audit - aucune capacité d'édition n'existait)
+- [x] ~~**`GET /users/aggregates`**~~ - nouvel endpoint (total/actifs/inactifs/premiereConnexionEnAttente), admin-gated - le `total` du listing était borné au filtre courant, jamais un compteur global
 - [x] ~~**Dernière connexion réelle par utilisateur**~~ - `getDerniereConnexion(userId)` extrait de `auth.controller.ts` (`/auth/me`) vers `auth.service.ts`, réutilisé par `GET /users/:id` (`UserDetailView`) ; même requête sur le journal d'audit (CONNEXION / MOT_DE_PASSE_DEFINI), pas de nouvelle colonne
 - [x] ~~**Statut de compte et onboarding séparés**~~ - `BadgeStatutCompte` (Actif/Désactivé) et le nouveau `BadgePremiereConnexion` (Première connexion requise/Compte initialisé) remplacent l'ancien badge unique qui mélangeait les deux faits
-- [x] ~~**`getUserCapabilities(currentUserId, u)`**~~ - point d'entrée unique (`canResetOtp`/`canActivate`/`canDeactivate`) miroir exact des règles serveur (auto-désactivation bloquée, super_admin jamais désactivable) — remplace les vérifications dispersées
+- [x] ~~**`getUserCapabilities(currentUserId, u)`**~~ - point d'entrée unique (`canResetOtp`/`canActivate`/`canDeactivate`) miroir exact des règles serveur (auto-désactivation bloquée, super_admin jamais désactivable) - remplace les vérifications dispersées
 - [x] ~~**Registre allégé**~~ - cellule Utilisateur (avatar initiales + nom + email), ligne cliquable ouvre le workspace, actions réduites à « Voir » + menu « ⋯ » (Modifier/Réinitialiser OTP/Activer-Désactiver), même `dropdown-menu.tsx` que Documents
 - [x] ~~**Workspace utilisateur sélectionné (`UserWorkspace`)**~~ - Dialog à onglets Informations/Compte & accès/Sécurité, + onglet Personnel ANAC affiché uniquement si un rapprochement par matricule réussit réellement (un seul appel à la sélection, jamais par ligne de tableau ; échec/indisponibilité du service externe = onglet simplement absent, pas d'erreur bloquante)
 - [x] ~~**Cartes mobile (`UsersMobileCards`)**~~ - repli `< md`, même logique de capacités que le registre desktop
@@ -785,7 +785,7 @@ Suite du même sprint, même processus audit → plan → implémentation. Le br
 (52 sections) exigeait de classer chaque élément du mockup en
 configurable-réel / monitoring-réel / job-réel / futur-non-construit /
 non-supporté avant tout code, et d'auditer les rôles côté serveur (pas
-seulement la protection de route côté client) — aucune télémétrie inventée.
+seulement la protection de route côté client) - aucune télémétrie inventée.
 
 - [x] ~~**Aucun code de module brut affiché**~~ - `MODULE_LABELS`/`getModuleLabel()` (`admin.constants.ts`) résout M1/M3/M4/M6/M10/M11 vers leur nom métier partout (paramètres, jobs, historique) ; plus jamais "M6" à l'écran
 - [x] ~~**Double contrôle d'accès audité**~~ - route (`requireRole('admin')`) + grain plus fin par service : `PATCH /parametres/:cle` réservé `super_admin`, chaque job porte son propre `roleMinimum` (`canEditParameter`/`canRunJob` côté client miroir exact)
@@ -793,7 +793,7 @@ seulement la protection de route côté client) — aucune télémétrie invent�
 - [x] ~~**Paramètre mort signalé, non corrigé**~~ - `recommandation_alerte_jours` est éditable et journalisé mais n'est lu nulle part (jamais câblé au job `recommandations_retard`, qui ne vérifie qu'un retard déjà consommé) ; laissé tel quel, hors périmètre demandé
 - [x] ~~**Historique des exécutions persistant (`job_executions`)**~~ - nouvelle table, `source: 'manuel'|'cron'`, `declenchePar` nullable pour le cron ; remplace l'ancien état en mémoire qui disparaissait au rechargement
 - [x] ~~**Rotation de sauvegarde GFS (Grandfather-Father-Son)**~~ - `backup.ts` réécrit : quotidien tous les jours à minuit, hebdomadaire chaque dimanche (purge les quotidiens), mensuel le dernier jour du mois (purge les hebdomadaires), annuel le 31 décembre (purge les mensuels) ; chaque palier est un `pg_dump` frais et indépendant, jamais une "fusion" de fichiers ; purge d'un palier inférieur uniquement si le palier supérieur est confirmé bon (taille minimale `TAILLE_MIN_OCTETS`)
-- [x] ~~**Répertoire local de sauvegarde configurable**~~ - nouveau paramètre `backup_local_dir` (type `texte`, éditable `super_admin`), lu via `getValeurTexte()` ; le NAS reste `BACKUP_NAS_DIR` (env, non exposé à l'UI — seul le local a été demandé configurable)
+- [x] ~~**Répertoire local de sauvegarde configurable**~~ - nouveau paramètre `backup_local_dir` (type `texte`, éditable `super_admin`), lu via `getValeurTexte()` ; le NAS reste `BACKUP_NAS_DIR` (env, non exposé à l'UI - seul le local a été demandé configurable)
 - [x] ~~**Local et NAS totalement indépendants**~~ - `dumpVersDestination()` ne lève jamais, écrit vers chaque destination via `Promise.all` ; l'échec d'une destination ne bloque ni ne fait échouer l'autre (`succesGlobal = local.succes || nas.succes`)
 - [x] ~~**Job de rattrapage NAS (`backup_sync_nas`)**~~ - `synchroniserVersNas()` copie unidirectionnelle local → NAS, parcourt les 4 sous-répertoires de palier, ne copie que les fichiers présents localement et absents du NAS ; à lancer manuellement une fois la connexion NAS rétablie
 - [x] ~~**Rétention par nombre, pas par jours**~~ - `backup_retention_quotidien_nombre`/`hebdomadaire`/`mensuel` (7/5/12 par défaut) remplacent les anciens `backup_retention_locale_jours`/`backup_retention_nas_jours` (supprimés du seed via `CLES_OBSOLETES`) ; annuel conservé sans limite
@@ -806,20 +806,20 @@ seulement la protection de route côté client) — aucune télémétrie invent�
 Trois rounds successifs sur le même sprint : audit-first (bug critique
 trouvé avant tout style), puis une passe de correction visuelle contre une
 maquette approuvée, puis une passe de raffinement final avec intégration du
-sceau officiel ANAC. Périmètre volontairement limité au module portail —
+sceau officiel ANAC. Périmètre volontairement limité au module portail -
 aucune route/contrat API/logique de sécurité modifiée hors nécessité.
 
 - [x] ~~**Bug critique trouvé et corrigé : lien de téléchargement sécurisé mort**~~ - le lien envoyé par email pointait vers `/portal/telecharger/:token`, une route qui n'existait dans aucun routeur client ; tout visiteur cliquant le lien atterrissait sur la redirection de connexion générique. Nouvelle page `PortalDownloadPage` + route, récupère le fichier en blob pour afficher un état d'erreur normalisé (lien expiré/invalide) plutôt que le JSON brut du serveur
 - [x] ~~**Limiteurs de débit ajoutés, scopés au seul module portail**~~ - `POST /documents/:id/token` (10/15min) et `GET /documents` (120/15min) dans `portal.route.ts` uniquement ; le limiteur global de l'app et `/api/auth` restent désactivés (hors périmètre, pas touchés)
-- [x] ~~**Compteurs de catégorie réels**~~ - nouvel endpoint `GET /portal/documents/aggregates` (même pattern `db.$count` que tous les autres modules), alimente les cartes de navigation par catégorie — jamais de chiffre décoratif
+- [x] ~~**Compteurs de catégorie réels**~~ - nouvel endpoint `GET /portal/documents/aggregates` (même pattern `db.$count` que tous les autres modules), alimente les cartes de navigation par catégorie - jamais de chiffre décoratif
 - [x] ~~**Catégorie `rapport` manquante corrigée**~~ - existait en base (ajoutée lors du round Documents M8) mais absente du libellé/filtre public, confirmé en direct (3 documents `rapport` réellement publics)
 - [x] ~~**Aperçu MIME-safe**~~ - PDF → iframe, image → `<img>`, autre → repli "Aperçu non disponible" + action de repli, au lieu d'un `<img>` cassé pour tout type non-PDF
 - [x] ~~**Pré-vérification HEAD avant l'iframe PDF**~~ - un iframe ne déclenche pas `onError` de façon fiable sur un 404 ; requête `HEAD` (auto-routée par Express sur la route `GET` existante, aucune nouvelle route) avant affichage, montre "Impossible d'afficher ce document" plutôt qu'un cadre vide pour un document retiré/introuvable
 - [x] ~~**Restructuration en dossier de fonctionnalité**~~ - `pages/PortalPage.tsx` (490 lignes plates) → `pages/portal/` (composants/hooks/constants/utils), même convention que tous les autres modules du sprint
 - [x] ~~**Refonte visuelle contre maquette approuvée**~~ - conteneur élargi (`max-w-350`, 1400px), hero compact deux colonnes (hero + carte de confiance), recherche intégrée dans le hero (plus de bande sticky isolée), catégorie filtrée uniquement via les cartes (dropdown redondant supprimé), tableau catalogue public (en-tête clair, pas navy) au lieu du style `DataTable` interne
-- [x] ~~**Sémantique des actions corrigée**~~ - "Télécharger" renommé "Recevoir le lien" partout (tableau/carte mobile/viewer/dialog) — l'utilisateur ne télécharge pas immédiatement, il reçoit un lien par email ; bouton bleu SICOT, jamais noir
+- [x] ~~**Sémantique des actions corrigée**~~ - "Télécharger" renommé "Recevoir le lien" partout (tableau/carte mobile/viewer/dialog) - l'utilisateur ne télécharge pas immédiatement, il reçoit un lien par email ; bouton bleu SICOT, jamais noir
 - [x] ~~**Sceau officiel ANAC intégré**~~ - asset fourni par le porteur de projet (`packages/server/assets/anac-seal.png`, jamais redessiné/recoloré), copié dans `packages/client/public/`, utilisé dans le hero ; bandeau de certification ISO 9001/Bureau Veritas/UKAS ajouté en zone secondaire du footer
-- [x] ~~**États vides distincts**~~ - portail globalement vide (cartes de catégorie masquées) vs résultat filtré par catégorie vs résultat filtré par recherche — jamais le même message générique, chacun avec sa propre action de réinitialisation
+- [x] ~~**États vides distincts**~~ - portail globalement vide (cartes de catégorie masquées) vs résultat filtré par catégorie vs résultat filtré par recherche - jamais le même message générique, chacun avec sa propre action de réinitialisation
 - [x] ~~**Garde-fou de pagination**~~ - si `totalPages` se réduit sous la page courante (document retiré en session), retour automatique à la dernière page valide plutôt qu'une page vide
 - [x] ~~**Validation email réelle**~~ - regex + `trim()` remplace `email.includes('@')`, dédoublonnage de soumission déjà couvert par l'état `isPending` + vue de succès
 - [x] ~~**Aucune fonctionnalité inventée**~~ - pas de filtre Partenaire/Pays/Date (aucune donnée réelle), pas de `Date de publication` (seul `createdAt` existe, libellé restreint à `Date`), pas de compteur décoratif ; validé en direct (curl : limite de débit déclenchée au 10e appel, frontière de publication confirmée sur IDs réels publiés/non publiés, HEAD 200/404 cohérent)
@@ -830,19 +830,19 @@ aucune route/contrat API/logique de sécurité modifiée hors nécessité.
 - [ ] **Chaîne de versions documents non groupée à l'affichage** - `VerserVersionAction` relie une nouvelle version à son parent via `parentId`, mais le registre Documents affiche toujours chaque version comme une ligne indépendante ; pas vérifié si c'est source de confusion en pratique
 - [ ] **Composant SummaryCard partagé** - dupliqué 10× (Accords/Partenaires/Missions/Courriers/Traductions/Glossaire/Demandes/Mon espace/Documents/Utilisateurs)
 - [ ] **Suite de tests automatisés** - CI actuelle = lint + build uniquement
-- [ ] **Export PDF — parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
+- [ ] **Export PDF - parité complète mockup (Tier 2 restant)** - contenu courrier, stepper 5 étapes, type/durée/renouvelable accord, organisateur/objectif/résumé d'activités mission, fonction participant par mission (documents multiples et contact courrier sont désormais réels, cf. Courriers M4 ci-dessus)
 - [ ] **Fils de correspondance multi-niveaux** - `getFilCorrespondance` ne remonte qu'un niveau de réponse
-- [ ] **Demandes/Traductions — workflows non synchronisés** - `demande.valider`/`demande.archiver` ne vérifient jamais le statut de la traduction liée et inversement ; une demande peut passer `validee` alors que sa traduction reste `a_reviser`. Trouvé lors de l'audit M5 (2026-08-26), volontairement non corrigé (extension de contrat hors périmètre de la tâche demandée)
+- [ ] **Demandes/Traductions - workflows non synchronisés** - `demande.valider`/`demande.archiver` ne vérifient jamais le statut de la traduction liée et inversement ; une demande peut passer `validee` alors que sa traduction reste `a_reviser`. Trouvé lors de l'audit M5 (2026-08-26), volontairement non corrigé (extension de contrat hors périmètre de la tâche demandée)
 - [ ] **Demande verrouillée orpheline si l'auto-lancement de traduction échoue** - `prendreEnCharge` pose le verrou avant de tenter `lancerTraduction()` ; en cas d'échec, la demande reste `en_cours`/verrouillée sans `traductionId` et sans action de récupération dans le module. Trouvé lors de l'audit M5 (2026-08-26), non corrigé
-- [ ] **Glossaire — pluralité des sources d'alimentation, avec surface UI dédiée à chacune** - Recommandation élargie 2026-08-24 (demande explicite) : le glossaire devra à terme accepter plusieurs types d'import (CSV/Excel structuré CCIT, et potentiellement extraction depuis documents ANAC bruts — voir ligne suivante), et **chaque mécanisme d'alimentation doit avoir sa propre surface UI** (bouton/dialog dédié, pas seulement un endpoint backend silencieux) — remplace l'ancien item "Import CSV/Excel glossaire — interface" ci-dessous, qui reste un sous-cas de celui-ci
+- [ ] **Glossaire - pluralité des sources d'alimentation, avec surface UI dédiée à chacune** - Recommandation élargie 2026-08-24 (demande explicite) : le glossaire devra à terme accepter plusieurs types d'import (CSV/Excel structuré CCIT, et potentiellement extraction depuis documents ANAC bruts - voir ligne suivante), et **chaque mécanisme d'alimentation doit avoir sa propre surface UI** (bouton/dialog dédié, pas seulement un endpoint backend silencieux) - remplace l'ancien item "Import CSV/Excel glossaire - interface" ci-dessous, qui reste un sous-cas de celui-ci
   - [ ] **Import CSV/Excel structuré** - `POST /api/glossaire/import` existe déjà côté serveur (JSON `{termeFr, termeEn, domaine?, contexte?}[]`) mais aucun bouton/dialog client ne l'appelle ; à construire une fois le fichier CCIT reçu (cf. Waiting On)
-  - [ ] **Extraction depuis documents ANAC bruts** - alimenter le glossaire à partir de PDF/Word existants nécessiterait un pipeline d'extraction/alignement bilingue (au-delà d'un simple import structuré), avec sa propre interface de revue/validation avant intégration — à évaluer séparément si le volume de terminologie non capturée le justifie
+  - [ ] **Extraction depuis documents ANAC bruts** - alimenter le glossaire à partir de PDF/Word existants nécessiterait un pipeline d'extraction/alignement bilingue (au-delà d'un simple import structuré), avec sa propre interface de revue/validation avant intégration - à évaluer séparément si le volume de terminologie non capturée le justifie
 
 ## Waiting On
 
 - [ ] **Glossaire CCIT existant** - Attente fichier CSV/Excel de la Cellule CCIT pour seed initial M7
 - [ ] **Réseau Tailscale API Personnel ANAC en production** - Code intégré (commit 6e20415) ; reste à confirmer que le serveur/VPS de production sera joint au réseau Tailscale ANAC pour atteindre PERSONNEL_ANAC_BASE_URL
-- [x] ~~**Accès SERV-APPI**~~ - ABANDONNÉ définitivement (problème de sécurité sur ce serveur, décision du porteur de projet le 2026-08-24) — SERV-APPI n'hébergera plus l'application. Le chemin Docker/VPS est désormais le seul retenu ; l'application tourne déjà sur un serveur de test Ubuntu séparé.
+- [x] ~~**Accès SERV-APPI**~~ - ABANDONNÉ définitivement (problème de sécurité sur ce serveur, décision du porteur de projet le 2026-08-24) - SERV-APPI n'hébergera plus l'application. Le chemin Docker/VPS est désormais le seul retenu ; l'application tourne déjà sur un serveur de test Ubuntu séparé.
 - [ ] **Décision DeepL** - La DG valide-t-elle l'option fallback cloud DeepL ? Contrat RGPD à prévoir
 - [ ] **Validation périmètre portail externe** - La DG/CCIT doit confirmer quels types de documents sont éligibles à exposition externe avant Sprint 9
 - [ ] **Validation pg_dump sur SERV-APPI (Linux production)** - Confirmer que pg_dump est installé/accessible en PATH sur l'environnement de production, éviter la même erreur qu'en dev Windows
@@ -857,12 +857,12 @@ aucune route/contrat API/logique de sécurité modifiée hors nécessité.
 - [x] ~~**Bootstrap admin opérationnel**~~ - Premier démarrage sans API Personnel ANAC (juin 2026)
 - [x] ~~**Flux connexion complet**~~ - Bootstrap → Login → Dashboard, AuthContext, redirections (juin 2026)
 - [x] ~~**Route téléchargement documents**~~ - GET /api/documents/:id/telecharger, stream fichier inline (juin 2026)
-- [x] ~~**Sprint 3 M1+M4+M3 complété**~~ - Accords, Courriers, Missions — serveur + client complets (juin 2026)
-- [x] ~~**Sprint 4 M7+M6+M5 complété**~~ - Glossaire, Traduction IA + éditeur, Demandes — serveur + client complets (juin 2026)
+- [x] ~~**Sprint 3 M1+M4+M3 complété**~~ - Accords, Courriers, Missions - serveur + client complets (juin 2026)
+- [x] ~~**Sprint 4 M7+M6+M5 complété**~~ - Glossaire, Traduction IA + éditeur, Demandes - serveur + client complets (juin 2026)
 - [x] ~~**Microservice translate-service**~~ - Port 5002, batch, health, détection langue, timeout 3min (juin 2026)
 - [x] ~~**Soft delete M8 Documents**~~ - deleted_at, relance OCR, restauration (juin 2026)
 - [x] ~~**Soft delete M6 Traductions**~~ - deleted_at, bloqué si approuvée/archivée, reset demande M5 (juin 2026)
 - [x] ~~**Sprint 5 M9 Dashboard V1 complété**~~ - 8 KPI, 3 graphiques Chart.js, alertes accords/courriers, recommandations, activité récente (juin 2026)
-- [x] ~~**Revue terrain CCIT post-Sprint 5**~~ - Gaps identifiés sur rappels ciblés, suivi logistique missions, contact partenaire, portail externe — Sprints 8/9/10 planifiés (juin 2026)
+- [x] ~~**Revue terrain CCIT post-Sprint 5**~~ - Gaps identifiés sur rappels ciblés, suivi logistique missions, contact partenaire, portail externe - Sprints 8/9/10 planifiés (juin 2026)
 - [x] ~~**Sprint 8 Centre Notifications & Rappels CCIT complété**~~ - Table parametres + notifications, ModalRelance + HistoriqueNotifications réutilisables, boutons Relancer sur Accord/Courrier/Mission, 6 jobs manuels, KPI dashboard enrichis, bloc accords expirés, criticité courriers 3 paliers (juillet 2026)
 - [x] ~~**M11 Analytics planifié**~~ - Périmètre défini post-Sprint 8 : analytics stratégique distinct du dashboard opérationnel M9, 7 modules couverts, rapports PDF/Excel en couche présentation sur les agrégats analytics (juillet 2026)

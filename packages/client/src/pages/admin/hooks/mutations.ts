@@ -9,7 +9,8 @@ export function useMettreAJourParametreMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ cle, valeur }: { cle: string; valeur: string }) => parametresApi.mettreAJour(cle, valeur),
+    mutationFn: ({ cle, valeur }: { cle: string; valeur: string }) =>
+      parametresApi.mettreAJour(cle, valeur),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parametres'] });
     },
@@ -23,7 +24,7 @@ export function useMettreAJourParametreMutation() {
 }
 
 // Le serveur renvoie un JobResultat aussi bien en succès (200) qu'en échec
-// d'exécution (502, cf. jobs.controller.ts) — axios rejette donc sur 502,
+// d'exécution (502, cf. jobs.controller.ts) - axios rejette donc sur 502,
 // avec le même JobResultat disponible dans err.response.data. L'appelant
 // (JobsList.tsx) branche ses propres onSuccess/onError par exécution pour
 // stocker le résultat localement, quel que soit le statut HTTP.

@@ -1,7 +1,4 @@
-import {
-  MISSION_LOGISTICS_RISK_DAYS,
-  MISSION_UPCOMING_WINDOW_DAYS,
-} from './mission.constants';
+import { MISSION_LOGISTICS_RISK_DAYS, MISSION_UPCOMING_WINDOW_DAYS } from './mission.constants';
 import type { Mission, RecommandationView } from './mission.types';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -18,7 +15,7 @@ export function formatMissionDate(value?: string | Date | null, month: 'short' |
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month, year: 'numeric' });
 }
 
-// Plain-text period, for contexts JSX can't reach (aria-label, title) —
+// Plain-text period, for contexts JSX can't reach (aria-label, title) -
 // visual display uses the <MissionPeriod> component (icon, not "→").
 export function formatMissionPeriod(period: { dateDebut?: string; dateFin?: string }) {
   return `Du ${formatMissionDate(period.dateDebut)} au ${formatMissionDate(period.dateFin)}`;
@@ -40,7 +37,7 @@ export function daysUntilMissionStart(
   return Math.ceil((debut.getTime() - now.getTime()) / MS_PER_DAY);
 }
 
-// Derived, never stored — planifiee/en_cours/terminee/annulee already come
+// Derived, never stored - planifiee/en_cours/terminee/annulee already come
 // from the server; this only adds the "starts soon" / date-vs-status
 // consistency signal on top, per the brief's §22.
 export function getMissionLifecycleState(
@@ -73,7 +70,9 @@ export function isMissionLogisticsAtRisk(
   return days !== null && days >= 0 && days <= MISSION_LOGISTICS_RISK_DAYS;
 }
 
-export function isMissionReportMissing(mission: Pick<Mission, 'statut' | 'rapportDocumentId'>): boolean {
+export function isMissionReportMissing(
+  mission: Pick<Mission, 'statut' | 'rapportDocumentId'>
+): boolean {
   return mission.statut === 'terminee' && !mission.rapportDocumentId;
 }
 
@@ -101,11 +100,14 @@ export interface MissionHealth {
 }
 
 // One derived signal folding lifecycle + logistics risk + missing report +
-// overdue recommendations into a single "what needs attention" answer —
+// overdue recommendations into a single "what needs attention" answer -
 // shown consistently across the registry row, detail summary strip, and
 // section nav (see mission.utils.ts note in the Phase 2 plan).
 export function getMissionHealth(
-  mission: Pick<Mission, 'statut' | 'dateDebut' | 'dateFin' | 'confirmationLogistique' | 'rapportDocumentId'>,
+  mission: Pick<
+    Mission,
+    'statut' | 'dateDebut' | 'dateFin' | 'confirmationLogistique' | 'rapportDocumentId'
+  >,
   recommandations: RecommandationView[] = [],
   now = new Date()
 ): MissionHealth | null {
@@ -118,8 +120,8 @@ export function getMissionHealth(
       label: 'Logistique à risque',
       helper:
         days <= 0
-          ? 'Départ imminent — logistique non confirmée.'
-          : `Départ dans ${days} j — logistique non confirmée.`,
+          ? 'Départ imminent - logistique non confirmée.'
+          : `Départ dans ${days} j - logistique non confirmée.`,
     };
   }
 
@@ -127,7 +129,7 @@ export function getMissionHealth(
     return {
       tone: 'warning',
       label: 'Rapport manquant',
-      helper: 'Mission terminée — aucun rapport de mission déposé.',
+      helper: 'Mission terminée - aucun rapport de mission déposé.',
     };
   }
 

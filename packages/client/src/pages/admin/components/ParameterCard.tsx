@@ -60,7 +60,7 @@ export function ParameterCard({
         {deeplNonConfigure && (
           <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-orange-600">
             <AlertTriangle size={11} className="shrink-0" />
-            Activé mais DEEPL_API_KEY absent sur le microservice — le fallback échouera
+            Activé mais DEEPL_API_KEY absent sur le microservice - le fallback échouera
             silencieusement
           </p>
         )}

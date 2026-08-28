@@ -20,7 +20,7 @@ export function TranslationPanel({
   estArchivee,
   estApprouvee,
 }: TranslationPanelProps) {
-  const label = traduction.direction === 'fr_en' ? 'Traduction — Anglais' : 'Traduction — Français';
+  const label = traduction.direction === 'fr_en' ? 'Traduction - Anglais' : 'Traduction - Français';
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden" aria-label={label}>
@@ -47,7 +47,7 @@ export function TranslationPanel({
           ${estApprouvee ? 'border-green-200 bg-green-50/40' : ''}`}
         placeholder={
           estArchivee
-            ? 'Traduction archivée — lecture seule.'
+            ? 'Traduction archivée - lecture seule.'
             : traduction.statut === 'manuelle_requise'
               ? 'Saisissez la traduction manuellement...'
               : 'Révisez la traduction ici...'

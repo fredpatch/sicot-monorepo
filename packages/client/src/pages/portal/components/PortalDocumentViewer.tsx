@@ -24,7 +24,7 @@ export function PortalDocumentViewer({
 
   // Un iframe ne déclenche pas onError de façon fiable sur un statut HTTP
   // non-2xx (document retiré/introuvable entre le chargement de la liste et
-  // le clic) — pré-vérification HEAD pour les PDF avant d'afficher l'iframe,
+  // le clic) - pré-vérification HEAD pour les PDF avant d'afficher l'iframe,
   // pour éviter un cadre vide (§28/29 du brief).
   const [etat, setEtat] = useState<EtatChargement>(mode === 'pdf' ? 'verification' : 'ok');
 

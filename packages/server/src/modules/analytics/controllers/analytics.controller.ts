@@ -9,7 +9,7 @@ import * as geminiQuotaService from '../services/gemini-quota.service.js';
 function parsePeriode(req: Request): { dateDebut?: Date; dateFin?: Date } {
   const { dateDebut, dateFin } = req.query;
 
-  // dateFin arrive en date seule ("2026-07-04"), parsée comme minuit UTC —
+  // dateFin arrive en date seule ("2026-07-04"), parsée comme minuit UTC -
   // ça exclurait tout ce qui se passe "aujourd'hui" après minuit. Poussé à
   // 23:59:59.999 UTC pour couvrir la journée entière.
   let finResolue: Date | undefined;
@@ -111,7 +111,7 @@ export async function exporterAnalytics(req: Request, res: Response): Promise<vo
       return;
     }
     if (format !== 'excel' && format !== 'csv') {
-      res.status(400).json({ message: 'Format invalide — excel ou csv attendu' });
+      res.status(400).json({ message: 'Format invalide - excel ou csv attendu' });
       return;
     }
 
@@ -145,7 +145,7 @@ export async function exporterAnalytics(req: Request, res: Response): Promise<vo
         'Content-Disposition',
         `attachment; filename="analytics-${moduleCle}-${dateStr}.csv"`
       );
-      res.send('\uFEFF' + csv); // BOM — accents corrects à l'ouverture dans Excel
+      res.send('\uFEFF' + csv); // BOM - accents corrects à l'ouverture dans Excel
     }
   } catch (error) {
     handleAnalyticsError(res, error);

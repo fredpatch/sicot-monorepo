@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import * as traductionService from '../services/traduction.service.js';
-import { genererPDFTraduction, genererDOCXTraduction } from '../services/traduction.export.service.js';
+import {
+  genererPDFTraduction,
+  genererDOCXTraduction,
+} from '../services/traduction.export.service.js';
 import { estDemandeurDeTraduction } from '@/modules/demandes/services/demandes.service.js';
 import { TraductionDirection } from '@/utils/traduction.js';
 import { handleTraductionError } from '@/utils/error.js';
@@ -49,8 +52,8 @@ export async function moteurStatus(req: Request, res: Response): Promise<void> {
 
 // ── Garde commune GET /:id, /:id/export/pdf, /:id/export/docx ──────────────
 // Sans TRANSLATION_VIEW (l'atelier de traduction opérationnel), l'accès est
-// dérivé de la relation avec la demande liée — via estDemandeurDeTraduction,
-// pas du nom du rôle — de sorte que quiconque n'a que la portée personnelle
+// dérivé de la relation avec la demande liée - via estDemandeurDeTraduction,
+// pas du nom du rôle - de sorte que quiconque n'a que la portée personnelle
 // ne peut jamais accéder à une traduction arbitraire par ID, seulement celle
 // liée à l'une de ses propres demandes (Phase 4.6).
 async function verifierAcces(req: Request, id: number): Promise<void> {
@@ -79,7 +82,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/traductions/:id/export/pdf ───────────────────────────────────
-// Réservé aux traductions approuvées/archivées — le texte n'est définitif
+// Réservé aux traductions approuvées/archivées - le texte n'est définitif
 // qu'à partir de là, avant ça il peut encore changer.
 export async function exporterPDF(req: Request, res: Response): Promise<void> {
   try {

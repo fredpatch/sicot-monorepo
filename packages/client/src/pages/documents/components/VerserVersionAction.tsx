@@ -1,7 +1,7 @@
 // packages/client/src/pages/documents/components/VerserVersionAction.tsx
 //
 // Re-uploads a file as a new version of an existing document (POST
-// /documents/:id/nouvelle-version — existed server-side but had no UI
+// /documents/:id/nouvelle-version - existed server-side but had no UI
 // caller). Typical use: an admin reformats a translated report into the
 // official ANAC layout and needs to put that final file back without
 // creating an unrelated, disconnected document entry.

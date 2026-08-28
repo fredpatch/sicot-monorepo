@@ -1,7 +1,7 @@
 // packages/client/src/pages/portal/components/PortalHero.tsx
-// Contenu seul — l'habillage (bande navy, largeur, disposition avec
+// Contenu seul - l'habillage (bande navy, largeur, disposition avec
 // PortalInfoCard + la recherche) vit dans PortalPage. Compact
-// délibérément — hauteur de bande inchangée, le sceau ANAC renforce
+// délibérément - hauteur de bande inchangée, le sceau ANAC renforce
 // l'identité sans dominer le titre (§6-7 du brief de raffinement).
 export function PortalHero() {
   return (

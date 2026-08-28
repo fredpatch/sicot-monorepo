@@ -4,11 +4,11 @@ import { Request, Response, NextFunction } from 'express';
 // ── Types MIME autorisés ───────────────────────────────────────────────────
 export const TYPES_AUTORISES = [
   'application/pdf',
-  'application/msword',                                                          // .doc
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',    // .docx
-  'application/vnd.ms-excel',                                                    // .xls
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',          // .xlsx
-  'text/plain',                                                                  // .txt
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'text/plain', // .txt
   'image/jpeg',
   'image/png',
   'image/tiff',
@@ -16,7 +16,7 @@ export const TYPES_AUTORISES = [
 
 const TAILLE_MAX = 50 * 1024 * 1024; // 50 Mo
 
-// ── Instance multer — stockage mémoire ────────────────────────────────────
+// ── Instance multer - stockage mémoire ────────────────────────────────────
 // memoryStorage : le buffer est passé directement au service OCR sans écriture intermédiaire
 export const upload = multer({
   storage: multer.memoryStorage(),
@@ -32,7 +32,12 @@ export const upload = multer({
 
 // ── Middleware de gestion des erreurs Multer ──────────────────────────────
 // À placer après upload.single() dans la chaîne de middlewares
-export function handleMulterError(err: unknown, _req: Request, res: Response, next: NextFunction): void {
+export function handleMulterError(
+  err: unknown,
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       res.status(413).json({

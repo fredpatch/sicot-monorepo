@@ -14,7 +14,7 @@ export async function genererRapport(req: Request, res: Response): Promise<void>
       return;
     }
     if (format !== 'pdf' && format !== 'excel') {
-      res.status(400).json({ message: 'Format invalide — pdf ou excel attendu.' });
+      res.status(400).json({ message: 'Format invalide - pdf ou excel attendu.' });
       return;
     }
 

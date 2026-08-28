@@ -5,7 +5,7 @@ interface EngineStatusBlockProps {
   moteurAccessible?: boolean;
 }
 
-/** Separates the engine that produced this record from current engine health — a past
+/** Separates the engine that produced this record from current engine health - a past
  * translation's `moteurUtilise` never changes when live engine health changes later. */
 export function EngineStatusBlock({ moteurUtilise, moteurAccessible }: EngineStatusBlockProps) {
   return (

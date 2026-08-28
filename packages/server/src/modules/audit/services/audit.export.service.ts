@@ -14,7 +14,7 @@ export function resumerFiltres(filters: {
   if (filters.action) parts.push(`Action : ${filters.action}`);
   if (filters.dateDebut) parts.push(`Du ${filters.dateDebut.toLocaleDateString('fr-FR')}`);
   if (filters.dateFin) parts.push(`Au ${filters.dateFin.toLocaleDateString('fr-FR')}`);
-  return parts.length > 0 ? parts.join(' — ') : 'Aucun filtre — journal complet';
+  return parts.length > 0 ? parts.join(' - ') : 'Aucun filtre - journal complet';
 }
 
 function formatUtilisateur(log: AuditLogView): string {
@@ -36,7 +36,7 @@ function formatDateHeure(date: Date): string {
 // ── Export Excel ─────────────────────────────────────────────────────────
 export async function genererExcelAudit(logs: AuditLogView[]): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'SICOT — ANAC Gabon';
+  workbook.creator = 'SICOT - ANAC Gabon';
   workbook.created = new Date();
 
   const feuille = workbook.addWorksheet("Journal d'audit");
@@ -90,8 +90,8 @@ export async function genererPDFAudit(
           <td>${formatUtilisateur(log)}</td>
           <td>${log.module}</td>
           <td>${log.action}</td>
-          <td>${log.entiteId ?? '—'}</td>
-          <td>${log.ip ?? '—'}</td>
+          <td>${log.entiteId ?? '-'}</td>
+          <td>${log.ip ?? '-'}</td>
         </tr>
       `
     )
@@ -99,7 +99,7 @@ export async function genererPDFAudit(
 
   const corps = `
     <p class="sous-titre">
-      ${resumeFiltres} — ${logs.length} entrée${logs.length > 1 ? 's' : ''}
+      ${resumeFiltres} - ${logs.length} entrée${logs.length > 1 ? 's' : ''}
       ${tronque ? " (résultat tronqué, affinez les filtres ou utilisez l'export Excel)" : ''}
     </p>
     <table>

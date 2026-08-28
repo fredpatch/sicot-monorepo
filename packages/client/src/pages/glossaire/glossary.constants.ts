@@ -8,7 +8,7 @@ export const FILTRES_STATUT = [
 ];
 
 // Langues actuellement supportées par le backend (FR/EN fixes). L'ajout
-// d'une langue ne nécessite pas de changer l'architecture du registre —
+// d'une langue ne nécessite pas de changer l'architecture du registre -
 // voir glossary.adapters.ts.
 export const LANGUE_LABELS: Record<string, string> = {
   fr: 'Français',

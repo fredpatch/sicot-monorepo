@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import type { UserRole } from '@sicot/shared';
 import * as notificationsService from '../services/notifications.service.js';
-import { peutConsulterHistorique, peutEnvoyerNotification } from '../services/notifications.policies.js';
+import {
+  peutConsulterHistorique,
+  peutEnvoyerNotification,
+} from '../services/notifications.policies.js';
 
 const TYPES_CONNUS: notificationsService.NotificationType[] = [
   'accord_echeance',
@@ -14,7 +17,7 @@ function handleNotificationsError(res: Response, error: unknown): void {
 
   if (message === 'EMAIL_DESTINATAIRE_REQUIS') {
     res.status(400).json({
-      message: 'Email destinataire requis — vérifiez la fiche contact.',
+      message: 'Email destinataire requis - vérifiez la fiche contact.',
       code: message,
     });
     return;
@@ -35,7 +38,7 @@ function handleNotificationsError(res: Response, error: unknown): void {
 
 // ── POST /api/notifications/envoyer ───────────────────────────────────────
 // Autorisation dérivée du domaine de chaque type de notification, pas d'un
-// rôle statique au niveau du routeur (Phase 7.1 — voir notifications.policies.ts).
+// rôle statique au niveau du routeur (Phase 7.1 - voir notifications.policies.ts).
 // accord_echeance/courrier_relance restent admin+ (AGREEMENT_MANAGE /
 // CORRESPONDENCE_MANAGE) ; recommandation_rappel autorise en plus le
 // responsable personnel de la recommandation ciblée (MISSION_VIEW_OWN +
@@ -69,7 +72,9 @@ export async function envoyer(req: Request, res: Response): Promise<void> {
       req.user!.userId
     );
     if (!autorise) {
-      res.status(403).json({ message: 'Accès refusé - droits insuffisants pour cette notification.' });
+      res
+        .status(403)
+        .json({ message: 'Accès refusé - droits insuffisants pour cette notification.' });
       return;
     }
 

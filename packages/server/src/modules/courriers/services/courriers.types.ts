@@ -8,7 +8,7 @@ export interface CreateCourrierParams {
   objet: string;
   expediteurOrganisationId?: number;
   destinataireOrganisationId?: number;
-  // Optional refinement of the organisation above — a specific contact
+  // Optional refinement of the organisation above - a specific contact
   // there, not a replacement for the organisation link.
   expediteurContactId?: number;
   destinataireContactId?: number;
@@ -28,7 +28,7 @@ export interface UpdateCourrierParams {
   reponseRequise?: CourrierReponseStatut;
   expediteurOrganisationId?: number;
   destinataireOrganisationId?: number;
-  // Explicit null clears a mistakenly-set contact — distinct from
+  // Explicit null clears a mistakenly-set contact - distinct from
   // undefined ("don't touch"), same convention as Missions' contactSurPlaceId.
   expediteurContactId?: number | null;
   destinataireContactId?: number | null;
@@ -45,7 +45,7 @@ export interface CourrierFilters {
   suiviStatut?: CourrierSuiviStatut;
   reponseRequise?: CourrierReponseStatut;
   sansReponse?: boolean;
-  // Derived — entrant + reponseRequise:oui + en_attente + dateReception au-delà
+  // Derived - entrant + reponseRequise:oui + en_attente + dateReception au-delà
   // du seuil "critique" (voir chargerSeuils/calculerCriticite).
   enDepassement?: boolean;
   organisationId?: number;
@@ -92,7 +92,7 @@ export interface CourrierView {
   expediteur?: OrganisationResume;
   destinataire?: OrganisationResume;
   // The specific contact within expediteur/destinataire, if one was chosen
-  // — falls back to nothing (not automatically contactPrincipal) since an
+  // - falls back to nothing (not automatically contactPrincipal) since an
   // explicit choice shouldn't be silently swapped for a different person.
   expediteurContact?: ContactResume;
   destinataireContact?: ContactResume;
@@ -116,7 +116,7 @@ export interface SeuilsCriticite {
   critique: number;
 }
 
-// Compteurs globaux, indépendants des filtres courants — mirrors
+// Compteurs globaux, indépendants des filtres courants - mirrors
 // MissionsAggregates/OrganisationsAggregates.
 export interface CourriersAggregates {
   total: number;

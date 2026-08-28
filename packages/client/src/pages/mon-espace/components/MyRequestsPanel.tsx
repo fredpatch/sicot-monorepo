@@ -46,7 +46,9 @@ export function MyRequestsPanel({ demandeurId }: { demandeurId: number }) {
   } = useDemandesMutations();
 
   const demandes = (demandesQuery.data?.data ?? []).slice(0, 5);
-  const demandeOuverte = demandeOuverteId ? demandes.find((d) => d.id === demandeOuverteId) ?? null : null;
+  const demandeOuverte = demandeOuverteId
+    ? (demandes.find((d) => d.id === demandeOuverteId) ?? null)
+    : null;
 
   async function handleRappeler(demande: Demande) {
     const ok = await confirm({
@@ -65,7 +67,7 @@ export function MyRequestsPanel({ demandeurId }: { demandeurId: number }) {
     onRappeler: handleRappeler,
     onPasserEnRelecture: (id: number) => passerEnRelectureMutation.mutate(id),
     passerEnRelectureEnCours: passerEnRelectureMutation.isPending,
-    // Reviewer-only action — an agent's own requests never satisfy
+    // Reviewer-only action - an agent's own requests never satisfy
     // canValidatePriority, so this never actually fires here.
     onOuvrirValidationPriorite: () => {},
     onValider: (id: number) => validerMutation.mutate(id),

@@ -22,7 +22,7 @@ router.get('/', documentsController.lister);
 router.get('/:id', documentsController.getById);
 
 // ── Upload ────────────────────────────────────────────────────────────────
-// Délibérément SANS garde de capacité — voir le commentaire détaillé dans
+// Délibérément SANS garde de capacité - voir le commentaire détaillé dans
 // documents.controller.ts:upload. Ce endpoint sert à la fois la bibliothèque
 // documentaire générale ET les workflows personnels (pièce jointe de
 // demande/mission), où un agent doit pouvoir uploader son propre fichier.
@@ -35,7 +35,7 @@ router.post(
   documentsController.upload
 );
 
-// ── Nouvelle version — DOCUMENT_UPLOAD ─────────────────────────────────────
+// ── Nouvelle version - DOCUMENT_UPLOAD ─────────────────────────────────────
 router.post(
   '/:id/nouvelle-version',
   requireCapability('DOCUMENT_UPLOAD'),
@@ -44,7 +44,7 @@ router.post(
   documentsController.nouvelleVersion
 );
 
-// ── Modifications — capacités documentaires dédiées ────────────────────────
+// ── Modifications - capacités documentaires dédiées ────────────────────────
 router.patch('/:id/ocr', requireCapability('DOCUMENT_OCR_MANAGE'), documentsController.corrigerOCR);
 router.patch(
   '/:id/categorie',
@@ -61,7 +61,7 @@ router.patch(
 router.get('/:id/telecharger', documentsController.telecharger);
 
 // ── Suppression / restauration / retraitement OCR ─────────────────────────
-// Pas de capacité DOCUMENT_RESTORE dédiée (§6 : éviter la prolifération) —
+// Pas de capacité DOCUMENT_RESTORE dédiée (§6 : éviter la prolifération) -
 // restaurer réutilise DOCUMENT_DELETE, même principe que le module Traduction.
 router.delete('/:id', requireCapability('DOCUMENT_DELETE'), documentsController.supprimer);
 router.patch('/:id/restaurer', requireCapability('DOCUMENT_DELETE'), documentsController.restaurer);

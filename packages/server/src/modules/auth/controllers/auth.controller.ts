@@ -30,7 +30,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     });
 
     if (result.premiereConnexion && result.tokens) {
-      // Token temporaire uniquement — pas de refresh token
+      // Token temporaire uniquement - pas de refresh token
       res.cookie(ACCESS_TOKEN_COOKIE, result.tokens.accessToken, {
         ...accessCookieOptions,
         maxAge: 5 * 60 * 1000, // 5 minutes
@@ -39,7 +39,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Connexion normale — poser les deux cookies
+    // Connexion normale - poser les deux cookies
     if (result.tokens) {
       res.cookie(ACCESS_TOKEN_COOKIE, result.tokens.accessToken, accessCookieOptions);
       res.cookie(REFRESH_TOKEN_COOKIE, result.tokens.refreshToken, refreshCookieOptions);
@@ -86,7 +86,9 @@ export async function changerMotDePasse(req: Request, res: Response): Promise<vo
   const { motDePasseActuel, nouveauMotDePasse, confirmation } = req.body;
 
   if (!motDePasseActuel || !nouveauMotDePasse || !confirmation) {
-    res.status(400).json({ message: 'Mot de passe actuel, nouveau mot de passe et confirmation requis.' });
+    res
+      .status(400)
+      .json({ message: 'Mot de passe actuel, nouveau mot de passe et confirmation requis.' });
     return;
   }
 
@@ -144,10 +146,7 @@ export async function logout(req: Request, res: Response): Promise<void> {
 // ── GET /api/auth/me ───────────────────────────────────────────────────────
 export async function me(req: Request, res: Response): Promise<void> {
   try {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, req.user!.userId));
+    const [user] = await db.select().from(users).where(eq(users.id, req.user!.userId));
 
     if (!user) {
       res.status(404).json({ message: 'Utilisateur introuvable.' });

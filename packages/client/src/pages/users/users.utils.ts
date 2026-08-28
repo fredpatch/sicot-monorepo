@@ -4,6 +4,6 @@ export function getInitiales(prenom: string, nom: string): string {
 }
 
 export function formaterDateHeure(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
 }

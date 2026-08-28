@@ -30,7 +30,7 @@ export function useUtilisateursQuery({ search, role, actif, page }: UseUtilisate
   });
 }
 
-// Compteurs globaux — jamais dérivés de la page courante (voir
+// Compteurs globaux - jamais dérivés de la page courante (voir
 // users.service.ts#getUsersAggregates côté serveur).
 export function useUtilisateursAggregatesQuery() {
   return useQuery({
@@ -53,10 +53,20 @@ export function usePersonnelAnacQuery({ page, q }: UsePersonnelAnacQueryParams) 
     queryFn: async () => {
       if (q.trim().length >= 2) {
         const res = await personnelAnacApi.rechercher(q.trim());
-        return { data: res.data.data as PersonnelAnacResultat[], total: res.data.data.length, page: 1, limit: 20 };
+        return {
+          data: res.data.data as PersonnelAnacResultat[],
+          total: res.data.data.length,
+          page: 1,
+          limit: 20,
+        };
       }
       const res = await personnelAnacApi.lister({ page, limit: PAGE_SIZE });
-      return res.data as { data: PersonnelAnacResultat[]; total: number; page: number; limit: number };
+      return res.data as {
+        data: PersonnelAnacResultat[];
+        total: number;
+        page: number;
+        limit: number;
+      };
     },
     retry: false, // évite de marteler l'API ANAC si elle est indisponible (réseau Tailscale)
   });

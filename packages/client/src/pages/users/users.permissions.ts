@@ -1,7 +1,7 @@
 // packages/client/src/pages/utilisateurs/utilisateurs.permissions.ts
 //
 // Point d'entrée unique pour toute décision d'affichage/action liée à un
-// compte utilisateur — évite de disperser des `u.id === user?.id` /
+// compte utilisateur - évite de disperser des `u.id === user?.id` /
 // `!u.actif` dans les colonnes, le menu d'actions et le panneau de détail.
 // Mirrors the server-side rules exactly (users.service.ts) :
 // - un admin ne peut pas se désactiver lui-même (contrôleur)

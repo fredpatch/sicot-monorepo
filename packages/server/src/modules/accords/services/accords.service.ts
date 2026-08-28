@@ -47,7 +47,7 @@ export async function listerAccords(filters: AccordFilters): Promise<{
     conditions.push(lte(accords.dateExpiration, filters.expirantAvant));
   }
 
-  // ── Filtre par partenaire — via la table de jointure ──────────────────
+  // ── Filtre par partenaire - via la table de jointure ──────────────────
   let accordIdsFiltres: number[] | undefined;
   if (filters.partenairesId) {
     const liaisons = await db
@@ -57,7 +57,7 @@ export async function listerAccords(filters: AccordFilters): Promise<{
 
     accordIdsFiltres = liaisons.map((l) => l.accordId);
 
-    // Aucun accord pour ce partenaire — retourner vide directement
+    // Aucun accord pour ce partenaire - retourner vide directement
     if (accordIdsFiltres.length === 0) {
       return { data: [], total: 0 };
     }

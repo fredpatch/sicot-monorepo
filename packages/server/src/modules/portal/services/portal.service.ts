@@ -90,7 +90,7 @@ export async function listerDocumentsPortail(filters: {
 
 // ── SERVICE : Compteurs publics par catégorie (cartes de navigation) ──────
 // Même portée que listerDocumentsPortail (visibilitePortail + OCR traité +
-// non supprimé) — des compteurs cohérents avec ce que le portail liste
+// non supprimé) - des compteurs cohérents avec ce que le portail liste
 // réellement, jamais des chiffres décoratifs.
 export async function getAggregatesPortail(): Promise<{
   total: number;

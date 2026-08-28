@@ -7,7 +7,7 @@ import { enregistrerExecutionJob } from '@/modules/jobs/services/job-executions.
 
 // ── Capturer l'état de criticité du jour ───────────────────────────────────
 // Reproduit la logique de calculerCriticite() (courriers.helpers.ts) en SQL
-// pur plutôt qu'en itérant ligne par ligne — même règles, en une requête.
+// pur plutôt qu'en itérant ligne par ligne - même règles, en une requête.
 export async function snapshotCriticiteCourriers(): Promise<{
   date: string;
   normal: number;
@@ -48,7 +48,7 @@ export async function snapshotCriticiteCourriers(): Promise<{
     totalEnAttente: parseInt(row.total_en_attente),
   };
 
-  // Idempotent — un job manuel relancé le même jour écrase, ne duplique pas
+  // Idempotent - un job manuel relancé le même jour écrase, ne duplique pas
   await db
     .insert(courriersCriticiteSnapshots)
     .values(snapshot)

@@ -1,7 +1,7 @@
 // packages/client/src/pages/profil/profil.schemas.ts
 import { z } from 'zod';
 
-// Mêmes règles que BootstrapPage.tsx — le serveur applique désormais la même
+// Mêmes règles que BootstrapPage.tsx - le serveur applique désormais la même
 // politique de complexité (auth.service.ts, validerForceMotDePasse), donc ce
 // n'est plus une contrainte purement cosmétique côté client.
 export const changerMotDePasseSchema = z

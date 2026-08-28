@@ -1,15 +1,16 @@
 # ⚖️ SICOT - Key Technical Decisions
 
-A permanent log of non-obvious choices. "Why" is the critical part — without it, future sessions will undo decisions that had good reasons.
+A permanent log of non-obvious choices. "Why" is the critical part - without it, future sessions will undo decisions that had good reasons.
 
 ---
 
-## 1. 🚫 No shadcn CLI — Manual UI Components
+## 1. 🚫 No shadcn CLI - Manual UI Components
 
 **Decision**: All shadcn-style components are manually crafted in `components/ui/`.
 **Why**: `npx shadcn-ui add` has broken/experimental Tailwind v4 support. Running it corrupts the `index.css` configuration and injects v3 syntax.
-**Scope**: `button.tsx`, `input.tsx`, `label.tsx` — any future shadcn component (Dialog, Select, Tabs, etc.) must also be written manually.
+**Scope**: `button.tsx`, `input.tsx`, `label.tsx` - any future shadcn component (Dialog, Select, Tabs, etc.) must also be written manually.
 **Pattern to follow**:
+
 1. Look up shadcn component source on shadcn.com
 2. Adapt imports (remove `cn` from shadcn, use `@/lib/utils`)
 3. Replace hardcoded colors with ANAC tokens
@@ -17,7 +18,7 @@ A permanent log of non-obvious choices. "Why" is the critical part — without i
 
 ---
 
-## 2. 🎨 Tailwind v4 Syntax — No `tailwind.config.js`
+## 2. 🎨 Tailwind v4 Syntax - No `tailwind.config.js`
 
 **Decision**: Using Tailwind v4 with `@import "tailwindcss"` and `@theme {}` block in `index.css`.
 **Why**: Chosen at project init for forward compatibility. No config file exists and none should be created.
@@ -30,15 +31,17 @@ A permanent log of non-obvious choices. "Why" is the critical part — without i
 **Decision**: Pass `transition` as a prop on `motion.div`, never inside `Variants` objects.
 **Why**: framer-motion v12 has strict TypeScript types. The `Variant` type rejects non-`Easing` values inside variant objects, even named strings like `'easeOut'`. This causes a TS compile error.
 **Correct pattern**:
-```tsx
-// ✅ Correct — transition is a separate prop
-<motion.div variants={slideVariants} transition={slideTx} />
 
-// ❌ Wrong — TS error in variant definition
+```tsx
+// ✅ Correct - transition is a separate prop
+<motion.div variants={slideVariants} transition={slideTx} />;
+
+// ❌ Wrong - TS error in variant definition
 const variants = {
-  enter: { x: 36, opacity: 0, transition: { ease: 'easeOut' } }
-}
+  enter: { x: 36, opacity: 0, transition: { ease: 'easeOut' } },
+};
 ```
+
 **Location of constants**: `packages/client/src/pages/login/animations.ts`
 
 ---
@@ -51,13 +54,14 @@ const variants = {
 
 ---
 
-## 5. 🔐 httpOnly Cookies — No localStorage for Tokens
+## 5. 🔐 httpOnly Cookies - No localStorage for Tokens
 
 **Decision**: Access token in `sicot_access` cookie (15min), refresh in `sicot_refresh` (7d). Both httpOnly.
-**Why**: XSS protection — JavaScript cannot read httpOnly cookies, so a compromised script cannot steal the token.
+**Why**: XSS protection - JavaScript cannot read httpOnly cookies, so a compromised script cannot steal the token.
 **Consequences**:
+
 - Axios: `withCredentials: true` on all requests
-- CORS: `credentials: true` + explicit `origin` (no `*` wildcard — browsers reject credentials with wildcard)
+- CORS: `credentials: true` + explicit `origin` (no `*` wildcard - browsers reject credentials with wildcard)
 - Server cookie options: `sameSite: 'strict'`, `secure: true` in production
 
 ---
@@ -66,19 +70,19 @@ const variants = {
 
 **Decision**: Concurrent 401s are queued; a single refresh call is made; all queued requests are replayed.
 **Why**: Without queuing, 3 simultaneous expired-token requests each trigger `POST /refresh`, causing token rotation race conditions where 2 of 3 refreshes fail (or rotate the refresh token to an unexpected state).
-**Location**: `packages/client/src/lib/axios.ts` — `isRefreshing` flag + `failedQueue` array pattern.
+**Location**: `packages/client/src/lib/axios.ts` - `isRefreshing` flag + `failedQueue` array pattern.
 
 ---
 
 ## 7. 📄 LoginStep + SetPasswordStep Kept Inline
 
 **Decision**: The two step sub-views in `LoginPage.tsx` are private functions in the same file, not moved to `login/components/`.
-**Why**: They share `loginForm`, `passwordForm`, `useId()` values, and 10+ state callbacks with the parent. Extracting would require either prop-drilling all of it or creating a Context just for one page — both worse than the inline approach.
-**If the file gets too big**: Extract the *pure sub-components* (FormField, EyeToggle, etc.) but keep the step views inline.
+**Why**: They share `loginForm`, `passwordForm`, `useId()` values, and 10+ state callbacks with the parent. Extracting would require either prop-drilling all of it or creating a Context just for one page - both worse than the inline approach.
+**If the file gets too big**: Extract the _pure sub-components_ (FormField, EyeToggle, etc.) but keep the step views inline.
 
 ---
 
-## 8. 🔑 OTP — Bcrypt-Hashed in DB
+## 8. 🔑 OTP - Bcrypt-Hashed in DB
 
 **Decision**: OTP stored as bcrypt hash in `users.otp_hash`, not plaintext.
 **Why**: If DB is leaked, OTP codes are not exposed. Standard practice for all secrets at rest.
@@ -90,17 +94,17 @@ const variants = {
 
 **Decision**: 5 failed login attempts → account locked for 30 minutes.
 **Config**: `MAX_LOGIN_ATTEMPTS` env var (default 5), `BLOCAGE_MINUTES = 30` (hardcoded, change in auth.service.ts if needed).
-**Reset**: Automatic — `bloque_jusqu_a` is a timestamp, server checks `new Date() < bloqueJusquA` on each attempt. Successful login calls `resetTentatives()`.
+**Reset**: Automatic - `bloque_jusqu_a` is a timestamp, server checks `new Date() < bloqueJusquA` on each attempt. Successful login calls `resetTentatives()`.
 
 ---
 
-## 11. 🗂️ Radix UI for Dialog and Select — Manual Wrappers
+## 11. 🗂️ Radix UI for Dialog and Select - Manual Wrappers
 
 **Decision**: Use `@radix-ui/react-dialog` and `@radix-ui/react-select` as the accessibility/behavior foundation for `dialog.tsx` and `select.tsx` shadcn wrappers.
 **Why**: Radix provides fully accessible primitives (focus trapping, keyboard navigation, screen reader support) that would take hundreds of lines to implement correctly from scratch. These packages are the same foundation shadcn officially uses, so the manual wrapper approach stays consistent with the project's "no shadcn CLI" constraint.
 **Installed packages**: `@radix-ui/react-dialog`, `@radix-ui/react-select`, `@radix-ui/react-scroll-area` (in `packages/client` only)
 **Pattern**: Wrap Radix primitives with ANAC design tokens, forward refs, and animate with framer-motion or Tailwind transition classes. Match `SelectTrigger` height/border to `Input` exactly so forms look visually uniform.
-**Gotcha**: Radix Select requires non-empty string values — use `__all__` sentinel for "show all" filter options (see G11 in gotchas.md).
+**Gotcha**: Radix Select requires non-empty string values - use `__all__` sentinel for "show all" filter options (see G11 in gotchas.md).
 
 ---
 
@@ -108,4 +112,4 @@ const variants = {
 
 **Decision**: New users are created with `actif: false`. Admin must explicitly activate via `PATCH /api/users/:id/activation`.
 **Why**: Prevents unauthorized access from partially-created accounts. Ensures admin reviews each account before it can log in.
-**Consequence**: Even after setting a password, a deactivated user will get `COMPTE_INTROUVABLE` error (same error as user not found — no information leakage).
+**Consequence**: Even after setting a password, a deactivated user will get `COMPTE_INTROUVABLE` error (same error as user not found - no information leakage).

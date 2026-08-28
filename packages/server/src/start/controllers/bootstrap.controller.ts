@@ -15,10 +15,10 @@ export async function status(_req: Request, res: Response): Promise<void> {
 }
 
 // ── POST /api/bootstrap/init ──────────────────────────────────────────────
-// Crée le premier Super Admin — désactivé si système déjà initialisé
+// Crée le premier Super Admin - désactivé si système déjà initialisé
 export async function init(req: Request, res: Response): Promise<void> {
   try {
-    // Vérification préalable — si déjà initialisé on refuse immédiatement
+    // Vérification préalable - si déjà initialisé on refuse immédiatement
     const dejaInitialise = await bootstrapService.estInitialise();
     if (dejaInitialise) {
       res.status(403).json({
@@ -46,7 +46,7 @@ export async function init(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Validation mot de passe (correspondance uniquement ici — la force du
+    // Validation mot de passe (correspondance uniquement ici - la force du
     // mot de passe est validée dans le service, mêmes règles que
     // changer-mot-de-passe/set-password)
     if (motDePasse !== confirmation) {

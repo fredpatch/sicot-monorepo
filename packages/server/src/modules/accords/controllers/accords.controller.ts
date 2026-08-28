@@ -24,7 +24,7 @@ export async function lister(req: Request, res: Response): Promise<void> {
 }
 
 // ── GET /api/accords/expirant ─────────────────────────────────────────────
-// Accords expirant dans les N prochains jours — pour le dashboard
+// Accords expirant dans les N prochains jours - pour le dashboard
 export async function expirantBientot(req: Request, res: Response): Promise<void> {
   try {
     const jours = req.query.jours ? parseInt(req.query.jours as string) : 90;
@@ -65,7 +65,10 @@ export async function exporterPDF(req: Request, res: Response): Promise<void> {
 
     const disposition = req.query.apercu === '1' ? 'inline' : 'attachment';
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `${disposition}; filename="accord-${accord.reference}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `${disposition}; filename="accord-${accord.reference}.pdf"`
+    );
     res.send(pdf);
   } catch (error) {
     handleAccordsError(res, error);
@@ -181,7 +184,7 @@ export async function renouveler(req: Request, res: Response): Promise<void> {
 
     res.status(201).json({
       accord,
-      message: `Accord renouvelé — nouvelle référence : ${accord.reference}`,
+      message: `Accord renouvelé - nouvelle référence : ${accord.reference}`,
     });
   } catch (error) {
     handleAccordsError(res, error);

@@ -1,7 +1,7 @@
 // packages/client/src/pages/documents/documents.types.ts
 //
 // texteExtrait n'est présent que sur la réponse de détail
-// (GET /documents/:id) — le listing (GET /documents) ne le renvoie plus,
+// (GET /documents/:id) - le listing (GET /documents) ne le renvoie plus,
 // pour éviter d'envoyer un texte OCR potentiellement volumineux sur chaque
 // ligne de chaque page (voir documents.service.ts côté serveur). Utiliser
 // statutOCR === 'traite' pour toute décision d'éligibilité au niveau du

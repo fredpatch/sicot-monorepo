@@ -13,11 +13,11 @@ app = Flask(__name__)
 
 PORT = int(os.environ.get("TRANSLATE_PORT", 5002))
 
-# LibreTranslate — tourne sur port 5000
+# LibreTranslate - tourne sur port 5000
 LIBRETRANSLATE_URL = os.environ.get("LIBRETRANSLATE_URL", "http://localhost:5000")
 LIBRETRANSLATE_API_KEY = os.environ.get("LIBRETRANSLATE_API_KEY", "")
 
-# DeepL — fallback optionnel
+# DeepL - fallback optionnel
 DEEPL_ENABLED = os.environ.get("DEEPL_ENABLED", "false").lower() == "true"
 DEEPL_API_KEY = os.environ.get("DEEPL_API_KEY", "")
 DEEPL_URL = "https://api-free.deepl.com/v2/translate"
@@ -203,7 +203,7 @@ def translate():
             "moteur": "aucun",
             "source_detectee": source,
             "succes": True,
-            "message": "Source et cible identiques — texte retourné sans traduction.",
+            "message": "Source et cible identiques - texte retourné sans traduction.",
         })
 
     deepl_actif = resoudre_deepl_actif(data)
@@ -361,6 +361,6 @@ if __name__ == "__main__":
     print(f"📋 DeepL fallback : {'activé' if DEEPL_ENABLED else 'désactivé'}")
     print(f"📋 Langues : {', '.join(LANGUES_SUPPORTEES)}")
     # 0.0.0.0, not 127.0.0.1: inside Docker, other containers reach this
-    # service by its container name over the bridge network — a loopback
+    # service by its container name over the bridge network - a loopback
     # bind would make the port unreachable from anywhere but itself.
     serve(app, host="0.0.0.0", port=PORT)

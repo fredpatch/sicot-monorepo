@@ -3,10 +3,10 @@ import { parametres } from '@/db/schema';
 import { inArray } from 'drizzle-orm';
 
 // Remplacées par le schéma de rotation quotidien/hebdomadaire/mensuel/annuel
-// (voir jobs/backup.ts) — la rétention en jours n'a plus de sens dès lors
+// (voir jobs/backup.ts) - la rétention en jours n'a plus de sens dès lors
 // qu'un seul fichier est produit par palier ; remplacé par un nombre de
 // copies à conserver. Supprimées au démarrage plutôt que laissées mortes en
-// base (cf. recommandation_alerte_jours, jamais nettoyé — leçon retenue).
+// base (cf. recommandation_alerte_jours, jamais nettoyé - leçon retenue).
 const CLES_OBSOLETES = ['backup_retention_locale_jours', 'backup_retention_nas_jours'];
 
 const DEFAUTS = [
@@ -61,21 +61,24 @@ const DEFAUTS = [
     valeur: process.env.BACKUP_LOCAL_DIR ?? '/sicot/backups/local',
     type: 'texte' as const,
     module: 'M10',
-    description: "Dossier local où écrire les sauvegardes (tous paliers). Modifiable par l'administrateur.",
+    description:
+      "Dossier local où écrire les sauvegardes (tous paliers). Modifiable par l'administrateur.",
   },
   {
     cle: 'backup_retention_quotidien_nombre',
     valeur: '7',
     type: 'entier' as const,
     module: 'M10',
-    description: 'Nombre de sauvegardes quotidiennes conservées avant rotation vers la palier hebdomadaire',
+    description:
+      'Nombre de sauvegardes quotidiennes conservées avant rotation vers la palier hebdomadaire',
   },
   {
     cle: 'backup_retention_hebdomadaire_nombre',
     valeur: '5',
     type: 'entier' as const,
     module: 'M10',
-    description: 'Nombre de sauvegardes hebdomadaires conservées avant rotation vers le palier mensuel',
+    description:
+      'Nombre de sauvegardes hebdomadaires conservées avant rotation vers le palier mensuel',
   },
   {
     cle: 'backup_retention_mensuel_nombre',

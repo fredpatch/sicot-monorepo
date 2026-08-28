@@ -49,7 +49,7 @@ export default function PortalPage() {
     setPage(1);
   }
 
-  // Aucun document publié globalement (pas seulement pour le filtre actif) —
+  // Aucun document publié globalement (pas seulement pour le filtre actif) -
   // état vide simplifié, cartes de catégorie masquées (§31 du brief).
   const aucunDocumentGlobalement = !aggregatesLoading && (aggregates?.total ?? 0) === 0;
 
@@ -67,7 +67,7 @@ export default function PortalPage() {
       <PortalHeader />
 
       {/* Hero compact + carte de confiance en deux colonnes, recherche
-          intégrée directement dans la bande — pas de bande blanche sticky
+          intégrée directement dans la bande - pas de bande blanche sticky
           séparée autour d'un petit champ. */}
       <div className="bg-anac-navy text-white py-10 px-6 lg:px-10">
         <div className="max-w-350 mx-auto">
@@ -114,7 +114,7 @@ export default function PortalPage() {
           <section className="space-y-4">
             <h2 className="text-base font-semibold text-anac-navy">
               {titreSection}
-              {sousTitreSection && <span className="text-anac-muted"> — {sousTitreSection}</span>}
+              {sousTitreSection && <span className="text-anac-muted"> - {sousTitreSection}</span>}
               {!isLoading && (
                 <span className="ml-2 text-sm font-normal text-anac-muted">
                   {data?.total ?? 0} document{(data?.total ?? 0) > 1 ? 's' : ''}

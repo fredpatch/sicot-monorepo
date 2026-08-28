@@ -11,7 +11,7 @@ import type { JobDisponible } from './admin.types';
 
 // SYSTEM_SETTINGS_MANAGE is deliberately absent from ADMIN_CAPABILITIES in
 // the shared role-capability matrix (packages/shared/src/auth/
-// role-capabilities.ts) — super_admin only, enforced by the capability
+// role-capabilities.ts) - super_admin only, enforced by the capability
 // mapping itself rather than a role-literal comparison here (Phase 5.3).
 export function canEditParameter(role: UserRole | undefined): boolean {
   return !!role && hasCapability(role, 'SYSTEM_SETTINGS_MANAGE');

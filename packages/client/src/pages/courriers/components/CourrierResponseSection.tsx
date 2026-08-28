@@ -19,7 +19,7 @@ interface Accord {
 }
 
 // Réponse tracking + fil de correspondance + relance, combined into one
-// section (Phase 2 plan §5/§9) — a separate near-empty "Notifications" tab
+// section (Phase 2 plan §5/§9) - a separate near-empty "Notifications" tab
 // isn't warranted; the relance history already lives in ModalRelance.
 export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
   const [modalRelance, setModalRelance] = useState(false);
@@ -53,7 +53,7 @@ export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
   const interlocuteur = getCourrierInterlocutor(courrier);
   const contactChoisi = getCourrierContact(courrier);
   // The explicitly chosen contact takes priority over the organisation's
-  // generic contactPrincipal — an explicit choice shouldn't be silently
+  // generic contactPrincipal - an explicit choice shouldn't be silently
   // swapped for someone else.
   const contactRelance = contactChoisi ?? interlocuteur?.contactPrincipal;
   const destinatairesSuggeres = contactRelance?.email
@@ -73,12 +73,16 @@ export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
           <div className="flex items-center justify-between rounded-md border border-anac-border px-3 py-2.5">
             <dt className="text-anac-muted">Statut</dt>
-            <dd><CourrierStatusBadge statut={courrier.suiviStatut} /></dd>
+            <dd>
+              <CourrierStatusBadge statut={courrier.suiviStatut} />
+            </dd>
           </div>
           <div className="flex items-center justify-between rounded-md border border-anac-border px-3 py-2.5">
             <dt className="text-anac-muted">Date limite</dt>
             <dd className="font-medium text-anac-navy">
-              {courrier.dateLimiteReponse ? formatCourrierDate(courrier.dateLimiteReponse) : 'Aucune'}
+              {courrier.dateLimiteReponse
+                ? formatCourrierDate(courrier.dateLimiteReponse)
+                : 'Aucune'}
             </dd>
           </div>
         </dl>
@@ -105,7 +109,9 @@ export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
             className="mt-3 block rounded-md border border-anac-border px-4 py-3 hover:bg-anac-gray"
           >
             <span className="font-mono text-xs text-anac-muted">{accordLie.reference}</span>
-            <span className="mt-0.5 block text-sm font-medium text-anac-navy">{accordLie.titre}</span>
+            <span className="mt-0.5 block text-sm font-medium text-anac-navy">
+              {accordLie.titre}
+            </span>
           </Link>
         </section>
       )}
@@ -121,7 +127,9 @@ export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
               <ArrowDownLeft size={14} className="shrink-0 text-anac-muted" aria-hidden="true" />
               <span>
                 <span className="block text-xs text-anac-muted">En réponse à</span>
-                <span className="font-medium text-anac-navy">{parent.reference} — {parent.objet}</span>
+                <span className="font-medium text-anac-navy">
+                  {parent.reference} - {parent.objet}
+                </span>
               </span>
             </Link>
           )}
@@ -134,7 +142,9 @@ export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
               <ArrowUpRight size={14} className="shrink-0 text-anac-muted" aria-hidden="true" />
               <span>
                 <span className="block text-xs text-anac-muted">Réponse</span>
-                <span className="font-medium text-anac-navy">{reponse.reference} — {reponse.objet}</span>
+                <span className="font-medium text-anac-navy">
+                  {reponse.reference} - {reponse.objet}
+                </span>
               </span>
             </Link>
           ))}

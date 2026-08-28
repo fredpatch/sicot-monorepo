@@ -14,9 +14,9 @@ router.get('/meta/pays', organisationsController.getPays);
 router.get('/meta/regions', organisationsController.getRegions);
 
 // ── Organisations ─────────────────────────────────────────────────────────
-// Lecture inchangée (ouverte à tout utilisateur authentifié) — voir
+// Lecture inchangée (ouverte à tout utilisateur authentifié) - voir
 // Phase 1 audit ; l'écriture était requireRole('agent'), qui sous
-// l'ancienne hiérarchie signifiait "tout utilisateur authentifié" — un
+// l'ancienne hiérarchie signifiait "tout utilisateur authentifié" - un
 // vrai trou de sécurité (Phase 1 §2/§20). PARTNER_MANAGE est réservé à
 // admin/super_admin.
 router.get('/', organisationsController.lister);

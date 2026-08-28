@@ -17,7 +17,8 @@ vi.mock('@/utils/jwt', () => ({
 const DASHBOARD_PAYLOAD = { kpi: { ok: true }, accordsExpirant: [] };
 
 vi.mock('../controllers/dashboard.controller.js', () => ({
-  getDashboard: (_req: express.Request, res: express.Response) => res.status(200).json(DASHBOARD_PAYLOAD),
+  getDashboard: (_req: express.Request, res: express.Response) =>
+    res.status(200).json(DASHBOARD_PAYLOAD),
 }));
 
 function buildApp() {
@@ -32,19 +33,16 @@ function cookieFor(role: string) {
   return `${ACCESS_TOKEN_COOKIE}=${encodeURIComponent(token)}`;
 }
 
-describe('dashboard.route — requires ANALYTICS_VIEW (admin+)', () => {
+describe('dashboard.route - requires ANALYTICS_VIEW (admin+)', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).get('/dashboard').expect(401);
   });
 
-  it.each(['agent', 'operateur'])(
-    '403s role=%s (no ANALYTICS_VIEW)',
-    async (role) => {
-      const app = buildApp();
-      await request(app).get('/dashboard').set('Cookie', cookieFor(role)).expect(403);
-    }
-  );
+  it.each(['agent', 'operateur'])('403s role=%s (no ANALYTICS_VIEW)', async (role) => {
+    const app = buildApp();
+    await request(app).get('/dashboard').set('Cookie', cookieFor(role)).expect(403);
+  });
 
   it.each(['admin', 'super_admin'])('allows role=%s (has ANALYTICS_VIEW)', async (role) => {
     const app = buildApp();

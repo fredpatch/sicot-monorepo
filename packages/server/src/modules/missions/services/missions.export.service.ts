@@ -48,7 +48,7 @@ const LABELS_RECOMMANDATION_STATUT: Record<string, string> = {
 };
 
 function formatDate(date?: Date): string {
-  return date ? new Date(date).toLocaleDateString('fr-FR') : '—';
+  return date ? new Date(date).toLocaleDateString('fr-FR') : '-';
 }
 
 function coche(valeur: boolean): string {
@@ -73,12 +73,16 @@ function compterRecommandations(recommandations: MissionView['recommandations'])
   };
 }
 
-// ── Export PDF — rapport de synthèse d'une mission ─────────────────────────
+// ── Export PDF - rapport de synthèse d'une mission ─────────────────────────
 export async function genererPDFMission(mission: MissionView): Promise<Buffer> {
   const [rapportDocument, responsable, historique] = await Promise.all([
     mission.rapportDocumentId
       ? db
-          .select({ id: documents.id, nomOriginal: documents.nomOriginal, mimeType: documents.mimeType })
+          .select({
+            id: documents.id,
+            nomOriginal: documents.nomOriginal,
+            mimeType: documents.mimeType,
+          })
           .from(documents)
           .where(eq(documents.id, mission.rapportDocumentId))
           .then((rows) => rows[0])
@@ -96,8 +100,14 @@ export async function genererPDFMission(mission: MissionView): Promise<Buffer> {
   const infosGenerales = grilleInfos([
     { label: 'Destination', valeur: echapperHTML(mission.destination) },
     { label: 'Pays', valeur: echapperHTML(mission.pays) },
-    { label: 'Période', valeur: `${formatDate(mission.dateDebut)} au ${formatDate(mission.dateFin)}` },
-    { label: 'Statut', valeur: badge(LABELS_STATUT[mission.statut], COULEURS_STATUT[mission.statut]) },
+    {
+      label: 'Période',
+      valeur: `${formatDate(mission.dateDebut)} au ${formatDate(mission.dateFin)}`,
+    },
+    {
+      label: 'Statut',
+      valeur: badge(LABELS_STATUT[mission.statut], COULEURS_STATUT[mission.statut]),
+    },
   ]);
 
   const logistiqueHTML = grilleInfos([
@@ -117,7 +127,7 @@ export async function genererPDFMission(mission: MissionView): Promise<Buffer> {
         ? echapperHTML(
             `${mission.contactSurPlace.prenom} ${mission.contactSurPlace.nom}${mission.contactSurPlace.organisationNom ? ` (${mission.contactSurPlace.organisationNom})` : ''}`
           )
-        : '—',
+        : '-',
     },
   ]);
 
@@ -131,8 +141,14 @@ export async function genererPDFMission(mission: MissionView): Promise<Buffer> {
   );
 
   const rapportHTML = grilleInfos([
-    { label: 'État du rapport', valeur: rapportDocument ? badge('Déposé', 'vert') : badge('Manquant', 'ambre') },
-    { label: 'Document', valeur: rapportDocument ? echapperHTML(rapportDocument.nomOriginal) : '—' },
+    {
+      label: 'État du rapport',
+      valeur: rapportDocument ? badge('Déposé', 'vert') : badge('Manquant', 'ambre'),
+    },
+    {
+      label: 'Document',
+      valeur: rapportDocument ? echapperHTML(rapportDocument.nomOriginal) : '-',
+    },
   ]);
 
   const compteurs = compterRecommandations(mission.recommandations);
@@ -150,7 +166,7 @@ export async function genererPDFMission(mission: MissionView): Promise<Buffer> {
     ['Texte', 'Responsable', 'Date limite', 'Statut'],
     (mission.recommandations ?? []).map((r) => [
       echapperHTML(r.texte),
-      r.responsable ? echapperHTML(`${r.responsable.prenom} ${r.responsable.nom}`) : '—',
+      r.responsable ? echapperHTML(`${r.responsable.prenom} ${r.responsable.nom}`) : '-',
       formatDate(r.dateLimite),
       echapperHTML(LABELS_RECOMMANDATION_STATUT[r.statut] ?? r.statut),
     ])
@@ -177,7 +193,10 @@ export async function genererPDFMission(mission: MissionView): Promise<Buffer> {
     ${sectionBox({ titre: `Participants (${mission.participants.length})`, contenu: participantsHTML })}
     ${deuxColonnes(
       sectionBox({ titre: 'Rapport de mission', contenu: rapportHTML }),
-      sectionBox({ titre: `Recommandations (${(mission.recommandations ?? []).length})`, contenu: recommandationsCompteurHTML })
+      sectionBox({
+        titre: `Recommandations (${(mission.recommandations ?? []).length})`,
+        contenu: recommandationsCompteurHTML,
+      })
     )}
     ${sectionBox({ titre: 'Détail des recommandations', contenu: recommandationsDetailHTML })}
     ${deuxColonnes(

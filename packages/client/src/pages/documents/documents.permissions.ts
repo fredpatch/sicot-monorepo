@@ -5,10 +5,10 @@
 // portal.route.ts, Phase 4.7): each document action carries its own
 // DOCUMENT_* capability rather than one shared role tier, portal
 // publish/unpublish uses PORTAL_PUBLICATION_MANAGE. Upload/list/download
-// stay open to everyone, matching the server — the general upload endpoint
+// stay open to everyone, matching the server - the general upload endpoint
 // itself has no capability gate (Phase 4.7's documented reasoning: it
 // serves both library management AND personal-workflow attachments), so
-// this phase doesn't add one here either (Phase 5.3 — not a new
+// this phase doesn't add one here either (Phase 5.3 - not a new
 // authorization architecture for it).
 import { hasCapability, type Capability, type UserRole } from '@sicot/shared';
 
@@ -37,7 +37,7 @@ export interface DocumentCapabilities {
 }
 
 // Point d'entrée unique pour toute décision d'affichage/action liée à un
-// document — évite de disperser des vérifications de capacité dans les
+// document - évite de disperser des vérifications de capacité dans les
 // colonnes, le panneau de détail et le menu d'actions. Les capacités liées
 // à l'état du document (OCR/traduction) restent indépendantes du rôle une
 // fois la capacité de base acquise.
@@ -50,12 +50,13 @@ export function getDocumentCapabilities(
     canChangeCategory: can(role, 'DOCUMENT_CATEGORY_MANAGE'),
     canCorrectOcr: can(role, 'DOCUMENT_OCR_MANAGE'),
     canRetryOcr:
-      can(role, 'DOCUMENT_OCR_MANAGE') && (doc.statutOCR === 'echec' || doc.statutOCR === 'a_retraiter'),
+      can(role, 'DOCUMENT_OCR_MANAGE') &&
+      (doc.statutOCR === 'echec' || doc.statutOCR === 'a_retraiter'),
     // texteExtrait n'est plus renvoyé par le listing (voir documents.service.ts
     // côté serveur) : statutOCR === 'traite' implique déjà un texte extrait
     // non vide (seul cas où le serveur écrit ce statut), donc suffisant comme
     // condition d'éligibilité sans devoir charger le détail complet.
-    // TRANSLATION_PROCESS (pas REQUEST_CREATE_OWN) — "Traduire" lance
+    // TRANSLATION_PROCESS (pas REQUEST_CREATE_OWN) - "Traduire" lance
     // directement une traduction opérationnelle, réservé operateur+ comme
     // aujourd'hui ; l'ouvrir à REQUEST_CREATE_OWN élargirait ce bouton aux
     // agents, ce qui n'est pas demandé ici.

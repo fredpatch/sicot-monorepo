@@ -40,7 +40,7 @@ export interface GenererRapportParams {
 }
 
 // ── Résout un utilisateur "système" pour les rapports générés par le cron ──
-// documents.uploadePar est NOT NULL — un rapport automatique doit être
+// documents.uploadePar est NOT NULL - un rapport automatique doit être
 // attribué à quelqu'un. Premier super_admin trouvé, faute de mieux.
 async function resoudreUtilisateurSysteme(): Promise<number> {
   const [admin] = await db
@@ -51,7 +51,7 @@ async function resoudreUtilisateurSysteme(): Promise<number> {
 
   if (!admin) {
     throw new Error(
-      "Aucun super_admin trouvé — impossible d'attribuer un rapport généré automatiquement"
+      "Aucun super_admin trouvé - impossible d'attribuer un rapport généré automatiquement"
     );
   }
   return admin.id;
@@ -73,7 +73,7 @@ async function collecterDonnees(
   return resultat;
 }
 
-// ── PDF combiné — une section par module ───────────────────────────────────
+// ── PDF combiné - une section par module ───────────────────────────────────
 function rendreSectionModuleHTML(moduleCle: string, data: Record<string, unknown>): string {
   const blocs = Object.entries(data)
     .map(([cle, valeur]) => {
@@ -83,7 +83,7 @@ function rendreSectionModuleHTML(moduleCle: string, data: Record<string, unknown
       const colonnes = Array.from(new Set(lignes.flatMap((l) => Object.keys(l))));
       const enTete = colonnes.map((c) => `<th>${humaniser(c)}</th>`).join('');
       const corps = lignes
-        .map((l) => `<tr>${colonnes.map((c) => `<td>${l[c] ?? '—'}</td>`).join('')}</tr>`)
+        .map((l) => `<tr>${colonnes.map((c) => `<td>${l[c] ?? '-'}</td>`).join('')}</tr>`)
         .join('');
 
       return `
@@ -100,7 +100,7 @@ async function genererPDFRapport(
   dataParModule: Record<string, Record<string, unknown>>,
   periode: { dateDebut: Date; dateFin: Date }
 ): Promise<Buffer> {
-  const periodeTexte = `${periode.dateDebut.toLocaleDateString('fr-FR')} — ${periode.dateFin.toLocaleDateString('fr-FR')}`;
+  const periodeTexte = `${periode.dateDebut.toLocaleDateString('fr-FR')} - ${periode.dateFin.toLocaleDateString('fr-FR')}`;
   const corps = `
     <p class="sous-titre">Période : ${periodeTexte}</p>
     ${Object.entries(dataParModule)
@@ -111,12 +111,12 @@ async function genererPDFRapport(
   return genererPDFDepuisHTML(corps, { titre: 'Rapport Analytics SICOT' });
 }
 
-// ── Excel combiné — feuilles préfixées par module, noms dédupliqués ────────
+// ── Excel combiné - feuilles préfixées par module, noms dédupliqués ────────
 async function genererExcelRapport(
   dataParModule: Record<string, Record<string, unknown>>
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'SICOT — ANAC Gabon';
+  workbook.creator = 'SICOT - ANAC Gabon';
   workbook.created = new Date();
 
   const nomsUtilises = new Set<string>();
@@ -193,7 +193,7 @@ export async function genererRapport(params: GenererRapportParams): Promise<{
       mimeType,
       taille: buffer.length,
       categorie: 'rapport',
-      statutOCR: 'traite', // pas d'OCR nécessaire — on l'a généré nous-mêmes
+      statutOCR: 'traite', // pas d'OCR nécessaire - on l'a généré nous-mêmes
       hashMD5: calculerMD5(buffer),
       uploadePar,
     })
@@ -269,7 +269,7 @@ export async function genererAnalyseIA(
   const rapport = await getRapportById(rapportId);
 
   // La limite quotidienne (Layer 2) ne s'applique qu'aux déclenchements
-  // humains — le cron mensuel (estAutomatique) n'est pas une "demande manuelle"
+  // humains - le cron mensuel (estAutomatique) n'est pas une "demande manuelle"
   if (!options?.estAutomatique) {
     const { autorise, utilises, max } = await verifierLimiteRapportsManuelsJour();
     if (!autorise) {
@@ -290,7 +290,7 @@ export async function genererAnalyseIA(
   }
 
   // Un message "activité insuffisante" est un texte fixe, déterministe, sans
-  // risque interprétatif — pas besoin de relecture humaine, validé d'office
+  // risque interprétatif - pas besoin de relecture humaine, validé d'office
   const statut = resultat.insuffisant ? 'valide' : 'en_attente';
 
   await db

@@ -53,12 +53,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // ── Route réservée à une capacité ─────────────────────────────────────────
 // Remplace AgentRoute/NonAgentRoute/AdminRoute/RoleRoute (rôles codés en
-// dur) — un seul garde générique, dérivé de hasCapability() comme partout
+// dur) - un seul garde générique, dérivé de hasCapability() comme partout
 // ailleurs dans ce refactor d'autorisation (Phase 5.1). Le frontend reste
 // UX seulement : le backend est la source de vérité, ce garde évite juste
 // d'afficher un écran que l'API refusera de toute façon.
 //
-// Redirige vers getLandingRoute(role) plutôt qu'une destination fixe — la
+// Redirige vers getLandingRoute(role) plutôt qu'une destination fixe - la
 // cible dépend du niveau de capacité du rôle, donc "où renvoyer quelqu'un
 // qui n'a pas telle capacité" n'a pas de réponse unique. Sans boucle : les
 // trois destinations de getLandingRoute (/mon-espace, /demandes,
@@ -84,14 +84,14 @@ export function CapabilityRoute({
   return <>{children}</>;
 }
 
-// ── Redirection racine — atterrissage selon le rôle (voir lib/landing.ts) ─
+// ── Redirection racine - atterrissage selon le rôle (voir lib/landing.ts) ─
 export function LandingRedirect() {
   const { user } = useAuth();
   return <Navigate to={getLandingRoute(user?.role)} replace />;
 }
 
 // ── Composant racine ──────────────────────────────────────────────────────
-// Root element of the data router (see router.tsx) — owns the auth session
+// Root element of the data router (see router.tsx) - owns the auth session
 // check and the bootstrap redirect, wraps every route via <Outlet />.
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -123,7 +123,7 @@ export default function App() {
     verifierSession();
   }, []);
 
-  // Écran de chargement initial — avant même de savoir si bootstrap est nécessaire
+  // Écran de chargement initial - avant même de savoir si bootstrap est nécessaire
   if (chargement) {
     return (
       <div className="min-h-screen bg-anac-gray flex items-center justify-center">
@@ -140,7 +140,7 @@ export default function App() {
     );
   }
 
-  // Redirections liées au bootstrap — remplace l'ancienne route catch-all
+  // Redirections liées au bootstrap - remplace l'ancienne route catch-all
   // conditionnelle, plus possible avec un data router (arbre de routes statique).
   if (bootstrapNeeded && location.pathname !== '/bootstrap') {
     return <Navigate to="/bootstrap" replace />;

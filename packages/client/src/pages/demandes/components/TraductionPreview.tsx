@@ -1,7 +1,7 @@
 // packages/client/src/pages/demandes/components/TraductionPreview.tsx
 //
 // Read-only view of a linked translation for roles that can't open the full
-// editing workshop (agent — see requests.permissions.ts canOpenTranslation).
+// editing workshop (agent - see requests.permissions.ts canOpenTranslation).
 // Server-side (GET /traductions/:id) already enforces that an agent can only
 // ever reach their own linked translation; this component doesn't repeat
 // that check, it just renders whatever the API returns.

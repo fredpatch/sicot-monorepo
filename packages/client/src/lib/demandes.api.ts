@@ -27,7 +27,7 @@ export const demandesApi = {
     pageSize?: number;
   }) => api.get('/demandes', { params }),
 
-  // Compteurs globaux, indépendants des filtres courants — ou scopés à un
+  // Compteurs globaux, indépendants des filtres courants - ou scopés à un
   // demandeur (ex. l'espace de travail agent)
   aggregates: (params?: { demandeurId?: number }) => api.get('/demandes/aggregates', { params }),
 

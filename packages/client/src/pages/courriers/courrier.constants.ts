@@ -1,4 +1,9 @@
-import type { CourrierDirection, CourrierReponseStatut, CourrierSuiviStatut, CourrierCriticite } from './courrier.types';
+import type {
+  CourrierDirection,
+  CourrierReponseStatut,
+  CourrierSuiviStatut,
+  CourrierCriticite,
+} from './courrier.types';
 
 export const COURRIER_PAGE_SIZE = 8;
 
@@ -42,7 +47,7 @@ export const COURRIER_CRITICITE_LABELS: Record<CourrierCriticite, string> = {
   critique: 'Critique',
 };
 
-// "Réponse" filter — a derived view over direction+reponseRequise+suiviStatut+
+// "Réponse" filter - a derived view over direction+reponseRequise+suiviStatut+
 // criticite, not a stored field. See courrier.utils.ts.
 export const COURRIER_RESPONSE_FILTER_OPTIONS = [
   { value: '__all__', label: 'Toutes' },
@@ -51,7 +56,7 @@ export const COURRIER_RESPONSE_FILTER_OPTIONS = [
   { value: 'repondu', label: 'Répondu' },
 ];
 
-// "Période" filter — computed client-side into dateDebut/dateFin against
+// "Période" filter - computed client-side into dateDebut/dateFin against
 // dateReception (see courrier.utils.ts's getPeriodeRange).
 export const COURRIER_PERIOD_OPTIONS = [
   { value: '__all__', label: 'Toutes' },

@@ -1,9 +1,9 @@
 // packages/client/src/components/documents/QuickUploadDialog.tsx
 //
-// Reusable upload dialog — uploads a file via the existing POST
+// Reusable upload dialog - uploads a file via the existing POST
 // /documents/upload (open to any authenticated role, no gating) and hands
 // the created document back to the caller via onUploaded. Deliberately
-// generic: it doesn't know what happens after upload — the caller decides
+// generic: it doesn't know what happens after upload - the caller decides
 // (select it on a form, link it to a mission as a report, etc.), so the
 // same dialog serves the Demandes source-picker and the Mon espace mission
 // report cards without duplicating upload logic.

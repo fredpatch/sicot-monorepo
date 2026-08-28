@@ -4,14 +4,14 @@ import { genererPDFMission } from '../services/missions.export.service.js';
 import { handleMissionsError } from '@/utils/error.js';
 import { hasCapability, UserRole } from '@sicot/shared';
 
-// ── Filtre participantId — dérivation d'identité, pas de confiance client ──
+// ── Filtre participantId - dérivation d'identité, pas de confiance client ──
 // participantId sert deux usages sous la même route : le registre global
 // filtré (admin) et "mes missions" (n'importe quel rôle, cf. MesMissionsPage
 // / MonEspacePage côté client, qui envoient toujours participantId=user.id).
 // Seuls les détenteurs de MISSION_REGISTRY_VIEW (admin/super_admin) peuvent
 // consulter les missions d'un autre utilisateur ; pour tout le monde, un
 // participantId demandé différent de l'utilisateur authentifié est
-// silencieusement remplacé par req.user.userId — l'appelant ne peut jamais
+// silencieusement remplacé par req.user.userId - l'appelant ne peut jamais
 // obtenir la liste "personnelle" de quelqu'un d'autre en modifiant ce
 // paramètre (IDOR corrigé Phase 4.3). Un appel sans participantId reste
 // inchangé (lecture globale non filtrée, comportement préexistant préservé).
@@ -27,8 +27,16 @@ function resolveParticipantFilter(req: Request, requested: number | undefined): 
 // ── GET /api/missions ─────────────────────────────────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
-    const { search, statut, pays, participantId, confirmationLogistique, rapportStatut, page, pageSize } =
-      req.query;
+    const {
+      search,
+      statut,
+      pays,
+      participantId,
+      confirmationLogistique,
+      rapportStatut,
+      page,
+      pageSize,
+    } = req.query;
 
     const result = await missionsService.listerMissions({
       search: search as string | undefined,
@@ -38,7 +46,8 @@ export async function lister(req: Request, res: Response): Promise<void> {
         req,
         participantId ? parseInt(participantId as string) : undefined
       ),
-      confirmationLogistique: confirmationLogistique as missionsService.LogistiqueStatut | undefined,
+      confirmationLogistique: confirmationLogistique as
+        missionsService.LogistiqueStatut | undefined,
       rapportStatut: rapportStatut as 'disponible' | 'manquant' | undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
@@ -206,7 +215,11 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       // null clears the link (removing a mistakenly-uploaded report);
       // undefined (field absent) leaves it untouched.
       rapportDocumentId:
-        rapportDocumentId === null ? null : rapportDocumentId !== undefined ? parseInt(rapportDocumentId) : undefined,
+        rapportDocumentId === null
+          ? null
+          : rapportDocumentId !== undefined
+            ? parseInt(rapportDocumentId)
+            : undefined,
       // null clears the designated report responsible (mission keeps
       // existing without one); undefined (field absent) leaves it untouched.
       rapportResponsableId:
@@ -221,7 +234,11 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       // null clears the contact-on-site (removing one set by mistake);
       // undefined (field absent) leaves it untouched.
       contactSurPlaceId:
-        contactSurPlaceId === null ? null : contactSurPlaceId !== undefined ? parseInt(contactSurPlaceId) : undefined,
+        contactSurPlaceId === null
+          ? null
+          : contactSurPlaceId !== undefined
+            ? parseInt(contactSurPlaceId)
+            : undefined,
       updatedByUserId: req.user!.userId,
     });
 
@@ -234,9 +251,9 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
 // ── PATCH /api/missions/:id/rapport ───────────────────────────────────────
 // Workflow personnel (Phase 8) : seul le participant explicitement désigné
 // comme rapportResponsableId peut soumettre/remplacer le rapport officiel
-// ici — MISSION_MANAGE (admin+) passe aussi, mais son chemin normal reste
+// ici - MISSION_MANAGE (admin+) passe aussi, mais son chemin normal reste
 // le PATCH générique ci-dessus (MissionReportSection côté client). Ne
-// touche jamais titre/statut/participants/etc — seulement rapportDocumentId,
+// touche jamais titre/statut/participants/etc - seulement rapportDocumentId,
 // par construction (le body n'accepte que documentId).
 export async function definirRapportPersonnel(req: Request, res: Response): Promise<void> {
   try {
@@ -261,7 +278,9 @@ export async function definirRapportPersonnel(req: Request, res: Response): Prom
         (await missionsService.estResponsableRapportMission(id, userId)));
 
     if (!autorise) {
-      res.status(403).json({ message: "Vous n'êtes pas le responsable désigné du rapport de cette mission." });
+      res
+        .status(403)
+        .json({ message: "Vous n'êtes pas le responsable désigné du rapport de cette mission." });
       return;
     }
 

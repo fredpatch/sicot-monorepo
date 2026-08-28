@@ -8,7 +8,7 @@ sicot-monorepo/                     npm workspaces root
 │   ├── client/     @sicot/client   React SPA (Vite)
 │   ├── server/     @sicot/server   Express REST API
 │   ├── shared/     @sicot/shared   Shared TS types (minimal, grows over sprints)
-│   └── ocr-service/                Python microservice (Flask + Waitress) — NOT an npm package
+│   └── ocr-service/                Python microservice (Flask + Waitress) - NOT an npm package
 │       ├── main.py                 Flask app, /extract and /health routes
 │       └── requirements.txt        Python deps (pdfplumber, pytesseract, pdf2image, python-docx, ...)
 ├── docs/                           Project docs (PDF, DOCX, TASKS.md)
@@ -19,25 +19,26 @@ sicot-monorepo/                     npm workspaces root
 
 ## Client Stack
 
-| Concern | Library | Version |
-|---------|---------|---------|
-| Framework | React | 18.3 |
-| Build | Vite | 5.x |
-| Language | TypeScript | 5.4, moduleResolution: Bundler |
-| CSS | Tailwind CSS **v4** | @theme block, no tailwind.config.js |
-| Routing | react-router-dom | v6 |
-| Server state | TanStack Query | v5 |
-| Forms | react-hook-form + zod | v7 + v3 |
-| HTTP | Axios | v1.7, baseURL: /api, withCredentials: true |
-| Animations | framer-motion | v12 |
-| i18n | react-i18next | FR default, EN toggle |
-| Icons | lucide-react | v1.21 |
-| UI primitives | CVA (class-variance-authority) | Manually crafted — no shadcn CLI |
-| Path alias | `@/` → `./src/` | vite.config.ts + tsconfig paths |
+| Concern       | Library                        | Version                                    |
+| ------------- | ------------------------------ | ------------------------------------------ |
+| Framework     | React                          | 18.3                                       |
+| Build         | Vite                           | 5.x                                        |
+| Language      | TypeScript                     | 5.4, moduleResolution: Bundler             |
+| CSS           | Tailwind CSS **v4**            | @theme block, no tailwind.config.js        |
+| Routing       | react-router-dom               | v6                                         |
+| Server state  | TanStack Query                 | v5                                         |
+| Forms         | react-hook-form + zod          | v7 + v3                                    |
+| HTTP          | Axios                          | v1.7, baseURL: /api, withCredentials: true |
+| Animations    | framer-motion                  | v12                                        |
+| i18n          | react-i18next                  | FR default, EN toggle                      |
+| Icons         | lucide-react                   | v1.21                                      |
+| UI primitives | CVA (class-variance-authority) | Manually crafted - no shadcn CLI           |
+| Path alias    | `@/` → `./src/`                | vite.config.ts + tsconfig paths            |
 
 **Dev port**: 5173
 
-### Client `tsconfig.json` — critical settings
+### Client `tsconfig.json` - critical settings
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -54,34 +55,34 @@ sicot-monorepo/                     npm workspaces root
 
 ## Server Stack
 
-| Concern | Library | Notes |
-|---------|---------|-------|
-| Framework | Express | v4 (v5 in root devDeps, irrelevant to server) |
-| Language | TypeScript + tsx | tsx watch in dev |
-| ORM | Drizzle ORM | v0.45 + drizzle-kit v0.31 |
-| Database | PostgreSQL | pg v8 |
-| Auth tokens | jsonwebtoken | httpOnly cookies, no localStorage |
-| Passwords | bcryptjs | 10 rounds |
-| Email | Nodemailer | OTP delivery, alerts |
-| Cron | node-cron | Backup jobs |
-| PDF gen | Puppeteer | Sprint 5 (not yet used) |
-| Excel gen | ExcelJS | Sprint 5 (not yet used) |
+| Concern     | Library          | Notes                                         |
+| ----------- | ---------------- | --------------------------------------------- |
+| Framework   | Express          | v4 (v5 in root devDeps, irrelevant to server) |
+| Language    | TypeScript + tsx | tsx watch in dev                              |
+| ORM         | Drizzle ORM      | v0.45 + drizzle-kit v0.31                     |
+| Database    | PostgreSQL       | pg v8                                         |
+| Auth tokens | jsonwebtoken     | httpOnly cookies, no localStorage             |
+| Passwords   | bcryptjs         | 10 rounds                                     |
+| Email       | Nodemailer       | OTP delivery, alerts                          |
+| Cron        | node-cron        | Backup jobs                                   |
+| PDF gen     | Puppeteer        | Sprint 5 (not yet used)                       |
+| Excel gen   | ExcelJS          | Sprint 5 (not yet used)                       |
 
 **Dev port**: 3001
 
 ### Server environment variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `DATABASE_URL` | — | PostgreSQL connection string |
-| `JWT_ACCESS_SECRET` | — | Access token signing |
-| `JWT_REFRESH_SECRET` | — | Refresh token signing |
-| `PORT` | 3001 | HTTP port |
-| `NODE_ENV` | development | production enables secure cookies |
-| `CORS_ORIGIN` | http://localhost:5173 | Must be exact (no wildcard with credentials) |
-| `SMTP_HOST/PORT/USER/PASS` | — | Nodemailer for OTP emails |
-| `UPLOAD_DIR` | /sicot/documents | Document storage path |
-| `MAX_LOGIN_ATTEMPTS` | 5 | Lockout threshold |
+| Variable                   | Default               | Purpose                                      |
+| -------------------------- | --------------------- | -------------------------------------------- |
+| `DATABASE_URL`             | -                     | PostgreSQL connection string                 |
+| `JWT_ACCESS_SECRET`        | -                     | Access token signing                         |
+| `JWT_REFRESH_SECRET`       | -                     | Refresh token signing                        |
+| `PORT`                     | 3001                  | HTTP port                                    |
+| `NODE_ENV`                 | development           | production enables secure cookies            |
+| `CORS_ORIGIN`              | http://localhost:5173 | Must be exact (no wildcard with credentials) |
+| `SMTP_HOST/PORT/USER/PASS` | -                     | Nodemailer for OTP emails                    |
+| `UPLOAD_DIR`               | /sicot/documents      | Document storage path                        |
+| `MAX_LOGIN_ATTEMPTS`       | 5                     | Lockout threshold                            |
 
 ## Data Flow
 
@@ -116,65 +117,75 @@ Browser (React SPA)
 ## Module Structure Pattern (Server)
 
 Every future module follows:
+
 ```
 packages/server/src/modules/<name>/
-  controllers/<name>.controller.ts   — HTTP layer, input validation, calls service
-  services/<name>.service.ts         — Business logic, DB queries via Drizzle
-  routes/<name>.route.ts             — Express Router, auth/role middleware applied here
+  controllers/<name>.controller.ts   - HTTP layer, input validation, calls service
+  services/<name>.service.ts         - Business logic, DB queries via Drizzle
+  routes/<name>.route.ts             - Express Router, auth/role middleware applied here
 ```
+
 Then mounted in `src/index.ts` as `app.use('/api/<name>', ...routes)`.
 
 ## OCR Microservice (`packages/ocr-service/`)
 
-A standalone Python/Flask service that handles all text extraction. Express calls it over HTTP — no Node OCR libraries needed.
+A standalone Python/Flask service that handles all text extraction. Express calls it over HTTP - no Node OCR libraries needed.
 
-| Concern | Detail |
-|---------|--------|
-| Language | Python 3 |
-| Server | Flask + Waitress (production WSGI) |
-| Port | 5001 (env: `OCR_PORT`) |
-| Start | `python main.py` (inside `packages/ocr-service/`, venv activated) |
+| Concern  | Detail                                                            |
+| -------- | ----------------------------------------------------------------- |
+| Language | Python 3                                                          |
+| Server   | Flask + Waitress (production WSGI)                                |
+| Port     | 5001 (env: `OCR_PORT`)                                            |
+| Start    | `python main.py` (inside `packages/ocr-service/`, venv activated) |
 
 ### Routes
-- `POST /extract` — multipart file → `{ texte, langue, format, caracteres, succes }`
-- `GET /health` — liveness check, returns Tesseract version
+
+- `POST /extract` - multipart file → `{ texte, langue, format, caracteres, succes }`
+- `GET /health` - liveness check, returns Tesseract version
 
 ### Supported Formats & Extractors
-| Extension | Library | Notes |
-|-----------|---------|-------|
-| `.pdf` | pdfplumber + pdf2image + Tesseract | Auto-detects native vs scanned per page |
-| `.docx` | python-docx | Includes table cells |
-| `.doc` | LibreOffice headless → docx → python-docx | Requires LibreOffice installed |
-| `.txt` | Built-in decode | Tries utf-8, latin-1, cp1252 |
-| `.xlsx` | openpyxl | All sheets |
-| `.xls` | xlrd | All sheets |
-| `.jpg/.jpeg/.png/.tiff` | Tesseract direct | `lang=fra+eng`, `--psm 3` |
+
+| Extension               | Library                                   | Notes                                   |
+| ----------------------- | ----------------------------------------- | --------------------------------------- |
+| `.pdf`                  | pdfplumber + pdf2image + Tesseract        | Auto-detects native vs scanned per page |
+| `.docx`                 | python-docx                               | Includes table cells                    |
+| `.doc`                  | LibreOffice headless → docx → python-docx | Requires LibreOffice installed          |
+| `.txt`                  | Built-in decode                           | Tries utf-8, latin-1, cp1252            |
+| `.xlsx`                 | openpyxl                                  | All sheets                              |
+| `.xls`                  | xlrd                                      | All sheets                              |
+| `.jpg/.jpeg/.png/.tiff` | Tesseract direct                          | `lang=fra+eng`, `--psm 3`               |
 
 ### System dependencies (must be installed on SERV-APPI)
-- Tesseract OCR 5.x — `fra+eng` language packs
-- LibreOffice (headless) — for `.doc` conversion
-- Poppler — for `pdf2image`
+
+- Tesseract OCR 5.x - `fra+eng` language packs
+- LibreOffice (headless) - for `.doc` conversion
+- Poppler - for `pdf2image`
 
 ### Text cleanup (post-extraction)
+
 - Removes spurious spaces around apostrophes: `"l ' annexe"` → `"l'annexe"` (identified in LibreTranslate tests)
 - Collapses multiple spaces and blank lines
 
 ### TypeScript client
-`packages/server/src/utils/ocr.ts` — wraps the HTTP calls:
+
+`packages/server/src/utils/ocr.ts` - wraps the HTTP calls:
+
 - `extraireTexte({ buffer, nomFichier, mimeType })` → `OCRResult`
 - `verifierServiceOCR()` → `boolean` (called at server startup)
 - Error codes: `OCR_SERVICE_INDISPONIBLE`, `OCR_TIMEOUT`, `OCR_ERREUR`
 - Timeout: 60 seconds (large PDFs)
 
 ### Environment variables
-- `OCR_SERVICE_URL` — default: `http://localhost:5001`
-- `OCR_PORT` — (Python side) default: `5001`
-- `TESSERACT_CMD` — full path to tesseract.exe (Windows)
-- `LIBREOFFICE_CMD` — full path to soffice.exe (Windows)
+
+- `OCR_SERVICE_URL` - default: `http://localhost:5001`
+- `OCR_PORT` - (Python side) default: `5001`
+- `TESSERACT_CMD` - full path to tesseract.exe (Windows)
+- `LIBREOFFICE_CMD` - full path to soffice.exe (Windows)
 
 ## Backup Jobs
 
 File: `packages/server/src/jobs/backup.ts`
+
 - **Daily** `'0 2 * * *'` → local disk, retain 30 days
 - **Weekly** `'0 3 * * 0'` → NAS target, retain 12 months
 - Started at server boot in `index.ts`
@@ -188,7 +199,7 @@ File: `packages/server/src/jobs/backup.ts`
 
 Docker Compose + GitHub Actions/GHCR, following the pattern documented in
 `docs/deployment-documentation.md` (generic playbook) and
-`docs/deployment/production-guide.md` (this project's runbook — real values,
+`docs/deployment/production-guide.md` (this project's runbook - real values,
 exact commands). Full details there; summary:
 
 ```
@@ -201,26 +212,26 @@ docker-compose.prod.yml       pulls prebuilt GHCR images, TLS, restart:unless-st
 `client` + `api` internally; `api` → `postgres`, `ocr`, `translate`;
 `translate` → `libretranslate` (self-hosted MT engine, `LT_LOAD_ONLY=fr,en`).
 `ocr` and `translate` are the Dockerized `ocr-service`/`translate-service`
-from above — same code, `main.py` now binds `0.0.0.0` (was `127.0.0.1`,
+from above - same code, `main.py` now binds `0.0.0.0` (was `127.0.0.1`,
 broken in Docker) and env-driven `TESSERACT_CMD`/`LIBREOFFICE_CMD` point at
 Linux paths inside the container instead of the Windows dev defaults.
 
 **CI/CD** is three separate GitHub Actions workflows (`.github/workflows/`):
-`ci.yml` (every push/PR — lint + build), `docker-publish.yml` (push to
-`main` — builds & pushes 4 images to GHCR: `sicot-{api,client,ocr,translate}`),
-`deploy-prod.yml` (**manual `workflow_dispatch` only** — pushing to `main`
+`ci.yml` (every push/PR - lint + build), `docker-publish.yml` (push to
+`main` - builds & pushes 4 images to GHCR: `sicot-{api,client,ocr,translate}`),
+`deploy-prod.yml` (**manual `workflow_dispatch` only** - pushing to `main`
 never auto-deploys to the VPS).
 
 **Relationship to SERV-APPI**: the original plan (`quick-ref.md` blockers)
 was LAN deployment on the Windows server `SERV-APPI`. As of 2026-08-24 the
 project owner has scratched that plan entirely (security issue on that
-server) — SERV-APPI will not host the application. This Docker/VPS infra
+server) - SERV-APPI will not host the application. This Docker/VPS infra
 is now the only deployment path; the app already runs on a separate
 Ubuntu test server.
 
 **Known infra gap**: no automated test suite exists yet; `ci.yml`'s
 `verify` job type-checks and builds (`npm run build`) but doesn't run
-tests — don't treat a green CI run as a correctness guarantee beyond
+tests - don't treat a green CI run as a correctness guarantee beyond
 "it compiles."
 
 ## Missions Module (M3) Redesign (2026-08-24)
@@ -232,13 +243,13 @@ Full-detail entry is in `changelog.md`. What matters for future sessions:
   `.schemas.ts` + `components/`), finishing a migration Missions never got
   in earlier sprints. `/missions/:id` is a real route now (was rendered
   inside a split-pane before).
-- `confirmationLogistique` is **derived, not manually set** — it comes from
+- `confirmationLogistique` is **derived, not manually set** - it comes from
   three checklist booleans (`logistiqueBilletReserve`/
   `logistiqueHebergementConfirme`/`logistiqueFinancementValide`, migration
   `0012_opposite_tyrannus.sql`). Don't add a way to set it directly again
   without also updating the derivation logic in
   `missions.service.ts`'s `mettreAJourMission`.
-- New `packages/server/src/modules/contacts/` module — `GET /api/contacts`
+- New `packages/server/src/modules/contacts/` module - `GET /api/contacts`
   (agent-accessible, search across all organisations' contacts in one
   query). This is the correct way to look up a contact going forward;
   don't reintroduce the old organisations→contacts N+1 pattern elsewhere.
@@ -246,31 +257,31 @@ Full-detail entry is in `changelog.md`. What matters for future sessions:
   agent-accessible for **listing only** (mutations stay admin-only), and
   `POST /api/notifications/envoyer` accepts `agent` only for the
   `recommandation_rappel` notification type (checked inside the
-  controller, not the route middleware — other types stay admin-gated).
+  controller, not the route middleware - other types stay admin-gated).
 - Quick-create pattern established here (participant via
   `CreerUtilisateurDialog`, contact via `FormulaireOrganisation`+
-  `FormulaireContact`) — reuse existing admin forms/dialogs rather than
+  `FormulaireContact`) - reuse existing admin forms/dialogs rather than
   building parallel creation logic when a picker's target entity might not
   exist yet. Worth applying the same pattern elsewhere if the same
   complaint comes up (e.g. other pickers across the app).
 
 ## Individual PDF Export (2026-08-24)
 
-Closes the "Export PDF/DOCX individuel" backlog item — accords, courriers,
+Closes the "Export PDF/DOCX individuel" backlog item - accords, courriers,
 and mission reports can each be exported as a standalone PDF "fiche" (not
 the existing dashboard/audit aggregate reports, which are unaffected).
 Full detail in `changelog.md`. What matters for future sessions:
 
 - `src/utils/ficheHTML.ts` is the shared template layer for this class of
-  PDF — masthead (with the ANAC seal, embedded as a cached base64 data URI
+  PDF - masthead (with the ANAC seal, embedded as a cached base64 data URI
   read from `packages/server/assets/anac-seal.png` via a
   `process.cwd()`-relative path), badges, section boxes, tables. Reuse
   these building blocks for any future "one-record fiche" PDF rather than
   hand-rolling HTML again.
-- **The seal file must ship with the server image** — the prod Dockerfile
+- **The seal file must ship with the server image** - the prod Dockerfile
   now has an explicit `COPY --from=build .../assets ./assets` line. If
   that Dockerfile is ever restructured, keep that line or the seal will
-  silently disappear from deployed PDFs (build still succeeds — this is a
+  silently disappear from deployed PDFs (build still succeeds - this is a
   runtime file-not-found that just falls back to text-only masthead, no
   error surfaced).
 - The "Historique" section on each fiche is real: `audit.service.ts`
@@ -283,18 +294,18 @@ Full detail in `changelog.md`. What matters for future sessions:
   not filled with placeholder/invented content (courrier body text, the
   mockup's 5-stage courrier stepper, multi-document association, accord
   type/durée, mission objectif/résumé d'activités, per-mission participant
-  role). These are tracked as Tier 2 backlog (real schema decisions) —
+  role). These are tracked as Tier 2 backlog (real schema decisions) -
   don't quietly add fake data to make a future mockup match instead of
   asking whether the field should actually exist. **Update (2026-08-24,
   Courriers M4 redesign)**: courrier multi-document association and
-  contact-level sender/recipient are no longer Tier 2 — they're real
+  contact-level sender/recipient are no longer Tier 2 - they're real
   fields now (see § Courriers Module Redesign below). The rule still
   applies to what's left: courrier body text, accord type/durée, mission
   objectif/activités, per-mission participant role.
 - Preview-before-download: `GET /:id/export/pdf` accepts `?apercu=1` to
   switch `Content-Disposition` from `attachment` to `inline`. The client's
   `PdfPreviewDialog` (`packages/client/src/components/`) is the shared
-  component for this — reuse it for any future "preview then download"
+  component for this - reuse it for any future "preview then download"
   flow instead of building a new modal.
 
 ## Courriers Module (M4) Redesign (2026-08-24)
@@ -305,10 +316,10 @@ redesign, same normalized shape. What matters for future sessions:
 - `packages/client/src/pages/courriers/` now follows the same
   feature-folder convention as Missions/Partenaires. `/courriers/:id` is a
   real route now (was rendered inside a split-pane before).
-- **Contact-level sender/recipient is real now** —
+- **Contact-level sender/recipient is real now** -
   `courriers.expediteurContactId`/`destinataireContactId` (migration
   `0013_nappy_tombstone.sql`, nullable FK → `contacts.id`). It's a
-  *refinement* of the existing organisation link, not a replacement — a
+  _refinement_ of the existing organisation link, not a replacement - a
   courrier always has an organisation, and may additionally name a
   specific contact there. **The server enforces the contact always
   belongs to its organisation**, including on edit: changing
@@ -316,34 +327,34 @@ redesign, same normalized shape. What matters for future sessions:
   null-clearing `expediteurContactId` throws `CONTACT_EXPEDITEUR_INVALIDE`
   rather than silently leaving a stale contact. Any future edit path that
   touches the organisation field must preserve this check.
-- **Multi-document attachment is real now** — new `courrier_documents`
+- **Multi-document attachment is real now** - new `courrier_documents`
   join table (same migration) is the source of truth for a courrier's
   documents; the old single `courriers.documentId` column is **kept but
-  unused** by new code (a deliberate non-destructive choice — the
+  unused** by new code (a deliberate non-destructive choice - the
   migration backfills existing links into the join table, so nothing was
   lost, but the column itself was left rather than dropped). `POST/DELETE
-  /api/courriers/:id/documents` are dedicated endpoints
+/api/courriers/:id/documents` are dedicated endpoints
   (`ajouterDocumentCourrier`/`retirerDocumentCourrier`), not part of the
-  general `PATCH` — don't route document changes through
+  general `PATCH` - don't route document changes through
   `mettreAJourCourrier` again.
 - `GET /api/contacts` gained an `organisationId` filter (used to scope the
-  contact picker to whichever organisation is currently selected) — reuse
+  contact picker to whichever organisation is currently selected) - reuse
   this rather than filtering contacts client-side.
 - Quick-create here is **two separate dialogs**, not one combined
   two-layer dialog like Missions' contact-sur-place picker:
   `QuickCreateOrganisationDialog` (org not found) and
-  `QuickCreateContactDialog` (contact not found, org already known — takes
+  `QuickCreateContactDialog` (contact not found, org already known - takes
   an `organisation` prop instead of picking one itself). Missions' version
   combines both layers because that form has no separate organisation
   field; Courriers' does, so splitting them avoids a redundant org-picking
   step. Both still reuse the exact `FormulaireOrganisation`/
   `FormulaireContact` from Partenaires.
 - Réponse tracking uses a **derived** health signal (`criticite`, computed
-  server-side from configurable thresholds — see `chargerSeuils()`/
+  server-side from configurable thresholds - see `chargerSeuils()`/
   `calculerCriticite()` in `courriers.helpers.ts`), not a stored priority
   field. The registry's `enDepassement` filter and the aggregates
   endpoint's `enDepassement` count share one threshold-computation helper
-  (`calculerLimiteCritique()`) — keep them sharing it if the threshold
+  (`calculerLimiteCritique()`) - keep them sharing it if the threshold
   logic ever changes, don't let them drift apart.
 
 ## App-Wide Router Migration & Confirm Dialog (2026-08-24)
@@ -354,22 +365,22 @@ Traductions:
 - **Data router**: `main.tsx`/`App.tsx` moved from `<BrowserRouter>` +
   `<Routes>` to `createBrowserRouter`/`<RouterProvider>` (route tree now
   lives in `router.tsx`). This was **required** to use `useBlocker`
-  (Traductions workshop's unsaved-changes guard) — it doesn't work with a
+  (Traductions workshop's unsaved-changes guard) - it doesn't work with a
   plain `BrowserRouter`. `App` is now the router's root element: it owns
   the auth-session check and the bootstrap redirect, and wraps every route
   via `<Outlet />`. `Layout` no longer receives `userRole`/`userNom`/
-  `userPrenom` as props (it couldn't — the route tree is built once at
-  module load, outside `App`'s local state) — it reads them from
+  `userPrenom` as props (it couldn't - the route tree is built once at
+  module load, outside `App`'s local state) - it reads them from
   `useAuth()` itself now. Side effect: the bootstrap-needed redirect is
-  now uniformly enforced for *every* route (previously only unmatched
+  now uniformly enforced for _every_ route (previously only unmatched
   ones were caught by a conditional catch-all, so e.g. `/login` was
-  reachable directly even mid-bootstrap) — a behavior tightening, not a
+  reachable directly even mid-bootstrap) - a behavior tightening, not a
   regression, but worth knowing if bootstrap flow ever looks different
   than before.
 - **`useConfirm()`** (`components/ui/confirm-dialog.tsx`): replaces every
   `window.confirm()` in the client (there were 6, across Accords/
   Courriers/Missions forms and headers, not just Traductions) with a
-  Promise-returning hook backed by the existing `Dialog` primitive — no
+  Promise-returning hook backed by the existing `Dialog` primitive - no
   new Radix dependency. `confirmToast` (sonner-based) is a **separate,
   pre-existing, already-non-native pattern** and was deliberately left
   alone; only literal `window.confirm()` calls were migrated. Any new
@@ -385,27 +396,27 @@ sessions:
   action always included `documentId` in the `sessionStorage` prefill
   payload, but `useTraductionPrefill` only ever read `texte` out of it,
   and `useLancerTraduction`'s `lancer()` had no `documentId` parameter at
-  all — so every translation launched from a document silently lost its
+  all - so every translation launched from a document silently lost its
   document link, even though the column, the API param, and the backend
   all supported it correctly. Fixed end-to-end
   (`useTraductionPrefill` → `TraductionsPage` → `useLancerTraduction` →
   `traductionsApi.lancer`). If a future change touches this prefill path,
   keep `documentId` threaded through all four hops.
 - **Glossary suggestion bug, fixed**: `getSuggestionsGlossaire` searched
-  the *source*-language glossary column purely based on the translation's
+  the _source_-language glossary column purely based on the translation's
   overall `direction`, regardless of which panel the user actually
   selected text in. For the common `fr_en` case, selecting text in the
-  **translation** panel (English) searched French terms — always zero
+  **translation** panel (English) searched French terms - always zero
   matches. Fixed by having the client tell the server which panel
   triggered the selection (`?origine=source|traduction` on
   `GET /:id/suggestions`); the server derives the correct language to
   search from `origine` + the traduction's `direction`. Applying a
   suggestion still always writes the **target**-language term into
-  `texteFinal`, regardless of origin — that part was already correct.
+  `texteFinal`, regardless of origin - that part was already correct.
 - **Manual-translation retry**: `PATCH /:id/relancer`, only valid when
   `statut === 'manuelle_requise'`. Re-runs the engine on the stored
   `texteOriginal` and updates `texteIA` + `statut` (→ `a_reviser` on
-  success). **Never touches `texteFinal`** — a manual draft already typed
+  success). **Never touches `texteFinal`** - a manual draft already typed
   is never overwritten. The client additionally disables the button while
   there are unsaved local edits (`modifie === true`), since a query
   invalidation after retry re-syncs the local editor state from the
@@ -415,9 +426,9 @@ sessions:
   since the module's original build but was completely unreachable from
   the UI (deleted records were filtered out of every list query with no
   way back in). Added `?vue=actives|supprimees` to `GET /api/traductions`
-  and a matching tab in the registry — same shape as the `vue` param
+  and a matching tab in the registry - same shape as the `vue` param
   pattern, reusable if another soft-deletable module needs the same fix.
-- **`en_relecture` still has no producer** — defined in the status enum,
+- **`en_relecture` still has no producer** - defined in the status enum,
   shown correctly wherever statuses are rendered, but nothing transitions
   a record into it. Per the original task brief, no fake "submit for
   review" button was added; this remains a real backend gap, not a UI
@@ -427,12 +438,12 @@ sessions:
   `TranslationPanel`, `AssistancePanel` wrapping `EngineStatusBlock` +
   `GlossarySuggestions` + `SourceInfoBlock`). Responsive: 12-col grid
   desktop, stacked 2-col medium, tabs mobile (`components/ui/tabs.tsx`).
-- **Microservices are Docker-managed, not part of `npm run dev`** —
+- **Microservices are Docker-managed, not part of `npm run dev`** -
   `libretranslate`/`translate-service`/`ocr-service` are meant to run
   continuously on the real server. `npm run services:up/down/restart/
-  logs/status` wrap `docker compose` for exactly those 3 services. If the
+logs/status` wrap `docker compose` for exactly those 3 services. If the
   engine ever shows "hors ligne" locally, check `npm run services:status`
-  before assuming a code regression — most likely they're just not
+  before assuming a code regression - most likely they're just not
   running (no `.env` needed for these 3 specifically, only for DB/JWT-
   dependent services in the same compose file).
 
@@ -441,28 +452,28 @@ sessions:
 Full detail in `changelog.md`. Notable, non-obvious things for future
 sessions:
 
-- **Two independent, disconnected glossary-suggestion code paths exist —
+- **Two independent, disconnected glossary-suggestion code paths exist -
   only one is used**: `glossaireApi.suggestions` → `GET
-  /glossaire/suggestions` → `suggererTermes()` is dead code, never called
+/glossaire/suggestions` → `suggererTermes()` is dead code, never called
   anywhere in the client. The Traductions editor actually uses
   `traductionsApi.suggestions` → `GET /traductions/:id/suggestions` →
   `getSuggestionsGlossaire()`, which lives entirely inside the
   **traduction** module, not glossaire. They have different matching
   logic (whole-phrase substring on FR+EN vs. per-word substring on one
   language only, capped to 5 words >3 chars). This redesign deliberately
-  did not touch either — confirmed by diff review — since the brief
+  did not touch either - confirmed by diff review - since the brief
   scoped Glossaire only. Don't assume `glossaireApi.suggestions` is live
   if you go looking for where suggestions come from.
 - **`glossaire.service.ts` had two duplicate-checking inconsistencies,
   one now fixed**: `importerTermes` (CSV import) always had a
   case-insensitive exact FR+EN match check; `creerTerme` (manual create)
-  had none until this redesign — now reuses the same check, throwing
+  had none until this redesign - now reuses the same check, throwing
   `TERME_DEJA_EXISTANT` (409). The domain filter dropdown's distinct-value
   query still only scans **active** terms (`listerTermes`'s `domaines`
-  return value) — a domain used solely by inactive terms silently
+  return value) - a domain used solely by inactive terms silently
   disappears from the filter list even with "Inactifs" selected. Not
   fixed this session (out of the brief's scope), just flagging it exists.
-- **Reactivate was absent at every layer before this redesign** — no
+- **Reactivate was absent at every layer before this redesign** - no
   service function, no controller handler, no route, no client call. The
   generic `mettreAJourTerme` technically accepts `actif: true` in its
   params and always did, but nothing called it that way. Added a
@@ -470,23 +481,23 @@ sessions:
   routing reactivation through the generic update, so it gets its own
   audit action (`TERME_REACTIVE`) and its own guard (throws
   `TERME_DEJA_ACTIF` if already active) rather than silently no-op'ing.
-- **`glossaireHistorique` only ever stores old `termeFr`/`termeEn`** — a
+- **`glossaireHistorique` only ever stores old `termeFr`/`termeEn`** - a
   history row is created only when one of those two fields changes;
   editing `domaine`/`contexte` alone, or deactivating/reactivating,
   creates no history entry. The UI labels this "Historique" without
-  implying it's a full audit trail — don't add domaine/contexte/actif
+  implying it's a full audit trail - don't add domaine/contexte/actif
   history rendering without a matching schema change first.
 - **Multilingual-ready adapter layer**: `glossary.adapters.ts` exposes
   `GlossaryConceptViewModel`/`TermVariant`/`getPrimaryVariant()`/
   `toApiPayload()`. The registry table, mobile cards, and workspace all
   consume `variants: TermVariant[]`, never `termeFr`/`termeEn` directly.
   Backend storage is unchanged (`termeFr`/`termeEn` columns, no schema
-  migration) — this is a frontend normalization layer only, matching the
+  migration) - this is a frontend normalization layer only, matching the
   brief's explicit "multilingual-ready, not multilingual migration"
   constraint. A future language (ES/PT/...) needs a new variant entry in
   `toGlossaryConceptViewModel()` plus real backend columns/params; the
   registry/workspace/table components would not need to change shape.
-- **No Sheet/Drawer primitive exists in `components/ui/`** — the term
+- **No Sheet/Drawer primitive exists in `components/ui/`** - the term
   workspace (`TermWorkspace.tsx`) is a `Dialog` with `Tabs` inside
   (Traductions/Contexte/Informations/Historique) rather than a true side
   sheet, since the brief explicitly said not to introduce a new UI
@@ -504,62 +515,62 @@ Full detail in `changelog.md`. Notable, non-obvious things for future
 sessions:
 
 - **Demandes and Traductions are two fully independent status machines
-  with no cross-checks, despite the FK link between them** — found during
+  with no cross-checks, despite the FK link between them** - found during
   the audit, deliberately not fixed. `approuverTraduction()` never touches
   `demandesTraduction`; `validerDemande()`/`archiverDemande()` never check
   the linked translation's status. A demande can show `validee`/`archivee`
   while its translation is still `a_reviser`, and vice versa. Don't assume
   these two statuses stay in sync anywhere in the UI.
 - **A demande can end up permanently locked with no recovery path**:
-  `prendreEnCharge()` poses the atomic lock (`verrou: true`) *before*
+  `prendreEnCharge()` poses the atomic lock (`verrou: true`) _before_
   attempting `lancerTraduction()`. If that call throws, the demande stays
   `en_cours`/locked with no `traductionId`, and there is no in-module
-  action to release it — the only code path that ever clears `verrou` is
-  in the *Traductions* module (`supprimerTraduction()`), which requires a
+  action to release it - the only code path that ever clears `verrou` is
+  in the _Traductions_ module (`supprimerTraduction()`), which requires a
   `traductionId` to exist in the first place. Not fixed this session.
-- **`validerPriorite()` has no server-side status guard at all** — it can
+- **`validerPriorite()` has no server-side status guard at all** - it can
   be called (and will succeed) on an `archivee` demande via a direct API
   call, even though the UI hides the button in that case. Client-only
   enforcement, not a real guard.
-- **Search added to `listerDemandes()` without a join** — resolves
+- **Search added to `listerDemandes()` without a join** - resolves
   `demandeurNom`/`traducteurNom` (via a `users` query) and `documentNom`
   (via a `documents` query) to candidate ID arrays first, then `inArray`s
   them alongside a direct `ilike` on `texteLibre`. Chosen over restructuring
   the query into a join, since `toDemandeView()` already does per-row
-  lookups the same way — keeps the search consistent with how the rest of
+  lookups the same way - keeps the search consistent with how the rest of
   the service already resolves those fields.
 - **Role-based landing routing is new infrastructure, not a one-off**:
   `lib/landing.ts`'s `getLandingRoute(role)` is the only place that decides
-  where a role lands — used by `LoginPage`'s two post-auth `navigate()`
+  where a role lands - used by `LoginPage`'s two post-auth `navigate()`
   calls and the root/wildcard route (`<LandingRedirect />` in `App.tsx`).
   If a future role needs its own landing page, add the branch there, not
   in three separate call sites again.
 - **`/dashboard` had a real route-guard gap, now closed**: it was already
   hidden from the sidebar for `agent` (via `NAV_ITEMS`'s `roles` filter),
-  but the *route itself* had no guard — reachable by typing the URL
+  but the _route itself_ had no guard - reachable by typing the URL
   directly. `AgentRoute`/`NonAgentRoute` (`App.tsx`) fix this in both
   directions: `/mon-espace` and `/mes-missions` now real-guard to `agent`
   only, `/dashboard` real-guards everyone else away from `agent`. This
   pattern (nav-hidden ≠ actually protected) is worth checking before
   assuming any other nav-gated route is actually inaccessible.
 - **`QuickUploadDialog` (`components/documents/`) is intentionally
-  ignorant of what happens after upload** — it uploads and calls
+  ignorant of what happens after upload** - it uploads and calls
   `onUploaded(document)`, full stop. The caller decides whether that means
   "select this on a form" (`NewRequestDialog`) or "link this as a mission
   report" (`MyMissionsPanel`/`MesMissionsPage`, via a separate
   `missionsApi.mettreAJour({ rapportDocumentId })` call in the caller, not
   the dialog). Do not add mission-specific or demande-specific logic
-  inside the dialog itself — extend via the `onUploaded` callback instead.
+  inside the dialog itself - extend via the `onUploaded` callback instead.
   Currently wired into 2 of the 4 existing manual-upload call sites
   (Demandes, Missions-via-Mon-espace); `AccordFormPage`'s and
   `CourrierDocumentPicker`'s inline uploads were deliberately left as-is
-  (scope decision — "new only, extend later if it proves out").
+  (scope decision - "new only, extend later if it proves out").
 - **Documents role gating exists on both layers now, but was added
-  client-side only this session** — the server already correctly gated
+  client-side only this session** - the server already correctly gated
   delete/OCR-correct/retraiter-OCR/catégorie to `traducteur+` and portal
   publish/unpublish to `admin+` (confirmed by reading the route file, no
   change needed there). `documents.permissions.ts` is a pure UI mirror of
-  those existing gates — if the server gates ever change, this file will
+  those existing gates - if the server gates ever change, this file will
   silently drift out of sync since nothing enforces they match beyond
   manual review.
 - **`users.poste`/`.service`/`.direction`** (migration
@@ -567,7 +578,7 @@ sessions:
   created via the Personnel ANAC picker flow (`OngletPersonnelAnac` →
   `PrefillUtilisateur` → `CreateUserDialog`'s hidden submit merge →
   `POST /users`). A manually-created account has `null` in all three,
-  by design — the profile page and anywhere else displaying them must
+  by design - the profile page and anywhere else displaying them must
   treat absence as normal, not as a loading/error state.
 - **Password complexity is enforced by one shared function now**:
   `validerForceMotDePasse()` (`utils/password.ts`) is called from
@@ -577,211 +588,211 @@ sessions:
   length check) despite its own client-side form showing the full
   strength checklist. Any future password-setting path should call this
   function rather than re-implementing the regex checks.
-- **"Dernière connexion" is derived, not stored** — `/auth/me` queries the
-  most recent `audit_logs` row where `action` is `CONNEXION` *or*
+- **"Dernière connexion" is derived, not stored** - `/auth/me` queries the
+  most recent `audit_logs` row where `action` is `CONNEXION` _or_
   `MOT_DE_PASSE_DEFINI` for that user. Excluding `OTP_VALIDE` is
   deliberate: it only grants a 5-minute temporary token, not a real
   session (see `login()`'s `Cas 1`). This was actually wrong on first pass
   (matched `CONNEXION` only) and caught live by the user testing their own
   account, which had only ever completed first-login (`OTP_VALIDE` →
-  `MOT_DE_PASSE_DEFINI`, no subsequent normal login) — a real example of
+  `MOT_DE_PASSE_DEFINI`, no subsequent normal login) - a real example of
   why "looks done" and "actually correct" aren't the same thing without a
   human clicking through it.
 
 ## "Mes demandes" agent screen (2026-08-26)
 
-- **Promotion, not a new module** — Mon espace's `MyRequestsPanel` already
+- **Promotion, not a new module** - Mon espace's `MyRequestsPanel` already
   existed as a compact 5-row preview; this added the full page it always
   linked out to (`/mes-demandes`, `AgentRoute`-guarded), mirroring how
   `/mes-missions` already stood next to `/missions`. No new registry
   component: `RequestsSummaryCards`/`RequestsRegistryTable`/
   `RequestWorkspace`/`NouvelleDemandeDialog` are the exact same instances
   used by the admin `/demandes` page, just given a `demandeurId` scope.
-- **`DemandesAggregates` gained `urgentes`/`normales`** — a straight
+- **`DemandesAggregates` gained `urgentes`/`normales`** - a straight
   `$count` per `prioriteDemandee` value inside `getDemandesAggregates`,
   reusing the same `scope`/`withX` closure pattern already used for the
   status counts. Feeds a bar breakdown in the new right rail; no separate
   endpoint.
-- **New `direction` filter on `listerDemandes`** — the mockup's filter row
+- **New `direction` filter on `listerDemandes`** - the mockup's filter row
   needed FR→EN/EN→FR filtering, which never existed even on the admin
   Demandes page. Added as a plain `eq()` condition, same shape as the
   other filters.
-- **Own filter component, not an extension of `DemandesFiltres`** — the
+- **Own filter component, not an extension of `DemandesFiltres`** - the
   agent screen's mockup lays out Statut/Priorité/Direction flat (no
   "Plus de filtres" collapse, no "Assignation" concept since scope is
   already implicit via `demandeurId`). Rather than overload the admin
   page's `DemandesFiltres` props with an agent-only shape, a new
-  `MyRequestsFilters` component was written — same `FilterChip`/reset
+  `MyRequestsFilters` component was written - same `FilterChip`/reset
   pattern, different field set.
-- **Doughnut chart reuses the Dashboard's existing chart.js setup** — the
+- **Doughnut chart reuses the Dashboard's existing chart.js setup** - the
   shared `ChartCanvas` component (`components/analytics/ChartCanvas.tsx`)
   already renders bar charts on `/dashboard`; a `type: 'doughnut'` config
   was the only new code needed. No new dependency, no new chart wrapper.
 
 ## Agent role-access hardening + translation export + document re-versioning (2026-08-26)
 
-- **UI hiding is not authorization — this whole pass exists because that
+- **UI hiding is not authorization - this whole pass exists because that
   distinction had drifted.** Nav visibility (`Layout.tsx` `roles` arrays)
   and client route guards (`AgentRoute`/`AdminRoute`/new `RoleRoute` in
-  `App.tsx`) only ever control what the UI *shows*; they say nothing about
-  what the API *allows*. Before this pass, `GET /demandes`, `GET
-  /glossaire`, and `GET /traductions/:id` had zero server-side role check
-  — any authenticated agent hitting the API directly (not through the UI)
-  could read every user's demandes, the full glossary, or any translation's
-  content by ID. The client-side fix (route guards) closes the UI path; the
-  server-side fix (forced `demandeurId` scoping, `requireRole('traducteur')`
-  on reads, `estDemandeurDeTraduction()` ownership check) closes the actual
-  authorization gap. Both are necessary — neither alone is sufficient.
+  `App.tsx`) only ever control what the UI _shows_; they say nothing about
+  what the API _allows_. Before this pass, `GET /demandes`, `GET
+/glossaire`, and `GET /traductions/:id` had zero server-side role check
+  - any authenticated agent hitting the API directly (not through the UI)
+    could read every user's demandes, the full glossary, or any translation's
+    content by ID. The client-side fix (route guards) closes the UI path; the
+    server-side fix (forced `demandeurId` scoping, `requireRole('traducteur')`
+    on reads, `estDemandeurDeTraduction()` ownership check) closes the actual
+    authorization gap. Both are necessary - neither alone is sufficient.
 - **`estDemandeurDeTraduction(traductionId, userId)`** (`demandes.service.ts`)
-  — reverse lookup from `traductions.id` to `demandes_traduction.demandeurId`
-  (a translation has no direct owner field; ownership is only expressible
-  through the demande that requested it). Used by `traduction.controller.ts`
-  to gate `GET /:id`, `/:id/export/pdf`, `/:id/export/docx` for the `agent`
-  role specifically — `traducteur+` roles bypass this check entirely (their
-  job requires seeing any translation).
-- **Auditing one fix surfaced two more, unrelated bugs** — `/traductions`
+  - reverse lookup from `traductions.id` to `demandes_traduction.demandeurId`
+    (a translation has no direct owner field; ownership is only expressible
+    through the demande that requested it). Used by `traduction.controller.ts`
+    to gate `GET /:id`, `/:id/export/pdf`, `/:id/export/docx` for the `agent`
+    role specifically - `traducteur+` roles bypass this check entirely (their
+    job requires seeing any translation).
+- **Auditing one fix surfaced two more, unrelated bugs** - `/traductions`
   nav was `admin/super_admin` only, meaning `traducteur`/`relecteur` users
   had no menu path to their own core work page (only ever reachable by
   typing the URL, which nobody had reason to notice since nothing was
   gating it either way); and `POST /documents/:id/nouvelle-version` had no
   `requireRole` at all, found only because this pass was the first to wire
   a UI button to it. Both fixed alongside the main request rather than
-  filed as separate backlog items — same root cause (nav-hides vs.
+  filed as separate backlog items - same root cause (nav-hides vs.
   route/API-guards drift), same fix shape.
-- **Translation export gated on `statut`, not just on access** — `GET
-  /traductions/:id/export/{pdf,docx}` additionally require `statut` to be
+- **Translation export gated on `statut`, not just on access** - `GET
+/traductions/:id/export/{pdf,docx}` additionally require `statut` to be
   `approuvee` or `archivee` (`TRADUCTION_NON_APPROUVEE` otherwise). The text
   can still change up to that point, so exporting earlier would produce a
   document that silently goes stale. The read-only `TraductionPreview`
   component mirrors this: download buttons only render once approved,
   otherwise a plain "le texte peut encore changer" note.
-- **DOCX export is deliberately not the PDF's institutional template** —
+- **DOCX export is deliberately not the PDF's institutional template** -
   the PDF fiche reuses `ficheHTML.ts`/`genererPDFFiche()` (ANAC letterhead,
-  seal, badges — same as accords/courriers/missions). The DOCX
-  (`docx` npm package, first use in the repo) is plain paragraphs only —
+  seal, badges - same as accords/courriers/missions). The DOCX
+  (`docx` npm package, first use in the repo) is plain paragraphs only -
   its purpose is a file the user can reopen and edit locally, not an
   official document, so it deliberately doesn't try to look like one.
-- **Document re-versioning had a complete implementation with zero UI** —
+- **Document re-versioning had a complete implementation with zero UI** -
   `nouvellVersionDocument()`/`POST /:id/nouvelle-version` already existed,
   fully working (links `parentId`, increments `version`), just never
   called from anywhere in the client. `VerserVersionAction` is the first
-  caller. No new "archive" concept was introduced — the existing versioning
+  caller. No new "archive" concept was introduced - the existing versioning
   primitive already covered the "put the reformatted final file back"
   scenario, it just needed a button. Known gap, not addressed here: the
-  Documents registry still lists every version as an independent row —
+  Documents registry still lists every version as an independent row -
   `parentId` isn't reflected in the UI as a grouped chain.
 
 ## Live feedback fixes + Documents download/versions-finales filter (2026-08-26)
 
-- **`estDemandeurDeTraduction`/ownership design held up under real use** —
+- **`estDemandeurDeTraduction`/ownership design held up under real use** -
   no changes needed there; the day's feedback was entirely about UI gaps
   (missing buttons, overflow, layout), not the access-control work.
-- **PDF/DOCX now share a layout, deliberately not by sharing code** — the
+- **PDF/DOCX now share a layout, deliberately not by sharing code** - the
   DOCX generator (`docx` library primitives: `Table`/`TableRow`/`TableCell`
   for the masthead and info grid, `ImageRun` for the seal, `PageBreak`
   between sections) was rewritten to visually match `ficheHTML.ts`'s HTML
-  output, but the two renderers don't share a common template — HTML/CSS
+  output, but the two renderers don't share a common template - HTML/CSS
   and OOXML are different enough that a shared abstraction would have cost
   more than it saved for one document type. If a second DOCX export is
   ever needed, revisit whether a shared layout description is worth it.
-- **Documents "Archives" discussion — the resolution, for future reference**
-  — the user's original framing conflated "archived" (which in this schema
-  means soft-deleted via `deletedAt`, i.e. hidden/restorable) with "this is
-  the finished official version" (no existing field for that). Three
-  options were weighed: (1) infer "final" from the version chain — a
-  document is final iff no other row references it via `parentId`; (2) an
-  explicit boolean/categorie flag set only when `nouvelle-version` runs;
-  (3) a separate `/archives` route entirely. (2) was initially chosen, then
-  dropped: it would only ever flag documents that went through
-  `VerserVersionAction`, silently excluding the majority of documents
-  (accord/courrier/mission attachments) that are final on upload and never
-  get versioned — the exact failure mode flagged as a concern for (1)
-  initially, but (1) actually handles it correctly (a never-versioned
-  document trivially has no children, so it passes as "final"). Shipped:
-  (1), as a filter on the existing Documents page, no schema change, no new
-  route. `listerDocuments`'s `finalesUniquement` resolves it as a
-  candidate-ID exclusion (`NOT IN (SELECT DISTINCT parentId WHERE parentId
-  IS NOT NULL)`), matching the module's established candidate-ID-list
-  pattern rather than a correlated subquery.
+- **Documents "Archives" discussion - the resolution, for future reference**
+  - the user's original framing conflated "archived" (which in this schema
+    means soft-deleted via `deletedAt`, i.e. hidden/restorable) with "this is
+    the finished official version" (no existing field for that). Three
+    options were weighed: (1) infer "final" from the version chain - a
+    document is final iff no other row references it via `parentId`; (2) an
+    explicit boolean/categorie flag set only when `nouvelle-version` runs;
+    (3) a separate `/archives` route entirely. (2) was initially chosen, then
+    dropped: it would only ever flag documents that went through
+    `VerserVersionAction`, silently excluding the majority of documents
+    (accord/courrier/mission attachments) that are final on upload and never
+    get versioned - the exact failure mode flagged as a concern for (1)
+    initially, but (1) actually handles it correctly (a never-versioned
+    document trivially has no children, so it passes as "final"). Shipped:
+    (1), as a filter on the existing Documents page, no schema change, no new
+    route. `listerDocuments`'s `finalesUniquement` resolves it as a
+    candidate-ID exclusion (`NOT IN (SELECT DISTINCT parentId WHERE parentId
+IS NOT NULL)`), matching the module's established candidate-ID-list
+    pattern rather than a correlated subquery.
 - **The Documents download button gap was more severe than the surface
-  question ("should Documents be usable by all users") implied** — it
+  question ("should Documents be usable by all users") implied** - it
   wasn't a role-gating issue at all, downloading was simply never wired to
-  any button for *any* role, admin included. `getUrlTelechargement()` was
+  any button for _any_ role, admin included. `getUrlTelechargement()` was
   dead code. Found only because the "should agents be able to download"
   discussion prompted actually checking what already worked.
 
-## Translation deposit discoverability — the 3-tier model (2026-08-26)
+## Translation deposit discoverability - the 3-tier model (2026-08-26)
 
-Reached by walking through four named people rather than abstract roles —
+Reached by walking through four named people rather than abstract roles -
 worth preserving the reasoning, not just the conclusion, since it's easy to
 re-derive the wrong model (a 4th "translated docs" section) if this comes
 up again.
 
 - **The three tiers, and why each stays where it is:**
-  1. *Private / in-progress* — a demande and its draft translation (text,
+  1. _Private / in-progress_ - a demande and its draft translation (text,
      workflow, assignment, priority). Ownership-scoped to the demandeur +
      `traducteur+` staff (previous round's RBAC hardening). Stays private
-     because it's deliberation/draft state, not a finished artifact —
+     because it's deliberation/draft state, not a finished artifact -
      nobody but the requester and the people working it needs to see a
      translation mid-correction.
-  2. *Internal shared / finished* — Documents. Already open-read to every
+  2. _Internal shared / finished_ - Documents. Already open-read to every
      authenticated role, always has been; the only actual gap was
      discoverability, not access. This is where Yan finds Fred's document.
-  3. *Public / curated* — `/portal`. Admin explicitly opts a specific
+  3. _Public / curated_ - `/portal`. Admin explicitly opts a specific
      document in via `visibilitePortail`. This is where Patrick (external,
      unauthenticated) goes, and it's deliberately a second, separate
-     decision from "this exists internally" — an admin should be able to
+     decision from "this exists internally" - an admin should be able to
      let all of ANAC see something without automatically exposing it
      externally.
 - **Why an explicit `estVersionFinale` boolean or a new categorie value was
-  rejected in favor of using the existing `'traduction'` categorie** — the
+  rejected in favor of using the existing `'traduction'` categorie** - the
   categorie enum already had `'traduction'` as a value (`documents.constants.ts`
   even already lists "Traductions" as a filter option in the UI); the only
-  actual bug was that `nouvellVersionDocument` never applied it — it always
-  inherited the parent document's categorie. Adding a *new* flag on top of
+  actual bug was that `nouvellVersionDocument` never applied it - it always
+  inherited the parent document's categorie. Adding a _new_ flag on top of
   an existing, already-wired categorie would have duplicated a concept that
   already existed and was already surfaced in the UI. The fix was three
   lines deep (`categorieOverride` param) plus one new button
-  (`DeposerDocumentAction`) — not a schema change.
-- **Why a separate `/archives` route was rejected** — everything Yan needs
+  (`DeposerDocumentAction`) - not a schema change.
+- **Why a separate `/archives` route was rejected** - everything Yan needs
   (find + download a finished document) is already what Documents does for
   every other document type (accord/courrier/mission attachments). Adding
   a second page for one categorie of document would duplicate the read
   path, the auth model, and the filter UI for no benefit over "filter
   Documents by Catégorie = Traductions," which already existed.
 - **`DeposerDocumentAction` chooses version-vs-standalone based on
-  `traduction.documentId`** — a translation launched from an uploaded
+  `traduction.documentId`** - a translation launched from an uploaded
   document gets its official file deposited as a new version of that same
   document (keeps the lineage, matches "Verser version finale"'s existing
   semantics); a translation launched from free text (no source document)
   has nothing to version, so it becomes a standalone upload instead. Both
   paths are tagged `categorie: 'traduction'` either way.
 
-## Internal document visibility gate — documents.visibiliteInterne (2026-08-26)
+## Internal document visibility gate - documents.visibiliteInterne (2026-08-26)
 
 Revises the "Documents is open-read to every role" decision from earlier
-the same session — not wrong in general, but wrong as a default for
+the same session - not wrong in general, but wrong as a default for
 freshly-uploaded, not-yet-reviewed material. Triggered by the user noticing
 an agent could see a document an admin had just uploaded, untranslated.
 
-- **Two independent visibility flags on `documents`, not one** —
+- **Two independent visibility flags on `documents`, not one** -
   `visibilitePortail` (external/public, unchanged) and the new
   `visibiliteInterne` (internal/agent). Deliberately not reused/merged:
   "ANAC staff can see this" and "the public can see this" are different
   decisions an admin makes separately (a document can be internally shared
   but never meant for `/portal`, or vice versa in theory).
-- **Only `agent` is restricted — `traducteur+` is unaffected.** The
-  restriction lives in the controller (`estAgent` check), not the service —
+- **Only `agent` is restricted - `traducteur+` is unaffected.** The
+  restriction lives in the controller (`estAgent` check), not the service -
   `listerDocuments`'s `visibleOuUploadePar` filter is simply omitted for
   non-agent roles, so the query runs exactly as it did before this change
   for everyone except agent.
-- **"Visible OR uploaded-by-me", not a flat allowlist** — an agent must
+- **"Visible OR uploaded-by-me", not a flat allowlist** - an agent must
   always see their own uploads (source files for a demande, mission
   reports) even before anything reviews them, otherwise the upload flow
   itself becomes confusing ("I just uploaded this, where did it go?").
   This is why the filter is `or(visibiliteInterne = true, uploadePar =
-  userId)`, not just `visibiliteInterne = true`.
-- **List-level filtering isn't enough on its own — same lesson as the
+userId)`, not just `visibiliteInterne = true`.
+- **List-level filtering isn't enough on its own - same lesson as the
   RBAC round.** `GET /:id` and `GET /:id/telecharger` got the identical
   gap the demandes/traductions/glossaire reads had before that round: the
   list query was scoped but a direct ID hit wasn't. Fixed the same way,
@@ -790,37 +801,37 @@ an agent could see a document an admin had just uploaded, untranslated.
 - **`visibiliteInterne` auto-true only on the translation-deposit path,
   never inferred from `categorie` alone.** A document's `categorie` can be
   changed independently at any time via `PATCH /:id/categorie` (existing
-  endpoint) — if visibility were derived from "categorie === 'traduction'"
+  endpoint) - if visibility were derived from "categorie === 'traduction'"
   as a live property, recategorizing any document to `'traduction'` would
   silently publish it. Instead, the visibility decision is made once, at
   the moment of deposit (`nouvellVersionDocument` with
-  `categorieOverride === 'traduction'`), as an explicit action — categorie
+  `categorieOverride === 'traduction'`), as an explicit action - categorie
   and visibility are set together but tracked independently afterward.
 - **`POST /upload`'s `visibiliteInterne` field is a server-side-gated
-  request, not a client-trusted one** — that route has no role guard at
+  request, not a client-trusted one** - that route has no role guard at
   all (agents upload their own files through it), so honoring a
   client-supplied "make this visible to everyone" flag unconditionally
   would let an agent self-publish. The controller checks `req.user.role`
   and silently drops the field for `agent`, regardless of what the request
   body contains.
-- **No backfill/grandfathering migration** — confirmed with the user that
+- **No backfill/grandfathering migration** - confirmed with the user that
   existing rows are seed/test data, so the new column's DB default
   (`false`) was allowed to apply uniformly with no data migration step.
 
-## Documents module redesign (M8) — audit-first, then incremental (2026-08-26 → 27)
+## Documents module redesign (M8) - audit-first, then incremental (2026-08-26 → 27)
 
 Followed the same process as M3/M4/M6/M7/M5: a Phase 1 audit (file
-structure, API contracts, permissions, OCR/portail/traduction workflow —
+structure, API contracts, permissions, OCR/portail/traduction workflow -
 returned as a report before any code), then a Phase 2 plan informed by a
 `frontend-design` skill pass, deliberately calibrated toward reuse: this is
 an internal regulatory admin tool with an already-normalized visual
 language (`anac-*` tokens, `.card`/`badge-*` classes shared across 6+
-modules) — the plan explicitly rejected reproducing a reference mockup's
+modules) - the plan explicitly rejected reproducing a reference mockup's
 own visual style, since that would fracture consistency with every other
 module rather than improve it. The "signature" move was compositional
 (registry + workspace split), not a new palette/typography choice.
 
-- **List payload trimmed via column projection, not a stripped mapper** —
+- **List payload trimmed via column projection, not a stripped mapper** -
   `listerDocuments` now does `db.select({ ...explicit columns... })`
   rather than `select()` + drop-fields-after; `DocumentListView` is a
   distinct type (`Omit<DocumentView, 'texteExtrait'|'chemin'>`) with its
@@ -831,60 +842,60 @@ module rather than improve it. The "signature" move was compositional
 - **`texteExtrait`'s removal from the list forced a small but real
   consequence, fixed in the same pass**: the "Traduire" eligibility check
   in `documents.columns.tsx` used to read `doc.texteExtrait && statutOCR
-  === 'traite'`; texteExtrait is no longer present on list rows.
+=== 'traite'`; texteExtrait is no longer present on list rows.
   `statutOCR === 'traite'` alone is proven equivalent (the server never
-  writes that status without a non-empty extracted text — confirmed by
+  writes that status without a non-empty extracted text - confirmed by
   reading every write site in `documents.service.ts`), so the check was
   simplified rather than working around the missing field. The actual
   translation handoff (`onTraduire`) now does a one-off `getById` fetch at
   click time to retrieve the real text for the `sessionStorage` prefill.
-- **No Sheet/drawer primitive exists anywhere in this repo** — confirmed
+- **No Sheet/drawer primitive exists anywhere in this repo** - confirmed
   by grep before committing to an implementation. The Phase 2 plan's
   "persistent right-side panel" was adapted to a Dialog+Tabs `Document
-  Workspace`, the same pattern `RequestWorkspace` (Demandes) and
+Workspace`, the same pattern `RequestWorkspace` (Demandes) and
   `TermWorkspace` (Glossaire) already use for exactly this reason. Noted
   explicitly to the user as a deliberate adaptation, not a silent
   downgrade of the plan.
-- **Category editing relocated, not duplicated** — moved from an inline
+- **Category editing relocated, not duplicated** - moved from an inline
   `<Select>` in the registry to the workspace's Informations tab (matches
   the "badge only in the table, edit in the detail panel" goal from the
   plan), sequenced so the capability was never actually unavailable
-  between rounds — the workspace shipped before the registry's inline
+  between rounds - the workspace shipped before the registry's inline
   editor was removed.
 - **`DataTable` (shared component) gained two capabilities reusable by any
   other page**, not just Documents: `onRowClick` (keyboard-accessible,
   `data-stop-row-click` as an escape hatch for cells with their own
-  interactive controls — category select, visibility toggle, action menu
-  — so clicking those doesn't also open the row's detail panel), and
-  reading `columnDef.meta.className` for responsive per-column classes
-  (`ColumnMeta<TData,TValue>` is an empty interface in this project's
-  `@tanstack/table-core` version — no module augmentation exists, so the
-  className is read via an unsafe cast rather than a typed contract).
+  interactive controls - category select, visibility toggle, action menu
+  - so clicking those doesn't also open the row's detail panel), and
+    reading `columnDef.meta.className` for responsive per-column classes
+    (`ColumnMeta<TData,TValue>` is an empty interface in this project's
+    `@tanstack/table-core` version - no module augmentation exists, so the
+    className is read via an unsafe cast rather than a typed contract).
 - **Two library-mismatch bugs, both root-caused by inspecting actual
   component sources rather than guessing**:
   1. The project's `Button` (`components/ui/button.tsx`) is built on
      `@base-ui/react`, while `Dialog`/`Select` are pure
      `@radix-ui/react-*`. Wrapping `Button` in a Radix
-     `DropdownMenuTrigger asChild` doesn't compose — `asChild`'s
+     `DropdownMenuTrigger asChild` doesn't compose - `asChild`'s
      `cloneElement` merge only reliably works when the child is built for
      that exact contract, and grepping the codebase turned up zero
      existing precedent of this combination (the only other `asChild`
      usage wraps Radix's own `Select` icon, not this `Button`). Fixed by
      styling the raw Radix trigger directly instead of nesting `Button`
-     inside it — a pattern worth remembering before adding any future
+     inside it - a pattern worth remembering before adding any future
      Radix-trigger + `Button` composition in this codebase.
   2. `TableRow` (`components/ui/table.tsx`) is shared between header and
      body rows and carries a blanket `hover:bg-anac-gray`; hovering the
      navy `TableHeader` triggered that light hover background, visually
      "turning white." Fixed at the shared component
-     (`[&_tr]:hover:bg-anac-navy` on `TableHeader` — higher CSS specificity
+     (`[&_tr]:hover:bg-anac-navy` on `TableHeader` - higher CSS specificity
      than the row's own `:hover` class, wins regardless of source order)
      rather than patching Documents alone, since every page using this
      `Table` primitive had the same latent bug.
 - **Browser verification: used once, then explicitly told not to repeat.**
   A local Playwright session (real dev servers, a signed JWT cookie) was
   used to chase down and confirm both bugs above after the user reported
-  them from manual testing. The user then asked not to keep doing this —
+  them from manual testing. The user then asked not to keep doing this -
   spinning up Chromium locally to self-verify UI burns tokens on checks
   they can do themselves in seconds ("we cowork here, u not alone"). Going
   forward: tsc/eslint/build remain the standard validation for every
@@ -892,7 +903,7 @@ module rather than improve it. The "signature" move was compositional
   reach for browser automation to replicate. See
   `exploration-cache/quick-ref.md` § Active Blockers for the updated note.
 
-### Utilisateurs (M10) redesign — 2026-08-27
+### Utilisateurs (M10) redesign - 2026-08-27
 
 - **The brief's placeholder assumptions didn't survive the audit.** The
   task brief assumed `poste`/`direction`/`service` and "dernière connexion"
@@ -900,42 +911,42 @@ module rather than improve it. The "signature" move was compositional
   placeholders. Reading `users.service.ts`/`users.types.ts` showed
   `poste/service/direction` are real columns, populated whenever an account
   is created from a Personnel ANAC prefill, and already present in the
-  server's `UserView` — only the client's `Utilisateur` type and every UI
+  server's `UserView` - only the client's `Utilisateur` type and every UI
   surface were missing them. Separately, `/auth/me` already computed a real
   last-login timestamp per request from `auditLogs` (no stored column,
   filtered by `CONNEXION`/`MOT_DE_PASSE_DEFINI`) for the caller's own
-  account — the exact same query just needed parametrizing by an arbitrary
+  account - the exact same query just needed parametrizing by an arbitrary
   `userId` to work for any selected user. Confirmed both with the user
   before implementing them as real, read-only fields instead of
-  placeholders — a case where following the brief literally would have
+  placeholders - a case where following the brief literally would have
   hidden data that already existed.
 - **`getDerniereConnexion` extracted rather than duplicated.** Moved from
   an inline query inside `auth.controller.ts#me` into `auth.service.ts` as
   a standalone export, then imported by `users.service.ts#getUtilisateur`.
   Both `/auth/me` (self) and `GET /users/:id` (admin viewing another
-  account) now call the same function — one audit-log query pattern, not
+  account) now call the same function - one audit-log query pattern, not
   two copies that could drift.
 - **`derniereConnexion` deliberately kept off the list payload.** Added
   only to `UserDetailView` (`GET /users/:id`), not `UserView` (`GET
-  /users`) — same reasoning as Documents' `texteExtrait` removal: an
+/users`) - same reasoning as Documents' `texteExtrait` removal: an
   audit-log lookup per row on every page load would be real, avoidable
   cost. One query on selection, not N per page.
 - **Account status and onboarding split into two badges.** The pre-existing
   `BadgeStatutCompte` conflated `actif` and `premiereConnexion` into one
-  three-state badge (Inactif / 1ère connexion en attente / Actif) — an
+  three-state badge (Inactif / 1ère connexion en attente / Actif) - an
   account that's both active and awaiting first login was indistinguishable
   from one that's simply inactive at a glance. Split into
   `BadgeStatutCompte` (actif/inactif only) and a new
   `BadgePremiereConnexion` (onboarding only), shown side by side.
 - **Personnel ANAC enrichment tab: same "fetch on selection, hide on
   failure" pattern as Documents' portal badge.** `GET
-  /personnel-anac/matricule/:matricule` is called once when a user is
+/personnel-anac/matricule/:matricule` is called once when a user is
   selected (never per table row); the tab renders only if that call
   resolves. Verified live that it fails cleanly (503
-  `PERSONNEL_ANAC_INDISPONIBLE` in this dev environment — the external
+  `PERSONNEL_ANAC_INDISPONIBLE` in this dev environment - the external
   service is Tailscale-only) and the tab simply doesn't appear, no error
   surfaced to the admin mid-workflow.
 - **No Chromium/Playwright used for this round**, per the standing
-  instruction from the Documents round above — validated via
+  instruction from the Documents round above - validated via
   tsc/eslint/build plus live HTTP checks (signed JWTs + curl against the
   real dev DB) only.

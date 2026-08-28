@@ -40,7 +40,7 @@ const COULEURS_STATUT: Record<TraductionStatut, BadgeCouleur> = {
 
 const ANAC_NAVY = '1B2A5E';
 
-// ── Demandeur d'origine — recherche inverse depuis demandes_traduction,
+// ── Demandeur d'origine - recherche inverse depuis demandes_traduction,
 // aucun champ direct sur traductions. Optionnel : une traduction lancée
 // hors du workflow Demandes (texte libre admin) n'en a pas. ────────────────
 async function getDemandeurOrigine(
@@ -69,9 +69,9 @@ function formatDateHeure(date: Date): string {
   });
 }
 
-// ── Export PDF — fiche institutionnelle, même gabarit que accords/courriers/
+// ── Export PDF - fiche institutionnelle, même gabarit que accords/courriers/
 // missions. Le texte affiché est texteFinal (corrigé) s'il existe, sinon
-// texteIA (traduction brute) — jamais un texte inventé. Source et traduction
+// texteIA (traduction brute) - jamais un texte inventé. Source et traduction
 // occupent chacune la pleine largeur (pas de mise en colonnes côte à côte),
 // la traduction démarre sur une nouvelle page. ─────────────────────────────
 export async function genererPDFTraduction(traduction: TraductionView): Promise<Buffer> {
@@ -80,13 +80,19 @@ export async function genererPDFTraduction(traduction: TraductionView): Promise<
 
   const infosHTML = grilleInfos([
     { label: 'Direction', valeur: echapperHTML(directionLabel(traduction.direction)) },
-    { label: 'Statut', valeur: badge(LABELS_STATUT[traduction.statut], COULEURS_STATUT[traduction.statut]) },
-    { label: 'Demandeur', valeur: demandeur ? echapperHTML(`${demandeur.prenom} ${demandeur.nom}`) : '—' },
+    {
+      label: 'Statut',
+      valeur: badge(LABELS_STATUT[traduction.statut], COULEURS_STATUT[traduction.statut]),
+    },
+    {
+      label: 'Demandeur',
+      valeur: demandeur ? echapperHTML(`${demandeur.prenom} ${demandeur.nom}`) : '-',
+    },
     { label: 'Dernière mise à jour', valeur: echapperHTML(formatDateHeure(traduction.updatedAt)) },
   ]);
 
-  const texteSourceHTML = `<p style="white-space:pre-wrap; font-size:10px; line-height:1.7; margin:0;">${echapperHTML(traduction.texteOriginal ?? '—')}</p>`;
-  const texteTraduitHTML = `<p style="white-space:pre-wrap; font-size:10px; line-height:1.7; margin:0;">${echapperHTML(texte ?? '—')}</p>`;
+  const texteSourceHTML = `<p style="white-space:pre-wrap; font-size:10px; line-height:1.7; margin:0;">${echapperHTML(traduction.texteOriginal ?? '-')}</p>`;
+  const texteTraduitHTML = `<p style="white-space:pre-wrap; font-size:10px; line-height:1.7; margin:0;">${echapperHTML(texte ?? '-')}</p>`;
 
   const corps = `
     ${masthead({
@@ -105,7 +111,7 @@ export async function genererPDFTraduction(traduction: TraductionView): Promise<
 }
 
 // ── Sceau ANAC en buffer brut (docx a besoin des octets, pas d'un data URI
-// comme la version HTML/PDF dans ficheHTML.ts) — absent = pas d'image,
+// comme la version HTML/PDF dans ficheHTML.ts) - absent = pas d'image,
 // jamais une erreur bloquante. ──────────────────────────────────────────────
 function chargerSceauBuffer(): Buffer | null {
   try {
@@ -128,7 +134,7 @@ function celluleSansBordure(children: Paragraph[], width: number): TableCell {
   });
 }
 
-// ── Export DOCX — même mise en forme institutionnelle que le PDF (masthead
+// ── Export DOCX - même mise en forme institutionnelle que le PDF (masthead
 // ANAC, sceau, section Informations), pour que l'agent retrouve le même
 // document, simplement dans un format qu'il peut rouvrir/modifier localement.
 // Source et traduction restent chacune pleine page, séparées par un saut de
@@ -180,12 +186,24 @@ export async function genererDOCXTraduction(traduction: TraductionView): Promise
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 children: [
-                  new TextRun({ text: 'RÉPUBLIQUE GABONAISE', bold: true, color: ANAC_NAVY, size: 16 }),
+                  new TextRun({
+                    text: 'RÉPUBLIQUE GABONAISE',
+                    bold: true,
+                    color: ANAC_NAVY,
+                    size: 16,
+                  }),
                 ],
               }),
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
-                children: [new TextRun({ text: 'Union - Travail - Justice', italics: true, size: 14, color: '6b7280' })],
+                children: [
+                  new TextRun({
+                    text: 'Union - Travail - Justice',
+                    italics: true,
+                    size: 14,
+                    color: '6b7280',
+                  }),
+                ],
               }),
             ],
             34
@@ -206,7 +224,7 @@ export async function genererDOCXTraduction(traduction: TraductionView): Promise
   const infosLignes = [
     ['Direction', directionLabel(traduction.direction)],
     ['Statut', LABELS_STATUT[traduction.statut]],
-    ['Demandeur', demandeur ? `${demandeur.prenom} ${demandeur.nom}` : '—'],
+    ['Demandeur', demandeur ? `${demandeur.prenom} ${demandeur.nom}` : '-'],
     ['Dernière mise à jour', formatDateHeure(traduction.updatedAt)],
   ];
 
@@ -217,10 +235,17 @@ export async function genererDOCXTraduction(traduction: TraductionView): Promise
         new TableRow({
           children: [
             celluleSansBordure(
-              [new Paragraph({ children: [new TextRun({ text: label, bold: true, size: 18, color: '475569' })] })],
+              [
+                new Paragraph({
+                  children: [new TextRun({ text: label, bold: true, size: 18, color: '475569' })],
+                }),
+              ],
               35
             ),
-            celluleSansBordure([new Paragraph({ children: [new TextRun({ text: valeur, size: 18 })] })], 65),
+            celluleSansBordure(
+              [new Paragraph({ children: [new TextRun({ text: valeur, size: 18 })] })],
+              65
+            ),
           ],
         })
     ),
@@ -242,16 +267,14 @@ export async function genererDOCXTraduction(traduction: TraductionView): Promise
         children: [new TextRun({ text: titre, color: ANAC_NAVY })],
       }),
       ...(contenu.trim()
-        ? contenu
-            .split(/\n{2,}/)
-            .map(
-              (paragraphe) =>
-                new Paragraph({
-                  children: [new TextRun(paragraphe.replace(/\n/g, ' '))],
-                  spacing: { after: 200 },
-                })
-            )
-        : [new Paragraph({ children: [new TextRun({ text: '—', color: '9ca3af' })] })]),
+        ? contenu.split(/\n{2,}/).map(
+            (paragraphe) =>
+              new Paragraph({
+                children: [new TextRun(paragraphe.replace(/\n/g, ' '))],
+                spacing: { after: 200 },
+              })
+          )
+        : [new Paragraph({ children: [new TextRun({ text: '-', color: '9ca3af' })] })]),
     ];
   }
 
@@ -264,14 +287,23 @@ export async function genererDOCXTraduction(traduction: TraductionView): Promise
             alignment: AlignmentType.CENTER,
             spacing: { before: 300, after: 50 },
             children: [
-              new TextRun({ text: `TRADUCTION #${traduction.id}`, bold: true, size: 28, color: ANAC_NAVY }),
+              new TextRun({
+                text: `TRADUCTION #${traduction.id}`,
+                bold: true,
+                size: 28,
+                color: ANAC_NAVY,
+              }),
             ],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 300 },
             children: [
-              new TextRun({ text: directionLabel(traduction.direction), size: 20, color: '6b7280' }),
+              new TextRun({
+                text: directionLabel(traduction.direction),
+                size: 20,
+                color: '6b7280',
+              }),
             ],
           }),
           infosTable,

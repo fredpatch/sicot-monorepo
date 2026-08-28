@@ -1,7 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { organisationsApi } from '@/lib/organisations.api';
 import { FormulaireOrganisation } from '@/pages/partenaires/components/FormulaireOrganisation';
 import type { OrgFormData } from '@/pages/partenaires/partenaires.schemas';
@@ -13,7 +20,7 @@ interface OrganisationCreee {
 }
 
 // Reuses the exact FormulaireOrganisation the admin Partenaires page uses,
-// rather than a parallel creation path — same pattern as Missions'
+// rather than a parallel creation path - same pattern as Missions'
 // quick-create dialogs.
 export function QuickCreateOrganisationDialog({
   open,
@@ -48,7 +55,9 @@ export function QuickCreateOrganisationDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Nouvelle organisation</DialogTitle>
-          <DialogDescription>Créez le partenaire à sélectionner comme interlocuteur.</DialogDescription>
+          <DialogDescription>
+            Créez le partenaire à sélectionner comme interlocuteur.
+          </DialogDescription>
         </DialogHeader>
         <DialogBody>
           <FormulaireOrganisation

@@ -70,12 +70,15 @@ export default function DemandesPage() {
   }, [debouncedSearch]);
 
   // "Non assignées" ≡ statut soumise (traducteurId is only ever set once statut
-  // leaves soumise) — no dedicated backend concept needed, per the brief's
+  // leaves soumise) - no dedicated backend concept needed, per the brief's
   // instruction not to invent new backend concepts unnecessarily.
   const { demandeurId, traducteurId, statutEffectif } = useMemo(() => {
-    if (assignation === 'mes_demandes') return { demandeurId: user?.id, traducteurId: undefined, statutEffectif: statut };
-    if (assignation === 'mes_traductions') return { demandeurId: undefined, traducteurId: user?.id, statutEffectif: statut };
-    if (assignation === 'non_assignees') return { demandeurId: undefined, traducteurId: undefined, statutEffectif: 'soumise' };
+    if (assignation === 'mes_demandes')
+      return { demandeurId: user?.id, traducteurId: undefined, statutEffectif: statut };
+    if (assignation === 'mes_traductions')
+      return { demandeurId: undefined, traducteurId: user?.id, statutEffectif: statut };
+    if (assignation === 'non_assignees')
+      return { demandeurId: undefined, traducteurId: undefined, statutEffectif: 'soumise' };
     return { demandeurId: undefined, traducteurId: undefined, statutEffectif: statut };
   }, [assignation, statut, user?.id]);
 
@@ -107,13 +110,17 @@ export default function DemandesPage() {
   });
 
   const demandes = demandesQuery.data?.data ?? [];
-  const totalPages = demandesQuery.data ? Math.ceil(demandesQuery.data.total / REQUEST_PAGE_SIZE) : 0;
+  const totalPages = demandesQuery.data
+    ? Math.ceil(demandesQuery.data.total / REQUEST_PAGE_SIZE)
+    : 0;
   const hasFilters = Boolean(debouncedSearch || statut || priorite || assignation);
 
   // Derived from the current page's data rather than kept as its own copy of
   // the row, so the open workspace always reflects the freshest data after a
   // mutation invalidates and refetches the list.
-  const demandeOuverte = demandeOuverteId ? demandes.find((d) => d.id === demandeOuverteId) ?? null : null;
+  const demandeOuverte = demandeOuverteId
+    ? (demandes.find((d) => d.id === demandeOuverteId) ?? null)
+    : null;
 
   function resetFilters() {
     setSearch('');
@@ -148,7 +155,9 @@ export default function DemandesPage() {
     <div className="mx-auto max-w-[1280px] space-y-5">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="text-2xl font-bold leading-tight text-anac-navy">Demandes de traduction</h2>
+          <h2 className="text-2xl font-bold leading-tight text-anac-navy">
+            Demandes de traduction
+          </h2>
           <p className="mt-1 text-sm text-anac-muted">
             Suivez les demandes, assignez-les et pilotez leur avancement.
           </p>
@@ -185,8 +194,15 @@ export default function DemandesPage() {
       ) : demandesQuery.isError ? (
         <div className="card flex min-h-64 flex-col items-center justify-center gap-3 text-center">
           <p className="font-semibold text-anac-navy">Impossible de charger les demandes.</p>
-          <p className="text-sm text-anac-muted">Vérifiez la connexion au serveur puis réessayez.</p>
-          <Button type="button" variant="outline" onClick={() => demandesQuery.refetch()} className="gap-2">
+          <p className="text-sm text-anac-muted">
+            Vérifiez la connexion au serveur puis réessayez.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => demandesQuery.refetch()}
+            className="gap-2"
+          >
             <RefreshCw size={14} aria-hidden="true" />
             Réessayer
           </Button>

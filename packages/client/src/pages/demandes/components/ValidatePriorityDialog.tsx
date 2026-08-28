@@ -46,14 +46,16 @@ export function ValiderPrioriteDialog({
     <Dialog open={!!demande} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>{demande?.prioriteValidee ? 'Changer la priorité' : 'Valider la priorité'}</DialogTitle>
+          <DialogTitle>
+            {demande?.prioriteValidee ? 'Changer la priorité' : 'Valider la priorité'}
+          </DialogTitle>
           <DialogDescription>
             Priorité demandée :{' '}
             <strong>{demande?.prioriteDemandee === 'urgente' ? 'Urgente' : 'Normale'}</strong>
             {demande?.prioriteValidee && (
               <>
                 {' '}
-                — actuellement validée :{' '}
+                - actuellement validée :{' '}
                 <strong>{demande.prioriteValidee === 'urgente' ? 'Urgente' : 'Normale'}</strong>
               </>
             )}

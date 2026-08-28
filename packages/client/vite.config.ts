@@ -23,7 +23,7 @@ export default defineConfig({
     host: true,
     proxy: {
       // In Docker, 'localhost' inside the client container means the client
-      // container itself — must target the api service's Compose network name.
+      // container itself - must target the api service's Compose network name.
       '/api': {
         target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:3001',
         changeOrigin: true,

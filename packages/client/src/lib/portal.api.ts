@@ -5,7 +5,7 @@ import axios from 'axios';
 const publicApi = axios.create({ baseURL: '/api' });
 
 export const portalApi = {
-  // Routes publiques — pas de cookie auth
+  // Routes publiques - pas de cookie auth
   lister: (params?: { search?: string; categorie?: string; page?: number; pageSize?: number }) =>
     publicApi.get('/portal/documents', { params }),
 
@@ -15,7 +15,7 @@ export const portalApi = {
 
   getUrlConsultation: (id: number) => `/api/portal/documents/${id}/consulter`,
 
-  // Pré-vérification avant d'afficher l'iframe PDF — un iframe ne déclenche
+  // Pré-vérification avant d'afficher l'iframe PDF - un iframe ne déclenche
   // pas onError de façon fiable sur un statut HTTP non-2xx (document retiré/
   // introuvable), contrairement à <img>. Une requête HEAD légère permet
   // d'afficher un état d'échec propre plutôt qu'un cadre vide (§28/29).
@@ -32,7 +32,7 @@ export const portalApi = {
   telechargerAvecToken: (token: string) =>
     publicApi.get(`/portal/telecharger/${token}`, { responseType: 'blob' }),
 
-  // Routes admin — avec auth
+  // Routes admin - avec auth
   toggleVisibilite: (id: number, visible: boolean, portailTokenDureeJours?: number) =>
     api.patch(`/portal/documents/${id}/visibilite`, { visible, portailTokenDureeJours }),
 };

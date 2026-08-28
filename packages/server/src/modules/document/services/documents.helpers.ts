@@ -35,7 +35,7 @@ export function toDocumentView(doc: typeof documents.$inferSelect): DocumentView
   };
 }
 
-// Ligne de listing — colonnes exactes de la projection utilisée par
+// Ligne de listing - colonnes exactes de la projection utilisée par
 // listerDocuments (sans texteExtrait/chemin, voir DocumentListView).
 type DocumentListRow = Pick<
   typeof documents.$inferSelect,

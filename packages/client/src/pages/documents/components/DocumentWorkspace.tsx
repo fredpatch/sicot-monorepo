@@ -27,7 +27,11 @@ import { DocumentPortailBadge } from './DocumentPortailBadge';
 import { DocumentPreview } from './DocumentPreview';
 import { CATEGORIES } from '../documents.constants';
 import { formaterLangue, formaterTaille } from '../documents.utils';
-import { canManageDocuments, canManagePortail, getDocumentCapabilities } from '../documents.permissions';
+import {
+  canManageDocuments,
+  canManagePortail,
+  getDocumentCapabilities,
+} from '../documents.permissions';
 import type { Document } from '../documents.types';
 
 function iconePourMime(mimeType: string) {
@@ -56,7 +60,7 @@ interface DocumentWorkspaceProps {
   verserVersionEnCours: boolean;
 }
 
-// Panneau de travail du document sélectionné — mêmes onglets pour tous les
+// Panneau de travail du document sélectionné - mêmes onglets pour tous les
 // rôles (Aperçu/Informations/OCR/Portail), seules les actions de mutation
 // sont retirées pour un agent (voir getDocumentCapabilities). Implémenté en
 // Dialog+Tabs plutôt qu'un panneau latéral persistant : c'est le seul motif
@@ -93,7 +97,7 @@ export function DocumentWorkspace({
   }
 
   // Le détail se rafraîchit automatiquement après toute mutation (les
-  // mutations invalident la clé ['documents', ...]) — préférer displayDoc
+  // mutations invalident la clé ['documents', ...]) - préférer displayDoc
   // partout dans l'affichage évite que le panneau reste figé sur l'état de
   // la ligne au moment du clic (ex. après Relancer OCR ou Publier/Retirer).
   const displayDoc = detail ?? doc;
@@ -187,8 +191,8 @@ export function DocumentWorkspace({
                       </SelectContent>
                     </Select>
                   ) : (
-                    CATEGORIES.find((c) => c.value === displayDoc.categorie)?.label ??
-                    displayDoc.categorie
+                    (CATEGORIES.find((c) => c.value === displayDoc.categorie)?.label ??
+                    displayDoc.categorie)
                   )}
                 </dd>
 

@@ -80,7 +80,7 @@ export async function listerDemandes(filters: DemandeFilters): Promise<{
 
   // Recherche : demandeur/traducteur (par nom/prénom), document (par nom) ou texte libre.
   // Résolue en IDs candidats plutôt que via jointure, pour rester simple sur une table
-  // de taille modeste — cohérent avec le reste du module (pas de jointure en lecture).
+  // de taille modeste - cohérent avec le reste du module (pas de jointure en lecture).
   if (filters.search) {
     const terme = `%${filters.search}%`;
     const [utilisateurs, docs] = await Promise.all([
@@ -121,27 +121,31 @@ export async function listerDemandes(filters: DemandeFilters): Promise<{
 }
 
 // ── SERVICE : Agrégats globaux (indépendants de la pagination/des filtres) ─
-// demandeurId optionnel — quand fourni, tous les comptes sont restreints aux
+// demandeurId optionnel - quand fourni, tous les comptes sont restreints aux
 // demandes de cet utilisateur (ex. l'espace de travail agent "Mon espace").
 export async function getDemandesAggregates(demandeurId?: number): Promise<DemandesAggregates> {
-  const scope = demandeurId !== undefined ? eq(demandesTraduction.demandeurId, demandeurId) : undefined;
+  const scope =
+    demandeurId !== undefined ? eq(demandesTraduction.demandeurId, demandeurId) : undefined;
   const withStatut = (statut: DemandeStatut) =>
-    scope ? and(eq(demandesTraduction.statut, statut), scope) : eq(demandesTraduction.statut, statut);
+    scope
+      ? and(eq(demandesTraduction.statut, statut), scope)
+      : eq(demandesTraduction.statut, statut);
   const withPriorite = (priorite: DemandePriorite) =>
     scope
       ? and(eq(demandesTraduction.prioriteDemandee, priorite), scope)
       : eq(demandesTraduction.prioriteDemandee, priorite);
 
-  const [total, aAssigner, enCours, enRelecture, validees, archivees, urgentes, normales] = await Promise.all([
-    db.$count(demandesTraduction, scope),
-    db.$count(demandesTraduction, withStatut('soumise')),
-    db.$count(demandesTraduction, withStatut('en_cours')),
-    db.$count(demandesTraduction, withStatut('en_relecture')),
-    db.$count(demandesTraduction, withStatut('validee')),
-    db.$count(demandesTraduction, withStatut('archivee')),
-    db.$count(demandesTraduction, withPriorite('urgente')),
-    db.$count(demandesTraduction, withPriorite('normale')),
-  ]);
+  const [total, aAssigner, enCours, enRelecture, validees, archivees, urgentes, normales] =
+    await Promise.all([
+      db.$count(demandesTraduction, scope),
+      db.$count(demandesTraduction, withStatut('soumise')),
+      db.$count(demandesTraduction, withStatut('en_cours')),
+      db.$count(demandesTraduction, withStatut('en_relecture')),
+      db.$count(demandesTraduction, withStatut('validee')),
+      db.$count(demandesTraduction, withStatut('archivee')),
+      db.$count(demandesTraduction, withPriorite('urgente')),
+      db.$count(demandesTraduction, withPriorite('normale')),
+    ]);
 
   return { total, aAssigner, enCours, enRelecture, validees, archivees, urgentes, normales };
 }
@@ -157,7 +161,10 @@ export async function estDemandeurDeTraduction(
     .select({ id: demandesTraduction.id })
     .from(demandesTraduction)
     .where(
-      and(eq(demandesTraduction.traductionId, traductionId), eq(demandesTraduction.demandeurId, userId))
+      and(
+        eq(demandesTraduction.traductionId, traductionId),
+        eq(demandesTraduction.demandeurId, userId)
+      )
     );
 
   return !!demande;
@@ -172,7 +179,7 @@ export async function getDemande(id: number): Promise<DemandeView> {
 }
 
 // ── SERVICE : Prendre en charge une demande ───────────────────────────────
-// Auto-assignation avec verrou BDD — premier arrivé premier servi
+// Auto-assignation avec verrou BDD - premier arrivé premier servi
 export async function prendreEnCharge(id: number, userId: number): Promise<DemandeView> {
   const [demande] = await db.select().from(demandesTraduction).where(eq(demandesTraduction.id, id));
 
@@ -219,7 +226,7 @@ export async function prendreEnCharge(id: number, userId: number): Promise<Deman
     updated.traductionId = traduction.id;
   } catch (error) {
     console.warn('[demandes] Lancement traduction IA échoué:', error);
-    // Non bloquant — la demande reste en_cours, traduction manuelle possible
+    // Non bloquant - la demande reste en_cours, traduction manuelle possible
   }
 
   await logAudit({
@@ -246,7 +253,7 @@ export async function rappelerDemande(id: number, userId: number): Promise<Deman
     throw new Error('DEMANDE_DEJA_PRISE');
   }
 
-  // Annuler la demande — le demandeur peut la recréer
+  // Annuler la demande - le demandeur peut la recréer
   const [updated] = await db
     .update(demandesTraduction)
     .set({ statut: 'archivee', updatedAt: new Date() })

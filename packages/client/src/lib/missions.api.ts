@@ -21,13 +21,13 @@ export const missionsApi = {
   getById: (id: number) => api.get(`/missions/${id}`),
 
   // Compteurs globaux, indépendants des filtres courants (cartes de synthèse)
-  // — ou scopés à un participant (ex. l'espace de travail agent)
+  // - ou scopés à un participant (ex. l'espace de travail agent)
   aggregates: (params?: { participantId?: number }) => api.get('/missions/aggregates', { params }),
 
-  // Recommandations en attente avec date limite — dashboard M9
+  // Recommandations en attente avec date limite - dashboard M9
   recommandationsEnAttente: () => api.get('/missions/recommandations/en-attente'),
 
-  // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
+  // Export PDF - téléchargement direct (cookie httpOnly transmis automatiquement)
   getUrlExportPDF: (id: number) => `/api/missions/${id}/export/pdf`,
 
   // ── Création ─────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ export const missionsApi = {
     }
   ) => api.patch(`/missions/${id}`, data),
 
-  // Workflow personnel (Phase 8) — seul le participant désigné
+  // Workflow personnel (Phase 8) - seul le participant désigné
   // rapportResponsableId (ou un admin/super_admin) peut soumettre/remplacer
   // le rapport officiel par ce chemin ; documentId: null retire le rapport.
   definirRapportPersonnel: (id: number, documentId: number | null) =>
@@ -78,7 +78,7 @@ export const missionsApi = {
     data: {
       texte: string;
       responsableId?: number;
-      dateLimite?: string; // ISO date string — sans date limite = pas d'alerte
+      dateLimite?: string; // ISO date string - sans date limite = pas d'alerte
     }
   ) => api.post(`/missions/${missionId}/recommandations`, data),
 

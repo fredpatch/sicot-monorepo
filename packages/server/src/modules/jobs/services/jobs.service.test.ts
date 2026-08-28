@@ -47,7 +47,7 @@ beforeEach(() => {
   jobHautRisque.executer.mockClear();
 });
 
-describe('executerJobManuel — per-job SYSTEM_ADMIN_OPERATION restriction', () => {
+describe('executerJobManuel - per-job SYSTEM_ADMIN_OPERATION restriction', () => {
   it('throws JOB_INTROUVABLE for an unknown key', async () => {
     getJobParCle.mockReturnValue(undefined);
     await expect(executerJobManuel('nope', 1, 'admin')).rejects.toThrow('JOB_INTROUVABLE');
@@ -64,7 +64,7 @@ describe('executerJobManuel — per-job SYSTEM_ADMIN_OPERATION restriction', () 
   );
 
   it.each(['operateur'])(
-    'role=%s is rejected even on an ordinary job when calling the service directly (no JOB_EXECUTE) — ' +
+    'role=%s is rejected even on an ordinary job when calling the service directly (no JOB_EXECUTE) - ' +
       'authorization is now direct on the capability, not solely reliant on the route gate',
     async (role) => {
       getJobParCle.mockReturnValue(jobOrdinaire);
@@ -74,7 +74,7 @@ describe('executerJobManuel — per-job SYSTEM_ADMIN_OPERATION restriction', () 
   );
 
   it.each(['admin', 'operateur'])(
-    'role=%s is rejected on a high-risk job (no SYSTEM_ADMIN_OPERATION) — route access alone is not enough',
+    'role=%s is rejected on a high-risk job (no SYSTEM_ADMIN_OPERATION) - route access alone is not enough',
     async (role) => {
       getJobParCle.mockReturnValue(jobHautRisque);
       await expect(executerJobManuel('backup_x', 1, role)).rejects.toThrow('ROLE_INSUFFISANT');

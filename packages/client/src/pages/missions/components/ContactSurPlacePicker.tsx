@@ -27,14 +27,20 @@ export function ContactSurPlacePicker({
   onChange: (contact: ContactListItem | ContactResume | undefined) => void;
 }) {
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<ContactListItem | ContactResume | undefined>(initialContact);
+  const [selected, setSelected] = useState<ContactListItem | ContactResume | undefined>(
+    initialContact
+  );
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(search);
 
   const contactsQuery = useQuery({
     queryKey: ['contacts-recherche', debouncedSearch],
     queryFn: async () => {
-      const res = await contactsApi.lister({ search: debouncedSearch || undefined, actif: true, pageSize: 50 });
+      const res = await contactsApi.lister({
+        search: debouncedSearch || undefined,
+        actif: true,
+        pageSize: 50,
+      });
       return res.data as { data: ContactListItem[] };
     },
     enabled: !selected && (search.length === 0 || search.length >= 2),
@@ -76,9 +82,15 @@ export function ContactSurPlacePicker({
   return (
     <div>
       <Label>Contact sur place</Label>
-      <p className="mt-1 text-xs text-anac-muted">Aucun contact sur place pour le moment — optionnel.</p>
+      <p className="mt-1 text-xs text-anac-muted">
+        Aucun contact sur place pour le moment - optionnel.
+      </p>
       <div className="relative mt-2">
-        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted" aria-hidden="true" />
+        <Search
+          size={15}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted"
+          aria-hidden="true"
+        />
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}

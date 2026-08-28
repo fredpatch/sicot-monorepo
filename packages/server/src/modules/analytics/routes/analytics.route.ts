@@ -8,7 +8,7 @@ const router = Router();
 
 // Toutes les routes analytics/rapports nécessitent d'être connecté ET
 // ANALYTICS_VIEW (admin+). Était requireTraducteur (traducteur/relecteur/
-// admin/super_admin) — un vrai écart avec le frontend, qui n'a jamais
+// admin/super_admin) - un vrai écart avec le frontend, qui n'a jamais
 // exposé /analytics au-delà de admin+ (router.tsx: ROLES_CCIT_ADMIN).
 // Aucun flux utilisateur réel n'utilisait cet accès API traducteur+ ; ce
 // changement ferme un accès API direct qui n'était jamais atteignable
@@ -51,7 +51,7 @@ router.get('/rapports', rapportsController.listerRapports);
 router.get('/rapports/:id', rapportsController.getRapportDetail);
 router.post('/rapports/:id/analyse-ia', rapportsController.genererAnalyseIA);
 // ADMIN_MONITORING_VIEW plutôt que ANALYTICS_VIEW ici et pour /gemini-usage
-// ci-dessous — sous-actions explicitement admin-only (§Phase 4.8.4) : même
+// ci-dessous - sous-actions explicitement admin-only (§Phase 4.8.4) : même
 // palier aujourd'hui, mais une capacité distincte les protège si
 // ANALYTICS_VIEW est un jour élargie à operateur+ (prompt.md §29 l'évoque
 // comme option future) sans que ces deux-là suivent automatiquement.
@@ -62,6 +62,10 @@ router.patch(
 );
 
 // ── Statut Gemini Quota ─────────────────────────────────────────────
-router.get('/gemini-usage', requireCapability('ADMIN_MONITORING_VIEW'), analyticsController.statutGemini);
+router.get(
+  '/gemini-usage',
+  requireCapability('ADMIN_MONITORING_VIEW'),
+  analyticsController.statutGemini
+);
 
 export default router;

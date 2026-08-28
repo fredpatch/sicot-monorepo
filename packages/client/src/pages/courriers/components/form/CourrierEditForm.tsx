@@ -110,14 +110,17 @@ export default function CourrierEditForm() {
       dateLimiteReponse: courrier.dateLimiteReponse?.split('T')[0] ?? '',
       accordId: courrier.accordId,
     });
-    const interlocuteur = courrier.direction === 'entrant' ? courrier.expediteur : courrier.destinataire;
+    const interlocuteur =
+      courrier.direction === 'entrant' ? courrier.expediteur : courrier.destinataire;
     setInterlocuteurPreview(interlocuteur ?? null);
   }, [courrierQuery.data, reset]);
 
   const direction = courrierQuery.data?.direction;
   const interlocuteurLabel = direction === 'entrant' ? 'Expéditeur' : 'Destinataire';
-  const orgFieldName = direction === 'entrant' ? 'expediteurOrganisationId' : 'destinataireOrganisationId';
-  const contactFieldName = direction === 'entrant' ? 'expediteurContactId' : 'destinataireContactId';
+  const orgFieldName =
+    direction === 'entrant' ? 'expediteurOrganisationId' : 'destinataireOrganisationId';
+  const contactFieldName =
+    direction === 'entrant' ? 'expediteurContactId' : 'destinataireContactId';
 
   const values = watch();
   const organisationSelectionneeId = values[orgFieldName];
@@ -125,7 +128,10 @@ export default function CourrierEditForm() {
   const { data: contactsData } = useQuery({
     queryKey: ['contacts-organisation', organisationSelectionneeId],
     queryFn: async () => {
-      const res = await contactsApi.lister({ organisationId: organisationSelectionneeId, actif: true });
+      const res = await contactsApi.lister({
+        organisationId: organisationSelectionneeId,
+        actif: true,
+      });
       return res.data as { data: ContactListItem[] };
     },
     enabled: Boolean(organisationSelectionneeId),
@@ -140,8 +146,10 @@ export default function CourrierEditForm() {
         reponseRequise: data.reponseRequise,
         expediteurOrganisationId: data.expediteurOrganisationId,
         destinataireOrganisationId: data.destinataireOrganisationId,
-        expediteurContactId: data.expediteurContactId ?? (direction === 'entrant' ? null : undefined),
-        destinataireContactId: data.destinataireContactId ?? (direction === 'sortant' ? null : undefined),
+        expediteurContactId:
+          data.expediteurContactId ?? (direction === 'entrant' ? null : undefined),
+        destinataireContactId:
+          data.destinataireContactId ?? (direction === 'sortant' ? null : undefined),
         suiviStatut: data.suiviStatut,
         dateLimiteReponse: data.dateLimiteReponse || undefined,
         accordId: data.accordId,
@@ -173,7 +181,12 @@ export default function CourrierEditForm() {
     return (
       <div className="card mx-auto max-w-xl p-8 text-center">
         <p className="font-semibold text-anac-navy">Impossible de charger ce courrier.</p>
-        <Button type="button" variant="outline" onClick={() => navigate('/courriers')} className="mt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate('/courriers')}
+          className="mt-4"
+        >
           Retour aux courriers
         </Button>
       </div>
@@ -186,7 +199,13 @@ export default function CourrierEditForm() {
     <div className="mx-auto max-w-[900px] space-y-5">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Button type="button" variant="ghost" size="icon-sm" onClick={cancel} aria-label="Retour au courrier">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={cancel}
+            aria-label="Retour au courrier"
+          >
             <ArrowLeft size={15} aria-hidden="true" />
           </Button>
           <div>
@@ -204,7 +223,9 @@ export default function CourrierEditForm() {
             disabled={saveMutation.isPending}
             className="gap-2 bg-anac-blue"
           >
-            {saveMutation.isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+            {saveMutation.isPending && (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            )}
             Enregistrer
           </Button>
         </div>
@@ -212,29 +233,47 @@ export default function CourrierEditForm() {
 
       {saveMutation.error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-anac-danger">
-          {(saveMutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-            'Une erreur est survenue.'}
+          {(saveMutation.error as { response?: { data?: { message?: string } } })?.response?.data
+            ?.message ?? 'Une erreur est survenue.'}
         </div>
       )}
 
-      <form onSubmit={handleSubmit((data) => saveMutation.mutate(data))} noValidate className="space-y-4">
+      <form
+        onSubmit={handleSubmit((data) => saveMutation.mutate(data))}
+        noValidate
+        className="space-y-4"
+      >
         <Section title="Informations">
           <div className="mb-4 flex items-center gap-2 text-sm text-anac-muted">
             <CourrierDirectionBadge direction={courrier.direction} />
             <span className="font-mono text-xs">{courrier.reference}</span>
-            <span className="text-xs">— la direction n&apos;est pas modifiable après création.</span>
+            <span className="text-xs">
+              - la direction n&apos;est pas modifiable après création.
+            </span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Label htmlFor="objet">Objet *</Label>
-              <Input id="objet" {...register('objet')} aria-invalid={Boolean(errors.objet)} className="mt-1" />
-              {errors.objet && <p className="mt-1 text-xs text-anac-danger">{errors.objet.message}</p>}
+              <Input
+                id="objet"
+                {...register('objet')}
+                aria-invalid={Boolean(errors.objet)}
+                className="mt-1"
+              />
+              {errors.objet && (
+                <p className="mt-1 text-xs text-anac-danger">{errors.objet.message}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="dateReception">
                 {courrier.direction === 'entrant' ? 'Date de réception *' : "Date d'envoi *"}
               </Label>
-              <Input id="dateReception" type="date" {...register('dateReception')} className="mt-1" />
+              <Input
+                id="dateReception"
+                type="date"
+                {...register('dateReception')}
+                className="mt-1"
+              />
               {errors.dateReception && (
                 <p className="mt-1 text-xs text-anac-danger">{errors.dateReception.message}</p>
               )}
@@ -282,7 +321,12 @@ export default function CourrierEditForm() {
             {values.reponseRequise === 'oui' && (
               <div>
                 <Label htmlFor="dateLimiteReponse">Date limite de réponse</Label>
-                <Input id="dateLimiteReponse" type="date" {...register('dateLimiteReponse')} className="mt-1" />
+                <Input
+                  id="dateLimiteReponse"
+                  type="date"
+                  {...register('dateLimiteReponse')}
+                  className="mt-1"
+                />
               </div>
             )}
           </div>
@@ -308,7 +352,7 @@ export default function CourrierEditForm() {
                     <SelectValue placeholder="Sélectionner..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">— Aucun —</SelectItem>
+                    <SelectItem value="__none__">- Aucun -</SelectItem>
                     {organisations.map((org) => (
                       <SelectItem key={org.id} value={org.id.toString()}>
                         {org.nom}
@@ -343,14 +387,16 @@ export default function CourrierEditForm() {
                     onValueChange={(v) => field.onChange(v === '__none__' ? null : parseInt(v))}
                   >
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="— Aucun contact spécifique —" />
+                      <SelectValue placeholder="- Aucun contact spécifique -" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">— Aucun contact spécifique —</SelectItem>
+                      <SelectItem value="__none__">- Aucun contact spécifique -</SelectItem>
                       {contactsDisponibles.map((contact) => (
                         <SelectItem key={contact.id} value={contact.id.toString()}>
                           {contact.prenom} {contact.nom}
-                          {contact.poste ? <span className="ml-1 text-xs text-anac-muted">· {contact.poste}</span> : null}
+                          {contact.poste ? (
+                            <span className="ml-1 text-xs text-anac-muted">· {contact.poste}</span>
+                          ) : null}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -382,10 +428,10 @@ export default function CourrierEditForm() {
                 onValueChange={(v) => field.onChange(v === '__none__' ? undefined : parseInt(v))}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="— Aucun accord —" />
+                  <SelectValue placeholder="- Aucun accord -" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">— Aucun accord —</SelectItem>
+                  <SelectItem value="__none__">- Aucun accord -</SelectItem>
                   {accords.map((a) => (
                     <SelectItem key={a.id} value={a.id.toString()}>
                       <span className="font-mono text-xs">{a.reference}</span>

@@ -9,9 +9,9 @@ import { useExecuterJobMutation } from '../hooks/mutations';
 import { JobRow } from './JobRow';
 import type { JobDisponible, JobResultat } from '../admin.types';
 
-// Résultats d'exécution gardés en état local (pas de persistance serveur —
+// Résultats d'exécution gardés en état local (pas de persistance serveur -
 // l'historique persistant vit dans JobHistoryTable/job_executions). Disparaît
-// au rechargement, volontairement — ne pas laisser croire à un historique
+// au rechargement, volontairement - ne pas laisser croire à un historique
 // permanent sur cette vue.
 export function JobsList() {
   const { user } = useAuth();
@@ -20,7 +20,7 @@ export function JobsList() {
 
   const [resultats, setResultats] = useState<Record<string, JobResultat>>({});
   const [jobEnCours, setJobEnCours] = useState<string | null>(null);
-  // Repliés par défaut — 12 jobs à plat forçaient une lecture linéaire ;
+  // Repliés par défaut - 12 jobs à plat forçaient une lecture linéaire ;
   // regroupés par module, un administrateur ouvre seulement ce qu'il cherche.
   const [modulesOuverts, setModulesOuverts] = useState<Set<string>>(new Set());
 
@@ -53,7 +53,13 @@ export function JobsList() {
         const data = (err as { response?: { data?: JobResultat } })?.response?.data;
         setResultats((prev) => ({
           ...prev,
-          [cle]: data ?? { cle, succes: false, resume: 'Erreur', erreur: 'Erreur inconnue', dureeMs: 0 },
+          [cle]: data ?? {
+            cle,
+            succes: false,
+            resume: 'Erreur',
+            erreur: 'Erreur inconnue',
+            dureeMs: 0,
+          },
         }));
       },
       onSettled: () => setJobEnCours(null),
@@ -64,7 +70,9 @@ export function JobsList() {
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 px-1">
         <Zap size={12} className="text-anac-muted" />
-        <p className="text-xs font-semibold uppercase tracking-wide text-anac-muted">Jobs manuels</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-anac-muted">
+          Jobs manuels
+        </p>
       </div>
       <p className="px-1 text-xs text-anac-muted">
         Déclenche immédiatement un job normalement programmé en cron. Chaque exécution est
@@ -85,7 +93,9 @@ export function JobsList() {
                 aria-expanded={ouvert}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-anac-navy">{getModuleLabel(module)}</span>
+                  <span className="text-sm font-medium text-anac-navy">
+                    {getModuleLabel(module)}
+                  </span>
                   <span className="badge-neutre text-[10px]">{jobsDuModule.length} job(s)</span>
                   {resultatsDuModule > 0 && (
                     <span className="text-[10px] text-anac-muted">

@@ -7,7 +7,7 @@ import notificationsRouter from './notifications.route';
 
 // Phase 7.1 remediation tests. Previously historique/:type/:entiteId and
 // envoyer had no per-entity authorization at all (any authenticated user,
-// any entiteId — see prompt.md phase 7.1 audit). Real router + real
+// any entiteId - see prompt.md phase 7.1 audit). Real router + real
 // authenticate/requireCapability middleware over HTTP; only the service
 // layers (notifications.service, missions.service's estResponsableRecommandation)
 // are mocked, so no database is needed.
@@ -57,7 +57,7 @@ beforeEach(() => {
   estResponsableRecommandation.mockReset();
 });
 
-describe('notifications.route — 401 unauthenticated', () => {
+describe('notifications.route - 401 unauthenticated', () => {
   it('401s every route family when unauthenticated', async () => {
     const app = buildApp();
     await request(app).get('/notifications/recentes').expect(401);
@@ -66,11 +66,14 @@ describe('notifications.route — 401 unauthenticated', () => {
   });
 });
 
-describe('notifications.route — GET /recentes requires ANALYTICS_VIEW (admin+)', () => {
+describe('notifications.route - GET /recentes requires ANALYTICS_VIEW (admin+)', () => {
   it('403s agent/operateur', async () => {
     const app = buildApp();
     await request(app).get('/notifications/recentes').set('Cookie', cookieFor('agent')).expect(403);
-    await request(app).get('/notifications/recentes').set('Cookie', cookieFor('operateur')).expect(403);
+    await request(app)
+      .get('/notifications/recentes')
+      .set('Cookie', cookieFor('operateur'))
+      .expect(403);
   });
 
   it('allows admin', async () => {
@@ -79,24 +82,36 @@ describe('notifications.route — GET /recentes requires ANALYTICS_VIEW (admin+)
   });
 });
 
-describe('notifications.route — GET /historique: accord_echeance/courrier_relance are admin+ only (no personal owner in the data model)', () => {
+describe('notifications.route - GET /historique: accord_echeance/courrier_relance are admin+ only (no personal owner in the data model)', () => {
   it('403s agent/operateur for accord_echeance and courrier_relance regardless of entiteId', async () => {
     const app = buildApp();
     const cookie = cookieFor('operateur', 42);
-    await request(app).get('/notifications/historique/accord_echeance/1').set('Cookie', cookie).expect(403);
-    await request(app).get('/notifications/historique/courrier_relance/1').set('Cookie', cookie).expect(403);
+    await request(app)
+      .get('/notifications/historique/accord_echeance/1')
+      .set('Cookie', cookie)
+      .expect(403);
+    await request(app)
+      .get('/notifications/historique/courrier_relance/1')
+      .set('Cookie', cookie)
+      .expect(403);
     expect(getHistoriqueEntite).not.toHaveBeenCalled();
   });
 
   it('allows admin for accord_echeance and courrier_relance', async () => {
     const app = buildApp();
     const cookie = cookieFor('admin', 999);
-    await request(app).get('/notifications/historique/accord_echeance/1').set('Cookie', cookie).expect(200);
-    await request(app).get('/notifications/historique/courrier_relance/1').set('Cookie', cookie).expect(200);
+    await request(app)
+      .get('/notifications/historique/accord_echeance/1')
+      .set('Cookie', cookie)
+      .expect(200);
+    await request(app)
+      .get('/notifications/historique/courrier_relance/1')
+      .set('Cookie', cookie)
+      .expect(200);
   });
 });
 
-describe('notifications.route — GET /historique: recommandation_rappel (MISSION_REGISTRY_VIEW global, or personal responsableId)', () => {
+describe('notifications.route - GET /historique: recommandation_rappel (MISSION_REGISTRY_VIEW global, or personal responsableId)', () => {
   it('admin (MISSION_REGISTRY_VIEW) reads any recommandation history without an ownership check', async () => {
     const app = buildApp();
     await request(app)
@@ -116,7 +131,7 @@ describe('notifications.route — GET /historique: recommandation_rappel (MISSIO
     expect(estResponsableRecommandation).toHaveBeenCalledWith(7, 42);
   });
 
-  it("User A (agent) cannot read history for a recommandation belonging only to User B — direct entiteId manipulation does not bypass authorization", async () => {
+  it('User A (agent) cannot read history for a recommandation belonging only to User B - direct entiteId manipulation does not bypass authorization', async () => {
     estResponsableRecommandation.mockResolvedValue(false); // recommandation 7 belongs to someone else
     const app = buildApp();
     await request(app)
@@ -127,7 +142,7 @@ describe('notifications.route — GET /historique: recommandation_rappel (MISSIO
   });
 });
 
-describe('notifications.route — POST /envoyer: accord_echeance/courrier_relance require AGREEMENT_MANAGE/CORRESPONDENCE_MANAGE', () => {
+describe('notifications.route - POST /envoyer: accord_echeance/courrier_relance require AGREEMENT_MANAGE/CORRESPONDENCE_MANAGE', () => {
   it('403s agent/operateur regardless of entiteId', async () => {
     const app = buildApp();
     const cookie = cookieFor('operateur', 42);
@@ -160,7 +175,7 @@ describe('notifications.route — POST /envoyer: accord_echeance/courrier_relanc
   });
 });
 
-describe('notifications.route — POST /envoyer: recommandation_rappel (MISSION_RECOMMENDATION_MANAGE global, or personal responsableId)', () => {
+describe('notifications.route - POST /envoyer: recommandation_rappel (MISSION_RECOMMENDATION_MANAGE global, or personal responsableId)', () => {
   it('admin can send for any recommandation without an ownership check', async () => {
     const app = buildApp();
     await request(app)
@@ -194,7 +209,7 @@ describe('notifications.route — POST /envoyer: recommandation_rappel (MISSION_
   });
 });
 
-describe('notifications.route — input validation', () => {
+describe('notifications.route - input validation', () => {
   it('rejects an unknown notification type on both routes (fails closed, not a 500)', async () => {
     const app = buildApp();
     const cookie = cookieFor('admin', 999);

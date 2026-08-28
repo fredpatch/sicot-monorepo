@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY packages/ocr-service/main.py ./
 
-# Linux paths — overrides the Windows-path defaults baked into main.py for local dev.
+# Linux paths - overrides the Windows-path defaults baked into main.py for local dev.
 ENV TESSERACT_CMD=/usr/bin/tesseract
 ENV LIBREOFFICE_CMD=/usr/bin/soffice
 ENV OCR_PORT=5001

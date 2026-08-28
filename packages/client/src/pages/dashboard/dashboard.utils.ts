@@ -186,10 +186,10 @@ export function deriveNextDeadline(data: DashboardData, now = new Date()): Deadl
   return candidates.sort((a, b) => a.date.getTime() - b.date.getTime())[0] ?? null;
 }
 
-// Capacité requise par préfixe de route — doit rester alignée sur les
+// Capacité requise par préfixe de route - doit rester alignée sur les
 // gardes réels de router.tsx (Phase 5.1). Cette table avait dérivé : /
 // traductions y était classée admin-only alors que la route elle-même
-// n'exige que TRANSLATION_VIEW (operateur+) — corrigé ici (Phase 5.3).
+// n'exige que TRANSLATION_VIEW (operateur+) - corrigé ici (Phase 5.3).
 const ROUTE_CAPABILITY: Record<string, Capability> = {
   '/accords': 'AGREEMENT_VIEW',
   '/courriers': 'CORRESPONDENCE_VIEW',

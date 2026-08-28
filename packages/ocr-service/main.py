@@ -67,7 +67,7 @@ def detecter_langue(texte: str) -> str:
 # ── Extracteurs par format ────────────────────────────────────────────────
 
 def extraire_txt(contenu: bytes) -> str:
-    """Fichier texte brut — décodage direct."""
+    """Fichier texte brut - décodage direct."""
     for encoding in ["utf-8", "latin-1", "cp1252"]:
         try:
             return contenu.decode(encoding)
@@ -89,7 +89,7 @@ def extraire_pdf(contenu: bytes) -> str:
             texte_page = page.extract_text()
 
             if texte_page and len(texte_page.strip()) > 20:
-                # PDF natif — texte directement extractible
+                # PDF natif - texte directement extractible
                 texte_pages.append(texte_page)
             else:
                 # Page vide ou scannée → OCR via Tesseract
@@ -111,7 +111,7 @@ def extraire_pdf(contenu: bytes) -> str:
 
 
 def extraire_docx(contenu: bytes) -> str:
-    """Fichier Word .docx — python-docx."""
+    """Fichier Word .docx - python-docx."""
     doc = Document(io.BytesIO(contenu))
     parties = []
 
@@ -157,7 +157,7 @@ def extraire_doc(contenu: bytes) -> str:
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Échec conversion LibreOffice : {e.stderr.decode()}")
         except FileNotFoundError:
-            raise RuntimeError("LibreOffice introuvable — vérifiez LIBREOFFICE_CMD")
+            raise RuntimeError("LibreOffice introuvable - vérifiez LIBREOFFICE_CMD")
 
         # Lire le .docx généré
         docx_path = Path(tmp_dir) / "document.docx"
@@ -168,7 +168,7 @@ def extraire_doc(contenu: bytes) -> str:
 
 
 def extraire_xlsx(contenu: bytes) -> str:
-    """Fichier Excel .xlsx — openpyxl."""
+    """Fichier Excel .xlsx - openpyxl."""
     wb = openpyxl.load_workbook(io.BytesIO(contenu), read_only=True, data_only=True)
     parties = []
 
@@ -184,7 +184,7 @@ def extraire_xlsx(contenu: bytes) -> str:
 
 
 def extraire_xls(contenu: bytes) -> str:
-    """Ancien format Excel .xls — xlrd."""
+    """Ancien format Excel .xls - xlrd."""
     wb = xlrd.open_workbook(file_contents=contenu)
     parties = []
 
@@ -203,7 +203,7 @@ def extraire_xls(contenu: bytes) -> str:
 
 
 def extraire_image(contenu: bytes) -> str:
-    """Image .jpg / .png / .tiff — Tesseract directement."""
+    """Image .jpg / .png / .tiff - Tesseract directement."""
     image = Image.open(io.BytesIO(contenu))
     return pytesseract.image_to_string(
         image,
@@ -297,6 +297,6 @@ if __name__ == "__main__":
     print(f"📋 Tesseract : {TESSERACT_CMD}")
     print(f"📋 Formats supportés : {', '.join(EXTRACTEURS.keys())}")
     # 0.0.0.0, not 127.0.0.1: inside Docker, other containers reach this
-    # service by its container name over the bridge network — a loopback
+    # service by its container name over the bridge network - a loopback
     # bind would make the port unreachable from anywhere but itself.
     serve(app, host="0.0.0.0", port=PORT)

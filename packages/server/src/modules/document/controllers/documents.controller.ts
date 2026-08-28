@@ -4,7 +4,7 @@ import { handleDocumentsError } from './documents.errors';
 import fs from 'fs';
 import { hasCapability, UserRole } from '@sicot/shared';
 
-// ── Portée personnelle — dérivée de la capacité, pas du rôle ───────────────
+// ── Portée personnelle - dérivée de la capacité, pas du rôle ───────────────
 // Quiconque n'a pas DOCUMENT_UPLOAD (le signal "accès bibliothèque
 // générale", operateur+) ne voit que les documents visibles en interne +
 // ceux qu'il a lui-même uploadés (Phase 4.7, même principe que
@@ -23,7 +23,7 @@ export async function upload(req: Request, res: Response): Promise<void> {
     }
 
     const { categorie, visibiliteInterne } = req.body;
-    // POST /upload n'a délibérément aucune garde de capacité — audité en
+    // POST /upload n'a délibérément aucune garde de capacité - audité en
     // Phase 4.7 : ce même endpoint sert à la fois l'upload de bibliothèque
     // générale (page Documents, operateur+ côté UI) ET les workflows
     // personnels (pièce jointe d'une demande de traduction, rapport de
@@ -35,7 +35,10 @@ export async function upload(req: Request, res: Response): Promise<void> {
     // rende visible via DOCUMENT_INTERNAL_VISIBILITY_MANAGE. Voir le rapport
     // de phase pour la distinction complète upload-personnel vs
     // gestion-de-bibliothèque.
-    const aSeulementLaPorteePersonnelle = !hasCapability(req.user!.role as UserRole, 'DOCUMENT_UPLOAD');
+    const aSeulementLaPorteePersonnelle = !hasCapability(
+      req.user!.role as UserRole,
+      'DOCUMENT_UPLOAD'
+    );
 
     const result = await documentsService.uploaderDocument({
       buffer: req.file.buffer,
@@ -46,7 +49,7 @@ export async function upload(req: Request, res: Response): Promise<void> {
       visibiliteInterne: !aSeulementLaPorteePersonnelle && visibiliteInterne === '1',
     });
 
-    // 207 Multi-Status si doublon détecté — succès mais avec avertissement
+    // 207 Multi-Status si doublon détecté - succès mais avec avertissement
     const status = result.doublon ? 207 : 201;
 
     res.status(status).json({
@@ -344,7 +347,7 @@ export async function retraiterOCR(req: Request, res: Response): Promise<void> {
       message:
         document.statutOCR === 'traite'
           ? 'OCR retraité avec succès.'
-          : 'OCR retraité — extraction partielle ou échec.',
+          : 'OCR retraité - extraction partielle ou échec.',
     });
   } catch (error) {
     handleDocumentsError(res, error);

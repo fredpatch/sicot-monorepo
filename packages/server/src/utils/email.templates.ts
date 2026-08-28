@@ -111,7 +111,7 @@ export function notificationManuelleTemplate(params: {
         ${params.message}
       </div>
       <p style="font-size: 12px; color: #888;">
-        Message envoyé depuis SICOT — Cellule de Coopération Internationale et de Traduction, ANAC Gabon.
+        Message envoyé depuis SICOT - Cellule de Coopération Internationale et de Traduction, ANAC Gabon.
       </p>
     </div>
   `;
@@ -136,7 +136,7 @@ export function compteActiveEmailTemplate(params: {
     </div>
     <p style="color: #6b7a99; font-size: 12px;">
       Si vous n'êtes pas à l'origine de cette activation, contactez immédiatement
-      le Service Informatique — votre compte peut avoir été activé par une autre personne.
+      le Service Informatique - votre compte peut avoir été activé par une autre personne.
     </p>
   `);
 }

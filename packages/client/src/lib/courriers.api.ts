@@ -31,16 +31,16 @@ export const courriersApi = {
 
   getById: (id: number) => api.get(`/courriers/${id}`),
 
-  // Fil de correspondance — réponses liées à un courrier entrant
+  // Fil de correspondance - réponses liées à un courrier entrant
   getFilCorrespondance: (id: number) => api.get(`/courriers/${id}/fil`),
 
-  // Courriers entrants sans réponse — dashboard M9
+  // Courriers entrants sans réponse - dashboard M9
   sansReponse: () => api.get('/courriers/sans-reponse'),
 
   // Compteurs globaux, indépendants des filtres courants (cartes de synthèse)
   aggregates: () => api.get('/courriers/aggregates'),
 
-  // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
+  // Export PDF - téléchargement direct (cookie httpOnly transmis automatiquement)
   getUrlExportPDF: (id: number) => `/api/courriers/${id}/export/pdf`,
 
   // ── Création ─────────────────────────────────────────────────────────────

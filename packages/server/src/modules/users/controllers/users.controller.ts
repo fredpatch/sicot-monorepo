@@ -70,7 +70,7 @@ export async function creer(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const {user, emailEnvoye} = await usersService.creerUtilisateur({
+    const { user, emailEnvoye } = await usersService.creerUtilisateur({
       matricule,
       nom,
       prenom,
@@ -105,12 +105,12 @@ export async function mettreAJour(req: Request, res: Response): Promise<void> {
       return;
     }
 
-     if (email !== undefined && !/^\S+@\S+\.\S+$/.test(email)) {
+    if (email !== undefined && !/^\S+@\S+\.\S+$/.test(email)) {
       res.status(400).json({ message: 'Email invalide.' });
       return;
     }
 
-    // Validation du rôle — absente avant ce correctif (Phase 4.8) : PATCH
+    // Validation du rôle - absente avant ce correctif (Phase 4.8) : PATCH
     // /:id acceptait n'importe quelle chaîne dans `role` sans contrôle,
     // contrairement à POST / (creer) qui valide déjà. Même liste que la
     // création.

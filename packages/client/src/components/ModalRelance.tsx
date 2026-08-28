@@ -191,7 +191,7 @@ export default function ModalRelance({
                     {d.label}
                   </SelectItem>
                 ))}
-                <SelectItem value="__libre__">— Saisir un email —</SelectItem>
+                <SelectItem value="__libre__">- Saisir un email -</SelectItem>
               </SelectContent>
             </Select>
           </div>

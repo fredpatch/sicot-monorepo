@@ -32,7 +32,7 @@ export interface UpdateMissionParams {
   dateFin?: Date;
   statut?: MissionStatut;
   participantsIds?: number[];
-  // confirmationLogistique is NOT settable directly — it's derived from
+  // confirmationLogistique is NOT settable directly - it's derived from
   // the three checklist items below (see mettreAJourMission).
   logistiqueBilletReserve?: boolean;
   logistiqueHebergementConfirme?: boolean;
@@ -70,7 +70,7 @@ export interface MissionFilters {
   pageSize?: number;
 }
 
-// Global counts, independent of the current search/statut/pays filters —
+// Global counts, independent of the current search/statut/pays filters -
 // mirrors OrganisationsAggregates in the partenaires module.
 export interface MissionsAggregates {
   total: number;
@@ -80,7 +80,7 @@ export interface MissionsAggregates {
   annulees: number;
   aVenir30Jours: number;
   logistiqueARisque: number;
-  // Missions terminées sans rapport déposé — pas de fenêtre de délai
+  // Missions terminées sans rapport déposé - pas de fenêtre de délai
   // inventée, juste terminee + rapportDocumentId manquant.
   rapportsEnAttente: number;
 }

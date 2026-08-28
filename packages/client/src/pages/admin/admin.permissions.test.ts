@@ -6,7 +6,7 @@ function job(executionCapability: JobDisponible['executionCapability']): JobDisp
   return { cle: 'x', label: 'X', description: '', module: 'M1', executionCapability };
 }
 
-describe('canEditParameter — SYSTEM_SETTINGS_MANAGE, super_admin only through capability mapping', () => {
+describe('canEditParameter - SYSTEM_SETTINGS_MANAGE, super_admin only through capability mapping', () => {
   it('admin cannot edit parameters (SYSTEM_SETTINGS_MANAGE absent from ADMIN_CAPABILITIES)', () => {
     expect(canEditParameter('admin')).toBe(false);
   });
@@ -20,7 +20,7 @@ describe('canEditParameter — SYSTEM_SETTINGS_MANAGE, super_admin only through 
   });
 });
 
-describe('canRunJob — derived directly from the job\'s own executionCapability', () => {
+describe("canRunJob - derived directly from the job's own executionCapability", () => {
   it('ordinary job (JOB_EXECUTE): admin+ allowed, agent/operateur denied', () => {
     const ordinaire = job('JOB_EXECUTE');
     expect(canRunJob('admin', ordinaire)).toBe(true);

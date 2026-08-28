@@ -11,8 +11,8 @@ import {
 import { MissionLogisticsBadge } from './MissionLogisticsBadge';
 import { MissionPeriod } from './MissionPeriod';
 
-// The three real columns from the Phase 2 plan §4 — Informations clés /
-// Participants preview / Operational follow-up — answering "what still
+// The three real columns from the Phase 2 plan §4 - Informations clés /
+// Participants preview / Operational follow-up - answering "what still
 // needs attention?" with real fields, in place of the mockup's invented
 // Programme column.
 export function MissionOverview({ mission }: { mission: Mission }) {
@@ -27,7 +27,10 @@ export function MissionOverview({ mission }: { mission: Mission }) {
         <dl className="mt-4 grid gap-4 text-sm">
           <DetailRow label="Titre" value={mission.titre} />
           <DetailRow label="Destination" value={`${mission.destination}, ${mission.pays}`} />
-          <DetailRow label="Dates" value={<MissionPeriod dateDebut={mission.dateDebut} dateFin={mission.dateFin} />} />
+          <DetailRow
+            label="Dates"
+            value={<MissionPeriod dateDebut={mission.dateDebut} dateFin={mission.dateFin} />}
+          />
           <DetailRow label="Créée le" value={formatMissionDate(mission.createdAt, 'long')} />
         </dl>
       </section>
@@ -85,7 +88,11 @@ export function MissionOverview({ mission }: { mission: Mission }) {
             <dt className="text-anac-muted">Recommandations</dt>
             <dd className="text-right font-medium text-anac-navy">
               {pending} en attente
-              {overdue > 0 && <span className="block text-xs text-anac-danger">{overdue} dépassée{overdue > 1 ? 's' : ''}</span>}
+              {overdue > 0 && (
+                <span className="block text-xs text-anac-danger">
+                  {overdue} dépassée{overdue > 1 ? 's' : ''}
+                </span>
+              )}
             </dd>
           </div>
         </dl>

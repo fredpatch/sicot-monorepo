@@ -39,7 +39,7 @@ export function MissionLogisticsSection({ mission }: { mission: Mission }) {
         )}
       </div>
 
-      {/* Always visible, read-only — the checklist that drives the status
+      {/* Always visible, read-only - the checklist that drives the status
           above stays legible without opening the edit dialog, even once
           the mission is confirmée. Editing still only happens through
           "Mettre à jour la logistique". */}
@@ -62,7 +62,7 @@ export function MissionLogisticsSection({ mission }: { mission: Mission }) {
       {atRisk && days !== null && (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-anac-danger">
           {days <= 0
-            ? 'Départ imminent — la logistique n\'est pas encore confirmée.'
+            ? "Départ imminent - la logistique n'est pas encore confirmée."
             : `Départ dans ${days} jour${days > 1 ? 's' : ''}. La logistique n'est pas encore confirmée.`}
         </div>
       )}

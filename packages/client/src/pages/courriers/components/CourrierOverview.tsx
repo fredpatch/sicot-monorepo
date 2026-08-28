@@ -2,12 +2,17 @@ import { Link } from 'react-router-dom';
 import { Check, FileText, Send } from 'lucide-react';
 
 import type { Courrier } from '../courrier.types';
-import { formatCourrierDate, formatCourrierDeadline, getCourrierContact, getCourrierInterlocutor } from '../courrier.utils';
+import {
+  formatCourrierDate,
+  formatCourrierDeadline,
+  getCourrierContact,
+  getCourrierInterlocutor,
+} from '../courrier.utils';
 import { COURRIER_REPONSE_LABELS } from '../courrier.constants';
 
-// The three real columns from the Phase 2 plan §5 — Informations clés /
+// The three real columns from the Phase 2 plan §5 - Informations clés /
 // Suivi (the real 3-state lifecycle, no invented stages) / Documents &
-// Réponse — answering "what's the state of this courrier and what's next?"
+// Réponse - answering "what's the state of this courrier and what's next?"
 export function CourrierOverview({ courrier }: { courrier: Courrier }) {
   const interlocuteur = getCourrierInterlocutor(courrier);
   const contact = getCourrierContact(courrier);
@@ -28,10 +33,16 @@ export function CourrierOverview({ courrier }: { courrier: Courrier }) {
             value={interlocuteur ? `${interlocuteur.nom} (${interlocuteur.pays})` : 'Non renseigné'}
           />
           {contact && (
-            <DetailRow label="Contact" value={`${contact.prenom} ${contact.nom}${contact.poste ? ` · ${contact.poste}` : ''}`} />
+            <DetailRow
+              label="Contact"
+              value={`${contact.prenom} ${contact.nom}${contact.poste ? ` · ${contact.poste}` : ''}`}
+            />
           )}
           <DetailRow label="Date" value={formatCourrierDate(courrier.dateReception, 'long')} />
-          <DetailRow label="Réponse requise" value={COURRIER_REPONSE_LABELS[courrier.reponseRequise]} />
+          <DetailRow
+            label="Réponse requise"
+            value={COURRIER_REPONSE_LABELS[courrier.reponseRequise]}
+          />
         </dl>
       </section>
 
@@ -42,7 +53,7 @@ export function CourrierOverview({ courrier }: { courrier: Courrier }) {
           <div className="mt-4 rounded-md border border-anac-border bg-anac-gray px-3 py-2.5 text-sm">
             <p className="text-xs text-anac-muted">Délai de réponse</p>
             <p className="mt-0.5 font-semibold text-anac-navy">
-              {formatCourrierDate(courrier.dateLimiteReponse)} — {formatCourrierDeadline(courrier)}
+              {formatCourrierDate(courrier.dateLimiteReponse)} - {formatCourrierDeadline(courrier)}
             </p>
           </div>
         )}
@@ -81,7 +92,7 @@ export function CourrierOverview({ courrier }: { courrier: Courrier }) {
   );
 }
 
-// The real 3-state lifecycle (Créé → En attente → Répondu | Archivé) — no
+// The real 3-state lifecycle (Créé → En attente → Répondu | Archivé) - no
 // invented stages, matches courrier.utils.ts's getCourrierLifecycleState.
 function CourrierLifecycle({ courrier }: { courrier: Courrier }) {
   const steps: { key: string; label: string; done: boolean; current: boolean }[] = [
@@ -108,12 +119,16 @@ function CourrierLifecycle({ courrier }: { courrier: Courrier }) {
             {index > 0 && <span className="absolute top-0 h-3 w-px bg-anac-border" />}
             <span
               className={`mt-3 flex size-2.5 items-center justify-center rounded-full border-2 ${
-                step.done || step.current ? 'border-anac-blue bg-anac-blue' : 'border-anac-border bg-white'
+                step.done || step.current
+                  ? 'border-anac-blue bg-anac-blue'
+                  : 'border-anac-border bg-white'
               }`}
             >
               {step.done && <Check size={7} className="text-white" aria-hidden="true" />}
             </span>
-            {index < steps.length - 1 && <span className="absolute bottom-0 top-5 w-px bg-anac-border" />}
+            {index < steps.length - 1 && (
+              <span className="absolute bottom-0 top-5 w-px bg-anac-border" />
+            )}
           </span>
           <span className="pb-4">
             <span

@@ -9,7 +9,7 @@ const TONE_CLASSES: Record<CourrierHealth['tone'], string> = {
   muted: 'border-slate-200 bg-slate-50 text-slate-600',
 };
 
-// Text always carries the meaning (label) — icon+color only reinforce,
+// Text always carries the meaning (label) - icon+color only reinforce,
 // never the sole signal.
 export function CourrierHealthBadge({ health }: { health: CourrierHealth }) {
   return (

@@ -1,7 +1,7 @@
 // packages/client/src/pages/traductions/components/editor/DeposerDocumentAction.tsx
 //
 // Deposits the approved translation's official file into the shared
-// Documents repository, tagged categorie: 'traduction' — the piece that
+// Documents repository, tagged categorie: 'traduction' - the piece that
 // makes a finished translation discoverable by any authenticated user
 // (Yan, not just Fred), independent of who requested it. If the
 // translation was launched from a source document, this becomes a new

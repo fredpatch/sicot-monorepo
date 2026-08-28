@@ -1,6 +1,6 @@
 // packages/client/src/pages/MesDemandesPage.tsx
 //
-// Agent-restricted view of their own translation requests — demandeurId
+// Agent-restricted view of their own translation requests - demandeurId
 // scope, full registry table + workspace, reusing the same components as
 // the admin Demandes registry. Promotes what used to be a link-out from
 // Mon espace (`/demandes?assignation=mes_demandes`) into its own screen,
@@ -144,7 +144,7 @@ export default function MesDemandesPage() {
     onRappeler: handleRappeler,
     onPasserEnRelecture: (id: number) => passerEnRelectureMutation.mutate(id),
     passerEnRelectureEnCours: passerEnRelectureMutation.isPending,
-    // Reviewer-only action — an agent's own requests never satisfy
+    // Reviewer-only action - an agent's own requests never satisfy
     // canValidatePriority, so this never actually fires here.
     onOuvrirValidationPriorite: () => {},
     onValider: (id: number) => validerMutation.mutate(id),
@@ -264,7 +264,7 @@ export default function MesDemandesPage() {
             </div>
           )}
 
-          {/* Seules vos demandes sont affichées — pas la file globale de traduction. */}
+          {/* Seules vos demandes sont affichées - pas la file globale de traduction. */}
           <div className="flex space-x-4">
             <p className="rounded-lg border border-anac-border bg-white px-4 py-3 text-xs text-anac-muted">
               Seules vos demandes sont affichées. Vous pouvez consulter l&apos;état, ouvrir la

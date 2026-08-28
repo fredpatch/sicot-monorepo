@@ -51,26 +51,26 @@ const COULEURS_CRITICITE: Record<CourrierCriticite, BadgeCouleur> = {
 };
 
 function formatDate(date?: Date): string {
-  return date ? new Date(date).toLocaleDateString('fr-FR') : '—';
+  return date ? new Date(date).toLocaleDateString('fr-FR') : '-';
 }
 
 // Le contact explicitement choisi prime sur le contact principal générique
-// de l'organisation — un choix explicite ne doit pas être silencieusement
+// de l'organisation - un choix explicite ne doit pas être silencieusement
 // remplacé par quelqu'un d'autre.
 function formatOrganisation(
   org?: CourrierView['expediteur'],
   contactChoisi?: CourrierView['expediteurContact']
 ): string {
-  if (!org) return '—';
+  if (!org) return '-';
   const contact = contactChoisi
-    ? ` — contact : ${echapperHTML(`${contactChoisi.prenom} ${contactChoisi.nom}`)}`
+    ? ` - contact : ${echapperHTML(`${contactChoisi.prenom} ${contactChoisi.nom}`)}`
     : org.contactPrincipal
-      ? ` — contact : ${echapperHTML(`${org.contactPrincipal.prenom} ${org.contactPrincipal.nom}`)}`
+      ? ` - contact : ${echapperHTML(`${org.contactPrincipal.prenom} ${org.contactPrincipal.nom}`)}`
       : '';
   return `${echapperHTML(org.nom)} (${echapperHTML(org.pays)})${contact}`;
 }
 
-// ── Export PDF — fiche individuelle d'un courrier ──────────────────────────
+// ── Export PDF - fiche individuelle d'un courrier ──────────────────────────
 export async function genererPDFCourrier(courrier: CourrierView): Promise<Buffer> {
   const [responsable, historique] = await Promise.all([
     courrier.createdPar
@@ -85,24 +85,39 @@ export async function genererPDFCourrier(courrier: CourrierView): Promise<Buffer
 
   const infosGenerales = grilleInfos([
     { label: 'Référence', valeur: echapperHTML(courrier.reference) },
-    { label: 'Direction', valeur: echapperHTML(LABELS_DIRECTION[courrier.direction] ?? courrier.direction) },
-    { label: 'Statut de suivi', valeur: badge(LABELS_SUIVI[courrier.suiviStatut], COULEURS_SUIVI[courrier.suiviStatut]) },
+    {
+      label: 'Direction',
+      valeur: echapperHTML(LABELS_DIRECTION[courrier.direction] ?? courrier.direction),
+    },
+    {
+      label: 'Statut de suivi',
+      valeur: badge(LABELS_SUIVI[courrier.suiviStatut], COULEURS_SUIVI[courrier.suiviStatut]),
+    },
     {
       label: 'Priorité',
       valeur: courrier.criticite
         ? badge(LABELS_CRITICITE[courrier.criticite], COULEURS_CRITICITE[courrier.criticite])
-        : '—',
+        : '-',
     },
     { label: 'Date de réception', valeur: formatDate(courrier.dateReception) },
-    { label: 'Réponse requise', valeur: echapperHTML(LABELS_REPONSE[courrier.reponseRequise] ?? courrier.reponseRequise) },
+    {
+      label: 'Réponse requise',
+      valeur: echapperHTML(LABELS_REPONSE[courrier.reponseRequise] ?? courrier.reponseRequise),
+    },
     { label: 'Date limite de réponse', valeur: formatDate(courrier.dateLimiteReponse) },
   ]);
 
   const correspondants = sectionBox({
     titre: 'Correspondants',
     contenu: grilleInfos([
-      { label: 'Expéditeur', valeur: formatOrganisation(courrier.expediteur, courrier.expediteurContact) },
-      { label: 'Destinataire', valeur: formatOrganisation(courrier.destinataire, courrier.destinataireContact) },
+      {
+        label: 'Expéditeur',
+        valeur: formatOrganisation(courrier.expediteur, courrier.expediteurContact),
+      },
+      {
+        label: 'Destinataire',
+        valeur: formatOrganisation(courrier.destinataire, courrier.destinataireContact),
+      },
     ]),
   });
 

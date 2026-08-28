@@ -1,4 +1,4 @@
-// ── Filtre de période — partagé par tous les modules analytics ────────────
+// ── Filtre de période - partagé par tous les modules analytics ────────────
 export interface PeriodeFiltre {
   dateDebut?: Date;
   dateFin?: Date;

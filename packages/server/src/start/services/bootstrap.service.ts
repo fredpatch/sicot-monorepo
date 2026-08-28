@@ -28,7 +28,7 @@ export async function initialiserSuperAdmin(params: {
 }): Promise<void> {
   const { matricule, nom, prenom, email, motDePasse } = params;
 
-  // Vérification de sécurité — ne pas écraser un système déjà initialisé
+  // Vérification de sécurité - ne pas écraser un système déjà initialisé
   const dejaInitialise = await estInitialise();
   if (dejaInitialise) {
     throw new Error('SYSTEME_DEJA_INITIALISE');

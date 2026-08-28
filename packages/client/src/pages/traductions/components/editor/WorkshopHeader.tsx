@@ -13,7 +13,7 @@ interface WorkshopHeaderProps {
   traduction: Traduction;
   modifie: boolean;
   sauvegarde: boolean;
-  /** Capability (TRANSLATION_PROCESS) AND workflow-state — see traductions.permissions.ts. */
+  /** Capability (TRANSLATION_PROCESS) AND workflow-state - see traductions.permissions.ts. */
   peutSauvegarder: boolean;
   estApprouvee: boolean;
   estArchivee: boolean;
@@ -24,7 +24,7 @@ interface WorkshopHeaderProps {
   saveEnCours: boolean;
   onApprove: () => void;
   approveEnCours: boolean;
-  /** Capability (TRANSLATION_ARCHIVE) AND workflow-state — distinct from estApprouvee, which still gates export/deposit (unrelated to this fix's scope). */
+  /** Capability (TRANSLATION_ARCHIVE) AND workflow-state - distinct from estApprouvee, which still gates export/deposit (unrelated to this fix's scope). */
   peutArchiver: boolean;
   onArchive: () => void;
   archiveEnCours: boolean;
@@ -187,7 +187,9 @@ export function WorkshopHeader({
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => confirmToast('Supprimer cette traduction ? Cette action est réversible.', onDelete)}
+            onClick={() =>
+              confirmToast('Supprimer cette traduction ? Cette action est réversible.', onDelete)
+            }
             disabled={deleteEnCours}
             className="gap-1.5 text-anac-muted hover:text-anac-danger hover:border-anac-danger"
           >

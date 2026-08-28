@@ -10,7 +10,7 @@ import { PortalFooter } from './components/PortalFooter';
 
 type Etat = 'en_cours' | 'succes' | 'erreur';
 
-// Cible réelle du lien envoyé par email (portal.service.ts#genererTokenTelechargement) —
+// Cible réelle du lien envoyé par email (portal.service.ts#genererTokenTelechargement) -
 // route absente jusqu'ici, ce qui rendait tout le flux de téléchargement
 // sécurisé non fonctionnel (le lien retombait sur la redirection générique
 // de connexion). Récupère le fichier en blob plutôt qu'une navigation
@@ -54,8 +54,7 @@ export default function PortalDownloadPage() {
         setEtat('succes');
       } catch (err) {
         if (annule) return;
-        const status = (err as { response?: { status?: number; data?: Blob } })?.response
-          ?.status;
+        const status = (err as { response?: { status?: number; data?: Blob } })?.response?.status;
         if (status === 410) {
           setMessage(
             "Ce lien de téléchargement n'est plus valide. Veuillez retourner sur le portail et demander un nouveau lien."
@@ -92,13 +91,15 @@ export default function PortalDownloadPage() {
             <>
               <CheckCircle2 size={32} className="text-green-600 mx-auto mb-4" />
               <p className="text-sm font-medium text-anac-navy">Téléchargement lancé</p>
-              {nomFichier && (
-                <p className="text-xs text-anac-muted mt-1">{nomFichier}</p>
-              )}
+              {nomFichier && <p className="text-xs text-anac-muted mt-1">{nomFichier}</p>}
               <p className="text-xs text-anac-muted mt-3">
                 Si rien ne se passe, vérifiez les téléchargements bloqués de votre navigateur.
               </p>
-              <Button variant="secondary" className="mt-5 gap-1.5" onClick={() => navigate('/portal')}>
+              <Button
+                variant="secondary"
+                className="mt-5 gap-1.5"
+                onClick={() => navigate('/portal')}
+              >
                 Retourner au portail
               </Button>
             </>

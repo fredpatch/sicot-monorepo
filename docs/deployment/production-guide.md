@@ -1,8 +1,8 @@
-# SICOT — Production Deployment Runbook
+# SICOT - Production Deployment Runbook
 
 Project-specific companion to [`docs/deployment-documentation.md`](../deployment-documentation.md)
 (the generic playbook this infra was built from). This file has the real
-values and the exact commands for *this* repo; the other file has the
+values and the exact commands for _this_ repo; the other file has the
 reasoning and the reusable pattern.
 
 ## 1. Services in this stack
@@ -10,33 +10,33 @@ reasoning and the reusable pattern.
 SICOT is five deployable units, not the two (`api` + `client`) the generic
 doc assumes:
 
-| Service     | Image               | What it is                                                   | Public? |
-| ----------- | -------------------- | -------------------------------------------------------------- | ------- |
-| `nginx`     | `nginx:alpine`        | TLS termination, reverse proxy — the only public container     | yes (80/443) |
-| `client`    | `sicot-client`         | React SPA, served by its own internal Nginx                    | no (behind reverse proxy) |
-| `api`       | `sicot-api`            | Express REST API                                                | no |
-| `postgres`  | `postgres:16`          | Database                                                        | no |
-| `ocr`       | `sicot-ocr`            | Python/Flask — Tesseract + LibreOffice + Poppler text extraction | no, internal only |
-| `translate` | `sicot-translate`      | Python/Flask — wraps LibreTranslate (+ optional DeepL fallback) | no, internal only |
-| `libretranslate` | `libretranslate/libretranslate` | Self-hosted MT engine `translate` talks to             | no, internal only |
+| Service          | Image                           | What it is                                                       | Public?                   |
+| ---------------- | ------------------------------- | ---------------------------------------------------------------- | ------------------------- |
+| `nginx`          | `nginx:alpine`                  | TLS termination, reverse proxy - the only public container       | yes (80/443)              |
+| `client`         | `sicot-client`                  | React SPA, served by its own internal Nginx                      | no (behind reverse proxy) |
+| `api`            | `sicot-api`                     | Express REST API                                                 | no                        |
+| `postgres`       | `postgres:16`                   | Database                                                         | no                        |
+| `ocr`            | `sicot-ocr`                     | Python/Flask - Tesseract + LibreOffice + Poppler text extraction | no, internal only         |
+| `translate`      | `sicot-translate`               | Python/Flask - wraps LibreTranslate (+ optional DeepL fallback)  | no, internal only         |
+| `libretranslate` | `libretranslate/libretranslate` | Self-hosted MT engine `translate` talks to                       | no, internal only         |
 
 `api` calls `ocr` and `translate` over the internal Compose network
-(`OCR_SERVICE_URL`, `LIBRETRANSLATE_URL` — see `docker-compose.prod.yml`).
+(`OCR_SERVICE_URL`, `LIBRETRANSLATE_URL` - see `docker-compose.prod.yml`).
 Neither is reachable from outside the VPS, by design.
 
 ## 2. Prerequisites specific to this project
 
 - **Personnel ANAC integration** (`PERSONNEL_ANAC_BASE_URL`) points at
-  `http://100.110.227.69:4005` — a Tailscale-internal address. The VPS
+  `http://100.110.227.69:4005` - a Tailscale-internal address. The VPS
   needs to be joined to that Tailscale network (or the org's equivalent)
   for this integration to work in production; it will silently fail
   health/lookup calls otherwise. Confirm with ANAC IT before relying on it.
-- **Gemini rapports-IA** (`GEMINI_API_KEY`) — per `.env.prod.example`,
+- **Gemini rapports-IA** (`GEMINI_API_KEY`) - per `.env.prod.example`,
   leave this unset in production until DG/RGPD sign off (see Sprint 11
   notes). The feature degrades gracefully without it.
-- **DeepL** — `DEEPL_ENABLED=false` by default; LibreTranslate (self-hosted,
+- **DeepL** - `DEEPL_ENABLED=false` by default; LibreTranslate (self-hosted,
   in-stack) is the only translation engine until DeepL is approved.
-- **LibreOffice inside the `ocr` image** is large (~600MB+) — first build
+- **LibreOffice inside the `ocr` image** is large (~600MB+) - first build
   and first pull will be slow. This was a deliberate tradeoff (see the
   "Python services" decision in this deployment's setup) for full
   reproducibility over image size.
@@ -62,7 +62,7 @@ cp .env.prod.example .env.staging   # adjust DB_*/JWT_* for staging
 # → http://localhost:4001
 ```
 
-This builds every image locally (doesn't touch GHCR) — it's the gate that
+This builds every image locally (doesn't touch GHCR) - it's the gate that
 proves the actual production Dockerfiles work before anything is published.
 
 ## 5. VPS provisioning (one-time)
@@ -70,7 +70,7 @@ proves the actual production Dockerfiles work before anything is published.
 1. Ubuntu LTS VPS, Docker + Compose plugin installed, non-root deploy user
    with SSH key auth, UFW allowing only 22/80/443, fail2ban.
 2. `mkdir -p /opt/sicot && cd /opt/sicot`
-3. Create `.env.prod` by hand from `.env.prod.example` — **never** copy this
+3. Create `.env.prod` by hand from `.env.prod.example` - **never** copy this
    file through git or CI.
 4. If Personnel ANAC integration is needed in prod, join the VPS to the
    Tailscale network first (§2).
@@ -116,9 +116,9 @@ Record the deployed SHA after every successful `Deploy Production` run
 
 ## 10. Known gaps / follow-ups
 
-- No automated test suite exists yet — CI's `verify` job type-checks and
+- No automated test suite exists yet - CI's `verify` job type-checks and
   builds (`npm run build`) but doesn't run tests. Add one before treating
   CI green as a strong correctness signal.
 - Puppeteer PDF export (`src/utils/pdf.ts`) needs `shm_size: "512mb"` on
-  `api` — already set in all three Compose files; don't drop it if you
+  `api` - already set in all three Compose files; don't drop it if you
   restructure them.

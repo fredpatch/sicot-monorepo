@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// Create — the 4-step guided flow. Only real fields (see courrier.types.ts /
-// the Phase 1 audit) — no priorité/type de réponse/mode de réception.
+// Create - the 4-step guided flow. Only real fields (see courrier.types.ts /
+// the Phase 1 audit) - no priorité/type de réponse/mode de réception.
 export const courrierCreateSchema = z.object({
   direction: z.enum(['entrant', 'sortant']),
   objet: z.string().min(1, "L'objet est requis"),
@@ -19,7 +19,7 @@ export const courrierCreateSchema = z.object({
 
 export type CourrierCreateFormData = z.infer<typeof courrierCreateSchema>;
 
-// Edit — only the fields the server actually accepts post-creation.
+// Edit - only the fields the server actually accepts post-creation.
 // Direction stays immutable (a courrier doesn't flip from entrant to
 // sortant); expéditeur/destinataire, date, and réponse requise are
 // editable per explicit user request. Documents are managed from the

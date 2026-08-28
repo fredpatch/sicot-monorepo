@@ -6,7 +6,13 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +33,12 @@ interface ModifierUtilisateurDialogProps {
   chargement: boolean;
 }
 
-export function ModifierUtilisateurDialog({ utilisateur, onOpenChange, onSubmit, chargement }: ModifierUtilisateurDialogProps) {
+export function ModifierUtilisateurDialog({
+  utilisateur,
+  onOpenChange,
+  onSubmit,
+  chargement,
+}: ModifierUtilisateurDialogProps) {
   const {
     register,
     handleSubmit,
@@ -46,7 +57,7 @@ export function ModifierUtilisateurDialog({ utilisateur, onOpenChange, onSubmit,
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            Modifier — {utilisateur?.prenom} {utilisateur?.nom}
+            Modifier - {utilisateur?.prenom} {utilisateur?.nom}
           </DialogTitle>
           <DialogDescription>Matricule {utilisateur?.matricule} (non modifiable)</DialogDescription>
         </DialogHeader>
@@ -56,7 +67,9 @@ export function ModifierUtilisateurDialog({ utilisateur, onOpenChange, onSubmit,
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" {...register('email')} aria-invalid={!!errors.email} />
-              {errors.email && <p className="text-[11px] text-anac-danger">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-[11px] text-anac-danger">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">

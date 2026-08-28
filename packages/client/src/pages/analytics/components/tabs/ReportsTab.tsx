@@ -30,7 +30,7 @@ export function OngletRapports() {
   const [periodeDebut, setPeriodeDebut] = useState('');
   const [periodeFin, setPeriodeFin] = useState('');
 
-  // Génération/approbation de l'analyse IA — ADMIN_MONITORING_VIEW, la même
+  // Génération/approbation de l'analyse IA - ADMIN_MONITORING_VIEW, la même
   // capacité que PATCH /analytics/rapports/:id/analyse-ia côté serveur
   // (Phase 4.8.4), pas un littéral de rôle. Toute la page Analytics est déjà
   // gardée ANALYTICS_VIEW (admin+) au niveau route, donc ce test est

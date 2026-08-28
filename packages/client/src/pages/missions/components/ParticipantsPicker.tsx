@@ -20,7 +20,7 @@ interface UserOption {
 }
 
 // Two-panel searchable participant picker, shared between the guided
-// creation Step 3 and the edit form's Participants section — plus the
+// creation Step 3 and the edit form's Participants section - plus the
 // "quick-create a participant" addition: an admin/super_admin can create a
 // new ANAC agent account inline (embedding the exact same CreateUserDialog
 // the admin Users page uses, so validation/OTP-dispatch/audit-log stay a
@@ -36,7 +36,7 @@ export function ParticipantsPicker({
 }) {
   const { user } = useAuth();
   // Cet ajout rapide appelle POST /api/users (embarque CreerUtilisateurDialog)
-  // — même capacité que la page Utilisateurs, USER_MANAGE, pas un tableau de
+  // - même capacité que la page Utilisateurs, USER_MANAGE, pas un tableau de
   // rôles codé en dur ici (Phase 5.3). Ce tableau avait été manqué par le
   // grep initial (syntaxe .includes(), pas role === /!==).
   const canCreateUsers = !!user && hasCapability(user.role, 'USER_MANAGE');
@@ -77,7 +77,7 @@ export function ParticipantsPicker({
       onChange([...value, created.id]);
       toast.success(`${created.prenom} ${created.nom} a été créé et ajouté aux participants.`);
       if (!res.data.emailEnvoye) {
-        toast.warning("L'OTP n'a pas pu être envoyé par email — vérifiez la configuration SMTP.");
+        toast.warning("L'OTP n'a pas pu être envoyé par email - vérifiez la configuration SMTP.");
       }
     },
     onError: (err: unknown) => {
@@ -97,7 +97,11 @@ export function ParticipantsPicker({
       <div>
         <Label>Agents disponibles</Label>
         <div className="relative mt-2">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted" aria-hidden="true" />
+          <Search
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted"
+            aria-hidden="true"
+          />
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -106,7 +110,9 @@ export function ParticipantsPicker({
           />
         </div>
 
-        <div className={`mt-3 max-h-72 overflow-y-auto rounded-md border ${error ? 'border-anac-danger' : 'border-anac-border'}`}>
+        <div
+          className={`mt-3 max-h-72 overflow-y-auto rounded-md border ${error ? 'border-anac-danger' : 'border-anac-border'}`}
+        >
           {usersQuery.isLoading ? (
             <div className="flex items-center justify-center py-8 text-anac-muted">
               <Loader2 size={15} className="mr-2 animate-spin" aria-hidden="true" />

@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface PdfPreviewDialogProps {
   open: boolean;
@@ -11,7 +17,7 @@ interface PdfPreviewDialogProps {
   titre: string;
 }
 
-// ── Aperçu PDF avant téléchargement — même URL d'export, disposition
+// ── Aperçu PDF avant téléchargement - même URL d'export, disposition
 // "inline" demandée via ?apercu=1 pour que le navigateur affiche le PDF
 // dans l'iframe plutôt que de forcer un téléchargement ────────────────────
 export function PdfPreviewDialog({ open, onOpenChange, url, titre }: PdfPreviewDialogProps) {
@@ -40,7 +46,7 @@ export function PdfPreviewDialog({ open, onOpenChange, url, titre }: PdfPreviewD
           {open && (
             <iframe
               src={previewUrl}
-              title={`Aperçu — ${titre}`}
+              title={`Aperçu - ${titre}`}
               className="h-full w-full border-0"
               onLoad={() => setLoaded(true)}
             />
@@ -50,7 +56,11 @@ export function PdfPreviewDialog({ open, onOpenChange, url, titre }: PdfPreviewD
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Fermer
           </Button>
-          <Button type="button" onClick={() => window.open(url, '_blank')} className="gap-2 bg-anac-blue">
+          <Button
+            type="button"
+            onClick={() => window.open(url, '_blank')}
+            className="gap-2 bg-anac-blue"
+          >
             <Download size={14} aria-hidden="true" />
             Télécharger
           </Button>

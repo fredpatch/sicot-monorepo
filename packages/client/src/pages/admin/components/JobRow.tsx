@@ -25,7 +25,7 @@ export function JobRow({ job, role, enCours, resultat, onExecuter }: JobRowProps
       description: `${job.description} Cette action sera enregistrée dans le Journal d'audit.`,
       confirmLabel: 'Lancer',
       // Préserve le traitement visuel existant (confirmation "destructive"
-      // pour les jobs à haut risque) — SYSTEM_ADMIN_OPERATION remplace
+      // pour les jobs à haut risque) - SYSTEM_ADMIN_OPERATION remplace
       // roleMinimum === 'super_admin' comme signal, sans changer l'UI.
       variant: job.executionCapability === 'SYSTEM_ADMIN_OPERATION' ? 'destructive' : 'default',
     });
@@ -74,7 +74,7 @@ export function JobRow({ job, role, enCours, resultat, onExecuter }: JobRowProps
           )}
           <span>
             {resultat.resume}
-            {resultat.erreur && ` — ${resultat.erreur}`}
+            {resultat.erreur && ` - ${resultat.erreur}`}
             <span className="ml-1.5 text-anac-muted">({resultat.dureeMs}ms)</span>
           </span>
         </div>

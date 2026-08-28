@@ -4,7 +4,13 @@ import { ExternalLink, FileText, Loader2, Upload, User, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { documentsApi } from '@/lib/documents.api';
 import { missionsApi } from '@/lib/missions.api';
 import { useAuth } from '@/App';
@@ -14,10 +20,10 @@ import { canManageMission } from '../missions.permissions';
 
 const AUCUN_RESPONSABLE = '__aucun__';
 
-// Assignation du participant responsable du rapport officiel (Phase 8) —
+// Assignation du participant responsable du rapport officiel (Phase 8) -
 // MISSION_MANAGE uniquement (cette section entière n'est atteignable que
 // via /missions/:id, déjà gardé MISSION_REGISTRY_VIEW côté routeur). Ne
-// peut désigner qu'un participant réel de la mission — validé aussi côté
+// peut désigner qu'un participant réel de la mission - validé aussi côté
 // serveur (missions.service.ts), ce select ne fait que refléter cette
 // contrainte pour éviter un aller-retour 400 évitable.
 function ReportResponsableAssignment({ mission }: { mission: Mission }) {
@@ -42,7 +48,9 @@ function ReportResponsableAssignment({ mission }: { mission: Mission }) {
         </p>
       </div>
       <Select
-        value={mission.rapportResponsableId ? String(mission.rapportResponsableId) : AUCUN_RESPONSABLE}
+        value={
+          mission.rapportResponsableId ? String(mission.rapportResponsableId) : AUCUN_RESPONSABLE
+        }
         onValueChange={(value) =>
           assignMutation.mutate(value === AUCUN_RESPONSABLE ? null : Number(value))
         }
@@ -71,8 +79,8 @@ interface DocumentSummary {
   createdAt?: string;
 }
 
-// Preserves both existing behaviors — upload a new file, or link an
-// existing mission document — as their own workflow, out of the general
+// Preserves both existing behaviors - upload a new file, or link an
+// existing mission document - as their own workflow, out of the general
 // edit form per the Phase 2 plan (§6).
 export function MissionReportSection({ mission }: { mission: Mission }) {
   const { user } = useAuth();
@@ -103,7 +111,8 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
   });
 
   const linkMutation = useMutation({
-    mutationFn: (documentId: number) => missionsApi.mettreAJour(mission.id, { rapportDocumentId: documentId }),
+    mutationFn: (documentId: number) =>
+      missionsApi.mettreAJour(mission.id, { rapportDocumentId: documentId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mission', mission.id] });
       queryClient.invalidateQueries({ queryKey: ['missions'] });
@@ -111,7 +120,7 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
     },
   });
 
-  // Explicit null — distinct from omitting the field — actually clears the
+  // Explicit null - distinct from omitting the field - actually clears the
   // link server-side, letting a mistakenly-uploaded report be replaced.
   const unlinkMutation = useMutation({
     mutationFn: () => missionsApi.mettreAJour(mission.id, { rapportDocumentId: null }),
@@ -158,7 +167,9 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
             <span className="flex items-center gap-3">
               <FileText size={18} className="text-anac-blue" aria-hidden="true" />
               <span>
-                <span className="block font-semibold text-anac-navy">{reportQuery.data.nomOriginal}</span>
+                <span className="block font-semibold text-anac-navy">
+                  {reportQuery.data.nomOriginal}
+                </span>
                 <span className="text-xs text-anac-muted">{reportQuery.data.mimeType}</span>
               </span>
             </span>
@@ -211,7 +222,7 @@ export function MissionReportSection({ mission }: { mission: Mission }) {
       <h3 className="font-bold text-anac-navy">Rapport de mission</h3>
       {isMissionReportMissing(mission) && (
         <p className="mt-1 text-sm font-medium text-anac-warning">
-          Mission terminée — rapport non déposé.
+          Mission terminée - rapport non déposé.
         </p>
       )}
 

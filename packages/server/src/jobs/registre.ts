@@ -20,10 +20,10 @@ export interface JobDefinition {
   label: string;
   description: string;
   module: string;
-  // Capacité requise pour exécuter ce job manuellement — JOB_EXECUTE pour
+  // Capacité requise pour exécuter ce job manuellement - JOB_EXECUTE pour
   // les jobs ordinaires (admin+), SYSTEM_ADMIN_OPERATION pour les jobs à
   // haut risque (sauvegardes/système, super_admin only). Remplace l'ancien
-  // champ roleMinimum ('admin' | 'super_admin') — plus de terminologie de
+  // champ roleMinimum ('admin' | 'super_admin') - plus de terminologie de
   // rôle dans le contrat du registre (Phase 4.8.3 cleanup).
   executionCapability: Capability;
   executer: () => Promise<{ resume: string; details?: Record<string, unknown> }>;
@@ -43,7 +43,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
         resume:
           resultat.nombreMisAJour > 0
             ? `${resultat.nombreMisAJour} accord(s) repassé(s) en "expire" : ${resultat.references.join(', ')}`
-            : 'Aucun accord à mettre à jour — tout est déjà cohérent.',
+            : 'Aucun accord à mettre à jour - tout est déjà cohérent.',
         details: resultat,
       };
     },
@@ -121,7 +121,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
       });
 
       return {
-        resume: `${courriersEnAttente.length} courrier(s) en attente — ${critiques} critique(s), ${aSurveiller} à surveiller.`,
+        resume: `${courriersEnAttente.length} courrier(s) en attente - ${critiques} critique(s), ${aSurveiller} à surveiller.`,
         details: { total: courriersEnAttente.length, critiques, aSurveiller },
       };
     },
@@ -168,7 +168,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     cle: 'backup_quotidien',
     label: 'Sauvegarde quotidienne immédiate',
     description:
-      "Déclenche immédiatement la sauvegarde du palier quotidien, vers le dossier local et le NAS indépendamment (en plus du cycle automatique de minuit).",
+      'Déclenche immédiatement la sauvegarde du palier quotidien, vers le dossier local et le NAS indépendamment (en plus du cycle automatique de minuit).',
     module: 'M10',
     executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
@@ -244,7 +244,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     cle: 'backup_sync_nas',
     label: 'Synchroniser vers le NAS',
     description:
-      "Copie vers le NAS les sauvegardes présentes en local mais absentes du NAS — utile après une coupure réseau pendant laquelle seule la sauvegarde locale a pu s'exécuter.",
+      "Copie vers le NAS les sauvegardes présentes en local mais absentes du NAS - utile après une coupure réseau pendant laquelle seule la sauvegarde locale a pu s'exécuter.",
     module: 'M10',
     executionCapability: 'SYSTEM_ADMIN_OPERATION',
     executer: async () => {
@@ -253,7 +253,7 @@ export const REGISTRE_JOBS: JobDefinition[] = [
         resume:
           copies.length > 0
             ? `${copies.length} sauvegarde(s) copiée(s) vers le NAS.${erreurs.length > 0 ? ` ${erreurs.length} échec(s).` : ''}`
-            : 'Aucune sauvegarde à synchroniser — le NAS est déjà à jour.',
+            : 'Aucune sauvegarde à synchroniser - le NAS est déjà à jour.',
         details: { copies, erreurs },
       };
     },
@@ -283,12 +283,12 @@ export const REGISTRE_JOBS: JobDefinition[] = [
     executer: async () => {
       const resultat = await genererRapportMensuel();
       return {
-        resume: `Rapport mensuel généré — document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
+        resume: `Rapport mensuel généré - document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
         details: resultat,
       };
     },
   },
-  // ── Réservé Sprint 5/9 — rapport mensuel automatique ──────────────────
+  // ── Réservé Sprint 5/9 - rapport mensuel automatique ──────────────────
   // {
   //   cle: 'rapport_mensuel', executionCapability: 'JOB_EXECUTE', module: 'M9', ...
   // },

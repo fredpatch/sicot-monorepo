@@ -12,12 +12,12 @@ export interface DocumentLie {
 
 interface CourrierDocumentPickerProps {
   onPicked: (document: DocumentLie) => void;
-  // Documents already attached — hidden from the "link existing" list so
+  // Documents already attached - hidden from the "link existing" list so
   // the same document can't be added twice.
   excludeIds?: number[];
 }
 
-// Adds ONE document at a time (upload-new or link-existing) — the caller
+// Adds ONE document at a time (upload-new or link-existing) - the caller
 // owns the resulting list (create stepper accumulates locally, the detail
 // workspace calls ajouterDocumentCourrier per pick). Same upload/link
 // behavior as the original single-document flat form, just no longer

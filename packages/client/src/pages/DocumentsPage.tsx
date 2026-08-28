@@ -18,7 +18,11 @@ import { OcrCorrectionDialog } from './documents/components/OcrCorrectionDialog'
 import { PortailDialog } from './documents/components/PortailDialog';
 import { canManageDocuments } from './documents/documents.permissions';
 import type { Categorie, Document } from './documents/documents.types';
-import { PAGE_SIZE, useDocumentsAggregatesQuery, useDocumentsQuery } from './documents/hooks/queries';
+import {
+  PAGE_SIZE,
+  useDocumentsAggregatesQuery,
+  useDocumentsQuery,
+} from './documents/hooks/queries';
 import { useDocumentsMutations } from './documents/hooks/mutations';
 import { DocumentsFiltres } from './documents/components/DocumentsFilters';
 
@@ -40,7 +44,13 @@ export default function DocumentsPage() {
   const [documentSelectionne, setDocumentSelectionne] = useState<Document | null>(null);
 
   // ── Requêtes ──────────────────────────────────────────────────────────
-  const { data, isLoading } = useDocumentsQuery({ search, categorie, statutOCR, page, finalesUniquement });
+  const { data, isLoading } = useDocumentsQuery({
+    search,
+    categorie,
+    statutOCR,
+    page,
+    finalesUniquement,
+  });
   const { data: aggregates } = useDocumentsAggregatesQuery();
 
   // ── Mutations ─────────────────────────────────────────────────────────
@@ -60,11 +70,11 @@ export default function DocumentsPage() {
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
   // Partagés entre le registre (documents.columns.tsx) et le workspace du
-  // document sélectionné (DocumentWorkspace.tsx) — une seule définition pour
+  // document sélectionné (DocumentWorkspace.tsx) - une seule définition pour
   // chaque action, quel que soit l'endroit d'où elle est déclenchée.
   const onChangerCategorie = (id: number, cat: string) => categoriesMutation.mutate({ id, cat });
   const onTraduire = async (doc: Document) => {
-    // Le listing ne renvoie plus texteExtrait (voir documents.types.ts) — on
+    // Le listing ne renvoie plus texteExtrait (voir documents.types.ts) - on
     // charge le détail complet au moment du clic, uniquement pour ce
     // document, plutôt que de l'inclure sur chaque ligne du registre.
     const { data: detail } = await documentsApi.getById(doc.id);

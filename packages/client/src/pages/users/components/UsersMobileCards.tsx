@@ -17,7 +17,7 @@ interface UsersMobileCardsProps {
   toggleActivationEnCours: boolean;
 }
 
-// Repli mobile du registre (< md) — mêmes données que users.columns.tsx,
+// Repli mobile du registre (< md) - mêmes données que users.columns.tsx,
 // même menu d'actions, présentées en cartes plutôt qu'en tableau.
 export function UsersMobileCards({
   utilisateurs,

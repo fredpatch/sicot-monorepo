@@ -29,7 +29,7 @@ function deriveStatut(state: ChecklistState) {
   return 'en_cours' as const;
 }
 
-// Logistics status is derived from this checklist, not manually picked —
+// Logistics status is derived from this checklist, not manually picked -
 // see the server's mettreAJourMission. Checking/unchecking items updates
 // the derived status live in the dialog before saving.
 export function LogisticsDialog({
@@ -96,7 +96,9 @@ export function LogisticsDialog({
                 <input
                   type="checkbox"
                   checked={state[item.key]}
-                  onChange={(event) => setState((prev) => ({ ...prev, [item.key]: event.target.checked }))}
+                  onChange={(event) =>
+                    setState((prev) => ({ ...prev, [item.key]: event.target.checked }))
+                  }
                   className="size-4 rounded border-anac-border text-anac-blue focus:ring-anac-sky"
                 />
                 <span className="text-sm font-medium text-anac-navy">{item.label}</span>
@@ -112,8 +114,15 @@ export function LogisticsDialog({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button type="button" onClick={() => mutation.mutate()} disabled={mutation.isPending} className="gap-2 bg-anac-blue">
-            {mutation.isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+          <Button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            className="gap-2 bg-anac-blue"
+          >
+            {mutation.isPending && (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            )}
             Enregistrer
           </Button>
         </DialogFooter>

@@ -43,7 +43,7 @@ export async function genererRapportMensuel(): Promise<{ pdf: number; excel: num
     type: 'mensuel',
   });
 
-  // Analyse IA tentée sur le rapport PDF uniquement — jamais bloquante
+  // Analyse IA tentée sur le rapport PDF uniquement - jamais bloquante
   try {
     await genererAnalyseIA(pdf.rapportId, { estAutomatique: true });
   } catch (err) {
@@ -53,7 +53,7 @@ export async function genererRapportMensuel(): Promise<{ pdf: number; excel: num
   return { pdf: pdf.documentId, excel: excel.documentId };
 }
 
-// ── Planification — 1er du mois à 06h00 ────────────────────────────────────
+// ── Planification - 1er du mois à 06h00 ────────────────────────────────────
 export function demarrerJobRapportMensuel(): void {
   cron.schedule('0 6 1 * *', async () => {
     console.log('📊 Génération du rapport mensuel automatique...');
@@ -65,7 +65,7 @@ export function demarrerJobRapportMensuel(): void {
         module: 'M11',
         source: 'cron',
         succes: true,
-        resume: `Rapport mensuel généré — document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
+        resume: `Rapport mensuel généré - document PDF #${resultat.pdf}, document Excel #${resultat.excel}.`,
         dureeMs: Date.now() - debut,
       });
     } catch (error) {

@@ -15,9 +15,9 @@ import { canManageDocuments, getDocumentCapabilities } from './documents.permiss
 import { documentsApi } from '@/lib/documents.api';
 import type { Document } from './documents.types';
 
-// Colonnes purement administratives — sans action possible pour un agent
+// Colonnes purement administratives - sans action possible pour un agent
 // (statut OCR interne, bascule visibilité interne, publication portail
-// externe) — masquées plutôt que grisées, pour ne pas encombrer la vue
+// externe) - masquées plutôt que grisées, pour ne pas encombrer la vue
 // d'un rôle qui ne peut de toute façon rien y faire.
 const COLONNES_MASQUEES_AGENT = ['statutOCR', 'visibiliteInterne', 'portail'];
 
@@ -76,7 +76,7 @@ export function useDocumentsColumns({
         header: 'Catégorie',
         enableSorting: false,
         // Édition déplacée vers l'onglet Informations du workspace (voir
-        // DocumentWorkspace.tsx) — le registre n'affiche que le badge, pour
+        // DocumentWorkspace.tsx) - le registre n'affiche que le badge, pour
         // éviter les modifications accidentelles au survol d'une ligne.
         cell: ({ row }) => {
           const label =
@@ -90,12 +90,12 @@ export function useDocumentsColumns({
         header: 'Langue',
         enableSorting: false,
         // Colonnes secondaires masquées en tablette pour réduire la
-        // largeur — restent consultables via le workspace (onglet
+        // largeur - restent consultables via le workspace (onglet
         // Informations), pas perdues, juste retirées du registre étroit.
         meta: { className: 'hidden lg:table-cell' },
         cell: ({ row }) => (
           <span className="uppercase text-xs font-medium text-anac-muted">
-            {row.original.langue ?? '—'}
+            {row.original.langue ?? '-'}
           </span>
         ),
       },
@@ -225,27 +225,26 @@ export function useDocumentsColumns({
     ];
 
     // Masque ces colonnes pour qui n'a que la portée personnelle
-    // (DOCUMENT_UPLOAD absent) — même frontière que le scoping de lecture
+    // (DOCUMENT_UPLOAD absent) - même frontière que le scoping de lecture
     // côté serveur (documents.controller.ts aSeulementSesPropresDocuments).
     return colonnes.filter(
       (colonne) => canManageDocuments(role) || !COLONNES_MASQUEES_AGENT.includes(colonne.id ?? '')
     );
   }, [
-      t,
-      role,
-      onCorrigerOCR,
-      onRetraiterOCR,
-      retraiterOCREnCours,
-      onTraduire,
-      onSupprimer,
-      supprimerEnCours,
-      onOuvrirPortail,
-      onRetirerPortail,
-      retirerPortailEnCours,
-      onVerserVersion,
-      verserVersionEnCours,
-      onToggleVisibiliteInterne,
-      toggleVisibiliteInterneEnCours,
-    ]
-  );
+    t,
+    role,
+    onCorrigerOCR,
+    onRetraiterOCR,
+    retraiterOCREnCours,
+    onTraduire,
+    onSupprimer,
+    supprimerEnCours,
+    onOuvrirPortail,
+    onRetirerPortail,
+    retirerPortailEnCours,
+    onVerserVersion,
+    verserVersionEnCours,
+    onToggleVisibiliteInterne,
+    toggleVisibiliteInterneEnCours,
+  ]);
 }

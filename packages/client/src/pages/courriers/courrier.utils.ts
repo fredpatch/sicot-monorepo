@@ -6,7 +6,10 @@ export function parseCourrierDate(value?: string | Date | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export function formatCourrierDate(value?: string | Date | null, month: 'short' | 'long' = 'short') {
+export function formatCourrierDate(
+  value?: string | Date | null,
+  month: 'short' | 'long' = 'short'
+) {
   const date = parseCourrierDate(value);
   if (!date) return '-';
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month, year: 'numeric' });
@@ -16,19 +19,23 @@ export function getCourrierDirectionLabel(courrier: Pick<Courrier, 'direction'>)
   return courrier.direction === 'entrant' ? 'Entrant' : 'Sortant';
 }
 
-// The organisation that matters for a given direction — expéditeur for
+// The organisation that matters for a given direction - expéditeur for
 // entrant, destinataire for sortant. Never mix the two up.
-export function getCourrierInterlocutor(courrier: Pick<Courrier, 'direction' | 'expediteur' | 'destinataire'>) {
+export function getCourrierInterlocutor(
+  courrier: Pick<Courrier, 'direction' | 'expediteur' | 'destinataire'>
+) {
   return courrier.direction === 'entrant' ? courrier.expediteur : courrier.destinataire;
 }
 
-// The specific contact chosen within that organisation, if any — an
+// The specific contact chosen within that organisation, if any - an
 // explicit choice, never silently swapped for the organisation's generic
 // contactPrincipal.
 export function getCourrierContact(
   courrier: Pick<Courrier, 'direction' | 'expediteurContact' | 'destinataireContact'>
 ) {
-  return courrier.direction === 'entrant' ? courrier.expediteurContact : courrier.destinataireContact;
+  return courrier.direction === 'entrant'
+    ? courrier.expediteurContact
+    : courrier.destinataireContact;
 }
 
 export function daysUntilResponseDeadline(
@@ -49,9 +56,12 @@ export function isCourrierOverdue(
   return days !== null && days < 0;
 }
 
-// "J+3" / "Dans 5 jours" / "Aucune échéance" — plain text, readable without
+// "J+3" / "Dans 5 jours" / "Aucune échéance" - plain text, readable without
 // color, matches the mockup's deadline-cell wording.
-export function formatCourrierDeadline(courrier: Pick<Courrier, 'dateLimiteReponse' | 'suiviStatut'>, now = new Date()): string {
+export function formatCourrierDeadline(
+  courrier: Pick<Courrier, 'dateLimiteReponse' | 'suiviStatut'>,
+  now = new Date()
+): string {
   const limite = parseCourrierDate(courrier.dateLimiteReponse);
   if (!limite) return 'Aucune échéance';
   const days = daysUntilResponseDeadline(courrier, now)!;
@@ -61,7 +71,7 @@ export function formatCourrierDeadline(courrier: Pick<Courrier, 'dateLimiteRepon
   return `Dans ${days} jour${days > 1 ? 's' : ''}`;
 }
 
-// The real 3-state lifecycle (en_attente → repondu | archive) — no invented
+// The real 3-state lifecycle (en_attente → repondu | archive) - no invented
 // stages. répondu is set automatically server-side when a reply is created;
 // archivé is a manual action. See courriers.service.ts.
 export function getCourrierLifecycleState(
@@ -72,7 +82,7 @@ export function getCourrierLifecycleState(
 
 // Computes dateDebut/dateFin (ISO date strings) for a Période filter value
 // against dateReception. 'personnalisee' passes the caller-supplied range
-// through as-is — no invented default range.
+// through as-is - no invented default range.
 export function getPeriodeRange(
   periode: string,
   personnalisee?: { dateDebut?: string; dateFin?: string },
@@ -102,9 +112,11 @@ export interface CourrierHealth {
 
 // Centralizes what CourriersPage's BadgeSuivi/BadgeDirection used to
 // compute inline. criticite/joursAttente are derived server-side
-// (calculerCriticite) — this only maps them to a consistent tone+label,
+// (calculerCriticite) - this only maps them to a consistent tone+label,
 // it never recomputes the thresholds itself.
-export function getCourrierHealth(courrier: Pick<Courrier, 'suiviStatut' | 'reponseRequise' | 'criticite'>): CourrierHealth {
+export function getCourrierHealth(
+  courrier: Pick<Courrier, 'suiviStatut' | 'reponseRequise' | 'criticite'>
+): CourrierHealth {
   if (courrier.suiviStatut === 'archive') {
     return { tone: 'muted', label: 'Archivé' };
   }

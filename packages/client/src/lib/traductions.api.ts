@@ -46,7 +46,7 @@ export const traductionsApi = {
 
   getById: (id: number) => api.get(`/traductions/${id}`),
 
-  // Réservé aux traductions approuvées/archivées côté serveur — le bouton
+  // Réservé aux traductions approuvées/archivées côté serveur - le bouton
   // de téléchargement ne doit apparaître que dans ce cas (voir TraductionPreview).
   getUrlExportPDF: (id: number) => `/api/traductions/${id}/export/pdf`,
   getUrlExportDOCX: (id: number) => `/api/traductions/${id}/export/docx`,
@@ -56,7 +56,8 @@ export const traductionsApi = {
   lancer: (data: { texteOriginal: string; direction: TraductionDirection; documentId?: number }) =>
     api.post('/traductions', data, { timeout: 450000 }), // 7.5 minutes pour les gros documents
 
-  relancer: (id: number) => api.patch(`/traductions/${id}/relancer`, undefined, { timeout: 300000 }),
+  relancer: (id: number) =>
+    api.patch(`/traductions/${id}/relancer`, undefined, { timeout: 300000 }),
 
   sauvegarderCorrection: (id: number, texteFinal: string) =>
     api.patch(`/traductions/${id}/correction`, { texteFinal }),

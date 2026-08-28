@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { formatMissionDate, formatMissionPeriod } from '../mission.utils';
 
-// Visual date-range display — uses a real icon instead of a "→" unicode
+// Visual date-range display - uses a real icon instead of a "→" unicode
 // character (flagged in review: prefer icons from the icon library used
 // throughout the app over unicode glyphs for anything rendered in the UI).
 // `formatMissionPeriod` in mission.utils.ts still returns a plain string

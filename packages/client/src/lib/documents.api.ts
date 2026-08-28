@@ -19,7 +19,7 @@ export const documentsApi = {
 
   aggregates: () => api.get('/documents/aggregates'),
 
-  // Upload avec FormData — timeout plus long pour les gros fichiers.
+  // Upload avec FormData - timeout plus long pour les gros fichiers.
   // visibiliteInterne n'est honoré par le serveur que pour operateur+ (un
   // agent ne peut jamais s'auto-publier, même en le passant ici).
   upload: (fichier: File, categorie?: string, visibiliteInterne?: boolean) => {

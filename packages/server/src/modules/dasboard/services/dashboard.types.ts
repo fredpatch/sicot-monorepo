@@ -91,7 +91,7 @@ export interface DashboardData {
     date: Date;
   }[];
 
-  // Notifications récentes — traçabilité des relances CCIT
+  // Notifications récentes - traçabilité des relances CCIT
   notificationsRecentes: {
     id: number;
     type: string;

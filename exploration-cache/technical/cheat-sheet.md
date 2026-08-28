@@ -6,7 +6,7 @@
 # Development
 npm run dev                    # Start both server (3001) + client (5173)
 
-# OCR Service (separate terminal — must be started manually)
+# OCR Service (separate terminal - must be started manually)
 cd packages/ocr-service
 .venv\Scripts\activate         # Windows
 python main.py                 # Starts on :5001
@@ -30,42 +30,42 @@ npm run format                 # Prettier format all
 
 ## Key File Locations
 
-| What | Where |
-|------|-------|
-| ANAC design tokens | `packages/client/src/index.css` (`@theme` block) |
-| Axios instance + interceptor | `packages/client/src/lib/axios.ts` |
-| Auth API calls | `packages/client/src/lib/auth.api.ts` |
-| Users API calls | `packages/client/src/lib/users.api.ts` |
-| Audit API calls | `packages/client/src/lib/audit.api.ts` |
-| cn() utility | `packages/client/src/lib/utils.ts` |
-| Button/Input/Label | `packages/client/src/components/ui/` |
-| DB schema (all tables) | `packages/server/src/db/schema.ts` |
-| DB instance (Drizzle) | `packages/server/src/db/index.ts` |
-| Auth middleware | `packages/server/src/middleware/auth.ts` |
-| Role middleware | `packages/server/src/middleware/requiredRole.ts` |
-| Express entry point | `packages/server/src/index.ts` |
-| Backup cron | `packages/server/src/jobs/backup.ts` |
+| What                         | Where                                            |
+| ---------------------------- | ------------------------------------------------ |
+| ANAC design tokens           | `packages/client/src/index.css` (`@theme` block) |
+| Axios instance + interceptor | `packages/client/src/lib/axios.ts`               |
+| Auth API calls               | `packages/client/src/lib/auth.api.ts`            |
+| Users API calls              | `packages/client/src/lib/users.api.ts`           |
+| Audit API calls              | `packages/client/src/lib/audit.api.ts`           |
+| cn() utility                 | `packages/client/src/lib/utils.ts`               |
+| Button/Input/Label           | `packages/client/src/components/ui/`             |
+| DB schema (all tables)       | `packages/server/src/db/schema.ts`               |
+| DB instance (Drizzle)        | `packages/server/src/db/index.ts`                |
+| Auth middleware              | `packages/server/src/middleware/auth.ts`         |
+| Role middleware              | `packages/server/src/middleware/requiredRole.ts` |
+| Express entry point          | `packages/server/src/index.ts`                   |
+| Backup cron                  | `packages/server/src/jobs/backup.ts`             |
 
 ## API Routes Reference
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/health` | none | Health check |
-| POST | `/api/auth/login` | none | Login (OTP or password) |
-| POST | `/api/auth/set-password` | temp cookie | First login set password |
-| POST | `/api/auth/refresh` | refresh cookie | Refresh access token |
-| POST | `/api/auth/logout` | none | Clear cookies |
-| GET | `/api/auth/me` | access cookie | Get current user |
-| GET | `/api/users` | admin | List users |
-| POST | `/api/users` | admin | Create user |
-| GET | `/api/users/:id` | admin | Get user |
-| PATCH | `/api/users/:id` | admin | Update user |
-| PATCH | `/api/users/:id/activation` | admin | Toggle active |
-| POST | `/api/users/:id/reinitialiser-otp` | admin | Regen OTP + email |
-| GET | `/api/audit` | admin | List audit logs |
-| GET | `/api/audit/:id` | admin | Get audit log |
-| GET | `/api/audit/meta/modules` | admin | Available modules |
-| GET | `/api/audit/meta/actions` | admin | Available actions |
+| Method | Path                               | Auth           | Description              |
+| ------ | ---------------------------------- | -------------- | ------------------------ |
+| GET    | `/api/health`                      | none           | Health check             |
+| POST   | `/api/auth/login`                  | none           | Login (OTP or password)  |
+| POST   | `/api/auth/set-password`           | temp cookie    | First login set password |
+| POST   | `/api/auth/refresh`                | refresh cookie | Refresh access token     |
+| POST   | `/api/auth/logout`                 | none           | Clear cookies            |
+| GET    | `/api/auth/me`                     | access cookie  | Get current user         |
+| GET    | `/api/users`                       | admin          | List users               |
+| POST   | `/api/users`                       | admin          | Create user              |
+| GET    | `/api/users/:id`                   | admin          | Get user                 |
+| PATCH  | `/api/users/:id`                   | admin          | Update user              |
+| PATCH  | `/api/users/:id/activation`        | admin          | Toggle active            |
+| POST   | `/api/users/:id/reinitialiser-otp` | admin          | Regen OTP + email        |
+| GET    | `/api/audit`                       | admin          | List audit logs          |
+| GET    | `/api/audit/:id`                   | admin          | Get audit log            |
+| GET    | `/api/audit/meta/modules`          | admin          | Available modules        |
+| GET    | `/api/audit/meta/actions`          | admin          | Available actions        |
 
 ## Environment Variables (`.env` in `packages/server/`)
 
@@ -106,13 +106,13 @@ bg-anac-info      #0891B2   Info states
 agent < traducteur < relecteur < admin < super_admin
 ```
 
-| Role | Access |
-|------|--------|
-| `agent` | Own demandes, documents (view) |
-| `traducteur` | Agent + traductions assigned to them |
-| `relecteur` | Traducteur + approve translations |
-| `admin` | All modules, user management |
-| `super_admin` | Admin + system config |
+| Role          | Access                               |
+| ------------- | ------------------------------------ |
+| `agent`       | Own demandes, documents (view)       |
+| `traducteur`  | Agent + traductions assigned to them |
+| `relecteur`   | Traducteur + approve translations    |
+| `admin`       | All modules, user management         |
+| `super_admin` | Admin + system config                |
 
 ## Common Imports (Client)
 
@@ -128,10 +128,10 @@ import { cn } from '@/lib/utils';
 // API
 import { authApi } from '@/lib/auth.api';
 import { usersApi } from '@/lib/users.api';
-import api from '@/lib/axios';          // raw Axios instance
+import api from '@/lib/axios'; // raw Axios instance
 
 // Auth context
-import { useAuth } from '@/App';        // { user, setUser, chargement }
+import { useAuth } from '@/App'; // { user, setUser, chargement }
 
 // Forms
 import { useForm } from 'react-hook-form';
@@ -152,14 +152,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 ## Adding a New Module (Checklist)
 
 ### Server
+
 - [ ] Create `packages/server/src/modules/<name>/`
-  - [ ] `services/<name>.service.ts` — business logic
-  - [ ] `controllers/<name>.controller.ts` — HTTP handlers
-  - [ ] `routes/<name>.route.ts` — Express Router + middleware
+  - [ ] `services/<name>.service.ts` - business logic
+  - [ ] `controllers/<name>.controller.ts` - HTTP handlers
+  - [ ] `routes/<name>.route.ts` - Express Router + middleware
 - [ ] Import route in `src/index.ts` and mount with `app.use('/api/<name>', route)`
 - [ ] Add audit log calls to mutating service methods
 
 ### Client
+
 - [ ] Create `packages/client/src/lib/<name>.api.ts`
 - [ ] Export from `packages/client/src/lib/api.ts` barrel
 - [ ] Create page in `packages/client/src/pages/`

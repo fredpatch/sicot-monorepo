@@ -22,7 +22,10 @@ function BarreUsage({ utilises, max }: { utilises: number; max: number }) {
       aria-valuemax={max}
       className="mt-1.5 h-1.5 w-full rounded-full bg-anac-gray/60"
     >
-      <div className={`h-1.5 rounded-full ${TONE_CLASS[tone]}`} style={{ width: `${pourcentage}%` }} />
+      <div
+        className={`h-1.5 rounded-full ${TONE_CLASS[tone]}`}
+        style={{ width: `${pourcentage}%` }}
+      />
     </div>
   );
 }
@@ -32,7 +35,7 @@ interface GeminiUsageSectionProps {
   isLoading: boolean;
 }
 
-// Usage réel uniquement — aucune télémétrie fabriquée (Phase 1 audit §21).
+// Usage réel uniquement - aucune télémétrie fabriquée (Phase 1 audit §21).
 // Se rafraîchit automatiquement toutes les 60s (voir useGeminiUsageQuery),
 // pas de bouton de rafraîchissement manuel superflu.
 export function GeminiUsageSection({ data, isLoading }: GeminiUsageSectionProps) {
@@ -43,7 +46,7 @@ export function GeminiUsageSection({ data, isLoading }: GeminiUsageSectionProps)
           Usage IA (Rapports IA)
         </h3>
         <p className="mt-0.5 px-1 text-xs text-anac-muted">
-          Plafonds auto-imposés, bien en dessous des vrais quotas gratuits — évite tout échec par
+          Plafonds auto-imposés, bien en dessous des vrais quotas gratuits - évite tout échec par
           quota au lieu de le gérer après coup. Actualisé automatiquement.
         </p>
       </div>
@@ -59,7 +62,9 @@ export function GeminiUsageSection({ data, isLoading }: GeminiUsageSectionProps)
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {data.modeles.map((m) => (
             <div key={m.modele} className="card p-4">
-              <p className="text-sm font-semibold text-anac-navy">{getModeleGeminiLabel(m.modele)}</p>
+              <p className="text-sm font-semibold text-anac-navy">
+                {getModeleGeminiLabel(m.modele)}
+              </p>
               <p className="mt-0.5 text-xs text-anac-muted">
                 {m.appelsAujourdhui} / {m.plafond} appels aujourd&apos;hui
               </p>

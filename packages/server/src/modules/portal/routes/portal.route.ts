@@ -6,7 +6,7 @@ import * as portailController from '../controllers/portal.controller';
 
 const router = Router();
 
-// ── Rate limiting — portail public exposé sans authentification ──────────
+// ── Rate limiting - portail public exposé sans authentification ──────────
 // Le limiteur global (index.ts) est désactivé pour l'app entière ; le
 // portail public est la surface d'abus la plus évidente (recherche libre,
 // génération de token par email) donc il porte ses propres limiteurs,
@@ -26,7 +26,7 @@ const tokenLimiter = rateLimit({
   message: { message: 'Trop de demandes de lien de téléchargement, réessayez plus tard.' },
 });
 
-// ── Routes PUBLIQUES — aucune auth ANAC requise ───────────────────────────
+// ── Routes PUBLIQUES - aucune auth ANAC requise ───────────────────────────
 // Déclarée avant /documents/:id pour éviter que "aggregates" soit capturé
 // comme un ID (même précaution que documents.route.ts).
 router.get('/documents/aggregates', listeLimiter, portailController.aggregates);
@@ -36,7 +36,7 @@ router.get('/documents/:id/consulter', portailController.consulter);
 router.post('/documents/:id/token', tokenLimiter, portailController.genererToken);
 router.get('/telecharger/:token', portailController.telecharger);
 
-// ── Routes ADMIN — gestion visibilité ────────────────────────────────────
+// ── Routes ADMIN - gestion visibilité ────────────────────────────────────
 router.patch(
   '/documents/:id/visibilite',
   authenticate,

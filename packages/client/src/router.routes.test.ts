@@ -1,18 +1,18 @@
 // packages/client/src/router.routes.test.ts
 //
-// Verifies the actual route-guard wiring in router.tsx — not just the
+// Verifies the actual route-guard wiring in router.tsx - not just the
 // hasCapability() logic (already covered in packages/shared), but that
 // each route is wired to the correct capability literal. This is the
 // Phase 10.2 authorization-alignment fix's core assertion: a typo'd
 // capability string in router.tsx (e.g. leaving /missions/new on
 // MISSION_REGISTRY_VIEW) would pass every hasCapability() unit test yet
-// still be wrong — only inspecting the real route tree catches that.
+// still be wrong - only inspecting the real route tree catches that.
 //
-// Imports routeConfig, not router — router itself is createBrowserRouter's
+// Imports routeConfig, not router - router itself is createBrowserRouter's
 // return value, which calls createBrowserHistory() eagerly and needs
 // `document` (crashes in this package's plain node-environment vitest, no
 // jsdom). routeConfig is the plain RouteObject[] produced by
-// createRoutesFromElements(), with no DOM dependency — CapabilityRoute is
+// createRoutesFromElements(), with no DOM dependency - CapabilityRoute is
 // used as `<CapabilityRoute capability="X">`, so `element.props.capability`
 // is readable directly from it, enough to prove the wiring.
 import { describe, it, expect } from 'vitest';
@@ -25,7 +25,10 @@ interface RouteLike {
   children?: RouteLike[];
 }
 
-function findRoute(path: string, routes: RouteLike[] = routeConfig as RouteLike[]): RouteLike | undefined {
+function findRoute(
+  path: string,
+  routes: RouteLike[] = routeConfig as RouteLike[]
+): RouteLike | undefined {
   for (const route of routes) {
     if (route.path === path) return route;
     if (route.children) {

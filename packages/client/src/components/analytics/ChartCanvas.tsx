@@ -4,7 +4,7 @@ import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
-// ── Couleurs partagées — cohérence avec DashboardPage.tsx ──────────────────
+// ── Couleurs partagées - cohérence avec DashboardPage.tsx ──────────────────
 export const COULEURS_GRAPHIQUE = {
   primaire: '#2a78d6',
   succes: '#1baf7a',

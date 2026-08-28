@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Image tag to deploy, usually a commit SHA. Leave empty to deploy the current commit."
+        description: 'Image tag to deploy, usually a commit SHA. Leave empty to deploy the current commit.'
         required: false
         type: string
 
@@ -33,8 +33,8 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          source: "docker-compose.prod.yml,nginx/prod.conf,scripts/deploy-prod.sh"
-          target: "/opt/sicot"
+          source: 'docker-compose.prod.yml,nginx/prod.conf,scripts/deploy-prod.sh'
+          target: '/opt/sicot'
           overwrite: true
 
       - name: Deploy over SSH
@@ -72,7 +72,7 @@ jobs:
         run: |
           if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
             curl -sS -H "Content-Type: application/json" \
-              -d "{\"content\": \"✅ **SICOT** deployed to production — commit \`${{ env.APP_VERSION }}\`, triggered by ${{ github.actor }}.\"}" \
+              -d "{\"content\": \"✅ **SICOT** deployed to production - commit \`${{ env.APP_VERSION }}\`, triggered by ${{ github.actor }}.\"}" \
               "${{ secrets.DISCORD_WEBHOOK_URL }}"
           fi
       - name: Notify - failure
@@ -80,6 +80,6 @@ jobs:
         run: |
           if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
             curl -sS -H "Content-Type: application/json" \
-              -d "{\"content\": \"❌ **SICOT** production deploy FAILED — commit \`${{ env.APP_VERSION }}\`. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              -d "{\"content\": \"❌ **SICOT** production deploy FAILED - commit \`${{ env.APP_VERSION }}\`. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
               "${{ secrets.DISCORD_WEBHOOK_URL }}"
           fi

@@ -161,7 +161,7 @@ async function appellerGeminiAvecRotation(
 
     return { texte: response.text ?? '', modeleUtilise: modele };
   } catch (err) {
-    // Filet de sécurité réactif — ne devrait presque jamais se déclencher
+    // Filet de sécurité réactif - ne devrait presque jamais se déclencher
     // puisque reserverModeleDisponible a déjà écarté les modèles à plafond
     const estQuotaEpuise = /RESOURCE_EXHAUSTED|429|quota/i.test(String(err));
     if (!estQuotaEpuise) throw err;

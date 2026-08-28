@@ -8,7 +8,7 @@ const TONE_CLASSES: Record<MissionHealth['tone'], string> = {
   normal: 'border-green-200 bg-green-50 text-green-700',
 };
 
-// Text always carries the meaning (label), icon+color only reinforce —
+// Text always carries the meaning (label), icon+color only reinforce -
 // never the sole signal, per the accessibility requirement.
 export function MissionHealthBadge({ health }: { health: MissionHealth }) {
   return (

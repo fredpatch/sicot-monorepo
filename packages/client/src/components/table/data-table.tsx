@@ -45,7 +45,7 @@ interface DataTableProps<TData, TValue> {
   rowClassName?: (row: TData) => string | undefined;
 
   /**
-   * Rend la ligne cliquable (curseur, focus clavier, Entrée/Espace) — utilisé
+   * Rend la ligne cliquable (curseur, focus clavier, Entrée/Espace) - utilisé
    * par les pages avec un panneau de détail (ex. Documents). Les cellules
    * contenant leurs propres contrôles interactifs (select, bouton, menu)
    * doivent porter `data-stop-row-click` sur leur wrapper pour ne pas
@@ -54,7 +54,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
 }
 
-// Lecture non typée du champ `meta` d'une colonne — ColumnMeta<TData,TValue>
+// Lecture non typée du champ `meta` d'une colonne - ColumnMeta<TData,TValue>
 // est une interface vide par défaut dans ce projet (pas d'augmentation de
 // module @tanstack/table-core), donc pas de contrat officiel à étendre ici.
 function colonneClassName(meta: unknown): string | undefined {

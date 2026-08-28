@@ -35,7 +35,7 @@ const NO_VIEW_ROLES = ['agent', 'operateur'];
 const VIEW_ROLES = ['admin', 'super_admin'];
 const NO_MANAGE_ROLES = ['agent', 'operateur', 'admin'];
 
-describe('parametres.route — reads require SYSTEM_SETTINGS_VIEW (admin+)', () => {
+describe('parametres.route - reads require SYSTEM_SETTINGS_VIEW (admin+)', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).get('/parametres').expect(401);
@@ -56,15 +56,18 @@ describe('parametres.route — reads require SYSTEM_SETTINGS_VIEW (admin+)', () 
   });
 });
 
-describe('parametres.route — writes require SYSTEM_SETTINGS_MANAGE (super_admin ONLY — admin excluded)', () => {
-  it.each(NO_MANAGE_ROLES)('403s role=%s on write (no SYSTEM_SETTINGS_MANAGE, including plain admin)', async (role) => {
-    const app = buildApp();
-    await request(app)
-      .patch('/parametres/some_key')
-      .set('Cookie', cookieFor(role))
-      .send({ valeur: 'x' })
-      .expect(403);
-  });
+describe('parametres.route - writes require SYSTEM_SETTINGS_MANAGE (super_admin ONLY - admin excluded)', () => {
+  it.each(NO_MANAGE_ROLES)(
+    '403s role=%s on write (no SYSTEM_SETTINGS_MANAGE, including plain admin)',
+    async (role) => {
+      const app = buildApp();
+      await request(app)
+        .patch('/parametres/some_key')
+        .set('Cookie', cookieFor(role))
+        .send({ valeur: 'x' })
+        .expect(403);
+    }
+  );
 
   it('allows super_admin on write', async () => {
     const app = buildApp();

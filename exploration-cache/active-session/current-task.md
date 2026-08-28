@@ -7,16 +7,16 @@
 
 Full detail in `sessions/2026-07-06.md`. Summary:
 
-- **`components/ui/tabs.tsx`** (new) — shadcn Tabs on `@radix-ui/react-tabs`,
+- **`components/ui/tabs.tsx`** (new) - shadcn Tabs on `@radix-ui/react-tabs`,
   replaces `AnalyticsPage.tsx`'s hand-rolled `role="tab"` implementation
 - **`GlossairePage.tsx`, `DemandesPage.tsx`, `TraductionsPage.tsx`** split
   into `pages/<module>/` feature folders (same pattern as partenaires/
   documents/audit)
-- **`AnalyticsPage.tsx`** (2150 lines, 9 tabs) — heaviest split: one file
+- **`AnalyticsPage.tsx`** (2150 lines, 9 tabs) - heaviest split: one file
   per tab under `components/tabs/`, `AnalyticsAIDialog.tsx` and
   `PeriodSelector.tsx` extracted
 - **Found for free**: `DataTable` computes `colSpan` from
-  `columns.length` automatically — incidentally fixes a pre-existing
+  `columns.length` automatically - incidentally fixes a pre-existing
   colSpan/column-count desync on `AuditPage`/`DocumentsPage`'s
   empty/loading rows
 - `docs/TASKS.md` gained a dedicated "Sprint de durcissement UI" section
@@ -24,7 +24,7 @@ Full detail in `sessions/2026-07-06.md`. Summary:
   DataTable column-filter prop surface; AnalyticsPage's 6 small static
   tables use plain `Table`, not `DataTable`)
 - `eslint` across the whole client `src`: 0 errors, only 3 pre-existing
-  warnings (down from 11 — some `no-explicit-any` spots got real types as
+  warnings (down from 11 - some `no-explicit-any` spots got real types as
   a byproduct of the refactor)
 
 ---
@@ -46,12 +46,12 @@ Full detail in `sessions/2026-07-05.md`. Summary:
   grep no other file imports its internals)
 - **sonner toast migration**: installed `sonner`, added
   `components/ui/sonner.tsx` (`Toaster`, mounted in `App.tsx`) and
-  `lib/confirm-toast.ts` (`confirmToast()` — non-blocking action-toast
+  `lib/confirm-toast.ts` (`confirmToast()` - non-blocking action-toast
   replacing `window.confirm()`, picked over a separate shadcn
   `AlertDialog` per user's choice). Replaced every `alert()` →
   `toast.error()` and `confirm()` → `confirmToast()` in
   `AdminParametresPage`, `AnalyticsPage`, `DemandesPage`, `DocumentsPage`,
-  `TraductionsPage`, `TraductionEditeur` — verified via grep none remain
+  `TraductionsPage`, `TraductionEditeur` - verified via grep none remain
 - **Found already in the working tree** (committed alongside, not
   authored by either task above): `DocumentsPage.tsx`/`AuditPage.tsx`
   split into the same feature-folder pattern; pagination promoted to
@@ -60,26 +60,26 @@ Full detail in `sessions/2026-07-05.md`. Summary:
 ## ⚠️ Found this session: `tsc --noEmit` broken client-wide
 
 `packages/client/tsconfig.json`'s `"ignoreDeprecations": "6.0"` is
-rejected by the installed TypeScript `5.9.3` (`TS5103`) —
+rejected by the installed TypeScript `5.9.3` (`TS5103`) -
 `package.json` declares `^5.4.5` but 5.9.3 is what's actually installed.
 Confirmed via `git stash` this reproduces with this session's changes
 removed, so it's pre-existing drift, not a regression. Used `eslint`
-instead to verify (clean — only pre-existing warnings). **Not yet
+instead to verify (clean - only pre-existing warnings). **Not yet
 fixed.**
 
 ---
 
-## ✅ Previously done (2026-07-04): Sprint 11 post-closure add-on — Rapports IA (Gemini)
+## ✅ Previously done (2026-07-04): Sprint 11 post-closure add-on - Rapports IA (Gemini)
 
 Full detail in `sessions/2026-07-04.md` (third section) and
-`docs/TASKS.md` ("Ajout post-clôture — Rapports IA (Gemini)"). Summary:
+`docs/TASKS.md` ("Ajout post-clôture - Rapports IA (Gemini)"). Summary:
 
 - Every generated rapport can now get an AI-written Markdown narrative
-  (French) via Gemini — automatic (monthly cron) or on-demand (Rapports
-  tab) — but it's never final until an admin reviews and validates it
+  (French) via Gemini - automatic (monthly cron) or on-demand (Rapports
+  tab) - but it's never final until an admin reviews and validates it
 - Mandatory anonymization of agent names before any data reaches Gemini
-  (not policy-gated — always on)
-- Deterministic deltas computed in code vs. the last *validated* report
+  (not policy-gated - always on)
+- Deterministic deltas computed in code vs. the last _validated_ report
   (never by the model itself)
 - Hard activity floor below which no Gemini call happens at all
 - 3-model rotation + self-imposed daily quota per model (well under the
@@ -91,13 +91,13 @@ Full detail in `sessions/2026-07-04.md` (third section) and
 **Real bugs found and fixed along the way** (see TASKS.md for detail):
 `listerRapports()` omitted IA fields (every row showed wrong status),
 rapports sorted oldest-first, `cn()` missing `tailwind-merge` (fixed at
-the root — may fix the same bug elsewhere in the app), `DocumentsPage.tsx`
+the root - may fix the same bug elsewhere in the app), `DocumentsPage.tsx`
 had an unsynced category list (rapport docs showed blank category).
 
 ## ⚠️ Found but NOT fixed: dependency version regression
 
 `package-lock.json` shifted ~2800 lines this session. `exceljs` in
-`packages/server/package.json` went from `^4.4.0` to `^3.4.0` —
+`packages/server/package.json` went from `^4.4.0` to `^3.4.0` -
 **confirmed installed as 3.4.0**, a real downgrade of the exact library
 that 3 different Excel export features (Sprint 10 audit, Sprint 11
 analytics, Sprint 11 rapports) depend on and were built against 4.x.
@@ -106,10 +106,10 @@ analytics, Sprint 11 rapports) depend on and were built against 4.x.
 has the signature of an `npm install <pkg>` run from the repo root
 instead of inside `packages/server`. **Not yet fixed or re-tested.**
 
-## ✅ Done (earlier same day): Sprint 11 — both original halves
+## ✅ Done (earlier same day): Sprint 11 - both original halves
 
-- Analytics dashboard — committed `f3547d4`
-- Rapports layer (PDF/Excel, cron, CSV export, seed-demo.ts) — committed
+- Analytics dashboard - committed `f3547d4`
+- Rapports layer (PDF/Excel, cron, CSV export, seed-demo.ts) - committed
   `f27d58f`
 
 See `sessions/2026-07-04.md` first and second sections.
@@ -118,17 +118,17 @@ See `sessions/2026-07-04.md` first and second sections.
 
 ## ✅ Previously done (see `sessions/2026-07-03.md` and earlier)
 
-- Sprint 9 (Portail Documentaire Externe) — shipped `47ef8b8`. Known open
+- Sprint 9 (Portail Documentaire Externe) - shipped `47ef8b8`. Known open
   bug: `DocumentsPage.tsx`'s "Exposé" link uses `href="/portail"` but the
-  real route is `/portal` — 404, not yet fixed.
-- Sprint 10 (Paramètres Système Élargis) — shipped `6aaa354`. Not yet
+  real route is `/portal` - 404, not yet fixed.
+- Sprint 10 (Paramètres Système Élargis) - shipped `6aaa354`. Not yet
   manually verified that DB-backed values are honored at runtime.
-- Sprint 8 (Centre de Notifications & Rappels CCIT) — COMPLETE, `7a1de70`
-- Server-wide services refactor — COMPLETE, `dd2809d`
+- Sprint 8 (Centre de Notifications & Rappels CCIT) - COMPLETE, `7a1de70`
+- Server-wide services refactor - COMPLETE, `dd2809d`
 
 ## Leftover items (not blocking, tracked in docs/TASKS.md)
 
-- [ ] **Priority**: fix `tsc --noEmit` client-wide —
+- [ ] **Priority**: fix `tsc --noEmit` client-wide -
       `ignoreDeprecations: "6.0"` in `packages/client/tsconfig.json`
       rejected by installed TypeScript 5.9.3 (found 2026-07-05, pre-existing)
 - [ ] **Priority**: restore `exceljs` to `^4.4.0` (server + remove the
@@ -142,11 +142,11 @@ See `sessions/2026-07-04.md` first and second sections.
       `schema.ts` across Sprint 9/10/11
 - [ ] Fix `/portail` → `/portal` href bug in `DocumentsPage.tsx` (Sprint 9)
 - [ ] `tsc --noEmit` + manual verification of Sprint 9 + 10 + 11 work
-- [ ] **Taille max upload configurable** — deferred, Sprint 10
-- [ ] `pg_dump` on SERV-APPI (Linux production) — validate PATH availability
+- [ ] **Taille max upload configurable** - deferred, Sprint 10
+- [ ] `pg_dump` on SERV-APPI (Linux production) - validate PATH availability
 - [ ] Re-enable auth rate limiter (commented out in `index.ts`)
 - [ ] Decide: export PDF/DOCX of the validated AI narrative (DOCX would
-      need a new `docx` library — same gap as Sprint 4)
+      need a new `docx` library - same gap as Sprint 4)
 
 ## Progress Tracker
 

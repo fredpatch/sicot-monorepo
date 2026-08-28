@@ -8,7 +8,7 @@ import contactsRouter from './contacts.route';
 // Migrated from the legacy requireRole('agent') to requireCapability
 // ('USER_DIRECTORY_VIEW') in Phase 7.2 (requiredRole.ts had zero remaining
 // importers afterward and was deleted). Read-only (contact selector for the
-// Missions module) — USER_DIRECTORY_VIEW is a personal capability present
+// Missions module) - USER_DIRECTORY_VIEW is a personal capability present
 // at every tier, so this preserves the exact same "any authenticated role"
 // behavior as before; this test pins that down as a regression check.
 vi.mock('@/utils/jwt', () => ({
@@ -31,7 +31,7 @@ function cookieFor(role: string) {
   return `${ACCESS_TOKEN_COOKIE}=${encodeURIComponent(token)}`;
 }
 
-describe('contacts.route — unchanged (still open to any authenticated role)', () => {
+describe('contacts.route - unchanged (still open to any authenticated role)', () => {
   it.each(['agent', 'operateur', 'admin', 'super_admin'])(
     'role=%s can list contacts',
     async (role) => {

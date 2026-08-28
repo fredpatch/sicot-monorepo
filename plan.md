@@ -222,7 +222,7 @@ The redesign should address these weaknesses:
 
 Implement three coherent experiences.
 
-## Screen A — Partners registry
+## Screen A - Partners registry
 
 Route:
 
@@ -232,7 +232,7 @@ Primary goal:
 
 Provide a searchable and operational registry of partner organisations.
 
-## Screen B — Guided creation
+## Screen B - Guided creation
 
 Suggested route:
 
@@ -242,7 +242,7 @@ Primary goal:
 
 Guide users through the creation of an organisation and its initial contact.
 
-## Screen C — Partner detail
+## Screen C - Partner detail
 
 Suggested route:
 
@@ -264,7 +264,7 @@ Do not break existing `/partenaires/*` behavior.
 
 ---
 
-# 7. Screen A — Partners registry
+# 7. Screen A - Partners registry
 
 ## 7.1 Header
 
@@ -512,7 +512,7 @@ Aucun partenaire ne correspond aux filtres sélectionnés.
 
 ---
 
-# 8. Screen B — Guided partner creation
+# 8. Screen B - Guided partner creation
 
 Route:
 
@@ -535,7 +535,7 @@ The visual mockup contains future-facing ideas. Implement only supported fields.
 
 ---
 
-## 8.1 Step 1 — Informations générales
+## 8.1 Step 1 - Informations générales
 
 Fields:
 
@@ -567,7 +567,7 @@ Keep raw enum values out of visible UI.
 
 ---
 
-## 8.2 Step 2 — Contact principal
+## 8.2 Step 2 - Contact principal
 
 Allow the user to create the first contact during organisation setup.
 
@@ -605,7 +605,7 @@ Design the mutation flow explicitly.
 
 ---
 
-## 8.3 Step 3 — Informations complémentaires
+## 8.3 Step 3 - Informations complémentaires
 
 Current supported field:
 
@@ -632,7 +632,7 @@ Do not implement them now unless confirmed.
 
 ---
 
-## 8.4 Step 4 — Vérification
+## 8.4 Step 4 - Vérification
 
 Display a final summary:
 
@@ -714,7 +714,7 @@ Show unsaved-change protection.
 
 ---
 
-# 10. Screen C — Partner detail workspace
+# 10. Screen C - Partner detail workspace
 
 Route:
 
@@ -798,7 +798,7 @@ Normalize the style with Accord detail.
 
 Large desktop layout:
 
-## Column 1 — Informations clés
+## Column 1 - Informations clés
 
 Display:
 
@@ -814,7 +814,7 @@ Do not display unsupported acronym, website, address, or description.
 
 Use a compact key/value layout.
 
-## Column 2 — Contacts principaux
+## Column 2 - Contacts principaux
 
 Display:
 
@@ -844,7 +844,7 @@ Aucun contact enregistré
 
 Do not silently hide contact gaps.
 
-## Column 3 — Relationship summary
+## Column 3 - Relationship summary
 
 Display:
 
@@ -1313,7 +1313,7 @@ Do not claim a check passed unless executed.
 
 # 26. Expected implementation sequence
 
-## Phase 1 — Audit
+## Phase 1 - Audit
 
 Return:
 
@@ -1331,7 +1331,7 @@ Return:
 
 Do not implement yet.
 
-## Phase 2 — Plan
+## Phase 2 - Plan
 
 Return:
 
@@ -1348,7 +1348,7 @@ Return:
 11. Backend changes if unavoidable
 12. Implementation order
 
-## Phase 3 — Registry implementation
+## Phase 3 - Registry implementation
 
 Implement:
 
@@ -1363,7 +1363,7 @@ Implement:
 
 Validate before continuing.
 
-## Phase 4 — Guided creation
+## Phase 4 - Guided creation
 
 Implement:
 
@@ -1379,7 +1379,7 @@ Implement:
 
 Validate before continuing.
 
-## Phase 5 — Detail workspace
+## Phase 5 - Detail workspace
 
 Implement:
 
@@ -1396,11 +1396,11 @@ Implement:
 
 Validate before continuing.
 
-## Phase 6 — Final validation
+## Phase 6 - Final validation
 
 Run checks and fix regressions.
 
-## Phase 7 — Final report
+## Phase 7 - Final report
 
 Return:
 

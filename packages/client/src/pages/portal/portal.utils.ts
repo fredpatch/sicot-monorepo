@@ -7,12 +7,12 @@ export function formatTaille(octets: number): string {
 }
 
 const LANGUE_LABELS: Record<string, string> = {
-  fr: 'FR — Français',
-  en: 'EN — English',
-  es: 'ES — Español',
+  fr: 'FR - Français',
+  en: 'EN - English',
+  es: 'ES - Español',
 };
 
-// Le champ langue accepte plus que FR/EN/ES — on affiche un libellé connu
+// Le champ langue accepte plus que FR/EN/ES - on affiche un libellé connu
 // quand disponible, sinon le code brut en majuscules (jamais un drapeau
 // comme seul indicateur, cf. audit accessibilité).
 export function formatLangue(langue?: string): string | undefined {
@@ -37,7 +37,7 @@ export function formatDateAjout(dateIso: string): string {
   return new Date(dateIso).toLocaleDateString('fr-FR');
 }
 
-// Validation simple mais réelle (pas juste .includes('@')) — l'espace de
+// Validation simple mais réelle (pas juste .includes('@')) - l'espace de
 // tête/fin doit être retiré par l'appelant avant de tester. La casse du
 // domaine n'a pas d'incidence (le serveur normalise déjà en minuscule).
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

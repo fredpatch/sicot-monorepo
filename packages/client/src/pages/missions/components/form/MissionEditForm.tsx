@@ -24,9 +24,9 @@ import { ParticipantsPicker } from '../ParticipantsPicker';
 import { ContactSurPlacePicker } from '../ContactSurPlacePicker';
 import { MissionLogisticsBadge } from '../MissionLogisticsBadge';
 
-// Grouped sections, not a stepper — a minor operational update shouldn't
+// Grouped sections, not a stepper - a minor operational update shouldn't
 // force a user through 5 create-style steps. Report and recommendations
-// are deliberately NOT here — they're separate workflows in the mission
+// are deliberately NOT here - they're separate workflows in the mission
 // detail workspace (Phase 5), not mixed into general edit.
 export default function MissionEditForm() {
   const navigate = useNavigate();
@@ -107,7 +107,12 @@ export default function MissionEditForm() {
     return (
       <div className="card mx-auto max-w-xl p-8 text-center">
         <p className="font-semibold text-anac-navy">Impossible de charger cette mission.</p>
-        <Button type="button" variant="outline" onClick={() => navigate('/missions')} className="mt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate('/missions')}
+          className="mt-4"
+        >
           Retour aux missions
         </Button>
       </div>
@@ -121,7 +126,13 @@ export default function MissionEditForm() {
     <div className="mx-auto max-w-[900px] space-y-5">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Button type="button" variant="ghost" size="icon-sm" onClick={cancel} aria-label="Retour à la mission">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={cancel}
+            aria-label="Retour à la mission"
+          >
             <ArrowLeft size={15} aria-hidden="true" />
           </Button>
           <div>
@@ -139,7 +150,9 @@ export default function MissionEditForm() {
             disabled={saveMutation.isPending || isCancelled}
             className="gap-2 bg-anac-blue"
           >
-            {saveMutation.isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+            {saveMutation.isPending && (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            )}
             Enregistrer
           </Button>
         </div>
@@ -147,25 +160,36 @@ export default function MissionEditForm() {
 
       {isCancelled && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-          Cette mission est annulée — elle ne peut plus être modifiée.
+          Cette mission est annulée - elle ne peut plus être modifiée.
         </div>
       )}
 
       {saveMutation.error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-anac-danger">
-          {(saveMutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-            'Une erreur est survenue.'}
+          {(saveMutation.error as { response?: { data?: { message?: string } } })?.response?.data
+            ?.message ?? 'Une erreur est survenue.'}
         </div>
       )}
 
-      <form onSubmit={handleSubmit((data) => saveMutation.mutate(data))} noValidate className="space-y-4">
+      <form
+        onSubmit={handleSubmit((data) => saveMutation.mutate(data))}
+        noValidate
+        className="space-y-4"
+      >
         <fieldset disabled={isCancelled} className="space-y-4">
           <Section title="Informations">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <Label htmlFor="titre">Objet de la mission *</Label>
-                <Input id="titre" {...register('titre')} aria-invalid={Boolean(errors.titre)} className="mt-1" />
-                {errors.titre && <p className="mt-1 text-xs text-anac-danger">{errors.titre.message}</p>}
+                <Input
+                  id="titre"
+                  {...register('titre')}
+                  aria-invalid={Boolean(errors.titre)}
+                  className="mt-1"
+                />
+                {errors.titre && (
+                  <p className="mt-1 text-xs text-anac-danger">{errors.titre.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="destination">Destination *</Label>
@@ -177,7 +201,9 @@ export default function MissionEditForm() {
               <div>
                 <Label htmlFor="pays">Pays *</Label>
                 <Input id="pays" {...register('pays')} className="mt-1" />
-                {errors.pays && <p className="mt-1 text-xs text-anac-danger">{errors.pays.message}</p>}
+                {errors.pays && (
+                  <p className="mt-1 text-xs text-anac-danger">{errors.pays.message}</p>
+                )}
               </div>
               <div>
                 <Label>Statut</Label>
@@ -208,12 +234,16 @@ export default function MissionEditForm() {
               <div>
                 <Label htmlFor="dateDebut">Date de début *</Label>
                 <Input id="dateDebut" type="date" {...register('dateDebut')} className="mt-1" />
-                {errors.dateDebut && <p className="mt-1 text-xs text-anac-danger">{errors.dateDebut.message}</p>}
+                {errors.dateDebut && (
+                  <p className="mt-1 text-xs text-anac-danger">{errors.dateDebut.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="dateFin">Date de fin *</Label>
                 <Input id="dateFin" type="date" {...register('dateFin')} className="mt-1" />
-                {errors.dateFin && <p className="mt-1 text-xs text-anac-danger">{errors.dateFin.message}</p>}
+                {errors.dateFin && (
+                  <p className="mt-1 text-xs text-anac-danger">{errors.dateFin.message}</p>
+                )}
               </div>
             </div>
           </Section>
@@ -237,7 +267,7 @@ export default function MissionEditForm() {
                 </div>
               </div>
               <p className="max-w-[220px] text-right text-xs text-anac-muted">
-                Dérivé de la liste de contrôle — à mettre à jour depuis la fiche mission.
+                Dérivé de la liste de contrôle - à mettre à jour depuis la fiche mission.
               </p>
             </div>
           </Section>

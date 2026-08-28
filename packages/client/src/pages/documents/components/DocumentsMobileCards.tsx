@@ -27,7 +27,7 @@ interface DocumentsMobileCardsProps {
   supprimerEnCours: boolean;
 }
 
-// Repli mobile du registre (< md) — mêmes données que documents.columns.tsx,
+// Repli mobile du registre (< md) - mêmes données que documents.columns.tsx,
 // même logique de capacités, présentées en cartes plutôt qu'en tableau. Le
 // document sélectionné ouvre le même DocumentWorkspace que sur desktop.
 export function DocumentsMobileCards({
@@ -50,7 +50,8 @@ export function DocumentsMobileCards({
     <div className="space-y-3 md:hidden">
       {documents.map((doc) => {
         const cap = getDocumentCapabilities(role, doc);
-        const categorieLabel = CATEGORIES.find((c) => c.value === doc.categorie)?.label ?? doc.categorie;
+        const categorieLabel =
+          CATEGORIES.find((c) => c.value === doc.categorie)?.label ?? doc.categorie;
 
         return (
           <div
@@ -72,7 +73,7 @@ export function DocumentsMobileCards({
             </div>
 
             <div className="mt-2 flex items-center justify-between text-xs text-anac-muted">
-              <span className="uppercase">{doc.langue ?? '—'}</span>
+              <span className="uppercase">{doc.langue ?? '-'}</span>
               <span>{formaterTaille(doc.taille)}</span>
               <span>{new Date(doc.createdAt).toLocaleDateString('fr-FR')}</span>
             </div>

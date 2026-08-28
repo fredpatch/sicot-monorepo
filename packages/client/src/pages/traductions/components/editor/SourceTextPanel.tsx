@@ -8,7 +8,8 @@ interface SourceTextPanelProps {
 }
 
 export function SourceTextPanel({ traduction, onSelection }: SourceTextPanelProps) {
-  const label = traduction.direction === 'fr_en' ? 'Texte original — Français' : 'Original text — English';
+  const label =
+    traduction.direction === 'fr_en' ? 'Texte original - Français' : 'Original text - English';
   const modifieDepuisIA =
     traduction.texteIA && traduction.texteFinal && traduction.texteIA !== traduction.texteFinal;
 
@@ -35,7 +36,7 @@ export function SourceTextPanel({ traduction, onSelection }: SourceTextPanelProp
       {modifieDepuisIA && (
         <div className="flex items-center gap-1.5 text-[11px] text-anac-muted shrink-0">
           <RefreshCw size={10} />
-          Traduction modifiée par rapport à la version IA — delta sauvegardé dans le glossaire
+          Traduction modifiée par rapport à la version IA - delta sauvegardé dans le glossaire
         </div>
       )}
     </div>

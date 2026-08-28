@@ -106,8 +106,8 @@ export async function mettreAJourAccordsExpires(): Promise<{
 }
 
 // ── Cron : tous les jours à 08h00 ────────────────────────────────────────
-// Deux entrées d'historique distinctes par run — une par job du registre
-// (accords_expiration / accords_alertes) — pour que le monitoring cron
+// Deux entrées d'historique distinctes par run - une par job du registre
+// (accords_expiration / accords_alertes) - pour que le monitoring cron
 // s'aligne exactement sur ce que montre la liste des jobs manuels.
 export function demarrerJobsAlertes(): void {
   cron.schedule('0 8 * * *', async () => {
@@ -124,7 +124,7 @@ export function demarrerJobsAlertes(): void {
         resume:
           resultat.nombreMisAJour > 0
             ? `${resultat.nombreMisAJour} accord(s) repassé(s) en "expire" : ${resultat.references.join(', ')}`
-            : 'Aucun accord à mettre à jour — tout est déjà cohérent.',
+            : 'Aucun accord à mettre à jour - tout est déjà cohérent.',
         dureeMs: Date.now() - debut1,
       });
     } catch (error) {

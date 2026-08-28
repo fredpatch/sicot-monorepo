@@ -39,7 +39,7 @@ export function toAccordView(
   };
 }
 
-// Récupérer les partenaires d'un accord — avec leur contact principal
+// Récupérer les partenaires d'un accord - avec leur contact principal
 export async function getPartenairesAccord(accordId: number): Promise<OrganisationResume[]> {
   const orgs = await db
     .select({

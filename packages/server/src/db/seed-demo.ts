@@ -17,7 +17,7 @@ import {
 } from './schema.js';
 import { eq as sqlEq } from 'drizzle-orm';
 
-// ── Garde-fou — jamais en production ───────────────────────────────────────
+// ── Garde-fou - jamais en production ───────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
   console.error("❌ seed-demo.ts refuse de s'exécuter avec NODE_ENV=production. Abandon.");
   process.exit(1);
@@ -68,9 +68,9 @@ function ajouterJours(date: Date, jours: number): Date {
 }
 
 async function main() {
-  console.log('🌱 Seed de démonstration — démarrage...\n');
+  console.log('🌱 Seed de démonstration - démarrage...\n');
 
-  // ── Utilisateurs existants (requis — au moins 1) ────────────────────────
+  // ── Utilisateurs existants (requis - au moins 1) ────────────────────────
   const usersExistants = await db.select({ id: users.id, role: users.role }).from(users);
   if (usersExistants.length === 0) {
     console.error(
@@ -223,7 +223,7 @@ async function main() {
       return {
         reference: `COU-2026-${String(refCourrier++).padStart(3, '0')}`,
         direction,
-        objet: `${pick(["Demande d'information", 'Notification', 'Invitation', "Rapport d'audit", 'Suivi de dossier'])} — ${pick(['sûreté', 'navigabilité', 'licences', 'formation'])}`,
+        objet: `${pick(["Demande d'information", 'Notification', 'Invitation', "Rapport d'audit", 'Suivi de dossier'])} - ${pick(['sûreté', 'navigabilité', 'licences', 'formation'])}`,
         expediteurOrganisationId: direction === 'entrant' ? pick(orgsInsertees).id : null,
         destinataireOrganisationId: direction === 'sortant' ? pick(orgsInsertees).id : null,
         dateReception,
@@ -272,7 +272,7 @@ async function main() {
   );
   await db.insert(missionParticipants).values(participantsAInserer);
 
-  // Rapport de mission — pour les missions terminées, lier un document catégorie "mission"
+  // Rapport de mission - pour les missions terminées, lier un document catégorie "mission"
   const documentsMission = documentsInseres.slice(
     0,
     Math.min(documentsInseres.length, missionsInserees.length)
@@ -412,7 +412,7 @@ async function main() {
   await db.insert(glossaire).values(glossaireAInserer);
   console.log(`✅ ${glossaireAInserer.length} termes de glossaire créés\n`);
 
-  // ── Historique criticité courriers — backfill 14 jours ──────────────────
+  // ── Historique criticité courriers - backfill 14 jours ──────────────────
   // Le cron réel n'a démarré qu'aujourd'hui : ceci simule un historique pour
   // que le graphique d'évolution ne soit pas vide en attendant l'accumulation réelle.
   const snapshotsAInserer = Array.from({ length: 14 }, (_, i) => {

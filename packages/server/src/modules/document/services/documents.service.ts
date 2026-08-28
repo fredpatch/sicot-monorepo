@@ -113,7 +113,7 @@ export async function uploaderDocument(
 }
 
 // ── Lister les documents ──────────────────────────────────────────────────
-// Projection allégée (sans texteExtrait/chemin) — potentiellement volumineux
+// Projection allégée (sans texteExtrait/chemin) - potentiellement volumineux
 // et non nécessaire pour l'affichage en registre ; le détail complet reste
 // disponible via getDocument(id). Voir DocumentListView.
 export async function listerDocuments(filters: DocumentFilters): Promise<{
@@ -149,7 +149,7 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
     conditions.push(isNull(documents.deletedAt));
   }
 
-  // Rôle agent uniquement (voir DocumentFilters#visibleOuUploadePar) — ne
+  // Rôle agent uniquement (voir DocumentFilters#visibleOuUploadePar) - ne
   // voit que ce qui est publié en interne, plus ses propres uploads même
   // avant publication.
   if (filters.visibleOuUploadePar !== undefined) {
@@ -162,7 +162,7 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
   }
 
   // Ne garder que les lignes qu'aucune autre ligne ne référence via
-  // parentId — résolu en IDs candidats plutôt qu'un NOT EXISTS, cohérent
+  // parentId - résolu en IDs candidats plutôt qu'un NOT EXISTS, cohérent
   // avec le reste du module (ex. recherche demandeur/document dans
   // demandes.service.ts).
   if (filters.finalesUniquement) {
@@ -170,9 +170,7 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
       .selectDistinct({ parentId: documents.parentId })
       .from(documents)
       .where(isNotNull(documents.parentId));
-    const parentIds = parents
-      .map((p) => p.parentId)
-      .filter((id): id is number => id !== null);
+    const parentIds = parents.map((p) => p.parentId).filter((id): id is number => id !== null);
     if (parentIds.length > 0) {
       conditions.push(notInArray(documents.id, parentIds));
     }
@@ -211,7 +209,7 @@ export async function listerDocuments(filters: DocumentFilters): Promise<{
 }
 
 // ── Agrégats globaux ────────────────────────────────────────────────────
-// Même portée que listerDocuments (agent restreint à visibleOuUploadePar) —
+// Même portée que listerDocuments (agent restreint à visibleOuUploadePar) -
 // des compteurs cohérents avec ce que ce rôle peut effectivement lister,
 // jamais calculés sur la page courante.
 export async function getDocumentsAggregates(
@@ -220,10 +218,7 @@ export async function getDocumentsAggregates(
   const base = [isNull(documents.deletedAt)];
   if (visibleOuUploadePar !== undefined) {
     base.push(
-      or(
-        eq(documents.visibiliteInterne, true),
-        eq(documents.uploadePar, visibleOuUploadePar)
-      )!
+      or(eq(documents.visibiliteInterne, true), eq(documents.uploadePar, visibleOuUploadePar))!
     );
   }
   const where = and(...base);
@@ -320,7 +315,7 @@ export async function mettreAJourCategorie(
 // ── Nouvelle version d'un document existant ───────────────────────────────
 // Hérite de la catégorie du parent par défaut (cas générique : remplacer un
 // fichier par une version mise à jour du même type de document), sauf si
-// categorieOverride est fourni — ex. déposer une traduction officielle
+// categorieOverride est fourni - ex. déposer une traduction officielle
 // reformatée depuis l'atelier de traduction, qui doit être classée
 // 'traduction' indépendamment de la catégorie du document source original.
 export async function nouvellVersionDocument(
@@ -333,11 +328,10 @@ export async function nouvellVersionDocument(
   if (!parent) throw new Error('DOCUMENT_INTROUVABLE');
 
   // Une traduction déposée est automatiquement visible en interne, même si
-  // le document source ne l'était pas — c'est la règle métier convenue
+  // le document source ne l'était pas - c'est la règle métier convenue
   // (« traduit ⇒ partagé »). Toute autre nouvelle version hérite de la
   // visibilité actuelle du parent, comme sa catégorie.
-  const visibiliteInterne =
-    categorieOverride === 'traduction' ? true : parent.visibiliteInterne;
+  const visibiliteInterne = categorieOverride === 'traduction' ? true : parent.visibiliteInterne;
 
   const { document } = await uploaderDocument({
     ...params,
@@ -365,7 +359,7 @@ export async function getCheminDocument(
 
 // ── Basculer la visibilité interne (agent) ────────────────────────────────
 // Distincte de visibilitePortail (public). operateur+ uniquement (voir la
-// route) — décision moins engageante que la publication externe, donc pas
+// route) - décision moins engageante que la publication externe, donc pas
 // réservée admin comme le portail.
 export async function toggleVisibiliteInterne(
   id: number,
@@ -392,7 +386,7 @@ export async function toggleVisibiliteInterne(
 }
 
 // ── Vérifier qu'un utilisateur a le droit de voir/télécharger un document
-// donné (GET /:id, GET /:id/telecharger) — quiconque a DOCUMENT_UPLOAD (le
+// donné (GET /:id, GET /:id/telecharger) - quiconque a DOCUMENT_UPLOAD (le
 // signal "accès bibliothèque générale", operateur+) n'est jamais restreint
 // ici ; seule la portée personnelle (aujourd'hui : agent) est concernée
 // (voir listerDocuments#visibleOuUploadePar pour la même règle appliquée au

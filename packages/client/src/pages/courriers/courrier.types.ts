@@ -1,4 +1,8 @@
-import type { CourrierDirection, CourrierReponseStatut, CourrierSuiviStatut } from '@/lib/courriers.api';
+import type {
+  CourrierDirection,
+  CourrierReponseStatut,
+  CourrierSuiviStatut,
+} from '@/lib/courriers.api';
 
 export type CourrierCriticite = 'normal' | 'a_surveiller' | 'critique';
 
@@ -38,7 +42,7 @@ export interface Courrier {
   objet: string;
   expediteur?: OrganisationResume;
   destinataire?: OrganisationResume;
-  // The specific contact chosen within expediteur/destinataire, if any —
+  // The specific contact chosen within expediteur/destinataire, if any -
   // an explicit choice, not automatically the organisation's contactPrincipal.
   expediteurContact?: ContactResume;
   destinataireContact?: ContactResume;
@@ -53,7 +57,7 @@ export interface Courrier {
   createdPar?: number;
   createdAt: string;
   updatedAt: string;
-  // Derived server-side — never stored — see courrier.utils.ts /
+  // Derived server-side - never stored - see courrier.utils.ts /
   // the server's calculerCriticite().
   criticite?: CourrierCriticite;
   joursAttente?: number;

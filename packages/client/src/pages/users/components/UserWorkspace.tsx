@@ -34,7 +34,7 @@ interface UserWorkspaceProps {
 }
 
 // Panneau de travail de l'utilisateur sélectionné, implémenté en Dialog+Tabs
-// (aucun primitive Sheet/drawer n'existe dans l'app à ce jour — même motif
+// (aucun primitive Sheet/drawer n'existe dans l'app à ce jour - même motif
 // que DocumentWorkspace/RequestWorkspace/TermWorkspace).
 export function UserWorkspace({
   utilisateur: u,
@@ -55,7 +55,7 @@ export function UserWorkspace({
     enabled: !!u,
   });
 
-  // Enrichissement Personnel ANAC — lecture seule, une seule requête sur
+  // Enrichissement Personnel ANAC - lecture seule, une seule requête sur
   // sélection (jamais un lookup par ligne du tableau). Échec/absence de
   // correspondance = simplement pas d'onglet, pas d'erreur bloquante.
   const { data: personnel } = useQuery({
@@ -105,7 +105,11 @@ export function UserWorkspace({
               Modifier le compte
             </Button>
             {cap.canActivate && (
-              <Button size="sm" disabled={toggleActivationEnCours} onClick={() => onToggleActivation(u.id, true)}>
+              <Button
+                size="sm"
+                disabled={toggleActivationEnCours}
+                onClick={() => onToggleActivation(u.id, true)}
+              >
                 Activer
               </Button>
             )}
@@ -115,8 +119,9 @@ export function UserWorkspace({
                 size="sm"
                 disabled={toggleActivationEnCours}
                 onClick={() =>
-                  confirmToast(`Désactiver le compte de ${displayUser.prenom} ${displayUser.nom} ?`, () =>
-                    onToggleActivation(u.id, false)
+                  confirmToast(
+                    `Désactiver le compte de ${displayUser.prenom} ${displayUser.nom} ?`,
+                    () => onToggleActivation(u.id, false)
                   )
                 }
                 className="text-anac-danger hover:text-anac-danger"
@@ -171,8 +176,8 @@ export function UserWorkspace({
               </dl>
               {!displayUser.poste && !displayUser.direction && !displayUser.service && (
                 <p className="pt-3 text-[11px] text-anac-muted">
-                  Poste/Direction/Service ne sont renseignés que pour les comptes créés depuis l&apos;annuaire
-                  Personnel ANAC.
+                  Poste/Direction/Service ne sont renseignés que pour les comptes créés depuis
+                  l&apos;annuaire Personnel ANAC.
                 </p>
               )}
             </TabsContent>
@@ -254,20 +259,20 @@ export function UserWorkspace({
             {personnel && (
               <TabsContent value="anac" className="pt-4 text-sm">
                 <p className="pb-3 text-[11px] text-anac-muted">
-                  Annuaire Personnel ANAC — lecture seule, non synchronisé vers le compte SICOT.
+                  Annuaire Personnel ANAC - lecture seule, non synchronisé vers le compte SICOT.
                 </p>
                 <dl className="grid grid-cols-[160px_1fr] gap-y-2.5">
                   <dt className="text-anac-muted">Poste</dt>
-                  <dd className="text-anac-text">{personnel.poste ?? '—'}</dd>
+                  <dd className="text-anac-text">{personnel.poste ?? '-'}</dd>
 
                   <dt className="text-anac-muted">Service</dt>
-                  <dd className="text-anac-text">{personnel.service ?? '—'}</dd>
+                  <dd className="text-anac-text">{personnel.service ?? '-'}</dd>
 
                   <dt className="text-anac-muted">Direction</dt>
-                  <dd className="text-anac-text">{personnel.direction ?? '—'}</dd>
+                  <dd className="text-anac-text">{personnel.direction ?? '-'}</dd>
 
                   <dt className="text-anac-muted">Organisation</dt>
-                  <dd className="text-anac-text">{personnel.organisationLabel ?? '—'}</dd>
+                  <dd className="text-anac-text">{personnel.organisationLabel ?? '-'}</dd>
                 </dl>
               </TabsContent>
             )}

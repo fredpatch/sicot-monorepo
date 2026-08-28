@@ -47,7 +47,7 @@ export type Capability =
   | 'ADMIN_MONITORING_VIEW'
   | 'JOB_EXECUTE'
   // Distinguishes ordinary maintenance jobs (JOB_EXECUTE, admin+) from
-  // high-risk system-level ones — backups, NAS sync — where a mistake is
+  // high-risk system-level ones - backups, NAS sync - where a mistake is
   // costly or hard to reverse. super_admin only. One capability covering
   // this whole risk tier, not one per job (Phase 4.8.3).
   | 'SYSTEM_ADMIN_OPERATION'

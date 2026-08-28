@@ -1,7 +1,7 @@
 import { LANGUE_LABELS } from '../glossary.constants';
 import type { TermVariant } from '../glossary.adapters';
 
-// Language is always shown as text (ISO code + label), never by flag alone —
+// Language is always shown as text (ISO code + label), never by flag alone -
 // keeps the module accessible and future languages self-describing.
 export function LanguageVariantBadge({ variant }: { variant: TermVariant }) {
   const code = variant.language.toUpperCase();

@@ -31,7 +31,7 @@ export async function verifierLimiteRapportsManuelsJour(): Promise<{
   return { autorise: utilises < max, utilises, max };
 }
 
-// ── Incrémente le compteur Layer 2 — appelé une fois la génération commise,
+// ── Incrémente le compteur Layer 2 - appelé une fois la génération commise,
 // pas avant (un refus par verifierLimiteRapportsManuelsJour ne compte pas) ──
 export async function incrementerRapportsManuelsJour(): Promise<void> {
   const date = aujourdHui();
@@ -46,7 +46,7 @@ export async function incrementerRapportsManuelsJour(): Promise<void> {
 }
 
 // ── Layer 1 : réserve le premier modèle sous son plafond auto-imposé ──────
-// Note : lecture puis écriture, pas verrouillé — une course concurrente rare
+// Note : lecture puis écriture, pas verrouillé - une course concurrente rare
 // pourrait dépasser le plafond de 1 appel. Acceptable vu le volume réel
 // (usage interne, quelques appels/jour) ; à revoir si le volume grossit.
 export async function reserverModeleDisponible(candidats: string[]): Promise<string | null> {
@@ -75,7 +75,7 @@ export async function reserverModeleDisponible(candidats: string[]): Promise<str
   return null; // tous les modèles candidats sont à leur plafond auto-imposé
 }
 
-// ── Visibilité coût — cumul des tokens de réflexion, pour l'écran de suivi ─
+// ── Visibilité coût - cumul des tokens de réflexion, pour l'écran de suivi ─
 export async function enregistrerThinkingTokens(modele: string, tokens: number): Promise<void> {
   const date = aujourdHui();
 
@@ -85,7 +85,7 @@ export async function enregistrerThinkingTokens(modele: string, tokens: number):
     .where(and(eq(geminiUsageQuotidien.modele, modele), eq(geminiUsageQuotidien.date, date)));
 }
 
-// ── SERVICE : Statut d'usage complet — pour l'écran de suivi admin ────────
+// ── SERVICE : Statut d'usage complet - pour l'écran de suivi admin ────────
 export async function getStatutUsageGemini(): Promise<{
   modeles: {
     modele: string;

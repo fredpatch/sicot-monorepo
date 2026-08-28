@@ -6,7 +6,13 @@ import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { courriersApi } from '@/lib/courriers.api';
 import { COURRIER_PAGE_SIZE } from './courriers/courrier.constants';
-import type { Courrier, CourrierDirection, CourrierListResponse, CourrierSuiviStatut, CourriersAggregates } from './courriers/courrier.types';
+import type {
+  Courrier,
+  CourrierDirection,
+  CourrierListResponse,
+  CourrierSuiviStatut,
+  CourriersAggregates,
+} from './courriers/courrier.types';
 import { CourriersFilters } from './courriers/components/CourriersFilters';
 import {
   CourriersRegistryMobileCards,
@@ -34,7 +40,7 @@ export default function CourriersPage() {
   const debouncedSearch = useDebouncedValue(search);
   const direction = searchParams.get('direction') ?? '';
   const statut = searchParams.get('statut') ?? '';
-  // Derived filter — attendue/en_depassement/repondu, not a stored field.
+  // Derived filter - attendue/en_depassement/repondu, not a stored field.
   // See courrier.constants.ts's COURRIER_RESPONSE_FILTER_OPTIONS.
   const reponse = searchParams.get('reponse') ?? '';
   const periode = searchParams.get('periode') ?? '';
@@ -106,7 +112,9 @@ export default function CourriersPage() {
   });
 
   const courriers: Courrier[] = courriersQuery.data?.data ?? [];
-  const totalPages = courriersQuery.data ? Math.ceil(courriersQuery.data.total / COURRIER_PAGE_SIZE) : 0;
+  const totalPages = courriersQuery.data
+    ? Math.ceil(courriersQuery.data.total / COURRIER_PAGE_SIZE)
+    : 0;
   const hasFilters = Boolean(debouncedSearch || direction || statut || reponse || periode);
 
   function resetFilters() {
@@ -128,7 +136,11 @@ export default function CourriersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button type="button" onClick={() => navigate('/courriers/new')} className="gap-2 bg-anac-blue">
+          <Button
+            type="button"
+            onClick={() => navigate('/courriers/new')}
+            className="gap-2 bg-anac-blue"
+          >
             <Plus size={14} aria-hidden="true" />
             Nouveau courrier
           </Button>
@@ -167,8 +179,15 @@ export default function CourriersPage() {
       ) : courriersQuery.isError ? (
         <div className="card flex min-h-64 flex-col items-center justify-center gap-3 text-center">
           <p className="font-semibold text-anac-navy">Impossible de charger les courriers.</p>
-          <p className="text-sm text-anac-muted">Vérifiez la connexion au serveur puis réessayez.</p>
-          <Button type="button" variant="outline" onClick={() => courriersQuery.refetch()} className="gap-2">
+          <p className="text-sm text-anac-muted">
+            Vérifiez la connexion au serveur puis réessayez.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => courriersQuery.refetch()}
+            className="gap-2"
+          >
             <RefreshCw size={14} aria-hidden="true" />
             Réessayer
           </Button>
@@ -190,7 +209,11 @@ export default function CourriersPage() {
               Réinitialiser les filtres
             </Button>
           ) : (
-            <Button type="button" onClick={() => navigate('/courriers/new')} className="gap-2 bg-anac-blue">
+            <Button
+              type="button"
+              onClick={() => navigate('/courriers/new')}
+              className="gap-2 bg-anac-blue"
+            >
               <Plus size={14} aria-hidden="true" />
               Nouveau courrier
             </Button>

@@ -6,7 +6,7 @@ const SALT_ROUNDS = 10;
 
 // ── Génération d'un code OTP numérique à 6 chiffres ──────────────────────
 export function generateOTP(): string {
-  // crypto.randomInt est cryptographiquement sûr — pas Math.random()
+  // crypto.randomInt est cryptographiquement sûr - pas Math.random()
   const otp = crypto.randomInt(0, 10 ** OTP_LENGTH);
   // Pad avec des zéros si nécessaire (ex: 000123)
   return otp.toString().padStart(OTP_LENGTH, '0');

@@ -130,7 +130,7 @@ export async function getMissionsKpi(maintenant: Date, dans14jours: Date) {
   return { total, logistiqueNonConfirmee };
 }
 
-// ── Traductions, documents, glossaire, demandes — compteurs simples ──────
+// ── Traductions, documents, glossaire, demandes - compteurs simples ──────
 export async function getComptesSimples() {
   const traductionsEnAttente = await db.$count(
     traductions,

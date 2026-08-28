@@ -11,7 +11,7 @@ build/
 .DS_Store
 coverage/
 .nyc_output/
-# packages/server/drizzle/ (migration SQL) is intentionally NOT ignored —
+# packages/server/drizzle/ (migration SQL) is intentionally NOT ignored -
 # it must be committed, since the prod Docker image and deploy script both
 # depend on it being present in the repo checkout to run `db:migrate`.
 *.sqlite

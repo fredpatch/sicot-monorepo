@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { validerResponsableRapport } from './missions.service';
 import { toMissionView } from './missions.helpers';
 
-// Phase 8 — pure-function unit tests for the mission-report-responsibility
+// Phase 8 - pure-function unit tests for the mission-report-responsibility
 // domain rule (rapportResponsableId must always name a current participant).
 // No DB: consistent with the rest of this codebase's test strategy (HTTP
 // route tests mock the whole service layer; genuinely pure logic gets a
 // direct unit test instead of introducing a new DB-mocking pattern).
-describe('validerResponsableRapport — assigning a participant as report responsible', () => {
+describe('validerResponsableRapport - assigning a participant as report responsible', () => {
   it('accepts a candidate who is in the participant list', () => {
     expect(() => validerResponsableRapport(7, [7, 8, 9])).not.toThrow();
   });
@@ -18,9 +18,11 @@ describe('validerResponsableRapport — assigning a participant as report respon
   });
 });
 
-describe('validerResponsableRapport — rejecting a non-participant', () => {
+describe('validerResponsableRapport - rejecting a non-participant', () => {
   it('rejects a candidate not in the participant list', () => {
-    expect(() => validerResponsableRapport(99, [7, 8, 9])).toThrow('RESPONSABLE_RAPPORT_NON_PARTICIPANT');
+    expect(() => validerResponsableRapport(99, [7, 8, 9])).toThrow(
+      'RESPONSABLE_RAPPORT_NON_PARTICIPANT'
+    );
   });
 
   it('rejects any candidate when the mission has no participants', () => {
@@ -28,7 +30,7 @@ describe('validerResponsableRapport — rejecting a non-participant', () => {
   });
 });
 
-describe('toMissionView — a mission with a report but no responsible remains valid', () => {
+describe('toMissionView - a mission with a report but no responsible remains valid', () => {
   function baseMission(overrides: Partial<Parameters<typeof toMissionView>[0]> = {}) {
     return {
       id: 1,
@@ -63,7 +65,7 @@ describe('toMissionView — a mission with a report but no responsible remains v
     expect(view.rapportResponsableId).toBe(7);
   });
 
-  it('a mission has exactly one official report field — no per-participant report list exists on the view', () => {
+  it('a mission has exactly one official report field - no per-participant report list exists on the view', () => {
     const view = toMissionView(baseMission(), []);
     expect(typeof view.rapportDocumentId).toBe('number');
     expect(view).not.toHaveProperty('rapports');

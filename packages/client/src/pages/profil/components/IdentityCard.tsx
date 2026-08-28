@@ -4,7 +4,7 @@ import { ROLES } from '@/pages/users/users.constants';
 import type { MonProfil } from '../profil.types';
 
 function formaterDate(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
@@ -41,7 +41,7 @@ export function IdentityCard({ profil }: { profil: MonProfil }) {
     <div className="card max-w-lg space-y-4 p-5">
       <div className="flex items-center gap-3">
         <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-anac-navy text-lg font-bold text-white select-none">
-          {initiales || '—'}
+          {initiales || '-'}
         </div>
         <div>
           <div className="flex items-center gap-2">

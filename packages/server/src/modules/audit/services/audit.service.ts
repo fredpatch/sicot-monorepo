@@ -104,7 +104,7 @@ export async function getActionsDisponibles(): Promise<string[]> {
   return rows.map((r) => r.action);
 }
 
-// ── Construction des conditions de filtre — partagée liste + export ───────
+// ── Construction des conditions de filtre - partagée liste + export ───────
 function construireConditions(filters: AuditFilters) {
   const conditions = [];
 
@@ -118,7 +118,7 @@ function construireConditions(filters: AuditFilters) {
   return conditions;
 }
 
-// ── SERVICE : Historique d'une entité précise — pour les fiches PDF ────────
+// ── SERVICE : Historique d'une entité précise - pour les fiches PDF ────────
 export async function listerHistoriqueEntite(
   module: string,
   entiteId: number
@@ -136,7 +136,7 @@ export async function listerHistoriqueEntite(
   return rows.map(toAuditLogView);
 }
 
-// ── SERVICE : Lister pour export — sans pagination, plafonné ──────────────
+// ── SERVICE : Lister pour export - sans pagination, plafonné ──────────────
 // Les exports PDF/Excel portent sur l'ensemble des résultats filtrés, pas
 // seulement la page affichée. Plafond de sécurité pour éviter une requête
 // incontrôlée si les filtres sont trop larges (ex: aucune date).

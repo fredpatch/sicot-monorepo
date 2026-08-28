@@ -6,10 +6,10 @@ import { ACCESS_TOKEN_COOKIE } from '@/middleware/auth';
 import jobsRouter from './jobs.route';
 
 // Confirms the Phase 4.8.3 contract cleanup end to end: the real GET /jobs
-// response (no controller/service mocking — listerJobs() is a pure
+// response (no controller/service mocking - listerJobs() is a pure
 // synchronous read of the registry, no DB involved) carries capability
 // terminology and has fully dropped roleMinimum. Real registry, real
-// controller, real service — only JWT verification is stubbed.
+// controller, real service - only JWT verification is stubbed.
 vi.mock('@/utils/jwt', () => ({
   verifyAccessToken: (token: string) => JSON.parse(token),
 }));
@@ -26,7 +26,7 @@ function cookieFor(role: string) {
   return `${ACCESS_TOKEN_COOKIE}=${encodeURIComponent(token)}`;
 }
 
-describe('GET /jobs — API metadata contract', () => {
+describe('GET /jobs - API metadata contract', () => {
   it('every job carries executionCapability and never roleMinimum', async () => {
     const app = buildApp();
     const res = await request(app).get('/jobs').set('Cookie', cookieFor('admin')).expect(200);

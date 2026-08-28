@@ -3,7 +3,7 @@ interface TranslationEngineStatusProps {
   label?: string;
 }
 
-/** Compact engine-health indicator — a system condition, not a page-wide alarm. */
+/** Compact engine-health indicator - a system condition, not a page-wide alarm. */
 export function TranslationEngineStatus({
   accessible,
   label = 'LibreTranslate',

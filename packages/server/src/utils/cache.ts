@@ -1,6 +1,6 @@
 // ── Cache mémoire courte durée ─────────────────────────────────────────────
 // Usage : analytics (agrégats coûteux, lus bien plus souvent qu'écrits).
-// Volontairement simple (Map en mémoire) — suffisant pour un seul process
+// Volontairement simple (Map en mémoire) - suffisant pour un seul process
 // Node ; à revoir (Redis) si le déploiement passe un jour en multi-instance.
 const cache = new Map<string, { valeur: unknown; expireA: number }>();
 

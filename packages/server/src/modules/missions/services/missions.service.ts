@@ -1,6 +1,19 @@
 import { db } from '@/db/index';
 import { missions, missionParticipants, recommandations, users, contacts } from '@/db/schema';
-import { eq, ilike, and, or, desc, isNotNull, isNull, ne, gte, lte, inArray, type SQL } from 'drizzle-orm';
+import {
+  eq,
+  ilike,
+  and,
+  or,
+  desc,
+  isNotNull,
+  isNull,
+  ne,
+  gte,
+  lte,
+  inArray,
+  type SQL,
+} from 'drizzle-orm';
 import { logAudit } from '@/modules/auth/services/auth.service';
 import { sendRecommandationEmail } from '@/utils/email';
 import {
@@ -38,12 +51,12 @@ export type {
   MissionsAggregates,
 } from './missions.types';
 
-// Kept in sync with the client's mission.constants.ts LOGISTICS_RISK_DAYS —
+// Kept in sync with the client's mission.constants.ts LOGISTICS_RISK_DAYS -
 // a mission departing soon with logistics not yet confirmed.
 const LOGISTIQUE_RISQUE_JOURS = 14;
 
 // ── SERVICE : Agrégats globaux, ou scopés à un participant ───────────────
-// participantId optionnel — quand fourni, tous les comptes sont restreints
+// participantId optionnel - quand fourni, tous les comptes sont restreints
 // aux missions où l'utilisateur figure dans mission_participants (ex.
 // l'espace de travail agent "Mon espace").
 export async function getMissionsAggregates(participantId?: number): Promise<MissionsAggregates> {
@@ -65,30 +78,54 @@ export async function getMissionsAggregates(participantId?: number): Promise<Mis
 
   const withScope = (...conditions: (SQL | undefined)[]) => and(...conditions, scope);
 
-  const [total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque, rapportsEnAttente] =
-    await Promise.all([
-      db.$count(missions, scope),
-      db.$count(missions, withScope(eq(missions.statut, 'planifiee'))),
-      db.$count(missions, withScope(eq(missions.statut, 'en_cours'))),
-      db.$count(missions, withScope(eq(missions.statut, 'terminee'))),
-      db.$count(missions, withScope(eq(missions.statut, 'annulee'))),
-      db.$count(
-        missions,
-        withScope(eq(missions.statut, 'planifiee'), gte(missions.dateDebut, now), lte(missions.dateDebut, dans30Jours))
-      ),
-      db.$count(
-        missions,
-        withScope(
-          eq(missions.statut, 'planifiee'),
-          ne(missions.confirmationLogistique, 'confirme'),
-          gte(missions.dateDebut, now),
-          lte(missions.dateDebut, dansNJoursRisque)
-        )
-      ),
-      db.$count(missions, withScope(eq(missions.statut, 'terminee'), isNull(missions.rapportDocumentId))),
-    ]);
+  const [
+    total,
+    planifiees,
+    enCours,
+    terminees,
+    annulees,
+    aVenir30Jours,
+    logistiqueARisque,
+    rapportsEnAttente,
+  ] = await Promise.all([
+    db.$count(missions, scope),
+    db.$count(missions, withScope(eq(missions.statut, 'planifiee'))),
+    db.$count(missions, withScope(eq(missions.statut, 'en_cours'))),
+    db.$count(missions, withScope(eq(missions.statut, 'terminee'))),
+    db.$count(missions, withScope(eq(missions.statut, 'annulee'))),
+    db.$count(
+      missions,
+      withScope(
+        eq(missions.statut, 'planifiee'),
+        gte(missions.dateDebut, now),
+        lte(missions.dateDebut, dans30Jours)
+      )
+    ),
+    db.$count(
+      missions,
+      withScope(
+        eq(missions.statut, 'planifiee'),
+        ne(missions.confirmationLogistique, 'confirme'),
+        gte(missions.dateDebut, now),
+        lte(missions.dateDebut, dansNJoursRisque)
+      )
+    ),
+    db.$count(
+      missions,
+      withScope(eq(missions.statut, 'terminee'), isNull(missions.rapportDocumentId))
+    ),
+  ]);
 
-  return { total, planifiees, enCours, terminees, annulees, aVenir30Jours, logistiqueARisque, rapportsEnAttente };
+  return {
+    total,
+    planifiees,
+    enCours,
+    terminees,
+    annulees,
+    aVenir30Jours,
+    logistiqueARisque,
+    rapportsEnAttente,
+  };
 }
 
 // ── SERVICE : Lister les missions ─────────────────────────────────────────
@@ -224,7 +261,7 @@ export async function creerMission(params: CreateMissionParams): Promise<Mission
 }
 
 // ── Validation : rapportResponsableId doit nommer un participant actuel ───
-// Pure (aucun I/O) — la relation "responsable ⇒ participant" est une règle
+// Pure (aucun I/O) - la relation "responsable ⇒ participant" est une règle
 // de domaine, pas un rôle : validée ici contre la liste de participants que
 // l'appelant fait autorité (voir mettreAJourMission), jamais contre un rôle.
 export function validerResponsableRapport(
@@ -277,7 +314,7 @@ export async function mettreAJourMission(
   }
 
   // rapportResponsableId must always name a current participant of this
-  // mission (Phase 8) — checked against the participant list this same
+  // mission (Phase 8) - checked against the participant list this same
   // update is about to leave in place (params.participantsIds if the
   // caller is also changing it in this request, otherwise the existing
   // membership). Never a role check: purely a domain relationship.
@@ -296,14 +333,14 @@ export async function mettreAJourMission(
   ) {
     // The participant list changed underneath the current report
     // responsible (e.g. they were removed) without the caller explicitly
-    // reassigning it in the same request — silently clear rather than
+    // reassigning it in the same request - silently clear rather than
     // fail an otherwise-unrelated participant-list edit, and never leave
     // a dangling reference to a non-participant.
     updates.rapportResponsableId = null;
   }
 
   // confirmationLogistique is derived from the checklist, never set
-  // directly — recompute it whenever any checklist item changes, using the
+  // directly - recompute it whenever any checklist item changes, using the
   // merged (existing + incoming) state so a partial update still lands on
   // the correct overall status.
   const checklistChanged =
@@ -313,14 +350,19 @@ export async function mettreAJourMission(
 
   if (checklistChanged) {
     const billet = params.logistiqueBilletReserve ?? existante.logistiqueBilletReserve;
-    const hebergement = params.logistiqueHebergementConfirme ?? existante.logistiqueHebergementConfirme;
+    const hebergement =
+      params.logistiqueHebergementConfirme ?? existante.logistiqueHebergementConfirme;
     const financement = params.logistiqueFinancementValide ?? existante.logistiqueFinancementValide;
 
     updates.logistiqueBilletReserve = billet;
     updates.logistiqueHebergementConfirme = hebergement;
     updates.logistiqueFinancementValide = financement;
     updates.confirmationLogistique =
-      billet && hebergement && financement ? 'confirme' : !billet && !hebergement && !financement ? 'a_planifier' : 'en_cours';
+      billet && hebergement && financement
+        ? 'confirme'
+        : !billet && !hebergement && !financement
+          ? 'a_planifier'
+          : 'en_cours';
   }
 
   const [updated] = await db
@@ -329,7 +371,7 @@ export async function mettreAJourMission(
     .where(eq(missions.id, id))
     .returning();
 
-  // `!== undefined` (not truthy/`.length > 0`) — an explicit empty array
+  // `!== undefined` (not truthy/`.length > 0`) - an explicit empty array
   // means "remove all participants" and must actually clear the join
   // table, not be silently ignored; `undefined` (field omitted from the
   // PATCH body) correctly leaves participants untouched.
@@ -442,7 +484,7 @@ export async function mettreAJourRecommandation(
 
 // ── SERVICE : L'utilisateur est-il le responsable de cette recommandation ──
 // Relation métier (recommandations.responsableId) utilisée pour le repli
-// personnel des notifications de relance (module notifications — Phase 7.1) :
+// personnel des notifications de relance (module notifications - Phase 7.1) :
 // un agent qui n'a pas MISSION_REGISTRY_VIEW peut quand même relancer/
 // consulter l'historique d'une recommandation dont il est explicitement
 // responsable, sans devenir admin.
@@ -459,7 +501,7 @@ export async function estResponsableRecommandation(
 }
 
 // ── SERVICE : L'utilisateur est-il le responsable du rapport de mission ────
-// Relation métier (missions.rapportResponsableId) — Phase 8 : seul le
+// Relation métier (missions.rapportResponsableId) - Phase 8 : seul le
 // participant explicitement désigné peut soumettre/remplacer le rapport
 // officiel via le workflow personnel, sans passer par MISSION_MANAGE.
 export async function estResponsableRapportMission(

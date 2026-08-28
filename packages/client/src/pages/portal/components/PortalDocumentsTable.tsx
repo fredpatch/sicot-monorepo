@@ -13,7 +13,7 @@ interface PortalDocumentsTableProps {
 
 // Catalogue public, pas un DataTable interne (§8/§17 du brief) : en-tête
 // clair (pas navy), lignes aérées (~64px), pas de zébrage dense. Colonnes
-// public-safe uniquement — pas de Partenaire/Pays/Auteur.
+// public-safe uniquement - pas de Partenaire/Pays/Auteur.
 export function PortalDocumentsTable({
   documents,
   onConsulter,
@@ -74,7 +74,7 @@ export function PortalDocumentsTable({
                   {getPortalCategoryLabel(doc.categorie)}
                 </span>
               </td>
-              <td className="px-4 py-4 text-anac-muted">{formatLangueCourt(doc.langue) ?? '—'}</td>
+              <td className="px-4 py-4 text-anac-muted">{formatLangueCourt(doc.langue) ?? '-'}</td>
               <td className="px-4 py-4 text-anac-muted">{formatDateAjout(doc.createdAt)}</td>
               <td className="px-4 py-4 text-anac-muted">{formatTaille(doc.taille)}</td>
               <td className="px-5 py-4">

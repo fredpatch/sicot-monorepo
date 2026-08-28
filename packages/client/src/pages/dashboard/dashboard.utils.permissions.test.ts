@@ -6,7 +6,7 @@ import { canAccessRoute } from './dashboard.utils';
 // sync with the actual route guard (TRANSLATION_VIEW, operateur+, set in
 // router.tsx Phase 5.1). Fixed to read per-route capability instead of a
 // role === 'admin' check.
-describe('canAccessRoute — quick-action link visibility matches the real route guards', () => {
+describe('canAccessRoute - quick-action link visibility matches the real route guards', () => {
   it('/traductions is reachable by operateur, not just admin+ (the drift that was fixed)', () => {
     expect(canAccessRoute('operateur', '/traductions')).toBe(true);
     expect(canAccessRoute('agent', '/traductions')).toBe(false);

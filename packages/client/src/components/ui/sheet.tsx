@@ -1,11 +1,11 @@
 // packages/client/src/components/ui/sheet.tsx
 //
 // Right-side sheet panel, built on the same @radix-ui/react-dialog primitive
-// as dialog.tsx (Phase 10.1) — reuses its exact accessibility guarantees
+// as dialog.tsx (Phase 10.1) - reuses its exact accessibility guarantees
 // (focus trap while open, focus returns to the trigger on close, ESC closes,
 // Title/Description auto-wired via aria-labelledby/aria-describedby) with a
 // slide-from-right presentation instead of a centered modal. Full width on
-// narrow viewports, fixed max width from `sm:` up — safe at small widths
+// narrow viewports, fixed max width from `sm:` up - safe at small widths
 // without attempting to solve the app's broader responsive-shell gap.
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -66,7 +66,10 @@ SheetContent.displayName = DialogPrimitive.Content.displayName;
 function SheetHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('flex flex-col gap-1 px-5 py-4 border-b border-anac-border flex-shrink-0', className)}
+      className={cn(
+        'flex flex-col gap-1 px-5 py-4 border-b border-anac-border flex-shrink-0',
+        className
+      )}
       {...props}
     />
   );

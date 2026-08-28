@@ -14,9 +14,9 @@ import type {
 } from '../analytics.types';
 import { courriersCriticiteSnapshots, documents, glossaire } from '@/db/schema';
 
-const CACHE_TTL_MS = 60_000; // 1 minute — assez court pour rester à jour, assez long pour absorber la charge
+const CACHE_TTL_MS = 60_000; // 1 minute - assez court pour rester à jour, assez long pour absorber la charge
 
-// ── Résolution de la période — défaut 12 derniers mois si non spécifiée ───
+// ── Résolution de la période - défaut 12 derniers mois si non spécifiée ───
 function resoudrePeriode(filtre: PeriodeFiltre): { debut: Date; fin: Date } {
   const fin = filtre.dateFin ?? new Date();
   const debut = filtre.dateDebut ?? new Date(fin.getFullYear() - 1, fin.getMonth(), fin.getDate());
@@ -33,7 +33,7 @@ export async function getAccordsAnalytics(filtre: PeriodeFiltre): Promise<Accord
   return avecCache(cleCache('accords', filtre), CACHE_TTL_MS, async () => {
     const { debut, fin } = resoudrePeriode(filtre);
 
-    // Durée moyenne par type de partenaire — un accord multi-partenaires
+    // Durée moyenne par type de partenaire - un accord multi-partenaires
     // compte une fois par type d'organisation impliqué
     const dureeParType = await db.execute(sql`
       SELECT
@@ -48,7 +48,7 @@ export async function getAccordsAnalytics(filtre: PeriodeFiltre): Promise<Accord
       GROUP BY o.type
     `);
 
-    // Taux de renouvellement vs clôture — un accord renouvelé passe en
+    // Taux de renouvellement vs clôture - un accord renouvelé passe en
     // 'en_renouvellement' (cf. renouvelerAccord), jamais en 'expire'
     const renouvellement = await db.execute(sql`
       SELECT
@@ -58,7 +58,7 @@ export async function getAccordsAnalytics(filtre: PeriodeFiltre): Promise<Accord
       WHERE date_signature BETWEEN ${debut} AND ${fin}
     `);
 
-    // Répartition géographique — état actuel des partenaires actifs,
+    // Répartition géographique - état actuel des partenaires actifs,
     // indépendant de la période (photo instantanée, pas une évolution)
     const repartition = await db.execute(sql`
       SELECT pays, region, COUNT(*) AS nombre_partenaires
@@ -132,7 +132,7 @@ export async function getCourriersAnalytics(filtre: PeriodeFiltre): Promise<Cour
       ORDER BY mois ASC
     `);
 
-    // Aucune colonne date_reponse dédiée — updated_at utilisé comme proxy du
+    // Aucune colonne date_reponse dédiée - updated_at utilisé comme proxy du
     // moment où suivi_statut est passé à 'repondu'. Imprécis si le courrier a
     // été modifié pour d'autres raisons après la réponse, mais c'est le seul
     // signal disponible dans le schéma actuel.
@@ -219,7 +219,7 @@ export async function getMissionsAnalytics(filtre: PeriodeFiltre): Promise<Missi
       ORDER BY nombre_missions DESC
     `);
 
-    // "Dépassées" ne s'applique qu'aux recommandations encore en_attente —
+    // "Dépassées" ne s'applique qu'aux recommandations encore en_attente -
     // même convention que dashboard.helpers.ts getRecommandationsKpi
     const recos = await db.execute(sql`
       SELECT
@@ -316,7 +316,7 @@ export async function getTraductionAnalytics(filtre: PeriodeFiltre): Promise<Tra
         AND created_at BETWEEN ${debut} AND ${fin}
     `);
 
-    // Pas de colonne date_approbation dédiée — updated_at utilisé comme proxy
+    // Pas de colonne date_approbation dédiée - updated_at utilisé comme proxy
     // (même limite que courriers/demandes : imprécis si modifié après coup)
     const tempsTraitement = await db.execute(sql`
       SELECT AVG(EXTRACT(DAY FROM (updated_at - created_at))) AS delai_moyen
@@ -536,7 +536,7 @@ export async function getGlossaireAnalytics(filtre: PeriodeFiltre): Promise<Glos
       WHERE created_at BETWEEN ${debut} AND ${fin}
     `);
 
-    // Domaine : uniquement les termes actifs — les inactifs sont hors du
+    // Domaine : uniquement les termes actifs - les inactifs sont hors du
     // glossaire "vivant" consulté par les traducteurs
     const parDomaine = await db.execute(sql`
       SELECT COALESCE(domaine, 'Non classé') AS domaine, COUNT(*) AS nombre

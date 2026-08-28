@@ -21,7 +21,7 @@ export interface ContactFilters {
 }
 
 // Generalizes the single-contact join already used by
-// missions.helpers.ts's getContactSurPlace — this is what the Missions
+// missions.helpers.ts's getContactSurPlace - this is what the Missions
 // contact-on-site picker calls instead of fetching every organisation and
 // then every organisation's contacts (the N+1 pattern it replaces).
 export async function listerContacts(filters: ContactFilters): Promise<ContactListItem[]> {

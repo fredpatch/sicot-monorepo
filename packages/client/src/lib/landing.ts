@@ -1,11 +1,11 @@
 // packages/client/src/lib/landing.ts
 //
-// Single source of truth for "where does this role land after login" — used
+// Single source of truth for "where does this role land after login" - used
 // by LoginPage (post-login navigate), the root/wildcard route redirect, and
 // every CapabilityRoute denial fallback (App.tsx), so they all stay in
 // sync and no combination of them can produce a redirect loop.
 //
-// Derived from capability tier, not a role-name switch (Phase 5.1) —
+// Derived from capability tier, not a role-name switch (Phase 5.1) -
 // three tiers, each landing on the route CapabilityRoute gates with the
 // exact same capability used here as the discriminator:
 //   - lacks REQUEST_QUEUE_VIEW (agent tier)   → /mon-espace

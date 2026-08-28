@@ -3,7 +3,7 @@ import type { MissionStatut, RecommandationStatut, LogistiqueStatut } from '@/li
 export const MISSION_PAGE_SIZE = 8;
 
 // A mission departing within this window with logistics not yet confirmed
-// is flagged at-risk — kept in sync with the server's
+// is flagged at-risk - kept in sync with the server's
 // LOGISTIQUE_RISQUE_JOURS in missions.service.ts.
 export const MISSION_LOGISTICS_RISK_DAYS = 14;
 
@@ -35,7 +35,7 @@ export const LOGISTIQUE_STATUS_OPTIONS: { value: LogistiqueStatut; label: string
   { value: 'confirme', label: LOGISTIQUE_STATUS_LABELS.confirme },
 ];
 
-// The logistics checklist — confirmationLogistique is derived from these
+// The logistics checklist - confirmationLogistique is derived from these
 // three items (none checked → à planifier, all checked → confirmée,
 // otherwise → en cours).
 export const LOGISTIQUE_CHECKLIST_ITEMS: {

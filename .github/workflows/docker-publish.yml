@@ -58,11 +58,11 @@ jobs:
             ${{ env.REGISTRY }}/${{ steps.image-owner.outputs.owner }}/${{ matrix.name }}:latest
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
-      # Fail-open vulnerability scan — report but don't block. Flip exit-code
+      # Fail-open vulnerability scan - report but don't block. Flip exit-code
       # to "1" once the project is mature enough to gate merges on it.
       - uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ steps.image-owner.outputs.owner }}/${{ matrix.name }}:${{ github.sha }}
           format: table
-          exit-code: "0"
+          exit-code: '0'
           severity: CRITICAL,HIGH

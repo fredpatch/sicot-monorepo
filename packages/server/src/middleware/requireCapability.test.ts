@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
-import { requireCapability, requireAnyCapability, requireAllCapabilities } from './requireCapability';
+import {
+  requireCapability,
+  requireAnyCapability,
+  requireAllCapabilities,
+} from './requireCapability';
 
 // Smallest isolated strategy: exercise the middleware function directly
 // against hand-built req/res/next doubles. No Express app, no HTTP layer,
-// no DB — requireCapability only reads req.user.role and calls
+// no DB - requireCapability only reads req.user.role and calls
 // hasCapability(), so nothing else needs to be real.
 function mockReq(role: string | undefined): Request {
   return (role ? { user: { userId: 1, role } } : {}) as unknown as Request;

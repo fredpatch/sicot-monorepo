@@ -6,7 +6,7 @@ interface AdminInfoBannerProps {
 }
 
 // Copie volontairement précise sur la prise d'effet : seul le seuil
-// d'alerte accord dépend d'un cycle cron (08h00) — tous les autres
+// d'alerte accord dépend d'un cycle cron (08h00) - tous les autres
 // paramètres (courriers, sécurité, sauvegardes, IA) sont lus en direct à
 // chaque usage, donc appliqués immédiatement. Généraliser « prochain cycle »
 // à tous les paramètres serait inexact (Phase 1 audit).
@@ -17,11 +17,11 @@ export function AdminInfoBanner({ peutModifier }: AdminInfoBannerProps) {
       <p>
         Les modifications de paramètres sont journalisées dans le Journal d&apos;audit. La plupart
         prennent effet immédiatement ; seul le seuil d&apos;alerte accord s&apos;applique au
-        prochain cycle planifié (08h00) — indiqué directement sur sa carte.
+        prochain cycle planifié (08h00) - indiqué directement sur sa carte.
         {!peutModifier && (
           <>
             {' '}
-            Réservé Super Admin pour la modification — vous consultez ces paramètres en lecture
+            Réservé Super Admin pour la modification - vous consultez ces paramètres en lecture
             seule.
           </>
         )}

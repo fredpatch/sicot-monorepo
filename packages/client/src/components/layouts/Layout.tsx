@@ -44,29 +44,44 @@ interface NavItem {
 
 // ── Items de navigation ───────────────────────────────────────────────────
 // Une capacité par lien, alignée exactement sur le garde de route
-// correspondant dans router.tsx (Phase 5.1) — plus de tableaux de rôles
+// correspondant dans router.tsx (Phase 5.1) - plus de tableaux de rôles
 // dupliqués ici (Phase 5.2). Les entrées personnelles (Mon espace/Mes
 // demandes/Mes missions) portent leur capacité "OWN" propre, présente chez
 // les quatre rôles cibles par héritage additif : un admin/super_admin voit
 // donc à la fois ses entrées personnelles ET les registres globaux
-// correspondants (Mes missions + Missions, Mes demandes + Demandes) —
+// correspondants (Mes missions + Missions, Mes demandes + Demandes) -
 // intentionnel, comme pour les gardes de route.
 const NAV_ITEMS: NavItem[] = [
-  { to: '/mon-espace', labelKey: 'nav.monEspace', icon: Home, capability: 'PERSONAL_WORKSPACE_VIEW' },
+  {
+    to: '/mon-espace',
+    labelKey: 'nav.monEspace',
+    icon: Home,
+    capability: 'PERSONAL_WORKSPACE_VIEW',
+  },
   { to: '/mes-demandes', labelKey: 'nav.mesDemandes', icon: Inbox, capability: 'REQUEST_VIEW_OWN' },
   { to: '/mes-missions', labelKey: 'nav.mesMissions', icon: Plane, capability: 'MISSION_VIEW_OWN' },
-  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, capability: 'ANALYTICS_VIEW' },
+  {
+    to: '/dashboard',
+    labelKey: 'nav.dashboard',
+    icon: LayoutDashboard,
+    capability: 'ANALYTICS_VIEW',
+  },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3, capability: 'ANALYTICS_VIEW' },
   { to: '/accords', labelKey: 'nav.accords', icon: FileText, capability: 'AGREEMENT_VIEW' },
   { to: '/partenaires', labelKey: 'nav.partenaires', icon: Globe2, capability: 'PARTNER_VIEW' },
   { to: '/missions', labelKey: 'nav.missions', icon: Plane, capability: 'MISSION_REGISTRY_VIEW' },
   { to: '/courriers', labelKey: 'nav.courriers', icon: Mail, capability: 'CORRESPONDENCE_VIEW' },
-  { to: '/traductions', labelKey: 'nav.traductions', icon: Languages, capability: 'TRANSLATION_VIEW' },
+  {
+    to: '/traductions',
+    labelKey: 'nav.traductions',
+    icon: Languages,
+    capability: 'TRANSLATION_VIEW',
+  },
   {
     to: '/demandes',
     labelKey: 'nav.demandes',
     icon: Inbox,
-    // Registre complet (toutes les demandes) — réservé au personnel
+    // Registre complet (toutes les demandes) - réservé au personnel
     // opérationnel. Les agents ont leur propre écran scopé (/mes-demandes,
     // capacité distincte ci-dessus).
     capability: 'REQUEST_QUEUE_VIEW',
@@ -74,7 +89,12 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/glossaire', labelKey: 'nav.glossaire', icon: BookOpen, capability: 'GLOSSARY_VIEW' },
   { to: '/documents', labelKey: 'nav.documents', icon: FolderOpen },
   { to: '/utilisateurs', labelKey: 'nav.utilisateurs', icon: Users, capability: 'USER_MANAGE' },
-  { to: '/admin', labelKey: 'nav.administration', icon: Settings2, capability: 'SYSTEM_SETTINGS_VIEW' },
+  {
+    to: '/admin',
+    labelKey: 'nav.administration',
+    icon: Settings2,
+    capability: 'SYSTEM_SETTINGS_VIEW',
+  },
   { to: '/audit', labelKey: 'nav.audit', icon: ClipboardList, capability: 'AUDIT_VIEW' },
   { to: '/portal', labelKey: 'nav.portail', icon: ExternalLink },
   { to: '/profil', labelKey: 'nav.profil', icon: User2 },
@@ -91,7 +111,7 @@ export default function Layout() {
   const [sidebarOuverte, setSidebarOuverte] = useState(true);
   const [chargementLogout, setChargementLogout] = useState(false);
 
-  // Filtrer les items de nav selon la capacité de l'utilisateur — plus de
+  // Filtrer les items de nav selon la capacité de l'utilisateur - plus de
   // tableau de rôles codé en dur, dérivé de hasCapability() comme le garde
   // de route correspondant (Phase 5.2).
   const itemsVisibles = NAV_ITEMS.filter((item) => {
@@ -219,7 +239,7 @@ export default function Layout() {
                 <p className="text-[10px] text-anac-muted capitalize leading-tight">{userRole}</p>
               </div>
               <div className="w-8 h-8 rounded-lg bg-anac-navy text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 select-none">
-                {initiales || '—'}
+                {initiales || '-'}
               </div>
             </NavLink>
 
@@ -243,7 +263,7 @@ export default function Layout() {
           </div>
         </header>
 
-        {/* Zone de contenu — chaque page s'y affiche via <Outlet /> */}
+        {/* Zone de contenu - chaque page s'y affiche via <Outlet /> */}
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>

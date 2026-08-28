@@ -7,21 +7,21 @@ const router = Router();
 
 router.use(authenticate);
 
-// ── Lecture — accessible à tous, portée personnelle appliquée dans le
+// ── Lecture - accessible à tous, portée personnelle appliquée dans le
 // controller pour qui n'a pas REQUEST_QUEUE_VIEW (voir demandes.controller.ts
 // aSeulementLaPorteePersonnelle) ─────────────────────────────────────────
 router.get('/', demandesController.lister);
 router.get('/aggregates', demandesController.aggregates);
 router.get('/:id', demandesController.getById);
 
-// ── Création — capacité personnelle, tous les rôles cibles l'ont ──────────
+// ── Création - capacité personnelle, tous les rôles cibles l'ont ──────────
 router.post('/', requireCapability('REQUEST_CREATE_OWN'), demandesController.creer);
 
-// ── Rappel — capacité personnelle ; propriété (demandeurId === userId)
+// ── Rappel - capacité personnelle ; propriété (demandeurId === userId)
 // déjà vérifiée dans demandes.service.ts:rappelerDemande ──────────────────
 router.patch('/:id/rappeler', requireCapability('REQUEST_RECALL_OWN'), demandesController.rappeler);
 
-// ── Prise en charge / soumission en relecture — REQUEST_TAKE /
+// ── Prise en charge / soumission en relecture - REQUEST_TAKE /
 // REQUEST_SUBMIT_REVIEW (operateur+ ; agent exclu) ─────────────────────────
 router.patch(
   '/:id/prendre-en-charge',
@@ -35,11 +35,11 @@ router.patch(
 );
 
 // ── Validation priorité et workflow ─────────────────────────────────────
-// Was requireRole('relecteur') — only the legacy relecteur/admin/super_admin
+// Was requireRole('relecteur') - only the legacy relecteur/admin/super_admin
 // could validate priority/valider/archiver; a pure traducteur could not.
 // operateur (the merged role replacing both traducteur and relecteur, per
 // the target role model) now carries REQUEST_PRIORITY_VALIDATE /
-// REQUEST_VALIDATE / REQUEST_ARCHIVE — an intentional widening for
+// REQUEST_VALIDATE / REQUEST_ARCHIVE - an intentional widening for
 // legacy-traducteur users once they normalize to operateur, matching the
 // approved Phase 1 role-unification design (prompt.md §7/§13/§59), not an
 // accidental permission grant.

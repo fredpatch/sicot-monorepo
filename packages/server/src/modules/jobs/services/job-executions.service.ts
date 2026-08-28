@@ -40,7 +40,7 @@ function toView(row: typeof jobExecutions.$inferSelect): JobExecutionView {
 }
 
 // ── SERVICE : Enregistrer une exécution (manuelle ou cron) ────────────────
-// Best-effort — une panne de journalisation ne doit jamais faire échouer le
+// Best-effort - une panne de journalisation ne doit jamais faire échouer le
 // job lui-même (surtout pour un cron, sans admin pour voir l'erreur).
 export async function enregistrerExecutionJob(params: {
   jobCle: string;

@@ -16,11 +16,11 @@ export const accordsApi = {
 
   getById: (id: number) => api.get(`/accords/${id}`),
 
-  // Accords expirant dans les N prochains jours — dashboard M9
+  // Accords expirant dans les N prochains jours - dashboard M9
   expirantBientot: (jours?: number) =>
     api.get('/accords/expirant', { params: jours !== undefined ? { jours } : undefined }),
 
-  // Export PDF — téléchargement direct (cookie httpOnly transmis automatiquement)
+  // Export PDF - téléchargement direct (cookie httpOnly transmis automatiquement)
   getUrlExportPDF: (id: number) => `/api/accords/${id}/export/pdf`,
 
   // ── Création ─────────────────────────────────────────────────────────────

@@ -20,7 +20,7 @@ export type { AuthTokens, UserPublic, LoginResult } from './auth.types';
 
 // ── Utilitaire audit ──────────────────────────────────────────────────────
 // Importé dans de nombreux modules (missions, accords, courriers, documents,
-// etc.) — ne pas relocaliser sans un balayage complet des imports.
+// etc.) - ne pas relocaliser sans un balayage complet des imports.
 export async function logAudit(params: {
   userId?: number;
   action: string;
@@ -40,18 +40,21 @@ export async function logAudit(params: {
 }
 
 // ── SERVICE : Dernière connexion réelle d'un utilisateur ──────────────────
-// Dérivé du journal d'audit plutôt que stocké — pas de colonne dédiée. Deux
+// Dérivé du journal d'audit plutôt que stocké - pas de colonne dédiée. Deux
 // actions démarrent réellement une session (buildTokens() appelé) : CONNEXION
 // (connexion normale par mot de passe) et MOT_DE_PASSE_DEFINI (fin de première
-// connexion — l'OTP seul ne donne qu'un token temporaire de 5 min, donc
+// connexion - l'OTP seul ne donne qu'un token temporaire de 5 min, donc
 // OTP_VALIDE n'est pas une « connexion » en soi). Utilisé par /auth/me (soi-
-// même) et GET /users/:id (vue admin d'un autre compte) — même requête.
+// même) et GET /users/:id (vue admin d'un autre compte) - même requête.
 export async function getDerniereConnexion(userId: number): Promise<Date | null> {
   const [ligne] = await db
     .select({ createdAt: auditLogs.createdAt })
     .from(auditLogs)
     .where(
-      and(eq(auditLogs.userId, userId), or(eq(auditLogs.action, 'CONNEXION'), eq(auditLogs.action, 'MOT_DE_PASSE_DEFINI')))
+      and(
+        eq(auditLogs.userId, userId),
+        or(eq(auditLogs.action, 'CONNEXION'), eq(auditLogs.action, 'MOT_DE_PASSE_DEFINI'))
+      )
     )
     .orderBy(desc(auditLogs.createdAt))
     .limit(1);
@@ -155,7 +158,7 @@ export async function setPassword(params: {
 
   await logAudit({ userId: user.id, action: 'MOT_DE_PASSE_DEFINI', module: 'M10', ip });
 
-   try {
+  try {
     await sendCompteActiveEmail({
       to: user.email,
       nom: user.nom,
@@ -167,7 +170,6 @@ export async function setPassword(params: {
   } catch (error) {
     console.error('[email] Échec envoi confirmation activation:', error);
   }
-
 
   return {
     tokens: buildTokens(user),
@@ -199,7 +201,10 @@ export async function changerMotDePasse(params: {
   if (!actuelValide) throw new Error('MOT_DE_PASSE_ACTUEL_INVALIDE');
 
   const hash = await bcrypt.hash(nouveauMotDePasse, SALT_ROUNDS);
-  await db.update(users).set({ motDePasseHash: hash, updatedAt: new Date() }).where(eq(users.id, userId));
+  await db
+    .update(users)
+    .set({ motDePasseHash: hash, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 
   await logAudit({ userId, action: 'MOT_DE_PASSE_MODIFIE', module: 'M10', ip });
 

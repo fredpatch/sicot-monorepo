@@ -24,7 +24,7 @@ export async function verifyEmailConnection(): Promise<void> {
     await transporter.verify();
     console.log('✅ Connexion SMTP établie');
   } catch (error) {
-    console.warn('⚠️  SMTP non disponible — les emails ne seront pas envoyés', error);
+    console.warn('⚠️  SMTP non disponible - les emails ne seront pas envoyés', error);
   }
 }
 
@@ -121,7 +121,7 @@ export async function sendCompteActiveEmail(params: {
 
   await sendEmail({
     to,
-    subject: 'SICOT - Confirmation d\'activation de votre compte',
+    subject: "SICOT - Confirmation d'activation de votre compte",
     html: compteActiveEmailTemplate(templateParams),
   });
 }

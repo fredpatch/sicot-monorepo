@@ -20,10 +20,14 @@ vi.mock('../controllers/organisations.controller.js', () => ({
   getById: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
   creer: (_req: express.Request, res: express.Response) => res.status(201).json({ ok: true }),
   mettreAJour: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-  listerContacts: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-  creerContact: (_req: express.Request, res: express.Response) => res.status(201).json({ ok: true }),
-  mettreAJourContact: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-  definirPrincipal: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
+  listerContacts: (_req: express.Request, res: express.Response) =>
+    res.status(200).json({ ok: true }),
+  creerContact: (_req: express.Request, res: express.Response) =>
+    res.status(201).json({ ok: true }),
+  mettreAJourContact: (_req: express.Request, res: express.Response) =>
+    res.status(200).json({ ok: true }),
+  definirPrincipal: (_req: express.Request, res: express.Response) =>
+    res.status(200).json({ ok: true }),
 }));
 
 function buildApp() {
@@ -42,56 +46,84 @@ function cookieFor(role: string) {
 const NON_MANAGE_ROLES = ['agent', 'operateur'];
 const MANAGE_ROLES = ['admin', 'super_admin'];
 
-describe('organisations.route — write routes require PARTNER_MANAGE', () => {
+describe('organisations.route - write routes require PARTNER_MANAGE', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).post('/organisations').send({}).expect(401);
   });
 
-  it.each(NON_MANAGE_ROLES)('403s role=%s on organisation create/update (no PARTNER_MANAGE)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).post('/organisations').set('Cookie', cookie).send({}).expect(403);
-    await request(app).patch('/organisations/1').set('Cookie', cookie).send({}).expect(403);
-  });
+  it.each(NON_MANAGE_ROLES)(
+    '403s role=%s on organisation create/update (no PARTNER_MANAGE)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).post('/organisations').set('Cookie', cookie).send({}).expect(403);
+      await request(app).patch('/organisations/1').set('Cookie', cookie).send({}).expect(403);
+    }
+  );
 
-  it.each(NON_MANAGE_ROLES)('403s role=%s on contact create/update/principal (no PARTNER_MANAGE)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).post('/organisations/1/contacts').set('Cookie', cookie).send({}).expect(403);
-    await request(app).patch('/organisations/contacts/1').set('Cookie', cookie).send({}).expect(403);
-    await request(app)
-      .patch('/organisations/contacts/1/principal')
-      .set('Cookie', cookie)
-      .send({})
-      .expect(403);
-  });
+  it.each(NON_MANAGE_ROLES)(
+    '403s role=%s on contact create/update/principal (no PARTNER_MANAGE)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app)
+        .post('/organisations/1/contacts')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(403);
+      await request(app)
+        .patch('/organisations/contacts/1')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(403);
+      await request(app)
+        .patch('/organisations/contacts/1/principal')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(403);
+    }
+  );
 
-  it.each(MANAGE_ROLES)('allows role=%s on every write route (has PARTNER_MANAGE)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).post('/organisations').set('Cookie', cookie).send({}).expect(201);
-    await request(app).patch('/organisations/1').set('Cookie', cookie).send({}).expect(200);
-    await request(app).post('/organisations/1/contacts').set('Cookie', cookie).send({}).expect(201);
-    await request(app).patch('/organisations/contacts/1').set('Cookie', cookie).send({}).expect(200);
-    await request(app)
-      .patch('/organisations/contacts/1/principal')
-      .set('Cookie', cookie)
-      .send({})
-      .expect(200);
-  });
+  it.each(MANAGE_ROLES)(
+    'allows role=%s on every write route (has PARTNER_MANAGE)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).post('/organisations').set('Cookie', cookie).send({}).expect(201);
+      await request(app).patch('/organisations/1').set('Cookie', cookie).send({}).expect(200);
+      await request(app)
+        .post('/organisations/1/contacts')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(201);
+      await request(app)
+        .patch('/organisations/contacts/1')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(200);
+      await request(app)
+        .patch('/organisations/contacts/1/principal')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(200);
+    }
+  );
 });
 
-describe('organisations.route — read routes unchanged (open to any authenticated role)', () => {
-  it.each([...NON_MANAGE_ROLES, ...MANAGE_ROLES])('role=%s can read organisations/contacts/meta', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).get('/organisations').set('Cookie', cookie).expect(200);
-    await request(app).get('/organisations/1').set('Cookie', cookie).expect(200);
-    await request(app).get('/organisations/1/contacts').set('Cookie', cookie).expect(200);
-    await request(app).get('/organisations/meta/pays').set('Cookie', cookie).expect(200);
-    await request(app).get('/organisations/meta/regions').set('Cookie', cookie).expect(200);
-  });
+describe('organisations.route - read routes unchanged (open to any authenticated role)', () => {
+  it.each([...NON_MANAGE_ROLES, ...MANAGE_ROLES])(
+    'role=%s can read organisations/contacts/meta',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).get('/organisations').set('Cookie', cookie).expect(200);
+      await request(app).get('/organisations/1').set('Cookie', cookie).expect(200);
+      await request(app).get('/organisations/1/contacts').set('Cookie', cookie).expect(200);
+      await request(app).get('/organisations/meta/pays').set('Cookie', cookie).expect(200);
+      await request(app).get('/organisations/meta/regions').set('Cookie', cookie).expect(200);
+    }
+  );
 
   it('401s unauthenticated reads too', async () => {
     const app = buildApp();

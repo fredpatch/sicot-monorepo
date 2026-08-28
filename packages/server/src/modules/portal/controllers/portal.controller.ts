@@ -31,7 +31,7 @@ function handlePortailError(res: Response, error: unknown): void {
   res.status(500).json({ message: 'Erreur interne du serveur.' });
 }
 
-// ── GET /api/portail/documents — liste publique ───────────────────────────
+// ── GET /api/portail/documents - liste publique ───────────────────────────
 export async function lister(req: Request, res: Response): Promise<void> {
   try {
     const { search, categorie, page, pageSize } = req.query;
@@ -47,7 +47,7 @@ export async function lister(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── GET /api/portail/documents/aggregates — compteurs publics par catégorie
+// ── GET /api/portail/documents/aggregates - compteurs publics par catégorie
 export async function aggregates(_req: Request, res: Response): Promise<void> {
   try {
     const result = await portailService.getAggregatesPortail();
@@ -57,7 +57,7 @@ export async function aggregates(_req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── GET /api/portail/documents/:id — métadonnées document ────────────────
+// ── GET /api/portail/documents/:id - métadonnées document ────────────────
 export async function getDocument(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
@@ -72,8 +72,8 @@ export async function getDocument(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── GET /api/portail/documents/:id/consulter — stream inline ─────────────
-// Pas de token requis pour la consultation — accès public libre
+// ── GET /api/portail/documents/:id/consulter - stream inline ─────────────
+// Pas de token requis pour la consultation - accès public libre
 export async function consulter(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
@@ -107,7 +107,7 @@ export async function consulter(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── POST /api/portail/documents/:id/token — générer lien téléchargement ──
+// ── POST /api/portail/documents/:id/token - générer lien téléchargement ──
 export async function genererToken(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
@@ -134,7 +134,7 @@ export async function genererToken(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── GET /api/portail/telecharger/:token — téléchargement via token ────────
+// ── GET /api/portail/telecharger/:token - téléchargement via token ────────
 export async function telecharger(req: Request, res: Response): Promise<void> {
   try {
     const { token } = req.params;
@@ -159,7 +159,7 @@ export async function telecharger(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ── PATCH /api/portail/documents/:id/visibilite — admin ──────────────────
+// ── PATCH /api/portail/documents/:id/visibilite - admin ──────────────────
 export async function toggleVisibilite(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);

@@ -19,7 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      # No automated test suite exists yet — `build` runs `tsc` for every
+      # No automated test suite exists yet - `build` runs `tsc` for every
       # workspace (shared/server/client) plus the Vite build, so it's the
       # closest thing to a type-safety gate until tests are added.
       - run: npm run build

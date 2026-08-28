@@ -45,7 +45,7 @@ export interface UserView {
   updatedAt: Date;
 }
 
-// Vue détail (GET /users/:id) — ajoute la dernière connexion réelle, dérivée
+// Vue détail (GET /users/:id) - ajoute la dernière connexion réelle, dérivée
 // du journal d'audit (voir auth.service.ts#getDerniereConnexion). Absente du
 // listing pour éviter une requête d'audit par ligne.
 export interface UserDetailView extends UserView {

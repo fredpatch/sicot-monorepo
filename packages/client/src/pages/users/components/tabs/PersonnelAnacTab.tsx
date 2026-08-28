@@ -32,7 +32,9 @@ export function OngletPersonnelAnac({ onCreerCompte }: OngletPersonnelAnacProps)
         accessorKey: 'matricule',
         header: 'Matricule',
         enableSorting: false,
-        cell: ({ row }) => <span className="font-mono text-xs text-anac-text">{row.original.matricule}</span>,
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-anac-text">{row.original.matricule}</span>
+        ),
       },
       {
         id: 'nomComplet',
@@ -49,7 +51,7 @@ export function OngletPersonnelAnac({ onCreerCompte }: OngletPersonnelAnacProps)
         header: 'Service / Direction / Fonction',
         enableSorting: false,
         cell: ({ row }) => (
-          <span className="text-anac-muted text-xs">{row.original.organisationLabel ?? '—'}</span>
+          <span className="text-anac-muted text-xs">{row.original.organisationLabel ?? '-'}</span>
         ),
       },
       {
@@ -85,8 +87,8 @@ export function OngletPersonnelAnac({ onCreerCompte }: OngletPersonnelAnacProps)
           className="w-80"
         />
         <p className="text-xs text-anac-muted mt-2">
-          Annuaire Personnel ANAC — lecture seule, via l&apos;API interne ANAC IT. Email et rôle SICOT ne sont pas
-          fournis par cet annuaire et resteront à saisir manuellement.
+          Annuaire Personnel ANAC - lecture seule, via l&apos;API interne ANAC IT. Email et rôle
+          SICOT ne sont pas fournis par cet annuaire et resteront à saisir manuellement.
         </p>
       </div>
 
@@ -94,7 +96,7 @@ export function OngletPersonnelAnac({ onCreerCompte }: OngletPersonnelAnacProps)
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm flex items-center gap-2">
           <AlertCircle size={14} className="shrink-0" />
           {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-            'Service Personnel ANAC injoignable. Réessayez plus tard, ou créez le compte manuellement dans l\'onglet Utilisateurs.'}
+            "Service Personnel ANAC injoignable. Réessayez plus tard, ou créez le compte manuellement dans l'onglet Utilisateurs."}
         </div>
       )}
 

@@ -1,12 +1,12 @@
-# Deployment Infrastructure — Reusable Documentation
+# Deployment Infrastructure - Reusable Documentation
 
-This document describes a complete, reproducible deployment strategy —
-extracted from this project's actual working setup — for a monolithic web
+This document describes a complete, reproducible deployment strategy -
+extracted from this project's actual working setup - for a monolithic web
 app (Node/Express-style API + a static-built SPA client + Postgres) shipped
 to a single VPS via Docker Compose and GitHub Actions/GHCR.
 
 **Purpose:** let an AI agent (or a human) stand up the same infrastructure
-for a _different_ project — ongoing or brand new — by following this as a
+for a _different_ project - ongoing or brand new - by following this as a
 checklist/playbook, substituting the placeholders. It is not project-specific
 prose; every name that's specific to _this_ project is marked as a
 placeholder to replace.
@@ -66,16 +66,16 @@ Before starting, gather/decide:
 
 - [ ] App name / slug (used for image names, compose project name, directory name) → `<APP_SLUG>`
 - [ ] A VPS (Hostinger, DigitalOcean, Hetzner, etc.) running Ubuntu LTS, with root or sudo SSH access
-- [ ] A domain name you control (or a placeholder/temporary one — see §7)
+- [ ] A domain name you control (or a placeholder/temporary one - see §7)
 - [ ] A GitHub repository with Actions enabled
 - [ ] Decide the DB engine (this doc assumes Postgres; swap the image if different)
-- [ ] Decide whether staging runs on the same VPS (different port) or a separate box — this doc assumes same-VPS, different port, since that's what was validated here
+- [ ] Decide whether staging runs on the same VPS (different port) or a separate box - this doc assumes same-VPS, different port, since that's what was validated here
 
 ---
 
 ## 2. Repository layout
 
-Reproduce this shape (rename `packages/server`/`packages/client` if the target project has a different structure — a single-app repo without workspaces still uses the same Dockerfile/Compose/Actions _pattern_, just without the `-w <package>` workspace flags):
+Reproduce this shape (rename `packages/server`/`packages/client` if the target project has a different structure - a single-app repo without workspaces still uses the same Dockerfile/Compose/Actions _pattern_, just without the `-w <package>` workspace flags):
 
 ```text
 <repo-root>/
@@ -146,13 +146,13 @@ RUN npm run build -w packages/shared/types && npm run build -w packages/server
 # ── Production ─────────────────────────────────────
 FROM node:20-alpine AS prod
 WORKDIR /app
-# Repeat any runtime-only native deps from `base` here too — this is a
+# Repeat any runtime-only native deps from `base` here too - this is a
 # SEPARATE base image, nothing carries over automatically.
 COPY --from=build /app/packages/server/dist ./dist
-# Copy ONLY what prod actually needs to run — not the whole repo. Common
+# Copy ONLY what prod actually needs to run - not the whole repo. Common
 # gotcha: if your compiled code loads any non-.ts asset (a logo, a template,
 # a migrations folder) via a path relative to the repo layout, you MUST
-# explicitly COPY that asset here too, at the exact resolved path — see §11.
+# explicitly COPY that asset here too, at the exact resolved path - see §11.
 COPY --from=build /app/packages/server/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages/server/package.json ./
@@ -191,7 +191,7 @@ EXPOSE 80
 ```
 
 `packages/client/nginx.conf` (the client's _own_ internal server, distinct
-from the reverse-proxy Nginx in front of everything — see §5):
+from the reverse-proxy Nginx in front of everything - see §5):
 
 ```nginx
 server {
@@ -208,12 +208,12 @@ server {
 **Rule of thumb:** every stage should only `COPY` what it needs. `dev`
 copies the whole repo because it needs source + hot reload. `build` copies
 the whole repo because it needs source to compile. `prod` copies _only_
-compiled output + runtime deps — never source, never devDependencies,
+compiled output + runtime deps - never source, never devDependencies,
 never the whole repo.
 
 ---
 
-## 4. Docker Compose — three files, one shape
+## 4. Docker Compose - three files, one shape
 
 ### 4.1 Local dev (`docker-compose.yml`)
 
@@ -231,7 +231,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432" # exposed for a local DB GUI — never do this in staging/prod
+      - '5432:5432' # exposed for a local DB GUI - never do this in staging/prod
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
 
@@ -244,7 +244,7 @@ services:
       - .:/app
       - /app/node_modules # anonymous volume: don't let the host bind-mount shadow the container's own node_modules
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       NODE_ENV: development
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
@@ -261,7 +261,7 @@ services:
       - .:/app
       - /app/node_modules
     ports:
-      - "5173:5173"
+      - '5173:5173'
     environment:
       NODE_ENV: development
       VITE_API_PROXY_TARGET: http://api:3000 # dev server proxies /api to the api CONTAINER, not host localhost
@@ -300,7 +300,7 @@ services:
       - postgres_staging_data:/var/lib/postgresql/data
     networks: [staging_net]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}_staging"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}_staging']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -310,7 +310,7 @@ services:
       context: .
       dockerfile: packages/server/Dockerfile
       target: prod
-    shm_size: "512mb" # see §11 — headless-browser-in-Docker workloads need this
+    shm_size: '512mb' # see §11 - headless-browser-in-Docker workloads need this
     environment:
       NODE_ENV: staging
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres_staging:5432/${DB_NAME}_staging
@@ -324,7 +324,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          'CMD-SHELL',
           'node -e "fetch(''http://localhost:3000/api/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 30s
@@ -339,7 +339,7 @@ services:
       target: prod
     networks: [staging_net]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -347,7 +347,7 @@ services:
   nginx_staging:
     image: nginx:alpine
     ports:
-      - "4001:80"
+      - '4001:80'
     volumes:
       - ./nginx/staging.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
@@ -363,7 +363,7 @@ volumes:
   postgres_staging_data:
 ```
 
-`nginx/staging.conf` — plain HTTP, no TLS, proxies both API and client:
+`nginx/staging.conf` - plain HTTP, no TLS, proxies both API and client:
 
 ```nginx
 server {
@@ -390,7 +390,7 @@ server {
 ```
 
 **Gotcha:** container healthchecks should target `127.0.0.1`, not
-`localhost` — some Alpine images resolve `localhost` to `::1` first and the
+`localhost` - some Alpine images resolve `localhost` to `::1` first and the
 service isn't listening on IPv6, causing false-negative healthchecks.
 
 ### 4.3 Production (`docker-compose.prod.yml`)
@@ -414,14 +414,14 @@ services:
     networks: [prod_net]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
       interval: 10s
       timeout: 5s
       retries: 5
 
   api:
     image: ghcr.io/${GHCR_OWNER}/<APP_SLUG>-api:${APP_VERSION:-latest}
-    shm_size: "512mb"
+    shm_size: '512mb'
     environment:
       NODE_ENV: production
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
@@ -436,7 +436,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          'CMD-SHELL',
           'node -e "fetch(''http://localhost:3000/api/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 30s
@@ -449,7 +449,7 @@ services:
     networks: [prod_net]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -457,8 +457,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -480,25 +480,25 @@ volumes:
 
 **Design decisions worth keeping:**
 
-- Postgres has **no `ports:` mapping** in staging/prod — it's reachable only
+- Postgres has **no `ports:` mapping** in staging/prod - it's reachable only
   on the internal Compose network, never from the public internet.
 - `depends_on: condition: service_healthy` (not just plain `depends_on`)
   ensures Nginx doesn't start routing traffic to an API container that
   hasn't finished booting/migrating yet.
-- `restart: unless-stopped` on every prod service — survives VPS reboots
+- `restart: unless-stopped` on every prod service - survives VPS reboots
   without manual intervention, but still respects an intentional `docker
 compose stop`.
 - Image tags default to `latest` but are overridable per-deploy via
-  `${APP_VERSION}` — this is what makes rollback a one-line env change (§8).
+  `${APP_VERSION}` - this is what makes rollback a one-line env change (§8).
 
 ---
 
-## 5. Nginx — the single public entrypoint
+## 5. Nginx - the single public entrypoint
 
 **One reverse-proxy Nginx** sits in front of everything and is the only
 container with public ports (`80`/`443`). It routes by path: `/api/*` →
 the API container, everything else → the client container (which has its
-_own_ internal Nginx serving the static build, from §3.2 — two different
+_own_ internal Nginx serving the static build, from §3.2 - two different
 Nginx configs, two different jobs, don't conflate them).
 
 `nginx/prod.conf`:
@@ -545,12 +545,12 @@ server {
 Replace every `PLACEHOLDER-DOMAIN.com` with the real domain once DNS is
 live (§7). If `www.<domain>` is the canonical hostname, point
 `ssl_certificate`/`ssl_certificate_key` at the `www.` cert path and redirect
-the apex to it (or vice versa) — pick ONE canonical hostname, don't serve
+the apex to it (or vice versa) - pick ONE canonical hostname, don't serve
 both as equally valid.
 
 ---
 
-## 6. CI/CD — three separate GitHub Actions workflows
+## 6. CI/CD - three separate GitHub Actions workflows
 
 Keep these as **three distinct workflows with distinct triggers**, not one
 big pipeline. This is the single most important structural decision in this
@@ -558,7 +558,7 @@ whole doc: it means "code is pushed" and "code is running in production"
 are two genuinely separate events, and the second one requires a deliberate
 human action.
 
-### 6.1 `ci.yml` — validate every push and PR
+### 6.1 `ci.yml` - validate every push and PR
 
 ```yaml
 name: CI
@@ -586,7 +586,7 @@ jobs:
       - run: npm test
 ```
 
-### 6.2 `docker-publish.yml` — build + push images, automatic on push to `main`
+### 6.2 `docker-publish.yml` - build + push images, automatic on push to `main`
 
 ```yaml
 name: Publish Docker Images
@@ -652,20 +652,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       # Optional but recommended: fail-open vulnerability scan (exit-code: "0"
-      # means "report but don't block" — flip to "1" once the project is
+      # means "report but don't block" - flip to "1" once the project is
       # mature enough to actually gate on it)
       - uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ steps.image-owner.outputs.owner }}/<APP_SLUG>-api:${{ github.sha }}
           format: table
-          exit-code: "0"
+          exit-code: '0'
           severity: CRITICAL,HIGH
 ```
 
-Both images get tagged with the immutable commit SHA _and_ `latest` — the
+Both images get tagged with the immutable commit SHA _and_ `latest` - the
 SHA tag is what rollback pins to (§8), `latest` is the convenience default.
 
-### 6.3 `deploy-prod.yml` — the only workflow that touches the VPS, `workflow_dispatch` ONLY
+### 6.3 `deploy-prod.yml` - the only workflow that touches the VPS, `workflow_dispatch` ONLY
 
 **This is deliberately not automatic.** Pushing to `main` builds and
 publishes images (§6.2) but never deploys them. A human (or a separate,
@@ -679,7 +679,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Image tag to deploy, usually a commit SHA. Leave empty to deploy the current commit."
+        description: 'Image tag to deploy, usually a commit SHA. Leave empty to deploy the current commit.'
         required: false
         type: string
 
@@ -708,8 +708,8 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          source: "docker-compose.prod.yml,nginx/prod.conf,scripts/deploy-prod.sh"
-          target: "/opt/<APP_SLUG>"
+          source: 'docker-compose.prod.yml,nginx/prod.conf,scripts/deploy-prod.sh'
+          target: '/opt/<APP_SLUG>'
           overwrite: true
 
       - name: Deploy over SSH
@@ -748,20 +748,20 @@ jobs:
         if: success()
         run: |
           curl -sS -H "Content-Type: application/json" \
-            -d "{\"content\": \"✅ **<APP_NAME>** deployed to production — commit \`${{ env.APP_VERSION }}\`, triggered by ${{ github.actor }}.\"}" \
+            -d "{\"content\": \"✅ **<APP_NAME>** deployed to production - commit \`${{ env.APP_VERSION }}\`, triggered by ${{ github.actor }}.\"}" \
             "${{ secrets.DISCORD_WEBHOOK_URL }}"
       - name: Notify - failure
         if: failure()
         run: |
           curl -sS -H "Content-Type: application/json" \
-            -d "{\"content\": \"❌ **<APP_NAME>** production deploy FAILED — commit \`${{ env.APP_VERSION }}\`. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            -d "{\"content\": \"❌ **<APP_NAME>** production deploy FAILED - commit \`${{ env.APP_VERSION }}\`. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
             "${{ secrets.DISCORD_WEBHOOK_URL }}"
 ```
 
 **Why three workflows, not one:** it lets you push freely (fast feedback,
 CI + image publish on every merge) without ever risking an accidental
 production rollout. Deploying is always a deliberate, auditable, named
-action in the Actions tab — and with `environment: production` plus
+action in the Actions tab - and with `environment: production` plus
 required reviewers configured in repo settings, it can require a second
 person's approval before it runs.
 
@@ -826,7 +826,7 @@ echo "Staging deployed - http://localhost:4001"
 ```
 
 **Migrations run inside a throwaway container** (`run --rm api ...`), not
-inside the long-lived API container's own startup — this keeps migration
+inside the long-lived API container's own startup - this keeps migration
 failures loud and separate from "did the app start," and means a failed
 migration doesn't leave a half-started API container running against a
 half-migrated schema.
@@ -845,7 +845,7 @@ APP_VERSION=<previous-known-good-sha> ./scripts/deploy-prod.sh
 
 **Practice to adopt:** record the last known-good SHA somewhere durable
 (a pinned issue, a `RELEASES.md`, or just the Discord/Slack deploy
-notification history) after every successful production deploy — so
+notification history) after every successful production deploy - so
 "rollback to before this broke" is a lookup, not a `git log` archaeology
 session under pressure.
 
@@ -859,7 +859,7 @@ session under pressure.
 | `.env.prod.example`                                              | Yes                 | Production template, fake/placeholder values only                           |
 | `.env`                                                           | **No** (gitignored) | Real local dev secrets                                                      |
 | `.env.staging`                                                   | **No** (gitignored) | Real staging secrets                                                        |
-| `/opt/<APP_SLUG>/.env.prod` (on the VPS, not in the repo at all) | **No**              | Real production secrets — created manually on the VPS, never touches GitHub |
+| `/opt/<APP_SLUG>/.env.prod` (on the VPS, not in the repo at all) | **No**              | Real production secrets - created manually on the VPS, never touches GitHub |
 
 GitHub Actions secrets needed (repo settings → Secrets and variables →
 Actions, ideally scoped to a `production` environment with required
@@ -875,7 +875,7 @@ DISCORD_WEBHOOK_URL  # optional, deploy notifications
 ```
 
 `GITHUB_TOKEN` (auto-provided) is enough for the _publish_ workflow's
-`packages: write` push — it's the VPS-side _pull_ that needs a separate PAT
+`packages: write` push - it's the VPS-side _pull_ that needs a separate PAT
 with `read:packages`, since the VPS isn't running inside GitHub's own
 Actions runner context.
 
@@ -893,7 +893,7 @@ or let the VPS hold a GHCR token with more than `read:packages`.
    CNAME  www            <domain>
    ```
 
-   (or two `A` records for apex + `www` — pick one pattern, remove any
+   (or two `A` records for apex + `www` - pick one pattern, remove any
    stale default records from the VPS provider before requesting a cert.)
 
 2. **Set the app's CORS/canonical origin** in `.env.prod`:
@@ -942,7 +942,7 @@ or let the VPS hold a GHCR token with more than `read:packages`.
 **Gotcha:** if `/.well-known/acme-challenge/*` returns the SPA's
 `index.html` instead of the ACME token, the _client_ container's catch-all
 route (`try_files $uri $uri/ /index.html`) is winning instead of the
-reverse-proxy Nginx's ACME location block — confirm the reverse-proxy
+reverse-proxy Nginx's ACME location block - confirm the reverse-proxy
 config is actually the one loaded:
 
 ```bash
@@ -952,7 +952,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec nginx nginx 
 Force-recreate the container if it's stale (`up -d --force-recreate nginx`).
 
 Certbot auto-renewal is handled by the systemd timer/cron Certbot installs
-itself on the VPS host — confirm it exists (`systemctl list-timers |
+itself on the VPS host - confirm it exists (`systemctl list-timers |
 grep certbot`) rather than assuming.
 
 **Temporary domain pattern:** if the final domain isn't chosen yet, use any
@@ -976,7 +976,7 @@ repeat on a new project:
    the source file itself** (e.g. `import.meta.url`-based in ESM) over
    `process.cwd()`-based paths, and if an asset is genuinely needed at
    runtime, `COPY` it into the prod stage explicitly at whatever path the
-   code expects — don't assume "it works locally" means "it'll work in the
+   code expects - don't assume "it works locally" means "it'll work in the
    container."
 
 2. **Headless-browser-in-Docker workloads (Puppeteer/Playwright/PDF
@@ -984,35 +984,35 @@ repeat on a new project:
    Docker's default `/dev/shm` is 64MB; Chromium can crash silently under
    that. Set `shm_size: "512mb"` (or higher) on any service that launches a
    real browser, and pass `--disable-dev-shm-usage` in the launch args
-   regardless — cheap insurance either way.
+   regardless - cheap insurance either way.
 
 3. **`docker-publish.yml` running on push does NOT mean the change is
    live.** Only `deploy-prod.yml`'s manual trigger rolls the VPS onto a new
-   image. It is very easy to assume "I pushed, so it's deployed" — it
+   image. It is very easy to assume "I pushed, so it's deployed" - it
    isn't, by design (§6.3). Confirm with `docker ps` on the VPS (check the
    image tag and container age) rather than assuming a push reached
    production.
 
-4. **Container healthchecks should target `127.0.0.1`, not `localhost`** —
+4. **Container healthchecks should target `127.0.0.1`, not `localhost`** -
    some Alpine-based images resolve `localhost` to `::1` (IPv6) first and
    nothing's listening there, causing a healthy service to report
    unhealthy.
 
 5. **Dockerized dev servers must proxy to the Compose service name, not
    host `localhost`.** `VITE_API_PROXY_TARGET=http://api:3000`, not
-   `http://localhost:3000` — inside a container, `localhost` is that
+   `http://localhost:3000` - inside a container, `localhost` is that
    container.
 
 6. **Diagnosing a container-only failure without container logs is
    guessing, not diagnosis.** If something breaks only in staging/prod and
    never locally, the fastest real path to a fix is `docker compose logs
 <service> --tail=200` (or equivalent) on the actual failing environment
-   — not a plausible-sounding theory based on what's "usually" the cause.
-   A well-reasoned guess that turns out wrong still costs a full deploy
-   cycle to disprove; real logs are faster.
+   - not a plausible-sounding theory based on what's "usually" the cause.
+     A well-reasoned guess that turns out wrong still costs a full deploy
+     cycle to disprove; real logs are faster.
 
 7. **Migrations run in a throwaway container, separate from app startup**
-   (§7) — this makes a broken migration a loud, isolated failure instead of
+   (§7) - this makes a broken migration a loud, isolated failure instead of
    a half-started app silently serving against the wrong schema.
 
 8. **Never expose Postgres's port in staging/prod Compose files.** It's
@@ -1023,7 +1023,7 @@ repeat on a new project:
 
 ## 12. Optional extensions (adopt only if the target project needs them)
 
-These were built for this project but are genuinely optional — don't
+These were built for this project but are genuinely optional - don't
 implement them by default, only if the new project has the same need:
 
 - **Encrypted, rotated database backups** (nightly cron inside the API
@@ -1033,10 +1033,10 @@ implement them by default, only if the new project has the same need:
   if the project handles data where "we lost a day" or "we lost everything"
   is a real business risk, not just an inconvenience.
 - **Manual OTP/activation fallback** when outbound email isn't configured
-  yet — useful for early-stage rollout before SMTP is fully set up, so
+  yet - useful for early-stage rollout before SMTP is fully set up, so
   account activation isn't blocked on an email provider decision.
 - **A `Corbeille`/Trash + soft-delete pattern with a distinct role tier**
-  for destructive actions — an application-layer pattern, not
+  for destructive actions - an application-layer pattern, not
   infrastructure, but pairs naturally with "this deployment is now handling
   real customer data" maturity.
 

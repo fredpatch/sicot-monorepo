@@ -88,7 +88,12 @@ export default function MissionDetailPage() {
     return (
       <div className="card mx-auto max-w-xl p-8 text-center">
         <p className="font-semibold text-anac-navy">Impossible de charger cette mission.</p>
-        <Button type="button" variant="outline" onClick={() => navigate('/missions')} className="mt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate('/missions')}
+          className="mt-4"
+        >
           Retour aux missions
         </Button>
       </div>
@@ -135,7 +140,7 @@ export default function MissionDetailPage() {
             <section className="space-y-3">
               {(mission.recommandations ?? []).length === 0 ? (
                 <div className="card p-5 text-sm text-anac-muted">
-                  Aucune recommandation — aucun historique de relance pour cette mission.
+                  Aucune recommandation - aucun historique de relance pour cette mission.
                 </div>
               ) : (
                 (mission.recommandations ?? []).map((rec) => (
@@ -156,11 +161,15 @@ export default function MissionDetailPage() {
               <dl className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between border-b border-anac-border pb-2">
                   <dt className="text-anac-muted">Créée le</dt>
-                  <dd className="font-medium text-anac-navy">{formatMissionDate(mission.createdAt, 'long')}</dd>
+                  <dd className="font-medium text-anac-navy">
+                    {formatMissionDate(mission.createdAt, 'long')}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-anac-muted">Dernière modification</dt>
-                  <dd className="font-medium text-anac-navy">{formatMissionDate(mission.updatedAt, 'long')}</dd>
+                  <dd className="font-medium text-anac-navy">
+                    {formatMissionDate(mission.updatedAt, 'long')}
+                  </dd>
                 </div>
               </dl>
             </section>

@@ -8,7 +8,7 @@ import jobsRouter from './jobs.route';
 // Route-level 401/403/allowed for JOB_EXECUTE. Per-job SYSTEM_ADMIN_OPERATION
 // restriction (the "does route access alone let you run a backup job"
 // question) is deliberately tested separately, at the service layer, in
-// jobs.service.test.ts — that's where the actual distinction lives, and the
+// jobs.service.test.ts - that's where the actual distinction lives, and the
 // controller here is stubbed so no real job execution occurs.
 vi.mock('@/utils/jwt', () => ({
   verifyAccessToken: (token: string) => JSON.parse(token),
@@ -36,7 +36,7 @@ function cookieFor(role: string) {
 const NO_JOB_ROLES = ['agent', 'operateur'];
 const JOB_ROLES = ['admin', 'super_admin'];
 
-describe('jobs.route — every route requires JOB_EXECUTE (admin+)', () => {
+describe('jobs.route - every route requires JOB_EXECUTE (admin+)', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).get('/jobs').expect(401);

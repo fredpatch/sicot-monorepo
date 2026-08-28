@@ -27,7 +27,7 @@ export type {
 } from './courriers.types';
 
 // ── Date-limite de réception en-deçà de laquelle un courrier entrant en
-// attente de réponse est "en dépassement" — partagée entre les agrégats et
+// attente de réponse est "en dépassement" - partagée entre les agrégats et
 // le filtre de liste, pour rester cohérente avec calculerCriticite() ──────
 async function calculerLimiteCritique(): Promise<Date> {
   const seuils = await chargerSeuils();
@@ -40,7 +40,10 @@ export async function getCourriersAggregates(): Promise<CourriersAggregates> {
 
   const [total, aTraiter, enAttenteReponse, enDepassement, envoyes] = await Promise.all([
     db.$count(courriers),
-    db.$count(courriers, and(eq(courriers.direction, 'entrant'), eq(courriers.suiviStatut, 'en_attente'))),
+    db.$count(
+      courriers,
+      and(eq(courriers.direction, 'entrant'), eq(courriers.suiviStatut, 'en_attente'))
+    ),
     db.$count(
       courriers,
       and(
@@ -96,7 +99,7 @@ export async function listerCourriers(filters: CourrierFilters): Promise<{
     conditions.push(eq(courriers.reponseRequise, filters.reponseRequise));
   }
 
-  // Courriers entrants sans réponse — pour le dashboard M9
+  // Courriers entrants sans réponse - pour le dashboard M9
   if (filters.sansReponse) {
     conditions.push(
       and(
@@ -186,13 +189,19 @@ export async function creerCourrier(params: CreateCourrierParams): Promise<Courr
 
   // Vérifier que les contacts appartiennent bien à l'organisation choisie
   if (params.expediteurContactId) {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, params.expediteurContactId));
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, params.expediteurContactId));
     if (!contact || contact.organisationId !== params.expediteurOrganisationId) {
       throw new Error('CONTACT_EXPEDITEUR_INVALIDE');
     }
   }
   if (params.destinataireContactId) {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, params.destinataireContactId));
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, params.destinataireContactId));
     if (!contact || contact.organisationId !== params.destinataireOrganisationId) {
       throw new Error('CONTACT_DESTINATAIRE_INVALIDE');
     }
@@ -271,24 +280,31 @@ export async function mettreAJourCourrier(
   if (params.destinataireOrganisationId !== undefined) {
     updates.destinataireOrganisationId = params.destinataireOrganisationId;
   }
-  if (params.expediteurContactId !== undefined) updates.expediteurContactId = params.expediteurContactId;
-  if (params.destinataireContactId !== undefined) updates.destinataireContactId = params.destinataireContactId;
+  if (params.expediteurContactId !== undefined)
+    updates.expediteurContactId = params.expediteurContactId;
+  if (params.destinataireContactId !== undefined)
+    updates.destinataireContactId = params.destinataireContactId;
   if (params.suiviStatut !== undefined) updates.suiviStatut = params.suiviStatut;
   if (params.dateLimiteReponse !== undefined) updates.dateLimiteReponse = params.dateLimiteReponse;
   if (params.accordId !== undefined) updates.accordId = params.accordId;
   if (params.missionId !== undefined) updates.missionId = params.missionId;
 
   // Un contact doit toujours appartenir à l'organisation effective (celle
-  // fournie dans cette requête, sinon celle déjà enregistrée) — évite un
+  // fournie dans cette requête, sinon celle déjà enregistrée) - évite un
   // contact orphelin si l'organisation change sans que le contact suive.
   const orgExpediteurEffective =
     updates.expediteurOrganisationId !== undefined
       ? updates.expediteurOrganisationId
       : existant.expediteurOrganisationId;
   const contactExpediteurEffectif =
-    updates.expediteurContactId !== undefined ? updates.expediteurContactId : existant.expediteurContactId;
+    updates.expediteurContactId !== undefined
+      ? updates.expediteurContactId
+      : existant.expediteurContactId;
   if (contactExpediteurEffectif) {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, contactExpediteurEffectif));
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, contactExpediteurEffectif));
     if (!contact || contact.organisationId !== orgExpediteurEffective) {
       throw new Error('CONTACT_EXPEDITEUR_INVALIDE');
     }
@@ -303,7 +319,10 @@ export async function mettreAJourCourrier(
       ? updates.destinataireContactId
       : existant.destinataireContactId;
   if (contactDestinataireEffectif) {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, contactDestinataireEffectif));
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, contactDestinataireEffectif));
     if (!contact || contact.organisationId !== orgDestinataireEffective) {
       throw new Error('CONTACT_DESTINATAIRE_INVALIDE');
     }
@@ -365,7 +384,12 @@ export async function retirerDocumentCourrier(
 
   await db
     .delete(courrierDocuments)
-    .where(and(eq(courrierDocuments.courrierId, courrierId), eq(courrierDocuments.documentId, documentId)));
+    .where(
+      and(
+        eq(courrierDocuments.courrierId, courrierId),
+        eq(courrierDocuments.documentId, documentId)
+      )
+    );
 
   await logAudit({
     userId,
@@ -380,7 +404,7 @@ export async function retirerDocumentCourrier(
 }
 
 // ── SERVICE : Courriers sans réponse ──────────────────────────────────────
-// Pour le dashboard M9 — courriers entrants nécessitant une réponse
+// Pour le dashboard M9 - courriers entrants nécessitant une réponse
 export async function getCouriersSansReponse(): Promise<CourrierView[]> {
   const rows = await db
     .select()

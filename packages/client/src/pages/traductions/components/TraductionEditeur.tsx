@@ -17,7 +17,11 @@ import { AssistancePanel } from './editor/AssistancePanel';
 import type { SuggestionGlossaire } from './editor/GlossarySuggestions';
 import type { Traduction } from '../traductions.types';
 import { useMoteurStatusQuery } from '../hooks/queries';
-import { canSaveCorrection, canApproveTraduction, canArchiveTraduction } from '../traductions.permissions';
+import {
+  canSaveCorrection,
+  canApproveTraduction,
+  canArchiveTraduction,
+} from '../traductions.permissions';
 
 function extractMessage(err: unknown, fallback: string): string {
   return (
@@ -106,7 +110,7 @@ export default function TraductionEditeur() {
     [traductionId, traduction]
   );
 
-  // Le panneau d'origine détermine la langue à chercher dans le glossaire —
+  // Le panneau d'origine détermine la langue à chercher dans le glossaire -
   // sélectionner dans le panneau traduction cherche la langue cible, pas la
   // langue source de la traduction (voir traduction.controller.ts § suggestions).
   function handleSelectionTexte(origine: 'source' | 'traduction') {
@@ -187,7 +191,7 @@ export default function TraductionEditeur() {
   });
 
   // Dépose le fichier officiel dans le dossier documentaire, catégorisé
-  // 'traduction' — rend la traduction découvrable par n'importe quel
+  // 'traduction' - rend la traduction découvrable par n'importe quel
   // utilisateur interne, pas seulement le demandeur d'origine. Nouvelle
   // version du document source s'il existe (traduction.documentId), sinon
   // un document autonome (traduction lancée depuis un texte libre).
@@ -218,7 +222,7 @@ export default function TraductionEditeur() {
   const estArchivee = traduction.statut === 'archivee';
   const estApprouvee = traduction.statut === 'approuvee';
   // Capability AND workflow-state, mirroring traduction.route.ts exactly
-  // (Phase 10.2 authorization-alignment fix) — previously these were
+  // (Phase 10.2 authorization-alignment fix) - previously these were
   // workflow-state only, relying on the server's 403 as the only real
   // gate. No live role could hit the gap in practice (TRANSLATION_PROCESS/
   // REVIEW/APPROVE/ARCHIVE are bundled together for operateur+), but the
@@ -227,10 +231,11 @@ export default function TraductionEditeur() {
   const peutSauvegarder = canSaveCorrection(traduction, user);
   const peutApprouver = canApproveTraduction(traduction, user);
   const peutArchiver = canArchiveTraduction(traduction, user);
-  // Désactivé si des modifications locales non sauvegardées existent — la relance
+  // Désactivé si des modifications locales non sauvegardées existent - la relance
   // ne touche que texteIA côté serveur, mais réinitialiser texteFinal depuis le
   // nouveau texteIA écraserait sinon un brouillon manuel en cours de saisie.
-  const peutRelancer = traduction.statut === 'manuelle_requise' && moteur?.accessible === true && !modifie;
+  const peutRelancer =
+    traduction.statut === 'manuelle_requise' && moteur?.accessible === true && !modifie;
 
   function handleApprove() {
     if (modifie) {
@@ -302,7 +307,10 @@ export default function TraductionEditeur() {
         <div className="mx-6 mt-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-anac-danger shrink-0">
           <AlertCircle size={14} className="shrink-0" />
           {erreur}
-          <button onClick={() => setErreur(null)} className="ml-auto text-red-400 hover:text-red-600">
+          <button
+            onClick={() => setErreur(null)}
+            className="ml-auto text-red-400 hover:text-red-600"
+          >
             ✕
           </button>
         </div>
@@ -311,9 +319,9 @@ export default function TraductionEditeur() {
       {traduction.statut === 'manuelle_requise' && (
         <div className="mx-6 mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-anac-warning shrink-0">
           <AlertCircle size={14} className="shrink-0" />
-          Traduction manuelle requise — le moteur de traduction n&apos;a pas pu produire de résultat.
-          Le texte source est conservé ; saisissez la traduction dans le panneau de droite, puis
-          sauvegardez et approuvez-la.
+          Traduction manuelle requise - le moteur de traduction n&apos;a pas pu produire de
+          résultat. Le texte source est conservé ; saisissez la traduction dans le panneau de
+          droite, puis sauvegardez et approuvez-la.
         </div>
       )}
 

@@ -8,7 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 // SYSTEM_SETTINGS_VIEW (admin+) vs SYSTEM_SETTINGS_MANAGE (super_admin
-// only) — was requireRole('admin')/requireRole('super_admin'), same
+// only) - was requireRole('admin')/requireRole('super_admin'), same
 // effective role sets. SYSTEM_SETTINGS_MANAGE is deliberately absent from
 // ADMIN_CAPABILITIES (see packages/shared/src/auth/role-capabilities.ts),
 // so this migration cannot silently broaden write access to admin.

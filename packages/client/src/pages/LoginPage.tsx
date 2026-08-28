@@ -231,7 +231,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-anac-muted text-[10px] mt-4 tracking-wide uppercase">
-          ANAC Gabon — Usage interne uniquement
+          ANAC Gabon - Usage interne uniquement
         </p>
       </motion.div>
     </div>

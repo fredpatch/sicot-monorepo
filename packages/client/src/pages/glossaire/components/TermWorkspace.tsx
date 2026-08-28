@@ -101,7 +101,7 @@ export function TermWorkspace({
                 <dl className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <dt className="text-xs text-anac-muted">Domaine</dt>
-                    <dd className="mt-0.5 text-anac-text">{terme.domaine ?? '—'}</dd>
+                    <dd className="mt-0.5 text-anac-text">{terme.domaine ?? '-'}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-anac-muted">Statut</dt>
@@ -133,20 +133,22 @@ export function TermWorkspace({
                           <span className="text-xs font-medium text-anac-navy">
                             {h.modifieParNom ?? 'Système'}
                           </span>
-                          <span className="text-xs text-anac-muted">{formaterDate(h.createdAt)}</span>
+                          <span className="text-xs text-anac-muted">
+                            {formaterDate(h.createdAt)}
+                          </span>
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2">
                           <div>
                             <p className="mb-0.5 text-[10px] uppercase tracking-wide text-anac-muted">
                               Ancien FR
                             </p>
-                            <p className="text-sm text-anac-text">{h.ancienTermeFr ?? '—'}</p>
+                            <p className="text-sm text-anac-text">{h.ancienTermeFr ?? '-'}</p>
                           </div>
                           <div>
                             <p className="mb-0.5 text-[10px] uppercase tracking-wide text-anac-muted">
                               Ancien EN
                             </p>
-                            <p className="text-sm text-anac-text">{h.ancienTermeEn ?? '—'}</p>
+                            <p className="text-sm text-anac-text">{h.ancienTermeEn ?? '-'}</p>
                           </div>
                         </div>
                       </div>
@@ -159,7 +161,12 @@ export function TermWorkspace({
         </DialogBody>
 
         <div className="flex items-center justify-end gap-2.5 border-t border-anac-border px-6 py-4">
-          <Button type="button" variant="secondary" onClick={() => onModifier(terme)} className="gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => onModifier(terme)}
+            className="gap-2"
+          >
             <Pencil size={13} aria-hidden="true" /> Modifier
           </Button>
           {terme.actif ? (

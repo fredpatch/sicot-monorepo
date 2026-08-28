@@ -88,7 +88,7 @@ export async function lancerTraduction(params: LancerTraductionParams): Promise<
 }
 
 // ── SERVICE : Relancer une traduction en manuelle_requise ─────────────────
-// Ne touche jamais texteFinal — une correction manuelle déjà saisie n'est
+// Ne touche jamais texteFinal - une correction manuelle déjà saisie n'est
 // jamais écrasée, seul texteIA (le résultat moteur) est (re)généré.
 export async function relancerTraduction(id: number, userId: number): Promise<TraductionView> {
   const [existante] = await db.select().from(traductions).where(eq(traductions.id, id));
@@ -301,7 +301,7 @@ export async function getTraduction(id: number): Promise<TraductionView> {
 
 // ── SERVICE : Suggestions glossaire pour l'éditeur ───────────────────────
 // `langue` est la langue du texte effectivement sélectionné par l'utilisateur
-// (déterminée côté client selon le panneau — original ou traduction — où la
+// (déterminée côté client selon le panneau - original ou traduction - où la
 // sélection a eu lieu), PAS la direction globale de la traduction : sélectionner
 // dans le panneau traduction cherche dans la langue cible, pas la langue source.
 export async function getSuggestionsGlossaire(
@@ -318,9 +318,7 @@ export async function getSuggestionsGlossaire(
   const conditions = mots
     .slice(0, 5)
     .map((mot) =>
-      langue === 'fr'
-        ? ilike(glossaire.termeFr, `%${mot}%`)
-        : ilike(glossaire.termeEn, `%${mot}%`)
+      langue === 'fr' ? ilike(glossaire.termeFr, `%${mot}%`) : ilike(glossaire.termeEn, `%${mot}%`)
     );
 
   const rows = await db
@@ -373,7 +371,7 @@ export async function supprimerTraduction(id: number, userId: number): Promise<T
     .where(eq(traductions.id, id))
     .returning();
 
-  // Si une demande M5 est liée — la remettre en statut soumise
+  // Si une demande M5 est liée - la remettre en statut soumise
   await db
     .update(demandesTraduction)
     .set({ statut: 'soumise', traducteurId: null, verrou: false, updatedAt: new Date() })

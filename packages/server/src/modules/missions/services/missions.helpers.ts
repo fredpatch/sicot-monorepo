@@ -1,5 +1,12 @@
 import { db } from '@/db/index';
-import { missions, missionParticipants, recommandations, users, contacts, organisations } from '@/db/schema';
+import {
+  missions,
+  missionParticipants,
+  recommandations,
+  users,
+  contacts,
+  organisations,
+} from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import type {
   MissionStatut,
@@ -26,7 +33,7 @@ export async function getParticipantsMission(missionId: number): Promise<Partici
   return rows;
 }
 
-// Récupérer le responsable d'une recommandation — email inclus optionnellement
+// Récupérer le responsable d'une recommandation - email inclus optionnellement
 async function getResponsableResume(
   responsableId: number,
   avecEmail: boolean
@@ -153,7 +160,7 @@ export async function getContactSurPlace(contactId?: number): Promise<ContactRes
   };
 }
 
-// Utilisé par getRecommandationsEnAttente — responsable sans email
+// Utilisé par getRecommandationsEnAttente - responsable sans email
 export async function getResponsableSansEmail(
   responsableId: number
 ): Promise<ParticipantResume | undefined> {

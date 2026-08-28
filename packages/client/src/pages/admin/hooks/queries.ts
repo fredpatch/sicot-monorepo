@@ -42,7 +42,7 @@ export function useMoteurStatusQuery() {
 }
 
 // Réduit pour garder chaque page courte maintenant que les lignes sont
-// compactes (une ligne par exécution, détail sur clic) — voir JobHistoryTable.
+// compactes (une ligne par exécution, détail sur clic) - voir JobHistoryTable.
 const JOB_HISTORY_PAGE_SIZE = 8;
 
 export interface JobHistoryFilters {

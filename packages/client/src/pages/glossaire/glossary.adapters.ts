@@ -63,7 +63,7 @@ export function toApiPayload(formData: TermeFormData): {
 }
 
 // Future-compatible shape for a multilingual suggestion lookup (not wired
-// to any endpoint today — the current backend only supports FR/EN).
+// to any endpoint today - the current backend only supports FR/EN).
 export interface GlossaryLookupRequest {
   sourceLanguage: string;
   targetLanguage: string;

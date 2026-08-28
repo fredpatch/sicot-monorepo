@@ -40,14 +40,14 @@ export interface DocumentFilters {
   page?: number;
   pageSize?: number;
   avecSupprimes?: boolean;
-  // Ne garder que la dernière version de chaque document — càd les lignes
+  // Ne garder que la dernière version de chaque document - càd les lignes
   // qu'aucune autre ligne ne référence via parentId. Couvre à la fois les
   // documents jamais versionnés (final par construction, aucun enfant) et
   // la dernière version d'une chaîne (nouvelle-version) ; exclut les
   // versions intermédiaires désormais remplacées.
   finalesUniquement?: boolean;
   // Restreint la lecture à "visible en interne OU uploadé par cet
-  // utilisateur" — utilisé pour le rôle agent uniquement ; omis (undefined)
+  // utilisateur" - utilisé pour le rôle agent uniquement ; omis (undefined)
   // pour operateur+ qui voit tout, comme aujourd'hui.
   visibleOuUploadePar?: number;
 }
@@ -57,7 +57,7 @@ export interface DoublonInfo {
   document?: DocumentView;
 }
 
-// Forme allégée retournée par le listing — sans texteExtrait ni chemin
+// Forme allégée retournée par le listing - sans texteExtrait ni chemin
 // (potentiellement volumineux / chemin serveur non destiné au client), voir
 // listerDocuments. Le détail complet reste disponible via GET /:id.
 export type DocumentListView = Omit<DocumentView, 'texteExtrait' | 'chemin'>;

@@ -45,7 +45,7 @@ interface AdminSystemOverviewProps {
 }
 
 // Uniquement des métriques réelles, dérivées de tableaux complets déjà
-// chargés (pas de pagination à contourner) — pas de « score de santé »
+// chargés (pas de pagination à contourner) - pas de « score de santé »
 // fabriqué, pas de compteur de succès/24h inventé (Phase 1 audit §35).
 export function AdminSystemOverview({
   parametresCount,
@@ -73,8 +73,16 @@ export function AdminSystemOverview({
       />
       <SummaryCard
         label="Moteur de traduction"
-        value={moteurStatus === undefined ? undefined : moteurStatus.accessible ? 'Opérationnel' : 'Indisponible'}
-        helper={moteurStatus?.deeplConfigure ? 'Fallback DeepL configuré' : 'Fallback DeepL non configuré'}
+        value={
+          moteurStatus === undefined
+            ? undefined
+            : moteurStatus.accessible
+              ? 'Opérationnel'
+              : 'Indisponible'
+        }
+        helper={
+          moteurStatus?.deeplConfigure ? 'Fallback DeepL configuré' : 'Fallback DeepL non configuré'
+        }
         icon={<Languages size={16} aria-hidden="true" />}
         tone={moteurStatus === undefined ? 'slate' : moteurStatus.accessible ? 'green' : 'red'}
       />

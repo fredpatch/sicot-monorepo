@@ -54,7 +54,7 @@ export function OcrCorrectionDialog({
         <DialogHeader>
           <DialogTitle>Correction OCR</DialogTitle>
           <DialogDescription>
-            {document?.nomOriginal} — Saisissez ou collez le texte correct extrait de ce document.
+            {document?.nomOriginal} - Saisissez ou collez le texte correct extrait de ce document.
           </DialogDescription>
         </DialogHeader>
 

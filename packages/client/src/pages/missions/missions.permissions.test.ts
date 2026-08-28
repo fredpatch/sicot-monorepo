@@ -6,7 +6,7 @@ function user(role: string) {
   return { role: role as never };
 }
 
-describe('canManageMission — MISSION_MANAGE', () => {
+describe('canManageMission - MISSION_MANAGE', () => {
   it('admin+ can manage', () => {
     expect(canManageMission(user('admin'))).toBe(true);
     expect(canManageMission(user('super_admin'))).toBe(true);
@@ -23,7 +23,7 @@ describe('canManageMission — MISSION_MANAGE', () => {
   });
 });
 
-describe('canManageRecommendations — MISSION_RECOMMENDATION_MANAGE', () => {
+describe('canManageRecommendations - MISSION_RECOMMENDATION_MANAGE', () => {
   it('admin+ can manage recommendations', () => {
     expect(canManageRecommendations(user('admin'))).toBe(true);
     expect(canManageRecommendations(user('super_admin'))).toBe(true);

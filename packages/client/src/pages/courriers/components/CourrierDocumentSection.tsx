@@ -8,7 +8,7 @@ import { courriersApi } from '@/lib/courriers.api';
 import type { Courrier } from '../courrier.types';
 import { CourrierDocumentPicker } from './CourrierDocumentPicker';
 
-// Fully interactive now — courrier.documents is a real list (courrier_documents
+// Fully interactive now - courrier.documents is a real list (courrier_documents
 // join table), backed by dedicated add/remove endpoints, not the edit form.
 export function CourrierDocumentSection({ courrier }: { courrier: Courrier }) {
   const queryClient = useQueryClient();
@@ -38,7 +38,13 @@ export function CourrierDocumentSection({ courrier }: { courrier: Courrier }) {
         <h3 className="font-bold text-anac-navy">
           Documents joints {courrier.documents.length > 0 && `(${courrier.documents.length})`}
         </h3>
-        <Button type="button" variant="outline" size="sm" onClick={() => setAjoutOuvert((v) => !v)} className="gap-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setAjoutOuvert((v) => !v)}
+          className="gap-1.5"
+        >
           <Plus size={13} aria-hidden="true" />
           Ajouter
         </Button>
@@ -47,7 +53,10 @@ export function CourrierDocumentSection({ courrier }: { courrier: Courrier }) {
       {courrier.documents.length > 0 ? (
         <ul className="mt-4 space-y-2">
           {courrier.documents.map((doc) => (
-            <li key={doc.id} className="flex items-center justify-between rounded-md border border-anac-border p-4">
+            <li
+              key={doc.id}
+              className="flex items-center justify-between rounded-md border border-anac-border p-4"
+            >
               <span className="flex items-center gap-3">
                 <FileText size={18} className="text-anac-blue" aria-hidden="true" />
                 <span>

@@ -37,7 +37,7 @@ function useDebouncedValue<T>(value: T, delay = 300) {
 }
 
 // Mirrors the participant quick-create: a "contact on site" is a real
-// Partenaires contact, which always belongs to an organisation — so this
+// Partenaires contact, which always belongs to an organisation - so this
 // is two layers, not one. Reuses the exact existing FormulaireOrganisation
 // / FormulaireContact + organisationsApi calls the admin Partenaires pages
 // use, rather than a second, parallel creation path.
@@ -51,7 +51,9 @@ export function QuickCreateContactDialog({
   onCreated: (contact: ContactListItem) => void;
 }) {
   const queryClient = useQueryClient();
-  const [step, setStep] = useState<'organisation' | 'nouvelle-organisation' | 'contact'>('organisation');
+  const [step, setStep] = useState<'organisation' | 'nouvelle-organisation' | 'contact'>(
+    'organisation'
+  );
   const [orgSearch, setOrgSearch] = useState('');
   const debouncedOrgSearch = useDebouncedValue(orgSearch);
   const [selectedOrg, setSelectedOrg] = useState<OrganisationOption | null>(null);
@@ -98,10 +100,19 @@ export function QuickCreateContactDialog({
     mutationFn: (data: ContactFormData) => organisationsApi.creerContact(selectedOrg!.id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['contacts-recherche'] });
-      const contact = res.data as { id: number; nom: string; prenom: string; email?: string; telephone?: string; poste?: string };
+      const contact = res.data as {
+        id: number;
+        nom: string;
+        prenom: string;
+        email?: string;
+        telephone?: string;
+        poste?: string;
+      };
       onCreated({ ...contact, organisationId: selectedOrg!.id, organisationNom: selectedOrg!.nom });
       onOpenChange(false);
-      toast.success(`${contact.prenom} ${contact.nom} a été créé et défini comme contact sur place.`);
+      toast.success(
+        `${contact.prenom} ${contact.nom} a été créé et défini comme contact sur place.`
+      );
     },
     onError: (err: unknown) => {
       const msg =
@@ -130,7 +141,11 @@ export function QuickCreateContactDialog({
         {step === 'organisation' && (
           <DialogBody className="space-y-3">
             <div className="relative">
-              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted" aria-hidden="true" />
+              <Search
+                size={15}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-anac-muted"
+                aria-hidden="true"
+              />
               <Input
                 value={orgSearch}
                 onChange={(event) => setOrgSearch(event.target.value)}
@@ -146,7 +161,9 @@ export function QuickCreateContactDialog({
                   Recherche...
                 </div>
               ) : orgs.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-anac-muted">Aucune organisation trouvée.</p>
+                <p className="px-4 py-6 text-center text-sm text-anac-muted">
+                  Aucune organisation trouvée.
+                </p>
               ) : (
                 orgs.map((org) => (
                   <button

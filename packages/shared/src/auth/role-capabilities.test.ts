@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { TARGET_ROLES } from './roles';
-import { ROLE_CAPABILITIES, hasCapability, hasAnyCapability, hasAllCapabilities } from './role-capabilities';
+import {
+  ROLE_CAPABILITIES,
+  hasCapability,
+  hasAnyCapability,
+  hasAllCapabilities,
+} from './role-capabilities';
 import type { Capability } from './capabilities';
 
 describe('ROLE_CAPABILITIES shape', () => {
@@ -61,13 +66,13 @@ describe('hasCapability', () => {
     }
   });
 
-  it('SYSTEM_ADMIN_OPERATION (high-risk jobs) is super_admin only — admin lacks it', () => {
+  it('SYSTEM_ADMIN_OPERATION (high-risk jobs) is super_admin only - admin lacks it', () => {
     expect(hasCapability('super_admin', 'SYSTEM_ADMIN_OPERATION')).toBe(true);
     expect(hasCapability('admin', 'SYSTEM_ADMIN_OPERATION')).toBe(false);
   });
 });
 
-describe('hasCapability — edge cases (fail closed, never throw)', () => {
+describe('hasCapability - edge cases (fail closed, never throw)', () => {
   it('an unrecognized role string denies rather than throwing', () => {
     // simulates a corrupted session / stale role value no longer in the enum
     // (e.g. a pre-migration 'traducteur'/'relecteur' JWT that outlived its access-token TTL)

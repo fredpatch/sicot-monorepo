@@ -38,7 +38,7 @@ function SummaryCard({
 }
 
 // Compteurs globaux uniquement (voir users.service.ts#getUsersAggregates côté
-// serveur) — jamais dérivés de la page courante du tableau. Pas de carte
+// serveur) - jamais dérivés de la page courante du tableau. Pas de carte
 // « Invités » : il n'existe aucun état d'invitation réel dans le modèle, voir
 // l'audit Phase 1 (premiereConnexion !== invitation).
 export function UsersSummaryCards({ aggregates }: { aggregates?: UsersAggregates }) {

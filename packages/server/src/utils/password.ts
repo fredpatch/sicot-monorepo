@@ -1,4 +1,4 @@
-// Shared server-side password policy — mirrors the checklist already shown
+// Shared server-side password policy - mirrors the checklist already shown
 // to users by the client's <PasswordStrength> component (login/components),
 // so the rule is enforced everywhere it's displayed, not just client-side.
 export function validerForceMotDePasse(motDePasse: string): void {

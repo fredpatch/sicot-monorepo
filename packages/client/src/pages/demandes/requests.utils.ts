@@ -7,7 +7,7 @@ export function formaterDate(iso: string): string {
 }
 
 export function apercu(texte?: string, longueur = 60): string {
-  if (!texte) return '—';
+  if (!texte) return '-';
   return texte.length > longueur ? texte.slice(0, longueur) + '...' : texte;
 }
 

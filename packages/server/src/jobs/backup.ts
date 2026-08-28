@@ -4,7 +4,10 @@ import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 import { logAudit } from '@/modules/auth/services/auth.service';
-import { getValeurEntier, getValeurTexte } from '@/modules/parametres/services/parametres.service.js';
+import {
+  getValeurEntier,
+  getValeurTexte,
+} from '@/modules/parametres/services/parametres.service.js';
 import { enregistrerExecutionJob } from '@/modules/jobs/services/job-executions.service.js';
 
 const execAsync = promisify(exec);
@@ -12,17 +15,17 @@ const execAsync = promisify(exec);
 // ── Configuration ─────────────────────────────────────────────────────────
 // Rotation grand-père/père/fils : chaque palier est un pg_dump indépendant
 // (un dump ne peut pas être "fusionné" en un autre), toujours écrit vers les
-// deux destinations en parallèle et de façon indépendante l'une de l'autre —
+// deux destinations en parallèle et de façon indépendante l'une de l'autre -
 // une destination injoignable ne doit jamais bloquer l'autre (ex. NAS en
 // panne réseau ne doit pas empêcher la sauvegarde locale, et inversement).
 export type BackupTier = 'quotidien' | 'hebdomadaire' | 'mensuel' | 'annuel';
 
 const PG_DUMP_BIN = process.env.PG_DUMP_PATH ?? 'pg_dump';
-// Dossier local — modifiable par le Super Admin (paramètre backup_local_dir,
+// Dossier local - modifiable par le Super Admin (paramètre backup_local_dir,
 // voir Administration > Paramètres > Sauvegardes) ; cette constante ne sert
 // que de valeur de repli si le paramètre est absent en base.
 const BACKUP_LOCAL_DIR_DEFAUT = process.env.BACKUP_LOCAL_DIR ?? '/sicot/backups/local';
-// Dossier NAS — reste piloté par variable d'environnement (montage réseau
+// Dossier NAS - reste piloté par variable d'environnement (montage réseau
 // géré par l'IT, pas un choix à exposer à un administrateur applicatif).
 export const BACKUP_NAS_DIR = process.env.BACKUP_NAS_DIR ?? '/mnt/nas/sicot/backups';
 
@@ -50,9 +53,9 @@ function dossierTier(racine: string, tier: BackupTier): string {
   return path.join(racine, tier);
 }
 
-// ── Purge d'un palier — ne conserve que les N plus récents, par destination.
+// ── Purge d'un palier - ne conserve que les N plus récents, par destination.
 // Jamais appelée avant qu'un nouveau dump du palier supérieur ait réussi (au
-// moins une destination) — voir executerCycleSauvegarde().
+// moins une destination) - voir executerCycleSauvegarde().
 export function prunerPalier(racine: string, tier: BackupTier, nombreAConserver: number): string[] {
   const dir = dossierTier(racine, tier);
   if (!fs.existsSync(dir)) return [];
@@ -77,10 +80,13 @@ interface ResultatDestination {
   erreur?: string;
 }
 
-// ── Dump vers UNE destination — n'est jamais bloquant pour l'autre, ne lève
+// ── Dump vers UNE destination - n'est jamais bloquant pour l'autre, ne lève
 // jamais d'exception (le résultat porte l'échec pour que l'appelant puisse
 // traiter chaque destination indépendamment).
-async function dumpVersDestination(destinationRoot: string, tier: BackupTier): Promise<ResultatDestination> {
+async function dumpVersDestination(
+  destinationRoot: string,
+  tier: BackupTier
+): Promise<ResultatDestination> {
   try {
     const dir = dossierTier(destinationRoot, tier);
     ensureDir(dir);
@@ -97,7 +103,9 @@ async function dumpVersDestination(destinationRoot: string, tier: BackupTier): P
 
     if (stats.size < TAILLE_MIN_OCTETS) {
       fs.unlinkSync(filepath);
-      throw new Error(`Fichier de sauvegarde anormalement petit (${stats.size} o) — dump probablement incomplet.`);
+      throw new Error(
+        `Fichier de sauvegarde anormalement petit (${stats.size} o) - dump probablement incomplet.`
+      );
     }
 
     const tailleMo = parseFloat((stats.size / (1024 * 1024)).toFixed(2));
@@ -128,14 +136,16 @@ export async function effectuerSauvegardeTier(tier: BackupTier): Promise<Resulta
 
   if (local.succes || nas.succes) {
     console.log(
-      `✅ Sauvegarde ${tier} — local: ${local.succes ? 'OK' : 'ÉCHEC'}, NAS: ${nas.succes ? 'OK' : 'ÉCHEC'}`
+      `✅ Sauvegarde ${tier} - local: ${local.succes ? 'OK' : 'ÉCHEC'}, NAS: ${nas.succes ? 'OK' : 'ÉCHEC'}`
     );
   } else {
     console.error(`❌ Sauvegarde ${tier} échouée sur les deux destinations.`);
   }
 
   await logAudit({
-    action: succesGlobal ? `SAUVEGARDE_${tier.toUpperCase()}` : `SAUVEGARDE_${tier.toUpperCase()}_ECHEC`,
+    action: succesGlobal
+      ? `SAUVEGARDE_${tier.toUpperCase()}`
+      : `SAUVEGARDE_${tier.toUpperCase()}_ECHEC`,
     module: 'M10',
     details: { tier, local, nas },
   });
@@ -148,12 +158,12 @@ export function resumerResultat(resultat: ResultatSauvegardeTier): string {
   parties.push(
     resultat.local.succes
       ? `Local : ${resultat.local.nomFichier} (${resultat.local.tailleMo} Mo)`
-      : `Local : échec — ${resultat.local.erreur}`
+      : `Local : échec - ${resultat.local.erreur}`
   );
   parties.push(
     resultat.nas.succes
       ? `NAS : ${resultat.nas.nomFichier} (${resultat.nas.tailleMo} Mo)`
-      : `NAS : échec — ${resultat.nas.erreur}`
+      : `NAS : échec - ${resultat.nas.erreur}`
   );
   return parties.join(' · ');
 }
@@ -175,14 +185,16 @@ export async function promouvoirPalier(
   if (resultat.succesGlobal && tierInferieur) {
     const nombreAConserver = await getValeurEntier(clesRetention, retentionDefaut);
     const racineLocale = await getRacineLocale();
-    if (resultat.local.succes) supprimesLocal = prunerPalier(racineLocale, tierInferieur, nombreAConserver);
-    if (resultat.nas.succes) supprimesNas = prunerPalier(BACKUP_NAS_DIR, tierInferieur, nombreAConserver);
+    if (resultat.local.succes)
+      supprimesLocal = prunerPalier(racineLocale, tierInferieur, nombreAConserver);
+    if (resultat.nas.succes)
+      supprimesNas = prunerPalier(BACKUP_NAS_DIR, tierInferieur, nombreAConserver);
   }
 
   return { resultat, supprimesLocal, supprimesNas };
 }
 
-// ── Nombre de sauvegardes distinctes purgées — dédoublonne par nom de
+// ── Nombre de sauvegardes distinctes purgées - dédoublonne par nom de
 // fichier plutôt que de sommer les deux listes (le même fichier supprimé du
 // local ET du NAS ne compte que pour une seule sauvegarde purgée).
 export function compterPurges(supprimesLocal: string[], supprimesNas: string[]): number {
@@ -199,7 +211,7 @@ function estDernierJourDeLAnnee(date: Date): boolean {
   return date.getMonth() === 11 && date.getDate() === 31;
 }
 
-// ── Cycle quotidien complet — dump du jour, puis promotion des paliers dont
+// ── Cycle quotidien complet - dump du jour, puis promotion des paliers dont
 // la frontière calendaire tombe aujourd'hui. Chaque palier est un pg_dump
 // indépendant (jamais une "fusion" des dumps du dessous), et chaque étape
 // est enregistrée séparément dans l'historique des jobs pour un monitoring
@@ -272,7 +284,7 @@ export async function executerCycleSauvegarde(): Promise<void> {
   }
 }
 
-// ── Planification — un seul cron quotidien à minuit, la logique de palier
+// ── Planification - un seul cron quotidien à minuit, la logique de palier
 // est un enchaînement séquentiel interne (jamais deux pg_dump concurrents).
 export function demarrerJobsSauvegarde(): void {
   cron.schedule('0 0 * * *', async () => {
@@ -280,10 +292,12 @@ export function demarrerJobsSauvegarde(): void {
     await executerCycleSauvegarde();
   });
 
-  console.log('📅 Cycle de sauvegarde planifié quotidiennement à 00h00 (rotation quotidien/hebdo/mensuel/annuel)');
+  console.log(
+    '📅 Cycle de sauvegarde planifié quotidiennement à 00h00 (rotation quotidien/hebdo/mensuel/annuel)'
+  );
 }
 
-// ── Synchronisation de rattrapage — copie vers le NAS les sauvegardes
+// ── Synchronisation de rattrapage - copie vers le NAS les sauvegardes
 // présentes en local mais absentes du NAS (ex. après une coupure réseau
 // pendant laquelle seule la destination locale a pu être écrite). Ne
 // supprime jamais rien, ne synchronise que dans le sens local → NAS (le
@@ -315,7 +329,9 @@ export async function synchroniserVersNas(): Promise<{
         fs.copyFileSync(path.join(dirLocal, fichier), path.join(dirNas, fichier));
         copies.push(`${tier}/${fichier}`);
       } catch (error) {
-        erreurs.push(`${tier}/${fichier} : ${error instanceof Error ? error.message : String(error)}`);
+        erreurs.push(
+          `${tier}/${fichier} : ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     }
   }

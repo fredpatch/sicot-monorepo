@@ -8,7 +8,7 @@ export interface Utilisateur {
   prenom: string;
   email: string;
   // Renseignés uniquement pour les comptes créés depuis l'annuaire Personnel
-  // ANAC (voir CreateUserDialog.tsx) — null pour une création manuelle. Déjà
+  // ANAC (voir CreateUserDialog.tsx) - null pour une création manuelle. Déjà
   // renvoyés par GET /users, simplement absents du type client jusqu'ici.
   poste: string | null;
   service: string | null;
@@ -20,7 +20,7 @@ export interface Utilisateur {
   updatedAt: string;
 }
 
-// Vue détail (GET /users/:id) — ajoute la dernière connexion réelle, dérivée
+// Vue détail (GET /users/:id) - ajoute la dernière connexion réelle, dérivée
 // du journal d'audit côté serveur (pas de colonne dédiée). Volontairement
 // absente du listing pour éviter une requête d'audit par ligne de tableau.
 export interface UtilisateurDetail extends Utilisateur {

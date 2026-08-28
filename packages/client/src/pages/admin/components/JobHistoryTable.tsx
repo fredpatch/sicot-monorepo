@@ -2,7 +2,13 @@
 import { useState } from 'react';
 import { CheckCircle2, History, Loader2, XCircle } from 'lucide-react';
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { DataTablePagination } from '@/components/table/data-table-pagination';
 import { getModuleLabel } from '../admin.constants';
 import { useJobHistoryQuery, JOB_HISTORY_PAGE_SIZE } from '../hooks/queries';
@@ -12,7 +18,7 @@ interface JobHistoryTableProps {
   jobs?: JobDisponible[];
 }
 
-// Historique réel (manuel + cron), persistant en base — voir
+// Historique réel (manuel + cron), persistant en base - voir
 // job-executions.service.ts côté serveur. Une ligne = une exécution, repliée
 // sur une seule ligne par défaut (label/module/origine/horodatage) ; le
 // résumé/l'erreur ne s'affiche qu'au clic pour garder la liste scannable.
@@ -127,7 +133,9 @@ export function JobHistoryTable({ jobs }: JobHistoryTableProps) {
                     <span className="min-w-0 flex-1 truncate text-sm text-anac-navy">
                       {jobs?.find((j) => j.cle === exec.jobCle)?.label ?? exec.jobCle}
                     </span>
-                    <span className="badge-neutre shrink-0 text-[10px]">{getModuleLabel(exec.module)}</span>
+                    <span className="badge-neutre shrink-0 text-[10px]">
+                      {getModuleLabel(exec.module)}
+                    </span>
                     <span className="shrink-0 text-[10px] text-anac-muted">
                       {exec.source === 'manuel' ? 'Manuel' : 'Cron'}
                     </span>
@@ -144,7 +152,7 @@ export function JobHistoryTable({ jobs }: JobHistoryTableProps) {
                   {estOuvert && (
                     <div className="border-t border-anac-border/60 bg-anac-gray/30 px-3.5 py-2.5 text-xs text-anac-muted">
                       {exec.resume}
-                      {exec.erreur && ` — ${exec.erreur}`}
+                      {exec.erreur && ` - ${exec.erreur}`}
                       <span className="ml-1.5">({exec.dureeMs}ms)</span>
                     </div>
                   )}

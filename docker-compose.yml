@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - '5432:5432' # exposed for a local DB GUI — never do this in staging/prod
+      - '5432:5432' # exposed for a local DB GUI - never do this in staging/prod
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
@@ -59,7 +59,7 @@ services:
       context: .
       dockerfile: packages/server/Dockerfile
       target: dev
-    # Apply pending migrations before starting the dev server — a fresh DB
+    # Apply pending migrations before starting the dev server - a fresh DB
     # has no tables yet, and the server seeds default `parametres` rows at
     # boot, which crashes if `db:migrate` hasn't run. Idempotent: re-running
     # against an already-migrated DB is a no-op.

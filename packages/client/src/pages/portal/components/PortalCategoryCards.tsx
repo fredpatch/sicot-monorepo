@@ -12,11 +12,11 @@ interface PortalCategoryCardsProps {
   onSelect: (categorie: string) => void;
 }
 
-// Cartes de découverte publique — icône et titre sur la même ligne,
+// Cartes de découverte publique - icône et titre sur la même ligne,
 // hauteur compacte (~130-150px), compteurs réels
 // (GET /portal/documents/aggregates), jamais décoratifs. Les catégories à
 // 0 document restent visibles/sélectionnables (juste atténuées), pas
-// désactivées — filtrer dessus doit correctement montrer l'état vide filtré.
+// désactivées - filtrer dessus doit correctement montrer l'état vide filtré.
 export function PortalCategoryCards({ categorieActive, onSelect }: PortalCategoryCardsProps) {
   const { data, isLoading } = usePortalAggregatesQuery();
 

@@ -7,7 +7,7 @@ import traductionRouter from './traduction.route';
 
 // Direct-API security tests (prompt.md §37/§38), same pattern as prior
 // modules: real router + real authenticate/requireCapability middleware
-// over HTTP. getById/archiver/approuver run for real — they carry the
+// over HTTP. getById/archiver/approuver run for real - they carry the
 // ownership decoupling, the workflow-state guard, and the multi-capability
 // wiring under test. Everything else is stubbed. Only the service layers
 // are mocked, so no database is needed.
@@ -51,12 +51,16 @@ vi.mock('../controllers/traduction.controller', async () => {
   return {
     ...actual,
     // real getById/archiver/approuver (ownership + workflow-state + multi-capability), rest stubbed
-    exporterPDF: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-    exporterDOCX: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
+    exporterPDF: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
+    exporterDOCX: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
     lancer: (_req: express.Request, res: express.Response) => res.status(201).json({ ok: true }),
     relancer: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-    sauvegarderCorrection: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
-    suggestions: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
+    sauvegarderCorrection: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
+    suggestions: (_req: express.Request, res: express.Response) =>
+      res.status(200).json({ ok: true }),
     supprimer: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
     restaurer: (_req: express.Request, res: express.Response) => res.status(200).json({ ok: true }),
   };
@@ -85,31 +89,45 @@ beforeEach(() => {
   estDemandeurDeTraduction.mockReset();
 });
 
-describe('traduction.route — global registry (aggregates/list/suggestions) requires TRANSLATION_VIEW', () => {
+describe('traduction.route - global registry (aggregates/list/suggestions) requires TRANSLATION_VIEW', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).get('/traductions').expect(401);
   });
 
-  it.each(NO_QUEUE_ROLES)('403s role=%s on the global registry (no TRANSLATION_VIEW)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).get('/traductions').set('Cookie', cookie).expect(403);
-    await request(app).get('/traductions/aggregates').set('Cookie', cookie).expect(403);
-    await request(app).get('/traductions/1/suggestions').set('Cookie', cookie).query({ texte: 'x' }).expect(403);
-  });
+  it.each(NO_QUEUE_ROLES)(
+    '403s role=%s on the global registry (no TRANSLATION_VIEW)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).get('/traductions').set('Cookie', cookie).expect(403);
+      await request(app).get('/traductions/aggregates').set('Cookie', cookie).expect(403);
+      await request(app)
+        .get('/traductions/1/suggestions')
+        .set('Cookie', cookie)
+        .query({ texte: 'x' })
+        .expect(403);
+    }
+  );
 
-  it.each(QUEUE_ROLES)('allows role=%s on the global registry (operational access preserved)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).get('/traductions').set('Cookie', cookie).expect(200);
-    await request(app).get('/traductions/aggregates').set('Cookie', cookie).expect(200);
-    await request(app).get('/traductions/1/suggestions').set('Cookie', cookie).query({ texte: 'x' }).expect(200);
-  });
+  it.each(QUEUE_ROLES)(
+    'allows role=%s on the global registry (operational access preserved)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).get('/traductions').set('Cookie', cookie).expect(200);
+      await request(app).get('/traductions/aggregates').set('Cookie', cookie).expect(200);
+      await request(app)
+        .get('/traductions/1/suggestions')
+        .set('Cookie', cookie)
+        .query({ texte: 'x' })
+        .expect(200);
+    }
+  );
 });
 
-describe('traduction.route — GET /:id: ownership derived from requester relationship, not role', () => {
-  it("agent/requester can access the translation linked to their own request", async () => {
+describe('traduction.route - GET /:id: ownership derived from requester relationship, not role', () => {
+  it('agent/requester can access the translation linked to their own request', async () => {
     getTraduction.mockResolvedValue({ id: 7, statut: 'a_reviser' });
     estDemandeurDeTraduction.mockResolvedValue(true);
 
@@ -138,29 +156,43 @@ describe('traduction.route — GET /:id: ownership derived from requester relati
   );
 });
 
-describe('traduction.route — processing requires TRANSLATION_PROCESS', () => {
-  it.each(NO_QUEUE_ROLES)('403s role=%s on launch/relaunch/correction/delete/restore', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).post('/traductions').set('Cookie', cookie).send({}).expect(403);
-    await request(app).patch('/traductions/1/relancer').set('Cookie', cookie).expect(403);
-    await request(app).patch('/traductions/1/correction').set('Cookie', cookie).send({}).expect(403);
-    await request(app).delete('/traductions/1').set('Cookie', cookie).expect(403);
-    await request(app).patch('/traductions/1/restaurer').set('Cookie', cookie).expect(403);
-  });
+describe('traduction.route - processing requires TRANSLATION_PROCESS', () => {
+  it.each(NO_QUEUE_ROLES)(
+    '403s role=%s on launch/relaunch/correction/delete/restore',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).post('/traductions').set('Cookie', cookie).send({}).expect(403);
+      await request(app).patch('/traductions/1/relancer').set('Cookie', cookie).expect(403);
+      await request(app)
+        .patch('/traductions/1/correction')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(403);
+      await request(app).delete('/traductions/1').set('Cookie', cookie).expect(403);
+      await request(app).patch('/traductions/1/restaurer').set('Cookie', cookie).expect(403);
+    }
+  );
 
-  it.each(QUEUE_ROLES)('allows role=%s on launch/relaunch/correction/delete/restore', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).post('/traductions').set('Cookie', cookie).send({}).expect(201);
-    await request(app).patch('/traductions/1/relancer').set('Cookie', cookie).expect(200);
-    await request(app).patch('/traductions/1/correction').set('Cookie', cookie).send({}).expect(200);
-    await request(app).delete('/traductions/1').set('Cookie', cookie).expect(200);
-    await request(app).patch('/traductions/1/restaurer').set('Cookie', cookie).expect(200);
-  });
+  it.each(QUEUE_ROLES)(
+    'allows role=%s on launch/relaunch/correction/delete/restore',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).post('/traductions').set('Cookie', cookie).send({}).expect(201);
+      await request(app).patch('/traductions/1/relancer').set('Cookie', cookie).expect(200);
+      await request(app)
+        .patch('/traductions/1/correction')
+        .set('Cookie', cookie)
+        .send({})
+        .expect(200);
+      await request(app).delete('/traductions/1').set('Cookie', cookie).expect(200);
+      await request(app).patch('/traductions/1/restaurer').set('Cookie', cookie).expect(200);
+    }
+  );
 });
 
-describe('traduction.route — approve requires TRANSLATION_REVIEW + TRANSLATION_APPROVE, archive requires TRANSLATION_ARCHIVE', () => {
+describe('traduction.route - approve requires TRANSLATION_REVIEW + TRANSLATION_APPROVE, archive requires TRANSLATION_ARCHIVE', () => {
   it.each(NO_QUEUE_ROLES)('403s role=%s on approve/archive (no capability)', async (role) => {
     archiverTraduction.mockResolvedValue({ id: 1, statut: 'archivee' });
     const app = buildApp();
@@ -170,7 +202,7 @@ describe('traduction.route — approve requires TRANSLATION_REVIEW + TRANSLATION
   });
 
   it.each(QUEUE_ROLES)(
-    'allows role=%s on approve/archive — self-request → self-process → self-review/approve stays allowed in V1',
+    'allows role=%s on approve/archive - self-request → self-process → self-review/approve stays allowed in V1',
     async (role) => {
       archiverTraduction.mockResolvedValue({ id: 1, statut: 'archivee' });
       const app = buildApp();
@@ -184,6 +216,9 @@ describe('traduction.route — approve requires TRANSLATION_REVIEW + TRANSLATION
     archiverTraduction.mockRejectedValue(new Error('APPROBATION_REQUISE'));
     const app = buildApp();
     // admin has TRANSLATION_ARCHIVE, but the service enforces statut === 'approuvee'
-    await request(app).patch('/traductions/1/archiver').set('Cookie', cookieFor('admin')).expect(400);
+    await request(app)
+      .patch('/traductions/1/archiver')
+      .set('Cookie', cookieFor('admin'))
+      .expect(400);
   });
 });

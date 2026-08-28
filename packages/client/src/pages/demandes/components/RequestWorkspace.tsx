@@ -82,7 +82,7 @@ export function RequestWorkspace({
         <DialogHeader>
           <DialogTitle>Demande #{demande.id}</DialogTitle>
           <DialogDescription>
-            {demande.direction === 'fr_en' ? 'Français → Anglais' : 'Anglais → Français'} — Créée le{' '}
+            {demande.direction === 'fr_en' ? 'Français → Anglais' : 'Anglais → Français'} - Créée le{' '}
             {formaterDate(demande.createdAt)}
           </DialogDescription>
         </DialogHeader>
@@ -110,7 +110,7 @@ export function RequestWorkspace({
                   <RequestPriorityCell demande={demande} />
                 </SummaryField>
                 <SummaryField label="Demandeur">
-                  <span className="text-sm text-anac-navy">{demande.demandeurNom ?? '—'}</span>
+                  <span className="text-sm text-anac-navy">{demande.demandeurNom ?? '-'}</span>
                 </SummaryField>
                 <SummaryField label="Traducteur">
                   <span className="text-sm text-anac-navy">
@@ -149,7 +149,7 @@ export function RequestWorkspace({
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-anac-muted">Texte libre</p>
                   <p className="max-h-[45vh] overflow-y-auto whitespace-pre-wrap text-sm text-anac-navy">
-                    {demande.texteLibre || '—'}
+                    {demande.texteLibre || '-'}
                   </p>
                 </div>
               )}
@@ -210,7 +210,9 @@ export function RequestWorkspace({
                   <TraductionPreview traductionId={demande.traductionId} />
                 )
               ) : (
-                <p className="text-sm text-anac-muted">Aucune traduction associée pour le moment.</p>
+                <p className="text-sm text-anac-muted">
+                  Aucune traduction associée pour le moment.
+                </p>
               )}
             </TabsContent>
           </Tabs>
@@ -301,7 +303,12 @@ function RequestWorkspaceActions({
   }
   if (canValidateRequest(demande, user)) {
     buttons.push(
-      <Button key="valider" type="button" onClick={() => onValider(demande.id)} disabled={validerEnCours}>
+      <Button
+        key="valider"
+        type="button"
+        onClick={() => onValider(demande.id)}
+        disabled={validerEnCours}
+      >
         Valider
       </Button>
     );

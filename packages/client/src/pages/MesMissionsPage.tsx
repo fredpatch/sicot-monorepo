@@ -1,6 +1,6 @@
 // packages/client/src/pages/MesMissionsPage.tsx
 //
-// Agent-restricted mission view — their own missions (participantId scope)
+// Agent-restricted mission view - their own missions (participantId scope)
 // with the existing report upload/link flow, no planning/admin actions.
 // Deliberately not the full /missions registry (which stays admin-gated).
 import { useState } from 'react';
@@ -42,7 +42,8 @@ export default function MesMissionsPage() {
   });
 
   function handleUploaded(document: UploadedDocument) {
-    if (missionUpload) linkReportMutation.mutate({ missionId: missionUpload.id, documentId: document.id });
+    if (missionUpload)
+      linkReportMutation.mutate({ missionId: missionUpload.id, documentId: document.id });
     setMissionUpload(null);
   }
 
@@ -68,7 +69,9 @@ export default function MesMissionsPage() {
       ) : missions.length === 0 ? (
         <div className="card flex min-h-64 flex-col items-center justify-center gap-2 text-center">
           <p className="font-semibold text-anac-navy">Aucune mission pour le moment.</p>
-          <p className="text-sm text-anac-muted">Vos missions apparaîtront ici une fois assignées.</p>
+          <p className="text-sm text-anac-muted">
+            Vos missions apparaîtront ici une fois assignées.
+          </p>
         </div>
       ) : (
         <div className="card hidden overflow-hidden p-0 md:block">
@@ -85,7 +88,9 @@ export default function MesMissionsPage() {
             <tbody className="divide-y divide-anac-border">
               {missions.map((mission) => (
                 <tr key={mission.id}>
-                  <td className="px-4 py-3 align-top font-medium text-anac-navy">{mission.titre}</td>
+                  <td className="px-4 py-3 align-top font-medium text-anac-navy">
+                    {mission.titre}
+                  </td>
                   <td className="px-4 py-3 align-top text-anac-muted">{mission.destination}</td>
                   <td className="px-4 py-3 align-top text-xs text-anac-muted">
                     {formatMissionPeriod(mission)}
@@ -98,7 +103,8 @@ export default function MesMissionsPage() {
                       <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
                         <CheckCircle2 size={13} aria-hidden="true" /> Déposé
                       </span>
-                    ) : mission.statut === 'terminee' && mission.rapportResponsableId === user.id ? (
+                    ) : mission.statut === 'terminee' &&
+                      mission.rapportResponsableId === user.id ? (
                       <Button
                         type="button"
                         variant="link"
@@ -110,7 +116,7 @@ export default function MesMissionsPage() {
                         <Upload size={12} aria-hidden="true" /> Déposer
                       </Button>
                     ) : (
-                      <span className="text-xs text-anac-muted">—</span>
+                      <span className="text-xs text-anac-muted">-</span>
                     )}
                   </td>
                 </tr>
@@ -149,7 +155,9 @@ export default function MesMissionsPage() {
                 </Button>
               ) : mission.statut === 'terminee' ? (
                 <span className="text-xs text-anac-muted">
-                  {mission.rapportResponsableId ? "En attente du responsable désigné" : 'Aucun responsable désigné'}
+                  {mission.rapportResponsableId
+                    ? 'En attente du responsable désigné'
+                    : 'Aucun responsable désigné'}
                 </span>
               ) : (
                 <span className="text-xs text-anac-muted">Mission non terminée</span>

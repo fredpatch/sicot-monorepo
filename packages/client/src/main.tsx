@@ -6,7 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { routeConfig } from './router';
 
-// createBrowserRouter() built here, not in router.tsx — it calls
+// createBrowserRouter() built here, not in router.tsx - it calls
 // createBrowserHistory() eagerly (needs `document`), so router.tsx only
 // exports the plain route tree, importable from client-package tests that
 // have no jsdom (see router.routes.test.ts).

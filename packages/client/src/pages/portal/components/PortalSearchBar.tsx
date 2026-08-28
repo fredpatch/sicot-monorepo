@@ -10,7 +10,7 @@ interface PortalSearchBarProps {
   onResetCategorie: () => void;
 }
 
-// Intégrée directement sous le hero (§6 du brief) — plus de bande blanche
+// Intégrée directement sous le hero (§6 du brief) - plus de bande blanche
 // sticky isolée autour d'un petit champ. Catégorie filtrée exclusivement via
 // les cartes de navigation (PortalCategoryCards), pas de menu déroulant
 // redondant ici.

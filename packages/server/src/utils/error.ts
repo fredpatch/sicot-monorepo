@@ -27,7 +27,7 @@ function createErrorHandler(
       return;
     }
 
-    // Erreur non mappée — erreur interne
+    // Erreur non mappée - erreur interne
     console.error(logPrefix, error);
     res.status(500).json({ message: 'Erreur interne du serveur.' });
   };
@@ -63,7 +63,7 @@ export const handleAuthError = createErrorHandler(
 
 export const handleUsersError = createErrorHandler(
   {
-   UTILISATEUR_INTROUVABLE: { status: 404, message: 'Utilisateur introuvable.' },
+    UTILISATEUR_INTROUVABLE: { status: 404, message: 'Utilisateur introuvable.' },
     MATRICULE_EXISTANT: { status: 409, message: 'Ce matricule est déjà utilisé.' },
     EMAIL_EXISTANT: { status: 409, message: 'Cet email est déjà utilisé par un autre compte.' },
     COMPTE_INACTIF: { status: 400, message: 'Le compte est inactif.' },
@@ -193,7 +193,7 @@ export const handleTraductionError = createErrorHandler(
     },
     TRADUCTION_NON_APPROUVEE: {
       status: 400,
-      message: "Cette traduction n'est pas encore approuvée — export indisponible.",
+      message: "Cette traduction n'est pas encore approuvée - export indisponible.",
     },
     TEXTE_FINAL_REQUIS: { status: 400, message: 'Un texte final est requis avant approbation.' },
     APPROBATION_REQUISE: {
@@ -253,4 +253,3 @@ export const handlePersonnelAnacError = createErrorHandler(
   },
   '[personnel-anac.controller]'
 );
-

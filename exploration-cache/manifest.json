@@ -4,15 +4,15 @@
   "repo": "fredpatch/sicot-monorepo",
   "branch": "main",
   "lastUpdated": "2026-08-27T00:00:00Z",
-  "lastCommit": "8af7c2a feat(client/server): redesign External Portal (/portal) — critical download-link fix + visual polish",
-  "currentSprint": "Sprint 12 (unplanned, post-Sprint-11) — Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Administration (M10) + Portail externe redesigns + deployment infra + individual PDF export + Agent workspace",
-  "currentSprintFocus": "2026-08-27: Portail externe (/portal) redesigned right after Administration, three successive rounds on the same page. Round 1 (audit-first): found and fixed a critical bug where the emailed secure-download link pointed at a client route that never existed (/portal/telecharger/:token), silently defeating the entire download flow — fixed with a new PortalDownloadPage that fetches the file as a blob so expired/invalid tokens show a normalized error instead of raw JSON. Also added real per-category counts (GET /portal/documents/aggregates, same db.$count pattern as every other module), scoped rate limiting inside portal.route.ts only (10/15min token generation, 120/15min list — app-wide limiter and /api/auth left untouched, out of scope), MIME-safe preview fallback, and restructured pages/PortalPage.tsx into a pages/portal/ feature folder. Round 2: user flagged the layout as still admin-feeling against an approved mockup — widened container to max-w-350 (1400px), compact two-column hero+trust-card, search integrated into the hero band (no more isolated sticky strip), category filtering consolidated to browse cards only (redundant dropdown removed), document list rebuilt as a light public-catalogue table instead of internal DataTable styling, action wording corrected 'Télécharger' → 'Recevoir le lien' (SICOT blue, never black — the user receives an emailed link, doesn't download immediately). Round 3 (final refinement): integrated the real ANAC seal (project-owner-provided asset, packages/server/assets/anac-seal.png, never redrawn/recolored, copied to packages/client/public/) in header and hero, ISO 9001/Bureau Veritas/UKAS certification banner added to footer, category cards resized/restructured, aria-pressed selected state, distinct global/category/search empty states, pagination clamp guard, real email regex validation, HEAD pre-check before rendering PDF iframe (iframes don't reliably fire onError on a 404) so a withdrawn document shows a clear failure state instead of a blank frame. One live-edit regression caught and fixed mid-round: hero subtitle text had lost its text-white/70 opacity classes (near-invisible on the navy background) during the user's own manual tweaks — flagged rather than silently reverted, user confirmed it was accidental and asked to restore it; the header's logo-to-icon reversion in that same live edit was confirmed intentional and left as-is. Validated via tsc/eslint/build plus live curl checks (rate limit trips at request 10, publication boundary 404s unpublished IDs, HEAD 200/404 correct) — no browser automation, per the standing instruction from the Documents round. See changelog.md's 2026-08-27 Portal entry for full detail.",
-  "status": "Sprints 1-5 + 8 + 9 + 10 + 11 COMPLETE ✅ per docs/TASKS.md. UI hardening sprint (Jul 5-6) COMPLETE ✅. Personnel ANAC API integration COMPLETE ✅ (6e20415). Deployment infrastructure (Docker/Compose/CI-CD) COMPLETE ✅ (2026-08-24). Missions (M3), Courriers (M4), Traductions (M6), Glossaire (M7), Demandes (M5), Documents (M8), Utilisateurs (M10), Administration (M10, incl. GFS backup rotation), Portail externe (incl. critical download-link fix) redesigns all COMPLETE ✅ (2026-08-24 → 2026-08-27). Individual PDF export (accords/courriers/missions) with preview dialog COMPLETE ✅ (2026-08-24). Agent workspace (/mon-espace + /mes-missions + /mes-demandes), /profil page, self-service password change + server-side complexity enforcement everywhere, users.poste/service/direction COMPLETE ✅ (2026-08-26). SERV-APPI deployment path SCRATCHED (security issue on that server, per project owner 2026-08-24) — Docker/VPS is now the only path; app already running on a separate Ubuntu test server. Pending fixes: tsc --noEmit (pre-existing, though observed clean this session — worth re-verifying), exceljs version restore, delete rapports.route.ts stub. New backlog flagged (Sprint 12, À faire): shared SummaryCard extraction (now 10 duplicates), automated test suite, multi-level correspondence threads, courrier body/content field, glossaire multi-source import, Demandes/Traductions workflow desync (found during M5 audit, not fixed), demande-lock-orphaned-on-failed-auto-launch (found during M5 audit, not fixed), document version chain still not visually grouped in the Documents registry, recommandation_alerte_jours dead parameter (found during Administration audit, not fixed), app-wide rate limiter and /api/auth limiter still disabled (found during Portal audit, not fixed — cross-cutting, deliberately left for its own review). Browser/interactive testing: used once for the Documents round (Playwright, confirmed two real UI bugs fixed) — user has since asked not to repeat this locally going forward; UI changes are validated at tsc/eslint/build (+ live HTTP/curl checks where relevant) and handed to the user to check manually.",
+  "lastCommit": "8af7c2a feat(client/server): redesign External Portal (/portal) - critical download-link fix + visual polish",
+  "currentSprint": "Sprint 12 (unplanned, post-Sprint-11) - Missions (M3) + Courriers (M4) + Traductions (M6) + Glossaire (M7) + Demandes (M5) + Documents (M8) + Utilisateurs (M10) + Administration (M10) + Portail externe redesigns + deployment infra + individual PDF export + Agent workspace",
+  "currentSprintFocus": "2026-08-27: Portail externe (/portal) redesigned right after Administration, three successive rounds on the same page. Round 1 (audit-first): found and fixed a critical bug where the emailed secure-download link pointed at a client route that never existed (/portal/telecharger/:token), silently defeating the entire download flow - fixed with a new PortalDownloadPage that fetches the file as a blob so expired/invalid tokens show a normalized error instead of raw JSON. Also added real per-category counts (GET /portal/documents/aggregates, same db.$count pattern as every other module), scoped rate limiting inside portal.route.ts only (10/15min token generation, 120/15min list - app-wide limiter and /api/auth left untouched, out of scope), MIME-safe preview fallback, and restructured pages/PortalPage.tsx into a pages/portal/ feature folder. Round 2: user flagged the layout as still admin-feeling against an approved mockup - widened container to max-w-350 (1400px), compact two-column hero+trust-card, search integrated into the hero band (no more isolated sticky strip), category filtering consolidated to browse cards only (redundant dropdown removed), document list rebuilt as a light public-catalogue table instead of internal DataTable styling, action wording corrected 'Télécharger' → 'Recevoir le lien' (SICOT blue, never black - the user receives an emailed link, doesn't download immediately). Round 3 (final refinement): integrated the real ANAC seal (project-owner-provided asset, packages/server/assets/anac-seal.png, never redrawn/recolored, copied to packages/client/public/) in header and hero, ISO 9001/Bureau Veritas/UKAS certification banner added to footer, category cards resized/restructured, aria-pressed selected state, distinct global/category/search empty states, pagination clamp guard, real email regex validation, HEAD pre-check before rendering PDF iframe (iframes don't reliably fire onError on a 404) so a withdrawn document shows a clear failure state instead of a blank frame. One live-edit regression caught and fixed mid-round: hero subtitle text had lost its text-white/70 opacity classes (near-invisible on the navy background) during the user's own manual tweaks - flagged rather than silently reverted, user confirmed it was accidental and asked to restore it; the header's logo-to-icon reversion in that same live edit was confirmed intentional and left as-is. Validated via tsc/eslint/build plus live curl checks (rate limit trips at request 10, publication boundary 404s unpublished IDs, HEAD 200/404 correct) - no browser automation, per the standing instruction from the Documents round. See changelog.md's 2026-08-27 Portal entry for full detail.",
+  "status": "Sprints 1-5 + 8 + 9 + 10 + 11 COMPLETE ✅ per docs/TASKS.md. UI hardening sprint (Jul 5-6) COMPLETE ✅. Personnel ANAC API integration COMPLETE ✅ (6e20415). Deployment infrastructure (Docker/Compose/CI-CD) COMPLETE ✅ (2026-08-24). Missions (M3), Courriers (M4), Traductions (M6), Glossaire (M7), Demandes (M5), Documents (M8), Utilisateurs (M10), Administration (M10, incl. GFS backup rotation), Portail externe (incl. critical download-link fix) redesigns all COMPLETE ✅ (2026-08-24 → 2026-08-27). Individual PDF export (accords/courriers/missions) with preview dialog COMPLETE ✅ (2026-08-24). Agent workspace (/mon-espace + /mes-missions + /mes-demandes), /profil page, self-service password change + server-side complexity enforcement everywhere, users.poste/service/direction COMPLETE ✅ (2026-08-26). SERV-APPI deployment path SCRATCHED (security issue on that server, per project owner 2026-08-24) - Docker/VPS is now the only path; app already running on a separate Ubuntu test server. Pending fixes: tsc --noEmit (pre-existing, though observed clean this session - worth re-verifying), exceljs version restore, delete rapports.route.ts stub. New backlog flagged (Sprint 12, À faire): shared SummaryCard extraction (now 10 duplicates), automated test suite, multi-level correspondence threads, courrier body/content field, glossaire multi-source import, Demandes/Traductions workflow desync (found during M5 audit, not fixed), demande-lock-orphaned-on-failed-auto-launch (found during M5 audit, not fixed), document version chain still not visually grouped in the Documents registry, recommandation_alerte_jours dead parameter (found during Administration audit, not fixed), app-wide rate limiter and /api/auth limiter still disabled (found during Portal audit, not fixed - cross-cutting, deliberately left for its own review). Browser/interactive testing: used once for the Documents round (Playwright, confirmed two real UI bugs fixed) - user has since asked not to repeat this locally going forward; UI changes are validated at tsc/eslint/build (+ live HTTP/curl checks where relevant) and handed to the user to check manually.",
 
   "activeSession": {
-    "task": "Portail externe (/portal) redesign — three rounds: (1) audit-first, found and fixed the critical dead secure-download-link route, added real category aggregates + scoped rate limiting + MIME-safe preview, restructured into a feature folder; (2) visual correction pass against an approved mockup (wide container, compact two-column hero+search, catalogue-style table, corrected action wording); (3) final refinement with the real ANAC seal/certification assets, category card polish, distinct empty states, pagination guard, HEAD-based preview-failure handling. A live-edit accessibility regression (hero text losing its white/70 opacity classes) was flagged rather than silently fixed, confirmed accidental by the user, then restored; a second flagged item (header logo reverted to a generic icon) was confirmed intentional and left alone. Validated via tsc/eslint/build plus live curl checks — no browser automation, per the standing instruction from the Documents round.",
+    "task": "Portail externe (/portal) redesign - three rounds: (1) audit-first, found and fixed the critical dead secure-download-link route, added real category aggregates + scoped rate limiting + MIME-safe preview, restructured into a feature folder; (2) visual correction pass against an approved mockup (wide container, compact two-column hero+search, catalogue-style table, corrected action wording); (3) final refinement with the real ANAC seal/certification assets, category card polish, distinct empty states, pagination guard, HEAD-based preview-failure handling. A live-edit accessibility regression (hero text losing its white/70 opacity classes) was flagged rather than silently fixed, confirmed accidental by the user, then restored; a second flagged item (header logo reverted to a generic icon) was confirmed intentional and left alone. Validated via tsc/eslint/build plus live curl checks - no browser automation, per the standing instruction from the Documents round.",
     "startedAt": "2026-08-27",
-    "nextAction": "None — implementation and validation complete. Doc-sync in progress; commit/push next per user's 'proceed with updates and push, sync Notion'. No open recommendations from this round were accepted for further work."
+    "nextAction": "None - implementation and validation complete. Doc-sync in progress; commit/push next per user's 'proceed with updates and push, sync Notion'. No open recommendations from this round were accepted for further work."
   },
 
   "index": [
@@ -38,7 +38,7 @@
       "path": "active-session/current-task.md",
       "type": "session",
       "tags": ["current", "sprint9", "portail", "documents", "portal"],
-      "summary": "Sprint 9 (Portail Documentaire Externe) built this session — server module/portal + PortalPage + DocumentsPage toggle. Uncommitted pending verification."
+      "summary": "Sprint 9 (Portail Documentaire Externe) built this session - server module/portal + PortalPage + DocumentsPage toggle. Uncommitted pending verification."
     },
     {
       "path": "active-session/blockers.md",
@@ -67,7 +67,17 @@
     {
       "path": "project/architecture.md",
       "type": "project",
-      "tags": ["stack", "react", "express", "drizzle", "auth-flow", "environment", "deployment", "docker", "ci-cd"],
+      "tags": [
+        "stack",
+        "react",
+        "express",
+        "drizzle",
+        "auth-flow",
+        "environment",
+        "deployment",
+        "docker",
+        "ci-cd"
+      ],
       "summary": "Full stack: React+Vite+Tailwind v4 client, Express+Drizzle+PG server. Auth flow, env vars, module pattern, backup cron, deployment infrastructure (Docker Compose + GitHub Actions/GHCR, 7-container staging/prod stack)"
     },
     {
@@ -121,49 +131,141 @@
     {
       "path": "technical/gotchas.md",
       "type": "technical",
-      "tags": ["gotchas", "framer-motion", "tailwind", "shadcn", "cors", "discriminatedunion", "multer", "drizzle", "enum", "otp"],
+      "tags": [
+        "gotchas",
+        "framer-motion",
+        "tailwind",
+        "shadcn",
+        "cors",
+        "discriminatedunion",
+        "multer",
+        "drizzle",
+        "enum",
+        "otp"
+      ],
       "summary": "10 gotchas with exact symptoms and fixes: transition in Variants, Tailwind v4 config, shadcn CLI, CORS wildcard, discriminatedUnion casting, ignoreDeprecations, multer limits, Drizzle where(), PG enums, premier_login role"
     },
     {
       "path": "sessions/2026-07-06.md",
       "type": "session-log",
-      "tags": ["2026-07-06", "shadcn", "table", "data-table", "tabs", "radix", "refactor", "feature-folder", "analytics", "demandes", "glossaire", "traductions", "ui-hardening"],
-      "summary": "Session: UI hardening sprint continued — GlossairePage/DemandesPage/TraductionsPage/AnalyticsPage migrated from raw <table>/hand-rolled tabs to shadcn Table/DataTable/Tabs (new components/ui/tabs.tsx on @radix-ui/react-tabs), each split into a pages/<module>/ feature folder (f06ed6d). docs/TASKS.md gained a 'Sprint de durcissement UI' section documenting the whole 2026-07-05/06 effort. Not sprint-scoped."
+      "tags": [
+        "2026-07-06",
+        "shadcn",
+        "table",
+        "data-table",
+        "tabs",
+        "radix",
+        "refactor",
+        "feature-folder",
+        "analytics",
+        "demandes",
+        "glossaire",
+        "traductions",
+        "ui-hardening"
+      ],
+      "summary": "Session: UI hardening sprint continued - GlossairePage/DemandesPage/TraductionsPage/AnalyticsPage migrated from raw <table>/hand-rolled tabs to shadcn Table/DataTable/Tabs (new components/ui/tabs.tsx on @radix-ui/react-tabs), each split into a pages/<module>/ feature folder (f06ed6d). docs/TASKS.md gained a 'Sprint de durcissement UI' section documenting the whole 2026-07-05/06 effort. Not sprint-scoped."
     },
     {
       "path": "sessions/2026-07-05.md",
       "type": "session-log",
-      "tags": ["2026-07-05", "sonner", "toast", "confirm-toast", "partenaires", "sorting", "refactor", "feature-folder", "documents", "audit", "tsc-broken"],
+      "tags": [
+        "2026-07-05",
+        "sonner",
+        "toast",
+        "confirm-toast",
+        "partenaires",
+        "sorting",
+        "refactor",
+        "feature-folder",
+        "documents",
+        "audit",
+        "tsc-broken"
+      ],
       "summary": "Session: server-side sorting + feature-folder split for PartenairesPage.tsx (169f725); sonner toast migration replacing all alert()/confirm() client-wide (6ea082a), plus Documents/Audit feature-folder split found alongside. Not sprint-scoped. ⚠️ tsc --noEmit broken client-wide (pre-existing, ignoreDeprecations vs installed TS 5.9.3)."
     },
     {
       "path": "sessions/2026-07-04.md",
       "type": "session-log",
-      "tags": ["2026-07-04", "sprint11", "analytics", "rapports", "chartjs", "criticite", "cache", "seed-demo", "excel-export", "csv-export", "gemini", "rapports-ia", "exceljs-downgrade"],
-      "summary": "Session: Sprint 11 complete — analytics dashboard (f3547d4) + rapports layer (f27d58f) + unplanned Gemini rapports-IA add-on (AI narrative + admin review workflow). docs/TASKS.md now ✅. ⚠️ exceljs accidentally downgraded 4.x→3.x, not re-verified."
+      "tags": [
+        "2026-07-04",
+        "sprint11",
+        "analytics",
+        "rapports",
+        "chartjs",
+        "criticite",
+        "cache",
+        "seed-demo",
+        "excel-export",
+        "csv-export",
+        "gemini",
+        "rapports-ia",
+        "exceljs-downgrade"
+      ],
+      "summary": "Session: Sprint 11 complete - analytics dashboard (f3547d4) + rapports layer (f27d58f) + unplanned Gemini rapports-IA add-on (AI narrative + admin review workflow). docs/TASKS.md now ✅. ⚠️ exceljs accidentally downgraded 4.x→3.x, not re-verified."
     },
     {
       "path": "sessions/2026-07-03.md",
       "type": "session-log",
-      "tags": ["2026-07-03", "sprint9", "sprint10", "portail", "portal", "parametres", "audit", "audit-export", "pdf", "excel", "otp", "lockout", "backup-retention", "deepl"],
-      "summary": "Session: Sprint 9 — Portail Documentaire Externe (47ef8b8, pushed). Sprint 10 — Paramètres Système Élargis: OTP/lockout/backup-retention/deepl-toggle migrated to parametres table + idempotent seed service, Journal d'audit UI + PDF/Excel export (first puppeteer/exceljs use), AdminParametresPage reorganized."
+      "tags": [
+        "2026-07-03",
+        "sprint9",
+        "sprint10",
+        "portail",
+        "portal",
+        "parametres",
+        "audit",
+        "audit-export",
+        "pdf",
+        "excel",
+        "otp",
+        "lockout",
+        "backup-retention",
+        "deepl"
+      ],
+      "summary": "Session: Sprint 9 - Portail Documentaire Externe (47ef8b8, pushed). Sprint 10 - Paramètres Système Élargis: OTP/lockout/backup-retention/deepl-toggle migrated to parametres table + idempotent seed service, Journal d'audit UI + PDF/Excel export (first puppeteer/exceljs use), AdminParametresPage reorganized."
     },
     {
       "path": "sessions/2026-07-02.md",
       "type": "session-log",
-      "tags": ["2026-07-02", "refactor", "services", "error-handling", "sprint8", "dashboard", "notifications", "dd2809d", "7a1de70"],
-      "summary": "Session: server-wide refactor (dd2809d, no behavior change) + Sprint 8 completion — HistoriqueNotifications component, AccordDetail bulk-notify, dashboard accords-expirés block (7a1de70)."
+      "tags": [
+        "2026-07-02",
+        "refactor",
+        "services",
+        "error-handling",
+        "sprint8",
+        "dashboard",
+        "notifications",
+        "dd2809d",
+        "7a1de70"
+      ],
+      "summary": "Session: server-wide refactor (dd2809d, no behavior change) + Sprint 8 completion - HistoriqueNotifications component, AccordDetail bulk-notify, dashboard accords-expirés block (7a1de70)."
     },
     {
       "path": "sessions/2026-06-30.md",
       "type": "session-log",
-      "tags": ["2026-06-30", "sprint5", "dashboard", "parametres", "notifications", "chart.js", "admin"],
-      "summary": "Session: Sprint 5 — DashboardPage M9 (8 KPI + 3 charts + alertes), AdminParametresPage, Notifications module, ModalRelance. All uncommitted."
+      "tags": [
+        "2026-06-30",
+        "sprint5",
+        "dashboard",
+        "parametres",
+        "notifications",
+        "chart.js",
+        "admin"
+      ],
+      "summary": "Session: Sprint 5 - DashboardPage M9 (8 KPI + 3 charts + alertes), AdminParametresPage, Notifications module, ModalRelance. All uncommitted."
     },
     {
       "path": "sessions/2026-06-29.md",
       "type": "session-log",
-      "tags": ["2026-06-29", "sprint3", "sprint4", "missions", "glossaire", "traductions", "translate-service"],
+      "tags": [
+        "2026-06-29",
+        "sprint3",
+        "sprint4",
+        "missions",
+        "glossaire",
+        "traductions",
+        "translate-service"
+      ],
       "summary": "Session: Sprint 3 fully complete (Missions client done). Sprint 4 started: translate-service, traduction module, glossaire module, GlossairePage, glossaire.api.ts, traductions.api.ts."
     },
     {
@@ -191,21 +293,57 @@
     "designTokenPrefix": "anac-",
     "cookieNames": { "access": "sicot_access (15min)", "refresh": "sicot_refresh (7d)" },
     "roles": ["agent", "traducteur", "relecteur", "admin", "super_admin"],
-    "activeRoutes": ["/api/auth", "/api/users", "/api/audit", "/api/health", "/api/documents", "/api/organisations", "/api/bootstrap", "/api/accords", "/api/courriers", "/api/missions", "/api/contacts", "/api/glossaire", "/api/traductions", "/api/demandes", "/api/dashboard", "/api/parametres", "/api/notifications", "/api/jobs", "/api/portal", "/api/analytics"],
+    "activeRoutes": [
+      "/api/auth",
+      "/api/users",
+      "/api/audit",
+      "/api/health",
+      "/api/documents",
+      "/api/organisations",
+      "/api/bootstrap",
+      "/api/accords",
+      "/api/courriers",
+      "/api/missions",
+      "/api/contacts",
+      "/api/glossaire",
+      "/api/traductions",
+      "/api/demandes",
+      "/api/dashboard",
+      "/api/parametres",
+      "/api/notifications",
+      "/api/jobs",
+      "/api/portal",
+      "/api/analytics"
+    ],
     "pendingRoutes": []
   },
 
   "blockers": [
-    { "id": "B1", "severity": "soft", "item": "API Personnel ANAC — code integration COMPLETE (6e20415, AdminUsersPage + personnel-anac module); production usage still depends on the VPS/server being joined to ANAC's Tailscale network to reach PERSONNEL_ANAC_BASE_URL", "waitingOn": "ANAC IT dept (network access only, not code)" },
-    { "id": "B2", "severity": "resolved", "item": "SERV-APPI SCRATCHED as a deployment target (security issue on that server, per project owner 2026-08-24) — no longer waiting on anything, Docker/VPS is the only path now, app already running on a separate Ubuntu test server (see docs/deployment/production-guide.md)", "waitingOn": "none" },
+    {
+      "id": "B1",
+      "severity": "soft",
+      "item": "API Personnel ANAC - code integration COMPLETE (6e20415, AdminUsersPage + personnel-anac module); production usage still depends on the VPS/server being joined to ANAC's Tailscale network to reach PERSONNEL_ANAC_BASE_URL",
+      "waitingOn": "ANAC IT dept (network access only, not code)"
+    },
+    {
+      "id": "B2",
+      "severity": "resolved",
+      "item": "SERV-APPI SCRATCHED as a deployment target (security issue on that server, per project owner 2026-08-24) - no longer waiting on anything, Docker/VPS is the only path now, app already running on a separate Ubuntu test server (see docs/deployment/production-guide.md)",
+      "waitingOn": "none"
+    },
     { "id": "B3", "severity": "soft", "item": "Glossaire CCIT Excel", "waitingOn": "CCIT" },
     { "id": "B4", "severity": "soft", "item": "DeepL approval", "waitingOn": "DG + RGPD" },
-    { "id": "B5", "severity": "soft", "item": "Gemini rapports-IA production approval", "waitingOn": "DG + RGPD (currently test-environment only, per .env.example comment)" }
+    {
+      "id": "B5",
+      "severity": "soft",
+      "item": "Gemini rapports-IA production approval",
+      "waitingOn": "DG + RGPD (currently test-environment only, per .env.example comment)"
+    }
   ],
 
   "criticalRules": [
-    "CHECK exceljs version in packages/server/package.json is ^4.4.0 before trusting any Excel export (audit/analytics/rapports) — accidentally downgraded to ^3.4.0 on 2026-07-04, likely via a root-level npm install; not yet re-verified against 3.x API",
-    "NEVER run shadcn CLI — Tailwind v4 incompatibility",
+    "CHECK exceljs version in packages/server/package.json is ^4.4.0 before trusting any Excel export (audit/analytics/rapports) - accidentally downgraded to ^3.4.0 on 2026-07-04, likely via a root-level npm install; not yet re-verified against 3.x API",
+    "NEVER run shadcn CLI - Tailwind v4 incompatibility",
     "NEVER put transition inside framer-motion Variants objects",
     "NEVER use CORS origin wildcard with credentials: true",
     "KEEP ignoreDeprecations: '6.0' in packages/client/tsconfig.json",

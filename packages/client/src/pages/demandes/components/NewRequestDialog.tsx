@@ -77,7 +77,7 @@ export function NouvelleDemandeDialog({
       setUploadNotice(null);
     } else {
       setUploadNotice(
-        `"${document.nomOriginal}" a été téléversé, mais l'OCR n'est pas encore disponible — sélectionnez-le une fois traité.`
+        `"${document.nomOriginal}" a été téléversé, mais l'OCR n'est pas encore disponible - sélectionnez-le une fois traité.`
       );
     }
   }
@@ -213,7 +213,7 @@ export function NouvelleDemandeDialog({
                         <SelectValue placeholder="Sélectionner un document..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">— Choisir —</SelectItem>
+                        <SelectItem value="__none__">- Choisir -</SelectItem>
                         {documents.map((doc) => (
                           <SelectItem key={doc.id} value={doc.id.toString()}>
                             {doc.nomOriginal}

@@ -1,12 +1,12 @@
 // packages/server/src/utils/personnel-anac.ts
 import axios, { AxiosError } from 'axios';
-import type { PersonnelAnacRaw, PersonnelAnacListMeta } from "@/utils/personnel-anac.types" 
+import type { PersonnelAnacRaw, PersonnelAnacListMeta } from '@/utils/personnel-anac.types';
 
 export type { PersonnelAnacRaw, PersonnelAnacListMeta } from './personnel-anac.types';
 
 // ── Configuration ──────────────────────────────────────────────────────────
 // Appelle l'API Personnel ANAC (passerelle en lecture seule sur la base RH ANAC,
-// accessible via le réseau Tailscale — voir doc ANAC IT, juillet 2026)
+// accessible via le réseau Tailscale - voir doc ANAC IT, juillet 2026)
 const BASE_URL = process.env.PERSONNEL_ANAC_BASE_URL ?? 'http://100.110.227.69:4005';
 const API_KEY = process.env.PERSONNEL_ANAC_API_KEY ?? '';
 const TIMEOUT_MS = 5000;
@@ -68,7 +68,10 @@ export async function listerPersonnel(
 ): Promise<{ data: PersonnelAnacRaw[]; meta: PersonnelAnacListMeta }> {
   try {
     const res = await client.get('/api/v1/personnel', { params: { page, limit, sortBy, order } });
-    return { data: res.data.data as PersonnelAnacRaw[], meta: res.data.meta as PersonnelAnacListMeta };
+    return {
+      data: res.data.data as PersonnelAnacRaw[],
+      meta: res.data.meta as PersonnelAnacListMeta,
+    };
   } catch (error) {
     throw traduireErreur(error);
   }

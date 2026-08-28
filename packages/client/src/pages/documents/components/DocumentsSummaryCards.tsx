@@ -38,7 +38,7 @@ function SummaryCard({
 }
 
 // Portail publié n'est affiché que lorsque des compteurs fiables existent
-// (voir documents.service.ts#getDocumentsAggregates côté serveur) — jamais
+// (voir documents.service.ts#getDocumentsAggregates côté serveur) - jamais
 // dérivé de la page courante, jamais de compteurs inventés.
 export function DocumentsSummaryCards({ aggregates }: { aggregates?: DocumentsAggregates }) {
   return (

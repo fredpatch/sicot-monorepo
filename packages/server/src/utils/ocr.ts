@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // ── Configuration ─────────────────────────────────────────────────────────
 const OCR_SERVICE_URL = process.env.OCR_SERVICE_URL ?? 'http://localhost:5001';
-const OCR_TIMEOUT_MS = 60000; // 60 secondes — les gros PDF peuvent prendre du temps
+const OCR_TIMEOUT_MS = 60000; // 60 secondes - les gros PDF peuvent prendre du temps
 
 // ── Types ─────────────────────────────────────────────────────────────────
 export interface OCRResult {

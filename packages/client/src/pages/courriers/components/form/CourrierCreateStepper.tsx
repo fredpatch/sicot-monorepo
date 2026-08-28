@@ -3,7 +3,16 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, FileText, Loader2, Plus, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Loader2,
+  Plus,
+  X,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -34,7 +43,11 @@ interface Organisation {
 type StepKey = 'general' | 'interlocuteur' | 'documents' | 'review';
 
 const STEPS: { key: StepKey; label: string; fields: (keyof CourrierCreateFormData)[] }[] = [
-  { key: 'general', label: 'Informations générales', fields: ['direction', 'objet', 'dateReception', 'reponseRequise'] },
+  {
+    key: 'general',
+    label: 'Informations générales',
+    fields: ['direction', 'objet', 'dateReception', 'reponseRequise'],
+  },
   { key: 'interlocuteur', label: 'Expéditeur / Destinataire', fields: [] },
   { key: 'documents', label: 'Documents', fields: [] },
   { key: 'review', label: 'Vérification', fields: [] },
@@ -104,12 +117,17 @@ export default function CourrierCreateStepper() {
   const values = watch();
   const isReponse = Boolean(reponseAId);
   const organisationSelectionneeId =
-    values.direction === 'entrant' ? values.expediteurOrganisationId : values.destinataireOrganisationId;
+    values.direction === 'entrant'
+      ? values.expediteurOrganisationId
+      : values.destinataireOrganisationId;
 
   const { data: contactsData } = useQuery({
     queryKey: ['contacts-organisation', organisationSelectionneeId],
     queryFn: async () => {
-      const res = await contactsApi.lister({ organisationId: organisationSelectionneeId, actif: true });
+      const res = await contactsApi.lister({
+        organisationId: organisationSelectionneeId,
+        actif: true,
+      });
       return res.data as { data: ContactListItem[] };
     },
     enabled: Boolean(organisationSelectionneeId),
@@ -166,24 +184,35 @@ export default function CourrierCreateStepper() {
 
   const currentStep = STEPS[stepIndex];
   const interlocuteurLabel = values.direction === 'entrant' ? 'Expéditeur' : 'Destinataire';
-  const orgFieldName = values.direction === 'entrant' ? 'expediteurOrganisationId' : 'destinataireOrganisationId';
-  const contactFieldName = values.direction === 'entrant' ? 'expediteurContactId' : 'destinataireContactId';
+  const orgFieldName =
+    values.direction === 'entrant' ? 'expediteurOrganisationId' : 'destinataireOrganisationId';
+  const contactFieldName =
+    values.direction === 'entrant' ? 'expediteurContactId' : 'destinataireContactId';
 
   return (
     <div className="mx-auto max-w-[1180px] space-y-5">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Button type="button" variant="ghost" size="icon-sm" onClick={cancel} aria-label="Retour aux courriers">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={cancel}
+            aria-label="Retour aux courriers"
+          >
             <ArrowLeft size={15} aria-hidden="true" />
           </Button>
           <div>
-            <p className="text-xs text-anac-muted">Courriers / {isReponse ? 'Répondre' : 'Nouveau courrier'}</p>
+            <p className="text-xs text-anac-muted">
+              Courriers / {isReponse ? 'Répondre' : 'Nouveau courrier'}
+            </p>
             <h2 className="mt-2 text-2xl font-bold text-anac-navy">
               {isReponse ? 'Répondre au courrier' : 'Nouveau courrier'}
             </h2>
             {courrierParent && (
               <p className="mt-1 text-sm text-anac-muted">
-                En réponse à <span className="font-mono">{courrierParent.reference}</span> — {courrierParent.objet}
+                En réponse à <span className="font-mono">{courrierParent.reference}</span> -{' '}
+                {courrierParent.objet}
               </p>
             )}
           </div>
@@ -199,7 +228,9 @@ export default function CourrierCreateStepper() {
               disabled={createMutation.isPending}
               className="gap-2 bg-anac-blue"
             >
-              {createMutation.isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+              {createMutation.isPending && (
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              )}
               {isReponse ? 'Envoyer la réponse' : 'Créer le courrier'}
             </Button>
           )}
@@ -208,8 +239,8 @@ export default function CourrierCreateStepper() {
 
       {createMutation.error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-anac-danger">
-          {(createMutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-            'Une erreur est survenue.'}
+          {(createMutation.error as { response?: { data?: { message?: string } } })?.response?.data
+            ?.message ?? 'Une erreur est survenue.'}
         </div>
       )}
 
@@ -223,7 +254,9 @@ export default function CourrierCreateStepper() {
                   onClick={() => goToStep(index)}
                   aria-current={index === stepIndex ? 'step' : undefined}
                   className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-anac-sky ${
-                    index === stepIndex ? 'bg-blue-50 text-anac-blue' : 'text-anac-muted hover:bg-anac-gray'
+                    index === stepIndex
+                      ? 'bg-blue-50 text-anac-blue'
+                      : 'text-anac-muted hover:bg-anac-gray'
                   }`}
                 >
                   <span
@@ -246,9 +279,17 @@ export default function CourrierCreateStepper() {
           </ol>
         </nav>
 
-        <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} noValidate className="card p-0">
+        <form
+          onSubmit={handleSubmit((data) => createMutation.mutate(data))}
+          noValidate
+          className="card p-0"
+        >
           <div className="border-b border-anac-border px-6 py-5">
-            <h3 ref={headingRef} tabIndex={-1} className="text-lg font-bold text-anac-navy outline-none">
+            <h3
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-lg font-bold text-anac-navy outline-none"
+            >
               {currentStep.key === 'interlocuteur' ? interlocuteurLabel : currentStep.label}
             </h3>
           </div>
@@ -262,7 +303,11 @@ export default function CourrierCreateStepper() {
                     name="direction"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange} disabled={isReponse}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isReponse}
+                      >
                         <SelectTrigger className="mt-1" aria-invalid={Boolean(errors.direction)}>
                           <SelectValue />
                         </SelectTrigger>
@@ -284,7 +329,9 @@ export default function CourrierCreateStepper() {
                     aria-invalid={Boolean(errors.objet)}
                     className="mt-1"
                   />
-                  {errors.objet && <p className="mt-1 text-xs text-anac-danger">{errors.objet.message}</p>}
+                  {errors.objet && (
+                    <p className="mt-1 text-xs text-anac-danger">{errors.objet.message}</p>
+                  )}
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -300,7 +347,9 @@ export default function CourrierCreateStepper() {
                       className="mt-1"
                     />
                     {errors.dateReception && (
-                      <p className="mt-1 text-xs text-anac-danger">{errors.dateReception.message}</p>
+                      <p className="mt-1 text-xs text-anac-danger">
+                        {errors.dateReception.message}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -327,7 +376,12 @@ export default function CourrierCreateStepper() {
                 {values.reponseRequise === 'oui' && (
                   <div>
                     <Label htmlFor="dateLimiteReponse">Date limite de réponse</Label>
-                    <Input id="dateLimiteReponse" type="date" {...register('dateLimiteReponse')} className="mt-1" />
+                    <Input
+                      id="dateLimiteReponse"
+                      type="date"
+                      {...register('dateLimiteReponse')}
+                      className="mt-1"
+                    />
                   </div>
                 )}
               </div>
@@ -355,7 +409,7 @@ export default function CourrierCreateStepper() {
                           <SelectValue placeholder="Sélectionner..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">— Aucun —</SelectItem>
+                          <SelectItem value="__none__">- Aucun -</SelectItem>
                           {organisations.map((org) => (
                             <SelectItem key={org.id} value={org.id.toString()}>
                               {org.nom}
@@ -394,14 +448,18 @@ export default function CourrierCreateStepper() {
                           }}
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="— Aucun contact spécifique —" />
+                            <SelectValue placeholder="- Aucun contact spécifique -" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__none__">— Aucun contact spécifique —</SelectItem>
+                            <SelectItem value="__none__">- Aucun contact spécifique -</SelectItem>
                             {contactsDisponibles.map((contact) => (
                               <SelectItem key={contact.id} value={contact.id.toString()}>
                                 {contact.prenom} {contact.nom}
-                                {contact.poste ? <span className="ml-1 text-xs text-anac-muted">· {contact.poste}</span> : null}
+                                {contact.poste ? (
+                                  <span className="ml-1 text-xs text-anac-muted">
+                                    · {contact.poste}
+                                  </span>
+                                ) : null}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -445,7 +503,9 @@ export default function CourrierCreateStepper() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setDocumentsLies((docs) => docs.filter((d) => d.id !== doc.id))}
+                          onClick={() =>
+                            setDocumentsLies((docs) => docs.filter((d) => d.id !== doc.id))
+                          }
                           className="text-anac-muted transition-colors hover:text-anac-danger"
                           aria-label={`Retirer ${doc.nom}`}
                         >
@@ -466,22 +526,31 @@ export default function CourrierCreateStepper() {
             {currentStep.key === 'review' && (
               <div className="max-w-2xl">
                 <dl className="space-y-3 text-sm">
-                  <ReviewItem label="Direction" value={values.direction === 'entrant' ? 'Entrant' : 'Sortant'} />
+                  <ReviewItem
+                    label="Direction"
+                    value={values.direction === 'entrant' ? 'Entrant' : 'Sortant'}
+                  />
                   <ReviewItem label="Objet" value={values.objet || '-'} />
                   <ReviewItem label="Date" value={values.dateReception || '-'} />
                   <ReviewItem
                     label={interlocuteurLabel}
-                    value={interlocuteurPreview ? `${interlocuteurPreview.nom} (${interlocuteurPreview.pays})` : 'Aucun'}
+                    value={
+                      interlocuteurPreview
+                        ? `${interlocuteurPreview.nom} (${interlocuteurPreview.pays})`
+                        : 'Aucun'
+                    }
                   />
                   <ReviewItem
                     label="Contact"
-                    value={contactPreview ? `${contactPreview.prenom} ${contactPreview.nom}` : 'Aucun'}
+                    value={
+                      contactPreview ? `${contactPreview.prenom} ${contactPreview.nom}` : 'Aucun'
+                    }
                   />
                   <ReviewItem
                     label="Réponse requise"
                     value={
                       values.reponseRequise === 'oui'
-                        ? `Oui${values.dateLimiteReponse ? ` — délai ${values.dateLimiteReponse}` : ''}`
+                        ? `Oui${values.dateLimiteReponse ? ` - délai ${values.dateLimiteReponse}` : ''}`
                         : values.reponseRequise === 'non'
                           ? 'Non'
                           : 'Pour information'
@@ -517,8 +586,14 @@ export default function CourrierCreateStepper() {
                 <ChevronRight size={14} aria-hidden="true" />
               </Button>
             ) : (
-              <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-anac-blue">
-                {createMutation.isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="gap-2 bg-anac-blue"
+              >
+                {createMutation.isPending && (
+                  <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                )}
                 {isReponse ? 'Envoyer la réponse' : 'Créer le courrier'}
               </Button>
             )}

@@ -34,7 +34,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     req.user = payload;
     next();
   } catch {
-    // Token expiré — le client devra appeler /api/auth/refresh
+    // Token expiré - le client devra appeler /api/auth/refresh
     res.status(401).json({ message: 'Session expirée.', code: 'TOKEN_EXPIRED' });
   }
 }

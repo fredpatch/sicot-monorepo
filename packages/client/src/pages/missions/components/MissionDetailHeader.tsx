@@ -32,7 +32,10 @@ export function MissionDetailHeader({
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-anac-muted">
-          <Link to="/missions" className="inline-flex items-center gap-1 text-anac-blue hover:text-anac-navy">
+          <Link
+            to="/missions"
+            className="inline-flex items-center gap-1 text-anac-blue hover:text-anac-navy"
+          >
             <ArrowLeft size={13} aria-hidden="true" />
             Missions
           </Link>
@@ -51,7 +54,13 @@ export function MissionDetailHeader({
 
       <div className="flex flex-wrap gap-2">
         {peutGerer && (
-          <Button type="button" variant="outline" onClick={onEdit} disabled={isCancelled} className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onEdit}
+            disabled={isCancelled}
+            className="gap-2"
+          >
             <Pencil size={14} aria-hidden="true" />
             Modifier
           </Button>
@@ -125,7 +134,7 @@ export function MissionDetailHeader({
         open={pdfPreviewOpen}
         onOpenChange={setPdfPreviewOpen}
         url={missionsApi.getUrlExportPDF(mission.id)}
-        titre={`Mission — ${mission.titre}`}
+        titre={`Mission - ${mission.titre}`}
       />
     </div>
   );

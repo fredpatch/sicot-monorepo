@@ -2,7 +2,7 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
-# Chromium for Puppeteer (PDF export, src/utils/pdf.ts) — Alpine's own
+# Chromium for Puppeteer (PDF export, src/utils/pdf.ts) - Alpine's own
 # chromium package instead of Puppeteer's bundled download, which doesn't
 # run reliably on Alpine's musl libc.
 RUN apk add --no-cache chromium nss freetype freetype-dev harfbuzz \
@@ -39,7 +39,7 @@ COPY --from=build /app/packages/server/assets ./assets
 COPY --from=build /app/packages/server/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/packages/server/drizzle ./drizzle
 COPY --from=build /app/packages/server/package.json ./package.json
-# npm workspaces symlinks @sicot/shared inside node_modules to ../../packages/shared —
+# npm workspaces symlinks @sicot/shared inside node_modules to ../../packages/shared -
 # that target doesn't exist in this stage, so replace the (now-dangling) symlink
 # with the real built output before it's required at runtime.
 COPY --from=build /app/node_modules ./node_modules

@@ -1,13 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { organisationsApi } from '@/lib/organisations.api';
 import { FormulaireContact } from '@/pages/partenaires/components/FormulaireContact';
 import type { ContactFormData } from '@/pages/partenaires/partenaires.schemas';
 import type { ContactListItem } from '@/lib/contacts.api';
 
-// Contact-only — the organisation is already chosen by the time this
+// Contact-only - the organisation is already chosen by the time this
 // opens (unlike Missions' two-layer "contact sur place" dialog, which
 // doesn't have an organisation field elsewhere in that form).
 export function QuickCreateContactDialog({
@@ -27,7 +34,14 @@ export function QuickCreateContactDialog({
     mutationFn: (data: ContactFormData) => organisationsApi.creerContact(organisation.id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['contacts-organisation', organisation.id] });
-      const contact = res.data as { id: number; nom: string; prenom: string; email?: string; telephone?: string; poste?: string };
+      const contact = res.data as {
+        id: number;
+        nom: string;
+        prenom: string;
+        email?: string;
+        telephone?: string;
+        poste?: string;
+      };
       onCreated({ ...contact, organisationId: organisation.id, organisationNom: organisation.nom });
       onOpenChange(false);
       toast.success(`${contact.prenom} ${contact.nom} a été créé(e).`);

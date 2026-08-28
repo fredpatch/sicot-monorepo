@@ -36,15 +36,19 @@ const LABELS_TYPE_ORGANISATION: Record<string, string> = {
 };
 
 function formatDate(date?: Date): string {
-  return date ? new Date(date).toLocaleDateString('fr-FR') : '—';
+  return date ? new Date(date).toLocaleDateString('fr-FR') : '-';
 }
 
-// ── Export PDF — fiche individuelle d'un accord ────────────────────────────
+// ── Export PDF - fiche individuelle d'un accord ────────────────────────────
 export async function genererPDFAccord(accord: AccordView): Promise<Buffer> {
   const [document, responsable, historique] = await Promise.all([
     accord.documentId
       ? db
-          .select({ id: documents.id, nomOriginal: documents.nomOriginal, mimeType: documents.mimeType })
+          .select({
+            id: documents.id,
+            nomOriginal: documents.nomOriginal,
+            mimeType: documents.mimeType,
+          })
           .from(documents)
           .where(eq(documents.id, accord.documentId))
           .then((rows) => rows[0])
@@ -61,7 +65,10 @@ export async function genererPDFAccord(accord: AccordView): Promise<Buffer> {
 
   const infosGenerales = grilleInfos([
     { label: 'Référence', valeur: echapperHTML(accord.reference) },
-    { label: 'Statut', valeur: badge(LABELS_STATUT[accord.statut], COULEURS_STATUT[accord.statut]) },
+    {
+      label: 'Statut',
+      valeur: badge(LABELS_STATUT[accord.statut], COULEURS_STATUT[accord.statut]),
+    },
     { label: 'Date de signature', valeur: formatDate(accord.dateSignature) },
     { label: "Date d'expiration", valeur: formatDate(accord.dateExpiration) },
   ]);
@@ -84,7 +91,9 @@ export async function genererPDFAccord(accord: AccordView): Promise<Buffer> {
       echapperHTML(p.nom),
       echapperHTML(p.pays),
       echapperHTML(LABELS_TYPE_ORGANISATION[p.type] ?? p.type),
-      p.contactPrincipal ? echapperHTML(`${p.contactPrincipal.prenom} ${p.contactPrincipal.nom}`) : '—',
+      p.contactPrincipal
+        ? echapperHTML(`${p.contactPrincipal.prenom} ${p.contactPrincipal.nom}`)
+        : '-',
     ])
   );
 
@@ -102,10 +111,7 @@ export async function genererPDFAccord(accord: AccordView): Promise<Buffer> {
       titre: echapperHTML(accord.titre),
       sousTitre: `Référence : ${echapperHTML(accord.reference)}`,
     })}
-    ${deuxColonnes(
-      sectionBox({ titre: 'Informations générales', contenu: infosGenerales }),
-      notes
-    )}
+    ${deuxColonnes(sectionBox({ titre: 'Informations générales', contenu: infosGenerales }), notes)}
     ${sectionBox({ titre: 'Document lié', contenu: documentHTML })}
     ${sectionBox({ titre: 'Partenaires', contenu: partenairesHTML })}
     ${deuxColonnes(

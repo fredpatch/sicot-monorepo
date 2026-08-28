@@ -11,7 +11,7 @@ import {
 } from './requests.permissions';
 import type { Demande } from './requests.types';
 
-// Pure-function unit tests for the client-side action matrix (Phase 5.3) —
+// Pure-function unit tests for the client-side action matrix (Phase 5.3) -
 // verifies it mirrors the server's capability + contextual-ownership shape
 // (demandes.controller.ts/demandes.service.ts, Phase 4.5) without
 // duplicating server security logic: these gate button visibility only.
@@ -33,37 +33,49 @@ function user(role: string, id = 1) {
   return { id, role: role as never };
 }
 
-describe('canTakeRequest — REQUEST_TAKE, agent excluded', () => {
+describe('canTakeRequest - REQUEST_TAKE, agent excluded', () => {
   it('agent cannot take, even an available request', () => {
     expect(canTakeRequest(demande({ statut: 'soumise' }), user('agent'))).toBe(false);
   });
 
   it('operateur can take an available (unlocked, soumise) request', () => {
-    expect(canTakeRequest(demande({ statut: 'soumise', verrou: false }), user('operateur'))).toBe(true);
+    expect(canTakeRequest(demande({ statut: 'soumise', verrou: false }), user('operateur'))).toBe(
+      true
+    );
   });
 
   it('locked or non-soumise requests cannot be taken even by operateur', () => {
-    expect(canTakeRequest(demande({ statut: 'soumise', verrou: true }), user('operateur'))).toBe(false);
+    expect(canTakeRequest(demande({ statut: 'soumise', verrou: true }), user('operateur'))).toBe(
+      false
+    );
     expect(canTakeRequest(demande({ statut: 'en_cours' }), user('operateur'))).toBe(false);
   });
 });
 
-describe('canRecallRequest — requester ownership, not role-derived', () => {
+describe('canRecallRequest - requester ownership, not role-derived', () => {
   it('the owning requester can recall their own soumise request, any role', () => {
-    expect(canRecallRequest(demande({ statut: 'soumise', demandeurId: 42 }), user('agent', 42))).toBe(true);
-    expect(canRecallRequest(demande({ statut: 'soumise', demandeurId: 42 }), user('admin', 42))).toBe(true);
+    expect(
+      canRecallRequest(demande({ statut: 'soumise', demandeurId: 42 }), user('agent', 42))
+    ).toBe(true);
+    expect(
+      canRecallRequest(demande({ statut: 'soumise', demandeurId: 42 }), user('admin', 42))
+    ).toBe(true);
   });
 
-  it('another user cannot recall someone else\'s request', () => {
-    expect(canRecallRequest(demande({ statut: 'soumise', demandeurId: 42 }), user('agent', 99))).toBe(false);
+  it("another user cannot recall someone else's request", () => {
+    expect(
+      canRecallRequest(demande({ statut: 'soumise', demandeurId: 42 }), user('agent', 99))
+    ).toBe(false);
   });
 
   it('cannot recall once no longer soumise, even the owner', () => {
-    expect(canRecallRequest(demande({ statut: 'en_cours', demandeurId: 42 }), user('agent', 42))).toBe(false);
+    expect(
+      canRecallRequest(demande({ statut: 'en_cours', demandeurId: 42 }), user('agent', 42))
+    ).toBe(false);
   });
 });
 
-describe('canSubmitForReview — assigned-translator ownership + REQUEST_SUBMIT_REVIEW', () => {
+describe('canSubmitForReview - assigned-translator ownership + REQUEST_SUBMIT_REVIEW', () => {
   it('the assigned translator can submit their own en_cours request', () => {
     expect(
       canSubmitForReview(demande({ statut: 'en_cours', traducteurId: 7 }), user('operateur', 7))
@@ -83,7 +95,7 @@ describe('canSubmitForReview — assigned-translator ownership + REQUEST_SUBMIT_
   });
 });
 
-describe('canValidatePriority / canValidateRequest / canArchiveRequest — capability + workflow state', () => {
+describe('canValidatePriority / canValidateRequest / canArchiveRequest - capability + workflow state', () => {
   it('operateur can validate priority unless archived', () => {
     expect(canValidatePriority(demande({ statut: 'en_cours' }), user('operateur'))).toBe(true);
     expect(canValidatePriority(demande({ statut: 'archivee' }), user('operateur'))).toBe(false);
@@ -106,7 +118,7 @@ describe('canValidatePriority / canValidateRequest / canArchiveRequest — capab
   });
 });
 
-describe('canOpenTranslation — matches the /traductions/:id route guard (TRANSLATION_VIEW)', () => {
+describe('canOpenTranslation - matches the /traductions/:id route guard (TRANSLATION_VIEW)', () => {
   it('operateur+ can open a linked translation', () => {
     expect(canOpenTranslation(demande({ traductionId: 5 }), user('operateur'))).toBe(true);
   });
@@ -120,7 +132,7 @@ describe('canOpenTranslation — matches the /traductions/:id route guard (TRANS
   });
 });
 
-describe('getRequestPrimaryAction — single most relevant action', () => {
+describe('getRequestPrimaryAction - single most relevant action', () => {
   it('prefers "take" over other actions when available', () => {
     expect(getRequestPrimaryAction(demande({ statut: 'soumise' }), user('operateur'))).toBe(
       'prendre_en_charge'

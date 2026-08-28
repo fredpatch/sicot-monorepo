@@ -20,21 +20,30 @@ interface TermDialogProps {
   erreur?: string | null;
 }
 
-export function TermDialog({ mode, terme, onOpenChange, onSubmit, chargement, erreur }: TermDialogProps) {
+export function TermDialog({
+  mode,
+  terme,
+  onOpenChange,
+  onSubmit,
+  chargement,
+  erreur,
+}: TermDialogProps) {
   return (
     <Dialog open={!!mode} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{mode === 'creer' ? 'Nouveau terme' : `Modifier — ${terme?.termeFr ?? ''}`}</DialogTitle>
+          <DialogTitle>
+            {mode === 'creer' ? 'Nouveau terme' : `Modifier - ${terme?.termeFr ?? ''}`}
+          </DialogTitle>
           <DialogDescription>
             {mode === 'creer'
               ? 'Ajoutez un nouveau concept terminologique au glossaire.'
-              : "Modifiez les traductions, le domaine ou le contexte de ce terme."}
+              : 'Modifiez les traductions, le domaine ou le contexte de ce terme.'}
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
           <TermForm
-            initial={mode === 'modifier' ? terme ?? undefined : undefined}
+            initial={mode === 'modifier' ? (terme ?? undefined) : undefined}
             onSubmit={onSubmit}
             onCancel={() => onOpenChange(false)}
             chargement={chargement}

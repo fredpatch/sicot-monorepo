@@ -2,7 +2,7 @@
 
 import { ShieldCheck } from 'lucide-react';
 
-// En-tête public — délibérément séparé de la barre latérale interne
+// En-tête public - délibérément séparé de la barre latérale interne
 // (Layout.tsx) : aucun lien de connexion, aucune navigation interne. Hauteur
 // restreinte. Sceau officiel ANAC (asset fourni, jamais redessiné/recoloré).
 export function PortalHeader() {

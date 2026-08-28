@@ -101,7 +101,7 @@ const fr = {
     terminee: 'Terminée',
     annulee: 'Annulée',
   },
-  // Aide contextuelle (Phase 10.1) — chrome du tiroir d'aide uniquement ;
+  // Aide contextuelle (Phase 10.1) - chrome du tiroir d'aide uniquement ;
   // le contenu contextuel par page (help-map.ts) reste FR-only pour l'instant.
   aide: {
     trigger: 'Aide',
@@ -212,7 +212,8 @@ const en = {
     close: 'Close',
     contextualDescription: 'Quick guide for this page.',
     fallbackTitle: 'General help',
-    fallbackBody: 'No specific help is available for this page yet. A full help center is coming soon.',
+    fallbackBody:
+      'No specific help is available for this page yet. A full help center is coming soon.',
   },
 };
 

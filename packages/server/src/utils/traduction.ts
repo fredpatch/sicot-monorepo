@@ -59,7 +59,7 @@ export async function traduireSegment(
 }
 
 // ── Traduire un texte long par segments ───────────────────────────────────
-// Utilisé pour les documents (M6) — découpe par paragraphes via le microservice
+// Utilisé pour les documents (M6) - découpe par paragraphes via le microservice
 // onProgression est un callback pour la barre de progression côté client (SSE plus tard)
 export async function traduireTexte(
   texte: string,
@@ -85,7 +85,7 @@ export async function traduireTexte(
     const data = res.data;
 
     // Simuler la progression si callback fourni
-    // Le microservice ne streame pas encore — on envoie 100% d'un coup
+    // Le microservice ne streame pas encore - on envoie 100% d'un coup
     onProgression?.(data.total_segments ?? 1, data.total_segments ?? 1);
 
     return {

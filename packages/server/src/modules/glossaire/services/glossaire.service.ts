@@ -201,7 +201,7 @@ export async function mettreAJourTerme(id: number, params: UpdateTermeParams): P
 }
 
 // ── SERVICE : Désactiver un terme ─────────────────────────────────────────
-// Jamais supprimé — marqué inactif, retiré des suggestions M6
+// Jamais supprimé - marqué inactif, retiré des suggestions M6
 export async function desactiverTerme(id: number, userId: number): Promise<TermeView> {
   const [existant] = await db.select().from(glossaire).where(eq(glossaire.id, id));
 
@@ -249,7 +249,7 @@ export async function reactiverTerme(id: number, userId: number): Promise<TermeV
 }
 
 // ── SERVICE : Suggestions pour l'éditeur M6 ───────────────────────────────
-// Recherche rapide par préfixe — utilisé par l'éditeur de traduction
+// Recherche rapide par préfixe - utilisé par l'éditeur de traduction
 export async function suggererTermes(texte: string, limite: number = 5): Promise<TermeView[]> {
   const rows = await db
     .select()

@@ -11,7 +11,7 @@ services:
       - postgres_staging_data:/var/lib/postgresql/data
     networks: [staging_net]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}_staging"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}_staging']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,15 +20,15 @@ services:
     image: libretranslate/libretranslate:latest
     environment:
       LT_LOAD_ONLY: fr,en
-      LT_DISABLE_WEB_UI: "true"
+      LT_DISABLE_WEB_UI: 'true'
     volumes:
       - libretranslate_staging_data:/home/libretranslate/.local
     networks: [staging_net]
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "python3 -c \"import urllib.request as u; u.urlopen('http://127.0.0.1:5000/languages', timeout=3)\" || exit 1",
+          'CMD-SHELL',
+          'python3 -c "import urllib.request as u; u.urlopen(''http://127.0.0.1:5000/languages'', timeout=3)" || exit 1',
         ]
       interval: 30s
       timeout: 10s
@@ -48,7 +48,7 @@ services:
       libretranslate_staging: { condition: service_healthy }
     networks: [staging_net]
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5002/health >/dev/null || exit 1"]
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:5002/health >/dev/null || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -60,7 +60,7 @@ services:
       dockerfile: packages/ocr-service/Dockerfile
     networks: [staging_net]
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5001/health >/dev/null || exit 1"]
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:5001/health >/dev/null || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -71,7 +71,7 @@ services:
       context: .
       dockerfile: packages/server/Dockerfile
       target: prod
-    shm_size: "512mb" # Puppeteer PDF export — see §11 of deployment doc
+    shm_size: '512mb' # Puppeteer PDF export - see §11 of deployment doc
     environment:
       NODE_ENV: staging
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres_staging:5432/${DB_NAME}_staging
@@ -101,7 +101,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          'CMD-SHELL',
           'node -e "fetch(''http://localhost:3001/api/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
         ]
       interval: 30s
@@ -116,7 +116,7 @@ services:
       target: prod
     networks: [staging_net]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -124,7 +124,7 @@ services:
   nginx_staging:
     image: nginx:alpine
     ports:
-      - "4001:80"
+      - '4001:80'
     volumes:
       - ./nginx/staging.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:

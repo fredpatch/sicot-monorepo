@@ -40,7 +40,7 @@ export interface Mission {
   statut: MissionStatut;
   participants: ParticipantResume[];
   recommandations?: RecommandationView[];
-  // Derived server-side from the three checklist items below — see
+  // Derived server-side from the three checklist items below - see
   // mission.utils.ts / the server's mettreAJourMission.
   confirmationLogistique: LogistiqueStatut;
   logistiqueBilletReserve: boolean;

@@ -31,10 +31,10 @@ function csvEchapper(valeur: unknown): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-// ── Export Excel — un onglet par métrique du module ────────────────────────
+// ── Export Excel - un onglet par métrique du module ────────────────────────
 export async function genererExcelAnalytics(data: Record<string, unknown>): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'SICOT — ANAC Gabon';
+  workbook.creator = 'SICOT - ANAC Gabon';
   workbook.created = new Date();
 
   for (const [cle, valeur] of Object.entries(data)) {
@@ -58,9 +58,9 @@ export async function genererExcelAnalytics(data: Record<string, unknown>): Prom
   return Buffer.from(buffer);
 }
 
-// ── Export CSV — sections séparées par une ligne vide ──────────────────────
+// ── Export CSV - sections séparées par une ligne vide ──────────────────────
 // Moins pratique qu'Excel pour du multi-tableau, mais certains outils
-// n'ouvrent que du CSV — offert en option légère plutôt qu'imposé.
+// n'ouvrent que du CSV - offert en option légère plutôt qu'imposé.
 export function genererCSVAnalytics(data: Record<string, unknown>): string {
   const sections: string[] = [];
 

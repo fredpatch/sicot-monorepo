@@ -7,7 +7,7 @@ import usersRouter from './users.route';
 
 // Direct-API security tests (prompt.md §37/§38), same pattern as prior
 // modules: real router + real authenticate/requireCapability middleware
-// over HTTP. creer/mettreAJour run for real — they carry the
+// over HTTP. creer/mettreAJour run for real - they carry the
 // ROLES_ASSIGNABLES validation under test. Everything else is stubbed.
 vi.mock('@/utils/jwt', () => ({
   verifyAccessToken: (token: string) => JSON.parse(token),
@@ -46,7 +46,7 @@ const VALID_USER_PAYLOAD = {
   role: 'agent',
 };
 
-describe('users.route — directory list requires USER_DIRECTORY_VIEW (personal capability, every role)', () => {
+describe('users.route - directory list requires USER_DIRECTORY_VIEW (personal capability, every role)', () => {
   it('401s an unauthenticated request', async () => {
     const app = buildApp();
     await request(app).get('/users').expect(401);
@@ -61,32 +61,46 @@ describe('users.route — directory list requires USER_DIRECTORY_VIEW (personal 
   );
 });
 
-describe('users.route — management actions require USER_MANAGE (agent and legacy roles denied)', () => {
-  it.each(NON_MANAGE_ROLES)('403s role=%s on every management route (no USER_MANAGE)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role);
-    await request(app).get('/users/aggregates').set('Cookie', cookie).expect(403);
-    await request(app).post('/users').set('Cookie', cookie).send(VALID_USER_PAYLOAD).expect(403);
-    await request(app).get('/users/1').set('Cookie', cookie).expect(403);
-    await request(app).patch('/users/1').set('Cookie', cookie).send({ actif: false }).expect(403);
-    await request(app).patch('/users/1/activation').set('Cookie', cookie).send({ actif: false }).expect(403);
-    await request(app).post('/users/1/reinitialiser-otp').set('Cookie', cookie).expect(403);
-  });
+describe('users.route - management actions require USER_MANAGE (agent and legacy roles denied)', () => {
+  it.each(NON_MANAGE_ROLES)(
+    '403s role=%s on every management route (no USER_MANAGE)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role);
+      await request(app).get('/users/aggregates').set('Cookie', cookie).expect(403);
+      await request(app).post('/users').set('Cookie', cookie).send(VALID_USER_PAYLOAD).expect(403);
+      await request(app).get('/users/1').set('Cookie', cookie).expect(403);
+      await request(app).patch('/users/1').set('Cookie', cookie).send({ actif: false }).expect(403);
+      await request(app)
+        .patch('/users/1/activation')
+        .set('Cookie', cookie)
+        .send({ actif: false })
+        .expect(403);
+      await request(app).post('/users/1/reinitialiser-otp').set('Cookie', cookie).expect(403);
+    }
+  );
 
-  it.each(MANAGE_ROLES)('allows role=%s on every management route (has USER_MANAGE)', async (role) => {
-    const app = buildApp();
-    const cookie = cookieFor(role, 999); // distinct id so self-deactivation guard doesn't fire
-    await request(app).get('/users/aggregates').set('Cookie', cookie).expect(200);
-    await request(app).post('/users').set('Cookie', cookie).send(VALID_USER_PAYLOAD).expect(201);
-    await request(app).get('/users/1').set('Cookie', cookie).expect(200);
-    await request(app).patch('/users/1').set('Cookie', cookie).send({ actif: false }).expect(200);
-    await request(app).patch('/users/1/activation').set('Cookie', cookie).send({ actif: false }).expect(200);
-    await request(app).post('/users/1/reinitialiser-otp').set('Cookie', cookie).expect(200);
-  });
+  it.each(MANAGE_ROLES)(
+    'allows role=%s on every management route (has USER_MANAGE)',
+    async (role) => {
+      const app = buildApp();
+      const cookie = cookieFor(role, 999); // distinct id so self-deactivation guard doesn't fire
+      await request(app).get('/users/aggregates').set('Cookie', cookie).expect(200);
+      await request(app).post('/users').set('Cookie', cookie).send(VALID_USER_PAYLOAD).expect(201);
+      await request(app).get('/users/1').set('Cookie', cookie).expect(200);
+      await request(app).patch('/users/1').set('Cookie', cookie).send({ actif: false }).expect(200);
+      await request(app)
+        .patch('/users/1/activation')
+        .set('Cookie', cookie)
+        .send({ actif: false })
+        .expect(200);
+      await request(app).post('/users/1/reinitialiser-otp').set('Cookie', cookie).expect(200);
+    }
+  );
 });
 
-describe('users.route — server-side role-assignment validation (final four-role model)', () => {
-  it('POST / accepts role=operateur from an admin (Phase 6.1 — now exposed)', async () => {
+describe('users.route - server-side role-assignment validation (final four-role model)', () => {
+  it('POST / accepts role=operateur from an admin (Phase 6.1 - now exposed)', async () => {
     const app = buildApp();
     await request(app)
       .post('/users')

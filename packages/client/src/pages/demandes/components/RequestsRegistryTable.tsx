@@ -1,5 +1,14 @@
 // packages/client/src/pages/demandes/components/RequestsRegistryTable.tsx
-import { Archive, ArrowUpRight, CheckCircle2, Eye, Flag, Loader2, UserCheck, Undo2 } from 'lucide-react';
+import {
+  Archive,
+  ArrowUpRight,
+  CheckCircle2,
+  Eye,
+  Flag,
+  Loader2,
+  UserCheck,
+  Undo2,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import type { UserRole } from '@sicot/shared';
@@ -226,7 +235,7 @@ export function RequestsRegistryTable({
                 <BadgeStatut statut={demande.statut} />
               </td>
               <td className="hidden px-4 py-3 align-top text-xs text-anac-muted lg:table-cell">
-                {demande.demandeurNom ?? '—'}
+                {demande.demandeurNom ?? '-'}
               </td>
               <td className="hidden px-4 py-3 align-top text-xs lg:table-cell">
                 {demande.traducteurNom ? (
@@ -239,7 +248,12 @@ export function RequestsRegistryTable({
                 {formaterDate(demande.createdAt)}
               </td>
               <td className="px-4 py-3 align-top" onClick={(event) => event.stopPropagation()}>
-                <RequestActions demande={demande} user={user} navigate={navigate} actions={actions} />
+                <RequestActions
+                  demande={demande}
+                  user={user}
+                  navigate={navigate}
+                  actions={actions}
+                />
               </td>
             </tr>
           ))}
@@ -282,7 +296,9 @@ export function RequestsRegistryMobileCards({
             <RequestPriorityCell demande={demande} />
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-anac-muted">
-            <span>{demande.traducteurNom ? `Traducteur : ${demande.traducteurNom}` : 'Non assignée'}</span>
+            <span>
+              {demande.traducteurNom ? `Traducteur : ${demande.traducteurNom}` : 'Non assignée'}
+            </span>
             <span>{formaterDate(demande.createdAt)}</span>
           </div>
           <div
