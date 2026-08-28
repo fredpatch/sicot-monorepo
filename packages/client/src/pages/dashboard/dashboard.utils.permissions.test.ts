@@ -32,4 +32,19 @@ describe('canAccessRoute - quick-action link visibility matches the real route g
   it('undefined role denies every gated route', () => {
     expect(canAccessRoute(undefined, '/accords/new')).toBe(false);
   });
+
+  // Phase 10.7 alignment fix: '/accords/new', '/courriers/new', '/missions/new'
+  // now resolve through their own AGREEMENT_MANAGE/CORRESPONDENCE_MANAGE/
+  // MISSION_MANAGE entries instead of falling through to the view-tier
+  // prefix (AGREEMENT_VIEW/CORRESPONDENCE_VIEW/MISSION_REGISTRY_VIEW) -
+  // not observable behaviorally today since both tiers are admin+-only,
+  // but a detail href (no /new suffix) must still fall through to the
+  // general view-tier entry, proving the specific-prefix match doesn't
+  // swallow unrelated routes under the same module.
+  it('a detail href (no /new suffix) still resolves through the general view-tier entry', () => {
+    for (const href of ['/accords/42', '/courriers/42', '/missions/42']) {
+      expect(canAccessRoute('admin', href)).toBe(true);
+      expect(canAccessRoute(undefined, href)).toBe(false);
+    }
+  });
 });

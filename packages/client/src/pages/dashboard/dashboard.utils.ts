@@ -190,9 +190,22 @@ export function deriveNextDeadline(data: DashboardData, now = new Date()): Deadl
 // gardes réels de router.tsx (Phase 5.1). Cette table avait dérivé : /
 // traductions y était classée admin-only alors que la route elle-même
 // n'exige que TRANSLATION_VIEW (operateur+) - corrigé ici (Phase 5.3).
+// Phase 10.7 : les entrées /new (utilisées par QuickActionsCard pour
+// "Nouvel accord"/"Courrier"/"Mission") tombaient sur le préfixe de
+// consultation (AGREEMENT_VIEW/CORRESPONDENCE_VIEW/MISSION_REGISTRY_VIEW)
+// au lieu de la capacité de mutation réellement exigée par ces routes
+// (AGREEMENT_MANAGE/CORRESPONDENCE_MANAGE/MISSION_MANAGE, alignées en
+// Phase 10.2/10.5) - sans effet observable aujourd'hui (mêmes capacités
+// admin+ regroupées), mais la table doit refléter le contrat réel par
+// action. Les entrées les plus spécifiques doivent précéder leur préfixe
+// générique - Object.keys() conserve l'ordre d'insertion, `find` retient
+// la première correspondance.
 const ROUTE_CAPABILITY: Record<string, Capability> = {
+  '/accords/new': 'AGREEMENT_MANAGE',
   '/accords': 'AGREEMENT_VIEW',
+  '/courriers/new': 'CORRESPONDENCE_MANAGE',
   '/courriers': 'CORRESPONDENCE_VIEW',
+  '/missions/new': 'MISSION_MANAGE',
   '/missions': 'MISSION_REGISTRY_VIEW',
   '/traductions': 'TRANSLATION_VIEW',
   '/analytics': 'ANALYTICS_VIEW',

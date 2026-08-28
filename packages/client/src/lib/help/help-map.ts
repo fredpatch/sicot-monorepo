@@ -816,14 +816,133 @@ export const HELP_MAP: HelpEntry[] = [
       },
     ],
   },
+  {
+    // Phase 10.7 — audited against DashboardPage.tsx and its widgets
+    // (OperationalKpiGrid, PrioritySection, WorkflowHealthCard,
+    // NextDeadlineCard, RecentActivityList, QuickActionsCard). Orientation/
+    // synthesis content only, deliberately not duplicating full module
+    // documentation - each linked article covers the underlying workflow in
+    // depth. No dedicated article for this route (Phase 10.7 brief - the
+    // Dashboard is a synthesis page, not a distinct business workflow).
+    // Capability mismatch found and fixed during this audit:
+    // QuickActionsCard's "Nouvel accord"/"Courrier"/"Mission" links used
+    // dashboard.utils.ts's canAccessRoute(), whose route table matched
+    // those /new hrefs against the viewing capability
+    // (AGREEMENT_VIEW/CORRESPONDENCE_VIEW/MISSION_REGISTRY_VIEW) instead of
+    // the mutation capability their destination route actually requires
+    // (AGREEMENT_MANAGE/CORRESPONDENCE_MANAGE/MISSION_MANAGE) - not a live
+    // gap today (same admin+ tier), fixed to express the real contract.
+    routePattern: '/dashboard',
+    title: 'Aide - Tableau de bord',
+    articles: ['gerer-suivre-accords', 'suivre-courriers', 'rapport-mission'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Synthétise en un coup d’œil l’activité de plusieurs modules SICOT (accords, courriers, missions, ' +
+          'traductions, demandes) - un point d’entrée, pas un registre détaillé.',
+      },
+      {
+        id: 'priorites-echeances',
+        heading: 'Priorités et échéances',
+        body:
+          'Les sections Priorités du jour et Prochaine échéance mettent en avant ce qui demande une attention ' +
+          'proche (accord expiré ou proche échéance, courrier sans réponse prolongée, recommandation en ' +
+          'retard...). Chaque élément ouvre directement sa fiche dans le module concerné pour le détail ' +
+          'complet et l’action.',
+      },
+      {
+        id: 'indicateurs',
+        heading: 'Indicateurs et suivi des dossiers',
+        body:
+          'Les cartes chiffrées et la section Suivi des dossiers agrègent des totaux par module ; cliquer sur ' +
+          'une carte ouvre le registre correspondant pour le détail.',
+      },
+      {
+        id: 'acces-variable',
+        heading: 'Pourquoi le contenu peut varier',
+        body:
+          'Les widgets et actions rapides visibles dépendent de vos droits d’accès - un widget ou une action ' +
+          'absente n’est jamais un signe d’erreur.',
+      },
+    ],
+  },
+  {
+    // Phase 10.7 — audited against AnalyticsPage.tsx, PeriodSelector.tsx,
+    // ReportsTab.tsx, AnalyticsAIDialog.tsx, and the server's
+    // analytics.route.ts. Capability mismatch found and fixed during this
+    // audit: ReportsTab.tsx gated the "Générer l’analyse IA" triggers on
+    // ADMIN_MONITORING_VIEW, matching only the validate/reject action - the
+    // server's POST .../analyse-ia (generation) only requires
+    // ANALYTICS_VIEW, already guaranteed by this route. Not a live gap
+    // today (bundled at the same admin+ tier), fixed via
+    // analytics.permissions.ts.
+    //
+    // Follow-up (same phase, post-approval revision): the Rapports
+    // guidance below was initially a single ADMIN_MONITORING_VIEW-gated
+    // section, which made documentation narrower than the real capability
+    // boundary - a user with only ANALYTICS_VIEW can generate a report and
+    // request/review its AI analysis, just not validate/reject it. Split
+    // into 'rapports-generation' (ungated, matches the page's own
+    // ANALYTICS_VIEW) and 'rapports-validation' (ADMIN_MONITORING_VIEW),
+    // mirroring the two-article split (generer-rapport-analyse /
+    // valider-rapport-analyse). Editing the pending analysis text is only
+    // ever persisted through the same PATCH .../analyse-ia call as
+    // validate/reject (no separate "save draft" endpoint exists
+    // server-side), so it stays described only in the validation section/
+    // article, not the generation one.
+    routePattern: '/analytics',
+    title: 'Aide - Analytics & Rapports',
+    articles: ['generer-rapport-analyse', 'valider-rapport-analyse'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Vue analytique par module (Global, Accords, Courriers, Missions, Traductions, Demandes, Documents, ' +
+          'Glossaire) - tendances et volumes d’activité, à des fins de pilotage. Les workflows eux-mêmes sont ' +
+          'documentés dans leurs modules respectifs ; cette page en montre la lecture chiffrée.',
+      },
+      {
+        id: 'periode',
+        heading: 'Sélecteur de période',
+        body:
+          'Une période (préréglages ou dates personnalisées) s’applique à l’onglet actif : les indicateurs et ' +
+          'graphiques affichés se recalculent sur cette période.',
+      },
+      {
+        id: 'rapports-generation',
+        heading: 'Générer un rapport et son analyse',
+        body:
+          'L’onglet Rapports génère un rapport ponctuel (période, modules, format) et, en complément, permet ' +
+          'de demander une analyse rédigée assistée par IA - consultable ensuite depuis l’historique.',
+      },
+      {
+        id: 'rapports-validation',
+        heading: 'Valider l’analyse générée',
+        body:
+          'Une analyse générée doit être relue, corrigée si besoin, puis validée ou rejetée avant d’être ' +
+          'considérée comme définitive.',
+        capability: 'ADMIN_MONITORING_VIEW',
+      },
+    ],
+  },
 ];
 
+// 'new' never satisfies a `:id`-style segment (Phase 10.7 fix): router.tsx
+// itself declares e.g. /accords/new as a separate static route ahead of
+// /accords/:id, precisely because a real id is never literally "new" -
+// this matcher must draw the same distinction, or a create route like
+// /missions/new incorrectly resolves the detail entry (/missions/:id),
+// surfacing tab/section guidance that doesn't exist on the create form.
 function matchesPattern(pattern: string, pathname: string): boolean {
   const patternSegments = pattern.split('/').filter(Boolean);
   const pathSegments = pathname.split('/').filter(Boolean);
   if (patternSegments.length !== pathSegments.length) return false;
   return patternSegments.every(
-    (segment, i) => segment.startsWith(':') || segment === pathSegments[i]
+    (segment, i) =>
+      (segment.startsWith(':') && pathSegments[i] !== 'new') || segment === pathSegments[i]
   );
 }
 

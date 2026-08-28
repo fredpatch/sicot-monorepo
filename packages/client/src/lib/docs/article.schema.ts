@@ -26,6 +26,7 @@ export const ARTICLE_CATEGORIES = [
   'documents',
   'cooperation',
   'administration',
+  'analytics',
 ] as const;
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
 

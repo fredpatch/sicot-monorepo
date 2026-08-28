@@ -9,4 +9,5 @@ export const CATEGORY_LABELS: Record<ArticleCategory, string> = {
   documents: 'Documents',
   cooperation: 'Coopération internationale',
   administration: 'Administration',
+  analytics: 'Analyses & rapports',
 };

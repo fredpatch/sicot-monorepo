@@ -12,8 +12,8 @@ import {
 import { ARTICLE_CATEGORIES } from './article.schema';
 
 describe('article registry - loaded from docs/user-guide/**/*.md', () => {
-  it('loads exactly the sixteen articles (5 from Phase 10.3 + 4 from Phase 10.4 + 3 from Phase 10.5 + 4 from Phase 10.6)', () => {
-    expect(ARTICLES).toHaveLength(16);
+  it('loads exactly the eighteen articles (5 from Phase 10.3 + 4 from Phase 10.4 + 3 from Phase 10.5 + 4 from Phase 10.6 + 2 from Phase 10.7)', () => {
+    expect(ARTICLES).toHaveLength(18);
   });
 
   it('every article has unique, kebab-case slugs (registry construction throws on duplicates)', () => {
@@ -63,6 +63,11 @@ describe('article registry - loaded from docs/user-guide/**/*.md', () => {
     expect(slugs.has('gerer-parametres-systeme')).toBe(true);
     expect(slugs.has('executer-operations-administratives')).toBe(true);
     expect(slugs.has('consulter-journal-audit')).toBe(true);
+  });
+
+  it('the Phase 10.7 required slug is present', () => {
+    const slugs = new Set(ARTICLES.map((a) => a.slug));
+    expect(slugs.has('generer-rapport-analyse')).toBe(true);
   });
 });
 
@@ -185,14 +190,20 @@ describe('capability visibility - fails closed, affects listing and direct/relat
     expect(isArticleVisible(article, 'agent')).toBe(false);
   });
 
-  it('visibleArticles excludes gated articles for agent, includes TRANSLATION_PROCESS-only for operateur, includes all for admin+', () => {
-    // 16 total: 3 cooperation articles (Phase 10.5) + 4 administration
-    // articles (Phase 10.6) all require admin+-only capabilities
-    // (AGREEMENT_VIEW/PARTNER_VIEW/CORRESPONDENCE_VIEW/USER_MANAGE/
-    // SYSTEM_SETTINGS_VIEW/JOB_EXECUTE/AUDIT_VIEW) - agent/operateur lose
-    // all seven, admin/super_admin (who hold every capability) keep all 16.
+  it('visibleArticles excludes gated articles for agent, includes operateur+-tier articles for operateur, includes all for admin+', () => {
+    // 18 total. Two capability tiers among gated articles:
+    // - operateur+ tier (TRANSLATION_PROCESS, GLOSSARY_VIEW): visible to
+    //   operateur and up, not agent.
+    // - admin+-only tier (PORTAL_PUBLICATION_MANAGE/AGREEMENT_VIEW/
+    //   PARTNER_VIEW/CORRESPONDENCE_VIEW/USER_MANAGE/SYSTEM_SETTINGS_VIEW/
+    //   JOB_EXECUTE/AUDIT_VIEW/ANALYTICS_VIEW/ADMIN_MONITORING_VIEW):
+    //   visible to admin/super_admin only - ANALYTICS_VIEW and
+    //   ADMIN_MONITORING_VIEW are conceptually distinct (Phase 10.7's
+    //   generation/validation split) but happen to be the same admin+ tier
+    //   today, so both generer-rapport-analyse and valider-rapport-analyse
+    //   land in this same observable bucket.
+    const OPERATEUR_PLUS_SLUGS = ['traiter-relire-approuver', 'utiliser-glossaire'];
     const ADMIN_ONLY_SLUGS = [
-      'traiter-relire-approuver',
       'publier-portail-externe',
       'gerer-suivre-accords',
       'gerer-partenaires',
@@ -201,27 +212,30 @@ describe('capability visibility - fails closed, affects listing and direct/relat
       'gerer-parametres-systeme',
       'executer-operations-administratives',
       'consulter-journal-audit',
+      'generer-rapport-analyse',
+      'valider-rapport-analyse',
     ];
 
     const forAgent = visibleArticles('agent').map((a) => a.slug);
-    for (const slug of ADMIN_ONLY_SLUGS.filter((s) => s !== 'traiter-relire-approuver')) {
+    for (const slug of [...OPERATEUR_PLUS_SLUGS, ...ADMIN_ONLY_SLUGS]) {
       expect(forAgent).not.toContain(slug);
     }
-    expect(forAgent).not.toContain('traiter-relire-approuver');
-    expect(forAgent).toHaveLength(7);
+    expect(forAgent).toHaveLength(6);
 
     const forOperateur = visibleArticles('operateur').map((a) => a.slug);
-    expect(forOperateur).toContain('traiter-relire-approuver');
-    for (const slug of ADMIN_ONLY_SLUGS.filter((s) => s !== 'traiter-relire-approuver')) {
+    for (const slug of OPERATEUR_PLUS_SLUGS) {
+      expect(forOperateur).toContain(slug);
+    }
+    for (const slug of ADMIN_ONLY_SLUGS) {
       expect(forOperateur).not.toContain(slug);
     }
     expect(forOperateur).toHaveLength(8);
 
     const forAdmin = visibleArticles('admin').map((a) => a.slug);
-    for (const slug of ADMIN_ONLY_SLUGS) {
+    for (const slug of [...OPERATEUR_PLUS_SLUGS, ...ADMIN_ONLY_SLUGS]) {
       expect(forAdmin).toContain(slug);
     }
-    expect(forAdmin).toHaveLength(16);
+    expect(forAdmin).toHaveLength(18);
   });
 
   it('getVisibleArticleBySlug denies direct access to a gated article for a role lacking the capability', () => {
@@ -381,6 +395,124 @@ describe('administration articles - each gated on the capability matching its ow
   });
 });
 
+describe('utiliser-glossaire - now requires GLOSSARY_VIEW (Phase 10.7 capability-visibility fix)', () => {
+  it('carries capability GLOSSARY_VIEW', () => {
+    expect(getArticleBySlug('utiliser-glossaire')!.capability).toBe('GLOSSARY_VIEW');
+  });
+
+  it('agent (lacks GLOSSARY_VIEW) can no longer discover or open it', () => {
+    expect(visibleArticles('agent').map((a) => a.slug)).not.toContain('utiliser-glossaire');
+    expect(getVisibleArticleBySlug('utiliser-glossaire', 'agent')).toBeUndefined();
+  });
+
+  it('operateur+ (holds GLOSSARY_VIEW) can still discover and open it', () => {
+    for (const role of ['operateur', 'admin', 'super_admin'] as const) {
+      expect(visibleArticles(role).map((a) => a.slug)).toContain('utiliser-glossaire');
+      expect(getVisibleArticleBySlug('utiliser-glossaire', role)?.slug).toBe('utiliser-glossaire');
+    }
+  });
+
+  it('its own related link to traiter-relire-approuver still resolves for operateur+ only', () => {
+    const related = getArticleBySlug('utiliser-glossaire')!.relatedArticles;
+    expect(related).toContain('traiter-relire-approuver');
+    expect(getVisibleArticleBySlug('traiter-relire-approuver', 'agent')).toBeUndefined();
+    expect(getVisibleArticleBySlug('traiter-relire-approuver', 'operateur')?.slug).toBe(
+      'traiter-relire-approuver'
+    );
+  });
+});
+
+describe('generer-rapport-analyse - gated on ANALYTICS_VIEW, the generation/review-only article (Phase 10.7, revised)', () => {
+  it('carries capability ANALYTICS_VIEW (not ADMIN_MONITORING_VIEW) and category analytics', () => {
+    const article = getArticleBySlug('generer-rapport-analyse')!;
+    expect(article.capability).toBe('ANALYTICS_VIEW');
+    expect(article.category).toBe('analytics');
+  });
+
+  it('agent/operateur (lack ANALYTICS_VIEW) cannot discover or open it', () => {
+    for (const role of ['agent', 'operateur'] as const) {
+      expect(visibleArticles(role).map((a) => a.slug)).not.toContain('generer-rapport-analyse');
+      expect(getVisibleArticleBySlug('generer-rapport-analyse', role)).toBeUndefined();
+    }
+  });
+
+  it('a user with ANALYTICS_VIEW (admin+ today) can discover, search, and open it', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      expect(visibleArticles(role).map((a) => a.slug)).toContain('generer-rapport-analyse');
+      expect(getVisibleArticleBySlug('generer-rapport-analyse', role)?.slug).toBe(
+        'generer-rapport-analyse'
+      );
+      expect(
+        searchArticles(visibleArticles(role), 'rapport').map((a) => a.slug)
+      ).toContain('generer-rapport-analyse');
+    }
+  });
+
+  it('undefined role cannot discover or open it', () => {
+    expect(getVisibleArticleBySlug('generer-rapport-analyse', undefined)).toBeUndefined();
+  });
+
+  it('links to valider-rapport-analyse, independently capability-filtered on the stricter capability', () => {
+    expect(getArticleBySlug('generer-rapport-analyse')!.relatedArticles).toContain(
+      'valider-rapport-analyse'
+    );
+  });
+});
+
+describe('valider-rapport-analyse - gated on ADMIN_MONITORING_VIEW, the privileged validation-only article (Phase 10.7, revised)', () => {
+  it('carries capability ADMIN_MONITORING_VIEW and category analytics', () => {
+    const article = getArticleBySlug('valider-rapport-analyse')!;
+    expect(article.capability).toBe('ADMIN_MONITORING_VIEW');
+    expect(article.category).toBe('analytics');
+  });
+
+  it('agent/operateur (lack ADMIN_MONITORING_VIEW) cannot discover or open it', () => {
+    for (const role of ['agent', 'operateur'] as const) {
+      expect(visibleArticles(role).map((a) => a.slug)).not.toContain('valider-rapport-analyse');
+      expect(getVisibleArticleBySlug('valider-rapport-analyse', role)).toBeUndefined();
+    }
+  });
+
+  it('a user with ADMIN_MONITORING_VIEW (admin+ today) can discover, search, and open it', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      expect(visibleArticles(role).map((a) => a.slug)).toContain('valider-rapport-analyse');
+      expect(getVisibleArticleBySlug('valider-rapport-analyse', role)?.slug).toBe(
+        'valider-rapport-analyse'
+      );
+      expect(
+        searchArticles(visibleArticles(role), 'valider').map((a) => a.slug)
+      ).toContain('valider-rapport-analyse');
+    }
+  });
+
+  it('undefined role cannot discover or open it', () => {
+    expect(getVisibleArticleBySlug('valider-rapport-analyse', undefined)).toBeUndefined();
+  });
+
+  it('links back to generer-rapport-analyse', () => {
+    expect(getArticleBySlug('valider-rapport-analyse')!.relatedArticles).toContain(
+      'generer-rapport-analyse'
+    );
+  });
+});
+
+describe('generer-rapport-analyse <-> valider-rapport-analyse related link disappears for lower-capability users (Phase 10.7)', () => {
+  it('the A -> B related link resolves only for ADMIN_MONITORING_VIEW holders, even though A itself is visible more broadly under ANALYTICS_VIEW', () => {
+    const a = getArticleBySlug('generer-rapport-analyse')!;
+    // Today ANALYTICS_VIEW and ADMIN_MONITORING_VIEW happen to be the same
+    // admin+ tier, so there is no live role holding one without the other -
+    // this proves the related-link resolution is governed by B's own
+    // capability metadata, not inherited from A, for every role that can
+    // reach A at all.
+    for (const role of ['admin', 'super_admin'] as const) {
+      const related = a.relatedArticles
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((x): x is NonNullable<typeof x> => Boolean(x));
+      expect(related.map((x) => x.slug)).toContain('valider-rapport-analyse');
+    }
+  });
+});
+
 describe('searchArticles - case- and accent-insensitive over title/excerpt/category', () => {
   it('matches by title, case-insensitive', () => {
     const results = searchArticles(ARTICLES, 'PREMIERS PAS');
@@ -446,6 +578,18 @@ describe('searchArticles - case- and accent-insensitive over title/excerpt/categ
         'executer-operations-administratives',
         'consulter-journal-audit',
       ])
+    );
+  });
+
+  it('finds the Phase 10.7 analytics articles by title/category', () => {
+    expect(searchArticles(ARTICLES, "rapport d'analyse").map((a) => a.slug)).toContain(
+      'generer-rapport-analyse'
+    );
+    expect(searchArticles(ARTICLES, 'valider').map((a) => a.slug)).toContain(
+      'valider-rapport-analyse'
+    );
+    expect(searchArticles(ARTICLES, 'analytics').map((a) => a.slug)).toEqual(
+      expect.arrayContaining(['generer-rapport-analyse', 'valider-rapport-analyse'])
     );
   });
 

@@ -51,7 +51,7 @@ describe('getHelpEntry - route matching', () => {
   });
 
   it('returns undefined for a route with no contextual help', () => {
-    expect(getHelpEntry('/dashboard')).toBeUndefined();
+    expect(getHelpEntry('/profil')).toBeUndefined();
     expect(getHelpEntry('/portal')).toBeUndefined();
   });
 
@@ -506,6 +506,168 @@ describe('administration routes resolve and link only to accessible articles (Ph
         expect(resolved).toHaveLength(entry.articles?.length ?? 0);
       }
     }
+  });
+});
+
+describe('/dashboard - orientation content only, links stay independently capability-filtered (Phase 10.7)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/dashboard')!;
+
+  it('resolves for the real viewers (admin+, ANALYTICS_VIEW)', () => {
+    expect(getHelpEntry('/dashboard')?.routePattern).toBe('/dashboard');
+    for (const role of ['admin', 'super_admin'] as const) {
+      expect(filterHelpEntry(entry, role).sections.length).toBe(entry.sections.length);
+    }
+  });
+
+  it('carries no capability-gated section - the whole route already requires ANALYTICS_VIEW', () => {
+    expect(entry.sections.every((s) => !s.capability)).toBe(true);
+  });
+
+  it('links only to existing, real module articles (no dedicated Dashboard article)', () => {
+    expect(entry.articles).toEqual(['gerer-suivre-accords', 'suivre-courriers', 'rapport-mission']);
+    for (const slug of entry.articles ?? []) {
+      expect(getArticleBySlug(slug), `unknown slug "${slug}"`).toBeDefined();
+    }
+  });
+
+  it('Dashboard article links resolve for admin+ (the only real viewers) since each is independently capability-filtered', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      const resolved = (entry.articles ?? [])
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((a): a is NonNullable<typeof a> => Boolean(a));
+      expect(resolved).toHaveLength(entry.articles?.length ?? 0);
+    }
+  });
+
+  it('a hypothetical viewer lacking AGREEMENT_VIEW/CORRESPONDENCE_VIEW would not see those links, proving independent filtering (not a bulk unlock)', () => {
+    const resolved = (entry.articles ?? [])
+      .map((slug) => getVisibleArticleBySlug(slug, 'agent'))
+      .filter((a): a is NonNullable<typeof a> => Boolean(a));
+    // rapport-mission is ungated (visible to agent), the other two require
+    // admin+-only capabilities agent lacks - proves the drawer resolves
+    // each link on its own, not as an all-or-nothing bundle.
+    expect(resolved.map((a) => a.slug)).toEqual(['rapport-mission']);
+  });
+});
+
+describe('/analytics - generic analytics guidance plus a split Rapports generation/validation boundary (Phase 10.7, revised)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/analytics')!;
+
+  it('the generic sections, including rapports-generation, are ungated (visible to every real viewer, matching ANALYTICS_VIEW)', () => {
+    const generic = entry.sections.filter((s) => s.id !== 'rapports-validation');
+    expect(generic.every((s) => !s.capability)).toBe(true);
+    expect(generic.map((s) => s.id)).toContain('rapports-generation');
+  });
+
+  it('only rapports-validation requires ADMIN_MONITORING_VIEW, distinct from the page\'s own ANALYTICS_VIEW gate', () => {
+    const validation = entry.sections.find((s) => s.id === 'rapports-validation')!;
+    expect(validation.capability).toBe('ADMIN_MONITORING_VIEW');
+  });
+
+  it('a user with only ANALYTICS_VIEW (operateur, hypothetically) sees generation guidance but not validation guidance', () => {
+    const filtered = filterHelpEntry(entry, 'operateur');
+    const ids = filtered.sections.map((s) => s.id);
+    expect(ids).toContain('rapports-generation');
+    expect(ids).not.toContain('rapports-validation');
+  });
+
+  it('admin+ (who hold ADMIN_MONITORING_VIEW today) sees both generation and validation guidance', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      const filtered = filterHelpEntry(entry, role);
+      const ids = filtered.sections.map((s) => s.id);
+      expect(ids).toContain('rapports-generation');
+      expect(ids).toContain('rapports-validation');
+    }
+  });
+
+  it('links to generer-rapport-analyse (ANALYTICS_VIEW) for every authorized Analytics viewer', () => {
+    expect(entry.articles).toContain('generer-rapport-analyse');
+    for (const role of ['admin', 'super_admin'] as const) {
+      expect(getVisibleArticleBySlug('generer-rapport-analyse', role)?.slug).toBe(
+        'generer-rapport-analyse'
+      );
+    }
+  });
+
+  it('additionally links to valider-rapport-analyse, which resolves only for ADMIN_MONITORING_VIEW holders (Help Drawer link behaves the same as capability-aware article resolution generally)', () => {
+    expect(entry.articles).toContain('valider-rapport-analyse');
+    for (const role of ['admin', 'super_admin'] as const) {
+      expect(getVisibleArticleBySlug('valider-rapport-analyse', role)?.slug).toBe(
+        'valider-rapport-analyse'
+      );
+    }
+  });
+});
+
+describe('functional coverage closure - authenticated user-facing routes expected to carry contextual help (Phase 10.7)', () => {
+  // Explicit, hand-maintained list - not derived from router.tsx, so that
+  // adding a route there never silently satisfies this check. Split into
+  // routes that MUST resolve a HELP_MAP entry, and routes the Phase 10
+  // coverage audit explicitly classified INTENTIONALLY_UNCOVERED (kept
+  // here, documented, so a future maintainer sees the decision rather than
+  // wondering why it's missing). Detail/create/edit sub-routes reuse their
+  // parent's contextual entry by design and are not re-listed here.
+  const EXPECTED_COVERED_ROUTES = [
+    '/mon-espace',
+    '/mes-demandes',
+    '/mes-missions',
+    '/demandes',
+    '/traductions',
+    '/traductions/:id',
+    '/glossaire',
+    '/documents',
+    '/missions',
+    '/missions/:id',
+    '/accords',
+    '/accords/:id',
+    '/partenaires',
+    '/partenaires/:id',
+    '/courriers',
+    '/courriers/:id',
+    '/utilisateurs',
+    '/admin',
+    '/audit',
+    '/dashboard',
+    '/analytics',
+  ];
+
+  // Reviewed and deliberately left without a HELP_MAP entry - see the
+  // Phase 10 Functional Help Coverage Audit for the reasoning per route.
+  const INTENTIONALLY_UNCOVERED_ROUTES = [
+    '/profil', // trivial, self-explanatory identity + standard password form
+    '/missions/new',
+    '/missions/:id/edit',
+    '/accords/new',
+    '/accords/:id/edit',
+    '/partenaires/new',
+    '/partenaires/:id/edit',
+    '/courriers/new',
+    '/courriers/:id/edit', // plain create/edit forms, reuse parent workflow guidance
+  ];
+
+  it('every expected-covered route resolves a real HELP_MAP entry with at least one visible section', () => {
+    for (const route of EXPECTED_COVERED_ROUTES) {
+      const entry = getHelpEntry(route);
+      expect(entry, `${route} is expected to have contextual help but has none`).toBeDefined();
+      expect(
+        entry!.sections.length,
+        `${route}'s help entry has no sections`
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it('intentionally-uncovered routes stay documented and genuinely have no HELP_MAP entry', () => {
+    for (const route of INTENTIONALLY_UNCOVERED_ROUTES) {
+      expect(
+        getHelpEntry(route),
+        `${route} is documented as intentionally uncovered but now has a help entry - update this list`
+      ).toBeUndefined();
+    }
+  });
+
+  it('the two lists together are duplicate-free and don\'t overlap', () => {
+    const all = [...EXPECTED_COVERED_ROUTES, ...INTENTIONALLY_UNCOVERED_ROUTES];
+    expect(new Set(all).size).toBe(all.length);
   });
 });
 

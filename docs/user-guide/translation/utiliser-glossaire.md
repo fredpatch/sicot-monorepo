@@ -5,6 +5,7 @@ excerpt: Rechercher et appliquer la terminologie officielle FR/EN pendant la tra
 category: translation
 relatedRoutes: /glossaire
 relatedArticles: traiter-relire-approuver
+capability: GLOSSARY_VIEW
 ---
 
 Le glossaire recense la terminologie officielle utilisée dans les traductions

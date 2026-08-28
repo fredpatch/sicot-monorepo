@@ -18,7 +18,7 @@ import type { RapportHistorique } from '../analytics.types';
 interface AnalyseIADialogProps {
   rapport: RapportHistorique | null;
   onOpenChange: (open: boolean) => void;
-  estAdmin: boolean;
+  peutValider: boolean;
   texteEdite: string;
   onTexteEditeChange: (texte: string) => void;
   onValider: (statut: 'valide' | 'rejete') => void;
@@ -28,7 +28,7 @@ interface AnalyseIADialogProps {
 export function AnalyseIADialog({
   rapport,
   onOpenChange,
-  estAdmin,
+  peutValider,
   texteEdite,
   onTexteEditeChange,
   onValider,
@@ -60,7 +60,7 @@ export function AnalyseIADialog({
             </p>
           </div>
 
-          {estAdmin && enAttente ? (
+          {peutValider && enAttente ? (
             <textarea
               value={texteEdite}
               onChange={(e) => onTexteEditeChange(e.target.value)}
@@ -72,7 +72,7 @@ export function AnalyseIADialog({
             </div>
           )}
         </DialogBody>
-        {estAdmin && enAttente && (
+        {peutValider && enAttente && (
           <DialogFooter>
             <Button
               variant="destructive"

@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { FileDown, Loader2, LoaderIcon, Sparkles } from 'lucide-react';
 
-import { hasCapability } from '@sicot/shared';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -18,6 +17,7 @@ import { useAuth } from '@/App';
 import { useRapportsHistoriqueQuery } from '../../hooks/queries';
 import { useAnalyticsRapportsMutations } from '../../hooks/mutations';
 import { MODULES_DISPONIBLES } from '../../analytics.constants';
+import { canValidateAnalyticsReport } from '../../analytics.permissions';
 import { BadgeAnalyseIA } from '../../components/AIAnalysisBadge';
 import { AnalyseIADialog } from '../../components/AnalyticsAIDialog';
 import type { RapportHistorique } from '../../analytics.types';
@@ -30,14 +30,13 @@ export function OngletRapports() {
   const [periodeDebut, setPeriodeDebut] = useState('');
   const [periodeFin, setPeriodeFin] = useState('');
 
-  // Génération/approbation de l'analyse IA - ADMIN_MONITORING_VIEW, la même
-  // capacité que PATCH /analytics/rapports/:id/analyse-ia côté serveur
-  // (Phase 4.8.4), pas un littéral de rôle. Toute la page Analytics est déjà
-  // gardée ANALYTICS_VIEW (admin+) au niveau route, donc ce test est
-  // aujourd'hui plus strict que "peut voir la page" par construction, pas
-  // redondant avec elle.
+  // Générer l'analyse IA ne demande rien de plus qu'ANALYTICS_VIEW côté
+  // serveur (déjà garanti par la route /analytics elle-même) - seule la
+  // validation/rejet (PATCH .../analyse-ia) exige ADMIN_MONITORING_VIEW.
+  // Phase 10.7 : ce composant gardait les deux actions derrière la même
+  // capacité par erreur (voir analytics.permissions.ts).
   const { user } = useAuth();
-  const estAdmin = !!user && hasCapability(user.role, 'ADMIN_MONITORING_VIEW');
+  const peutValider = canValidateAnalyticsReport(user?.role);
 
   const [rapportEnRevue, setRapportEnRevue] = useState<RapportHistorique | null>(null);
   const [texteEdite, setTexteEdite] = useState('');
@@ -151,17 +150,15 @@ export function OngletRapports() {
               <span className="text-xs text-anac-succes font-medium">
                 ✓ Rapport généré - disponible ci-dessous et dans la Gestion Documentaire
               </span>
-              {estAdmin && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-7 gap-1.5 text-xs"
-                  disabled={genererIA.isPending}
-                  onClick={() => generation.data && genererIA.mutate(generation.data.rapportId)}
-                >
-                  <Sparkles size={11} /> Générer l&apos;analyse IA pour ce rapport
-                </Button>
-              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-7 gap-1.5 text-xs"
+                disabled={genererIA.isPending}
+                onClick={() => generation.data && genererIA.mutate(generation.data.rapportId)}
+              >
+                <Sparkles size={11} /> Générer l&apos;analyse IA pour ce rapport
+              </Button>
             </div>
           )}
           {generation.isError && (
@@ -213,28 +210,24 @@ export function OngletRapports() {
                   </TableCell>
                   <TableCell>
                     {r.statutRelectureIA === 'non_applicable' ? (
-                      estAdmin ? (
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="h-7 gap-1 text-xs"
-                            disabled={genererIA.isPending}
-                            onClick={() => genererIA.mutate(r.id)}
-                          >
-                            <Sparkles size={11} /> Générer
-                          </Button>
-                          {genererIA.isError && genererIA.variables === r.id && (
-                            <span className="text-[10px] text-anac-danger">
-                              {(genererIA.error as { response?: { data?: { message?: string } } })
-                                ?.response?.data?.message ?? 'Échec - réessayez'}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-anac-muted">-</span>
-                      )
-                    ) : r.statutRelectureIA === 'rejete' && estAdmin ? (
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="h-7 gap-1 text-xs"
+                          disabled={genererIA.isPending}
+                          onClick={() => genererIA.mutate(r.id)}
+                        >
+                          <Sparkles size={11} /> Générer
+                        </Button>
+                        {genererIA.isError && genererIA.variables === r.id && (
+                          <span className="text-[10px] text-anac-danger">
+                            {(genererIA.error as { response?: { data?: { message?: string } } })
+                              ?.response?.data?.message ?? 'Échec - réessayez'}
+                          </span>
+                        )}
+                      </div>
+                    ) : r.statutRelectureIA === 'rejete' ? (
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => ouvrirRevue(r)}
@@ -291,7 +284,7 @@ export function OngletRapports() {
       <AnalyseIADialog
         rapport={rapportEnRevue}
         onOpenChange={(open) => !open && setRapportEnRevue(null)}
-        estAdmin={estAdmin}
+        peutValider={peutValider}
         texteEdite={texteEdite}
         onTexteEditeChange={setTexteEdite}
         onValider={(statut) =>
