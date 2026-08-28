@@ -10,7 +10,13 @@ import { CourrierDocumentPicker } from './CourrierDocumentPicker';
 
 // Fully interactive now - courrier.documents is a real list (courrier_documents
 // join table), backed by dedicated add/remove endpoints, not the edit form.
-export function CourrierDocumentSection({ courrier }: { courrier: Courrier }) {
+export function CourrierDocumentSection({
+  courrier,
+  canManage,
+}: {
+  courrier: Courrier;
+  canManage: boolean;
+}) {
   const queryClient = useQueryClient();
   const [ajoutOuvert, setAjoutOuvert] = useState(false);
 
@@ -38,16 +44,18 @@ export function CourrierDocumentSection({ courrier }: { courrier: Courrier }) {
         <h3 className="font-bold text-anac-navy">
           Documents joints {courrier.documents.length > 0 && `(${courrier.documents.length})`}
         </h3>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setAjoutOuvert((v) => !v)}
-          className="gap-1.5"
-        >
-          <Plus size={13} aria-hidden="true" />
-          Ajouter
-        </Button>
+        {canManage && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAjoutOuvert((v) => !v)}
+            className="gap-1.5"
+          >
+            <Plus size={13} aria-hidden="true" />
+            Ajouter
+          </Button>
+        )}
       </div>
 
       {courrier.documents.length > 0 ? (
@@ -73,15 +81,17 @@ export function CourrierDocumentSection({ courrier }: { courrier: Courrier }) {
                 >
                   <ExternalLink size={16} aria-label={`Ouvrir ${doc.nomOriginal}`} />
                 </a>
-                <button
-                  type="button"
-                  onClick={() => retirerMutation.mutate(doc.id)}
-                  disabled={retirerMutation.isPending}
-                  className="text-anac-muted transition-colors hover:text-anac-danger disabled:opacity-50"
-                  aria-label={`Retirer ${doc.nomOriginal}`}
-                >
-                  <X size={16} aria-hidden="true" />
-                </button>
+                {canManage && (
+                  <button
+                    type="button"
+                    onClick={() => retirerMutation.mutate(doc.id)}
+                    disabled={retirerMutation.isPending}
+                    className="text-anac-muted transition-colors hover:text-anac-danger disabled:opacity-50"
+                    aria-label={`Retirer ${doc.nomOriginal}`}
+                  >
+                    <X size={16} aria-hidden="true" />
+                  </button>
+                )}
               </span>
             </li>
           ))}

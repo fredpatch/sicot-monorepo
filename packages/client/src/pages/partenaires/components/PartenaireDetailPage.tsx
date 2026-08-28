@@ -19,11 +19,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/App';
 import { accordsApi } from '@/lib/accords.api';
 import { organisationsApi } from '@/lib/organisations.api';
 import type { Accord } from '@/pages/accords/accord.types';
 import { AccordExpiryBadge } from '@/pages/accords/components/AccordExpiryBadge';
 import { AccordStatusBadge } from '@/pages/accords/components/AccordStatusBadge';
+import { canManagePartenaires } from '../partenaires.permissions';
 import type { Contact, Organisation } from '../partenaires.types';
 import {
   formatContactName,
@@ -42,6 +44,8 @@ export default function PartenaireDetailPage() {
   const { id } = useParams<{ id: string }>();
   const organisationId = id ? parseInt(id, 10) : NaN;
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = canManagePartenaires(user?.role);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [section, setSection] = useState<Section>((searchParams.get('section') as Section) || 'overview');
@@ -174,14 +178,18 @@ export default function PartenaireDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate(`/partenaires/${organisation.id}/edit`)} className="gap-2">
-            <Pencil size={14} aria-hidden="true" />
-            Modifier
-          </Button>
-          <Button type="button" onClick={() => setContactDialog({ mode: 'create' })} className="gap-2 bg-anac-blue">
-            <Plus size={14} aria-hidden="true" />
-            Ajouter un contact
-          </Button>
+          {canManage && (
+            <Button type="button" variant="outline" onClick={() => navigate(`/partenaires/${organisation.id}/edit`)} className="gap-2">
+              <Pencil size={14} aria-hidden="true" />
+              Modifier
+            </Button>
+          )}
+          {canManage && (
+            <Button type="button" onClick={() => setContactDialog({ mode: 'create' })} className="gap-2 bg-anac-blue">
+              <Plus size={14} aria-hidden="true" />
+              Ajouter un contact
+            </Button>
+          )}
           <Button type="button" variant="outline" onClick={() => navigate(`/accords?partenaireId=${organisation.id}`)} className="gap-2">
             <FileText size={14} aria-hidden="true" />
             Voir les accords
@@ -240,6 +248,7 @@ export default function PartenaireDetailPage() {
                 <ContactsPreview
                   contacts={contacts}
                   principal={principal}
+                  canManage={canManage}
                   onAdd={() => setContactDialog({ mode: 'create' })}
                   onViewAll={() => chooseSection('contacts')}
                 />
@@ -257,6 +266,7 @@ export default function PartenaireDetailPage() {
             <ContactsSection
               contacts={contacts}
               isLoading={contactsQuery.isLoading}
+              canManage={canManage}
               onAdd={() => setContactDialog({ mode: 'create' })}
               onEdit={(contact) => setContactDialog({ mode: 'edit', contact })}
               onPrincipal={(contactId) => principalMutation.mutate(contactId)}
@@ -379,11 +389,13 @@ function SummaryItem({ label, value }: { label: string; value: React.ReactNode }
 function ContactsPreview({
   contacts,
   principal,
+  canManage,
   onAdd,
   onViewAll,
 }: {
   contacts: Contact[];
   principal?: Contact;
+  canManage: boolean;
   onAdd: () => void;
   onViewAll: () => void;
 }) {
@@ -392,9 +404,11 @@ function ContactsPreview({
     <section className="card p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-bold text-anac-navy">Contacts principaux</h3>
-        <Button type="button" variant="ghost" size="sm" onClick={onAdd}>
-          Ajouter
-        </Button>
+        {canManage && (
+          <Button type="button" variant="ghost" size="sm" onClick={onAdd}>
+            Ajouter
+          </Button>
+        )}
       </div>
       <div className="mt-4 space-y-3">
         {principal ? <ContactCard contact={principal} compact /> : <p className="text-sm text-anac-muted">Aucun contact principal défini.</p>}
@@ -460,6 +474,7 @@ function AgreementsList({ accords, loading }: { accords: Accord[]; loading: bool
 function ContactsSection({
   contacts,
   isLoading,
+  canManage,
   onAdd,
   onEdit,
   onPrincipal,
@@ -467,6 +482,7 @@ function ContactsSection({
 }: {
   contacts: Contact[];
   isLoading: boolean;
+  canManage: boolean;
   onAdd: () => void;
   onEdit: (contact: Contact) => void;
   onPrincipal: (contactId: number) => void;
@@ -476,10 +492,12 @@ function ContactsSection({
     <section className="card p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-bold text-anac-navy">Contacts</h3>
-        <Button type="button" onClick={onAdd} className="gap-2 bg-anac-blue">
-          <Plus size={14} aria-hidden="true" />
-          Ajouter un contact
-        </Button>
+        {canManage && (
+          <Button type="button" onClick={onAdd} className="gap-2 bg-anac-blue">
+            <Plus size={14} aria-hidden="true" />
+            Ajouter un contact
+          </Button>
+        )}
       </div>
       {isLoading ? (
         <p className="mt-4 text-sm text-anac-muted">Chargement des contacts...</p>
@@ -527,22 +545,24 @@ function ContactsSection({
                     {contact.actif ? <span className="badge-actif">Actif</span> : <span className="badge-expire">Inactif</span>}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => onEdit(contact)}>
-                        Modifier
-                      </Button>
-                      {!contact.principal && contact.actif && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onPrincipal(contact.id)}
-                          disabled={principalPending}
-                        >
-                          Définir principal
+                    {canManage && (
+                      <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => onEdit(contact)}>
+                          Modifier
                         </Button>
-                      )}
-                    </div>
+                        {!contact.principal && contact.actif && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onPrincipal(contact.id)}
+                            disabled={principalPending}
+                          >
+                            Définir principal
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

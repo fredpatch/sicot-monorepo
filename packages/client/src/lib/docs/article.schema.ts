@@ -24,6 +24,7 @@ export const ARTICLE_CATEGORIES = [
   'translation',
   'missions',
   'documents',
+  'cooperation',
 ] as const;
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
 

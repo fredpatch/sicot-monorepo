@@ -13,7 +13,7 @@
 // by testing the route matcher and capability filter directly.
 import { describe, it, expect } from 'vitest';
 import { getHelpEntry, filterHelpEntry, HELP_MAP, type HelpEntry } from './help-map';
-import { getArticleBySlug } from '@/lib/docs/articles';
+import { getArticleBySlug, getVisibleArticleBySlug } from '@/lib/docs/articles';
 
 describe('HELP_MAP articles - every drawer article link resolves to a real, known slug (Phase 10.3)', () => {
   it('every entry.articles slug exists in the article registry', () => {
@@ -305,6 +305,125 @@ describe('/mon-espace - no role-name framing, identical content for every role (
   it('does not use role-name language ("because you are an agent") anywhere in its copy', () => {
     const text = entry.sections.map((s) => `${s.heading} ${s.body}`).join(' ').toLowerCase();
     expect(text).not.toMatch(/agent|op[ée]rateur|admin|super_admin/);
+  });
+});
+
+describe('/accords and /accords/:id - view-only never receives AGREEMENT_MANAGE instructions (Phase 10.5)', () => {
+  for (const pattern of ['/accords', '/accords/:id'] as const) {
+    const entry = HELP_MAP.find((e) => e.routePattern === pattern)!;
+
+    it(`${pattern}: operateur (AGREEMENT_VIEW-only, hypothetically) never sees a management section`, () => {
+      const filtered = filterHelpEntry(entry, 'operateur');
+      expect(filtered.sections.every((s) => !s.capability)).toBe(true);
+    });
+
+    it(`${pattern}: admin+ (the only real viewers today) sees the management sections`, () => {
+      for (const role of ['admin', 'super_admin'] as const) {
+        const filtered = filterHelpEntry(entry, role);
+        expect(filtered.sections.some((s) => s.capability === 'AGREEMENT_MANAGE')).toBe(true);
+      }
+    });
+  }
+});
+
+describe('/partenaires and /partenaires/:id - view-only never receives PARTNER_MANAGE instructions (Phase 10.5)', () => {
+  for (const pattern of ['/partenaires', '/partenaires/:id'] as const) {
+    const entry = HELP_MAP.find((e) => e.routePattern === pattern)!;
+
+    it(`${pattern}: operateur (PARTNER_VIEW-only, hypothetically) never sees a management section`, () => {
+      const filtered = filterHelpEntry(entry, 'operateur');
+      expect(filtered.sections.every((s) => !s.capability)).toBe(true);
+    });
+
+    it(`${pattern}: admin+ (the only real viewers today) sees the management sections`, () => {
+      for (const role of ['admin', 'super_admin'] as const) {
+        const filtered = filterHelpEntry(entry, role);
+        expect(filtered.sections.some((s) => s.capability === 'PARTNER_MANAGE')).toBe(true);
+      }
+    });
+  }
+});
+
+describe('/courriers and /courriers/:id - view-only never receives CORRESPONDENCE_MANAGE instructions (Phase 10.5)', () => {
+  for (const pattern of ['/courriers', '/courriers/:id'] as const) {
+    const entry = HELP_MAP.find((e) => e.routePattern === pattern)!;
+
+    it(`${pattern}: operateur (CORRESPONDENCE_VIEW-only, hypothetically) never sees a management section`, () => {
+      const filtered = filterHelpEntry(entry, 'operateur');
+      expect(filtered.sections.every((s) => !s.capability)).toBe(true);
+    });
+
+    it(`${pattern}: admin+ (the only real viewers today) sees the management sections`, () => {
+      for (const role of ['admin', 'super_admin'] as const) {
+        const filtered = filterHelpEntry(entry, role);
+        expect(filtered.sections.some((s) => s.capability === 'CORRESPONDENCE_MANAGE')).toBe(true);
+      }
+    });
+  }
+});
+
+describe('cooperation routes resolve for real routes (Phase 10.5)', () => {
+  it('/accords, /partenaires, /courriers and their :id variants all have a help entry', () => {
+    for (const route of [
+      '/accords',
+      '/accords/:id',
+      '/partenaires',
+      '/partenaires/:id',
+      '/courriers',
+      '/courriers/:id',
+    ]) {
+      expect(getHelpEntry(route), `${route} has no help entry`).toBeDefined();
+    }
+  });
+
+  it('each cooperation entry links to at least one article', () => {
+    for (const route of [
+      '/accords',
+      '/accords/:id',
+      '/partenaires',
+      '/partenaires/:id',
+      '/courriers',
+      '/courriers/:id',
+    ]) {
+      const entry = getHelpEntry(route)!;
+      expect(entry.articles?.length ?? 0, `${route} has no linked article`).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('cooperation Help Drawer links never expose an inaccessible article (Phase 10.5, mirrors HelpDrawer.tsx\'s getVisibleArticleBySlug resolution)', () => {
+  const routeToSlug: Record<string, string> = {
+    '/accords': 'gerer-suivre-accords',
+    '/accords/:id': 'gerer-suivre-accords',
+    '/partenaires': 'gerer-partenaires',
+    '/partenaires/:id': 'gerer-partenaires',
+    '/courriers': 'suivre-courriers',
+    '/courriers/:id': 'suivre-courriers',
+  };
+
+  it('agent/operateur resolve no linked article for any cooperation route (same rule the drawer applies)', () => {
+    for (const [route, slug] of Object.entries(routeToSlug)) {
+      const entry = getHelpEntry(route)!;
+      expect(entry.articles).toContain(slug);
+      for (const role of ['agent', 'operateur'] as const) {
+        const resolved = (entry.articles ?? [])
+          .map((s) => getVisibleArticleBySlug(s, role))
+          .filter((a): a is NonNullable<typeof a> => Boolean(a));
+        expect(resolved.map((a) => a.slug)).not.toContain(slug);
+      }
+    }
+  });
+
+  it('admin+ resolves the linked article for every cooperation route', () => {
+    for (const [route, slug] of Object.entries(routeToSlug)) {
+      const entry = getHelpEntry(route)!;
+      for (const role of ['admin', 'super_admin'] as const) {
+        const resolved = (entry.articles ?? [])
+          .map((s) => getVisibleArticleBySlug(s, role))
+          .filter((a): a is NonNullable<typeof a> => Boolean(a));
+        expect(resolved.map((a) => a.slug)).toContain(slug);
+      }
+    }
   });
 });
 

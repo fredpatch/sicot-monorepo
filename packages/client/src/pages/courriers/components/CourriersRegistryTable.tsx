@@ -8,7 +8,13 @@ import { formatCourrierDate, formatCourrierDeadline, getCourrierHealth, getCourr
 import { CourrierDirectionBadge } from './CourrierDirectionBadge';
 import { CourrierHealthBadge } from './CourrierHealthBadge';
 
-export function CourriersRegistryTable({ courriers }: { courriers: Courrier[] }) {
+export function CourriersRegistryTable({
+  courriers,
+  canManage,
+}: {
+  courriers: Courrier[];
+  canManage: boolean;
+}) {
   const navigate = useNavigate();
 
   return (
@@ -75,29 +81,33 @@ export function CourriersRegistryTable({ courriers }: { courriers: Courrier[] })
                         <Eye size={14} aria-hidden="true" />
                       </Button>
                     </ActionTooltip>
-                    <ActionTooltip label="Modifier">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => navigate(`/courriers/${courrier.id}/edit`)}
-                        aria-label={`Modifier ${courrier.reference}`}
-                      >
-                        <Pencil size={14} aria-hidden="true" />
-                      </Button>
-                    </ActionTooltip>
-                    {courrier.direction === 'entrant' && courrier.suiviStatut !== 'archive' && (
-                      <ActionTooltip label="Répondre">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => navigate(`/courriers/new?reponseAId=${courrier.id}`)}
-                          aria-label={`Répondre à ${courrier.reference}`}
-                        >
-                          <Send size={14} aria-hidden="true" />
-                        </Button>
-                      </ActionTooltip>
+                    {canManage && (
+                      <>
+                        <ActionTooltip label="Modifier">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => navigate(`/courriers/${courrier.id}/edit`)}
+                            aria-label={`Modifier ${courrier.reference}`}
+                          >
+                            <Pencil size={14} aria-hidden="true" />
+                          </Button>
+                        </ActionTooltip>
+                        {courrier.direction === 'entrant' && courrier.suiviStatut !== 'archive' && (
+                          <ActionTooltip label="Répondre">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => navigate(`/courriers/new?reponseAId=${courrier.id}`)}
+                              aria-label={`Répondre à ${courrier.reference}`}
+                            >
+                              <Send size={14} aria-hidden="true" />
+                            </Button>
+                          </ActionTooltip>
+                        )}
+                      </>
                     )}
                     {courrier.documents.length > 0 && (
                       <ActionTooltip label="Pièces jointes">

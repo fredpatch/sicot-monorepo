@@ -20,11 +20,13 @@ type SortOrder = 'asc' | 'desc';
 
 export function PartenairesRegistryTable({
   organisations,
+  canManage,
   sortBy,
   sortOrder,
   onSort,
 }: {
   organisations: Organisation[];
+  canManage: boolean;
   sortBy?: SortField;
   sortOrder?: SortOrder;
   onSort: (field: SortField) => void;
@@ -133,28 +135,32 @@ export function PartenairesRegistryTable({
                         <Eye size={14} aria-hidden="true" />
                       </Button>
                     </ActionTooltip>
-                    <ActionTooltip label="Modifier">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => navigate(`/partenaires/${organisation.id}/edit`)}
-                        aria-label={`Modifier ${organisation.nom}`}
-                      >
-                        <Pencil size={14} aria-hidden="true" />
-                      </Button>
-                    </ActionTooltip>
-                    <ActionTooltip label="Gérer les contacts">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => navigate(`/partenaires/${organisation.id}?section=contacts`)}
-                        aria-label={`Gérer les contacts de ${organisation.nom}`}
-                      >
-                        <Users size={14} aria-hidden="true" />
-                      </Button>
-                    </ActionTooltip>
+                    {canManage && (
+                      <>
+                        <ActionTooltip label="Modifier">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => navigate(`/partenaires/${organisation.id}/edit`)}
+                            aria-label={`Modifier ${organisation.nom}`}
+                          >
+                            <Pencil size={14} aria-hidden="true" />
+                          </Button>
+                        </ActionTooltip>
+                        <ActionTooltip label="Gérer les contacts">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => navigate(`/partenaires/${organisation.id}?section=contacts`)}
+                            aria-label={`Gérer les contacts de ${organisation.nom}`}
+                          >
+                            <Users size={14} aria-hidden="true" />
+                          </Button>
+                        </ActionTooltip>
+                      </>
+                    )}
                     <ActionTooltip label="Voir les accords">
                       <Button
                         type="button"

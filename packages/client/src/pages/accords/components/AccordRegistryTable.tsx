@@ -12,7 +12,13 @@ import {
 import { AccordExpiryBadge } from './AccordExpiryBadge';
 import { AccordStatusBadge } from './AccordStatusBadge';
 
-export function AccordRegistryTable({ accords }: { accords: Accord[] }) {
+export function AccordRegistryTable({
+  accords,
+  canManage,
+}: {
+  accords: Accord[];
+  canManage: boolean;
+}) {
   const navigate = useNavigate();
 
   return (
@@ -76,41 +82,45 @@ export function AccordRegistryTable({ accords }: { accords: Accord[] }) {
                       <Eye size={14} aria-hidden="true" />
                     </Button>
                   </ActionTooltip>
-                  <ActionTooltip label="Modifier">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => navigate(`/accords/${accord.id}/edit`)}
-                      aria-label={`Modifier ${accord.reference}`}
-                    >
-                      <Pencil size={14} aria-hidden="true" />
-                    </Button>
-                  </ActionTooltip>
-                  {isRenewable(accord) && (
-                    <ActionTooltip label="Renouveler">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => navigate(`/accords/${accord.id}?action=renew`)}
-                        aria-label={`Renouveler ${accord.reference}`}
-                      >
-                        <RefreshCw size={14} aria-hidden="true" />
-                      </Button>
-                    </ActionTooltip>
+                  {canManage && (
+                    <>
+                      <ActionTooltip label="Modifier">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => navigate(`/accords/${accord.id}/edit`)}
+                          aria-label={`Modifier ${accord.reference}`}
+                        >
+                          <Pencil size={14} aria-hidden="true" />
+                        </Button>
+                      </ActionTooltip>
+                      {isRenewable(accord) && (
+                        <ActionTooltip label="Renouveler">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => navigate(`/accords/${accord.id}?action=renew`)}
+                            aria-label={`Renouveler ${accord.reference}`}
+                          >
+                            <RefreshCw size={14} aria-hidden="true" />
+                          </Button>
+                        </ActionTooltip>
+                      )}
+                      <ActionTooltip label="Préparer une relance">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => navigate(`/accords/${accord.id}?section=notifications`)}
+                          aria-label={`Préparer une relance pour ${accord.reference}`}
+                        >
+                          <Send size={14} aria-hidden="true" />
+                        </Button>
+                      </ActionTooltip>
+                    </>
                   )}
-                  <ActionTooltip label="Préparer une relance">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => navigate(`/accords/${accord.id}?section=notifications`)}
-                      aria-label={`Préparer une relance pour ${accord.reference}`}
-                    >
-                      <Send size={14} aria-hidden="true" />
-                    </Button>
-                  </ActionTooltip>
                 </div>
               </td>
             </tr>

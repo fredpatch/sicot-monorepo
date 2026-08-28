@@ -4,8 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/App';
 import { courriersApi } from '@/lib/courriers.api';
 import { COURRIER_PAGE_SIZE } from './courriers/courrier.constants';
+import { canManageCourriers } from './courriers/courrier.permissions';
 import type {
   Courrier,
   CourrierDirection,
@@ -34,6 +36,8 @@ function useDebouncedValue<T>(value: T, delay = 300) {
 
 export default function CourriersPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = canManageCourriers(user?.role);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
@@ -135,16 +139,18 @@ export default function CourriersPage() {
             Gérez les courriers entrants et sortants ainsi que leur suivi.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            onClick={() => navigate('/courriers/new')}
-            className="gap-2 bg-anac-blue"
-          >
-            <Plus size={14} aria-hidden="true" />
-            Nouveau courrier
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              onClick={() => navigate('/courriers/new')}
+              className="gap-2 bg-anac-blue"
+            >
+              <Plus size={14} aria-hidden="true" />
+              Nouveau courrier
+            </Button>
+          </div>
+        )}
       </header>
 
       <CourriersSummaryCards aggregates={aggregatesQuery.data} />
@@ -202,13 +208,15 @@ export default function CourriersPage() {
           <p className="text-sm text-anac-muted">
             {hasFilters
               ? 'Modifiez les filtres ou réinitialisez la recherche.'
-              : 'Enregistrez le premier courrier entrant ou sortant.'}
+              : canManage
+                ? 'Enregistrez le premier courrier entrant ou sortant.'
+                : 'Aucun courrier n\'a encore été enregistré.'}
           </p>
           {hasFilters ? (
             <Button type="button" variant="outline" onClick={resetFilters}>
               Réinitialiser les filtres
             </Button>
-          ) : (
+          ) : canManage ? (
             <Button
               type="button"
               onClick={() => navigate('/courriers/new')}
@@ -217,11 +225,11 @@ export default function CourriersPage() {
               <Plus size={14} aria-hidden="true" />
               Nouveau courrier
             </Button>
-          )}
+          ) : null}
         </div>
       ) : (
         <>
-          <CourriersRegistryTable courriers={courriers} />
+          <CourriersRegistryTable courriers={courriers} canManage={canManage} />
           <CourriersRegistryMobileCards courriers={courriers} />
         </>
       )}

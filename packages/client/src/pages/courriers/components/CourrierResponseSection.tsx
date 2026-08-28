@@ -21,7 +21,13 @@ interface Accord {
 // Réponse tracking + fil de correspondance + relance, combined into one
 // section (Phase 2 plan §5/§9) - a separate near-empty "Notifications" tab
 // isn't warranted; the relance history already lives in ModalRelance.
-export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
+export function CourrierResponseSection({
+  courrier,
+  canManage,
+}: {
+  courrier: Courrier;
+  canManage: boolean;
+}) {
   const [modalRelance, setModalRelance] = useState(false);
 
   const { data: parent } = useQuery({
@@ -87,7 +93,7 @@ export function CourrierResponseSection({ courrier }: { courrier: Courrier }) {
           </div>
         </dl>
 
-        {courrier.direction === 'entrant' && courrier.suiviStatut !== 'archive' && (
+        {canManage && courrier.direction === 'entrant' && courrier.suiviStatut !== 'archive' && (
           <Button
             type="button"
             variant="outline"

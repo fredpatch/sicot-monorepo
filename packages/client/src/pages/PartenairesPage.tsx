@@ -4,8 +4,10 @@ import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-reac
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/App';
 import { organisationsApi } from '@/lib/organisations.api';
 import { PARTENAIRES_PAGE_SIZE } from './partenaires/partenaires.constants';
+import { canManagePartenaires } from './partenaires/partenaires.permissions';
 import type {
   ContactQualityFilter,
   OrganisationsListResponse,
@@ -32,6 +34,8 @@ function useDebouncedValue<T>(value: T, delay = 300) {
 
 export default function PartenairesPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = canManagePartenaires(user?.role);
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
   const debouncedSearch = useDebouncedValue(search);
@@ -131,10 +135,12 @@ export default function PartenairesPage() {
             Gérez les organisations et partenaires de coopération internationale.
           </p>
         </div>
-        <Button type="button" onClick={() => navigate('/partenaires/new')} className="gap-2 bg-anac-blue">
-          <Plus size={14} aria-hidden="true" />
-          Nouveau partenaire
-        </Button>
+        {canManage && (
+          <Button type="button" onClick={() => navigate('/partenaires/new')} className="gap-2 bg-anac-blue">
+            <Plus size={14} aria-hidden="true" />
+            Nouveau partenaire
+          </Button>
+        )}
       </header>
 
       <PartenairesSummaryCards aggregates={partenairesQuery.data?.aggregates} />
@@ -185,23 +191,26 @@ export default function PartenairesPage() {
           <p className="text-sm text-anac-muted">
             {hasFilters
               ? 'Modifiez les filtres ou réinitialisez la recherche.'
-              : 'Créez la première organisation partenaire.'}
+              : canManage
+                ? 'Créez la première organisation partenaire.'
+                : 'Aucun partenaire n\'a encore été enregistré.'}
           </p>
           {hasFilters ? (
             <Button type="button" variant="outline" onClick={resetFilters}>
               Réinitialiser les filtres
             </Button>
-          ) : (
+          ) : canManage ? (
             <Button type="button" onClick={() => navigate('/partenaires/new')} className="gap-2 bg-anac-blue">
               <Plus size={14} aria-hidden="true" />
               Nouveau partenaire
             </Button>
-          )}
+          ) : null}
         </div>
       ) : (
         <>
           <PartenairesRegistryTable
             organisations={organisations}
+            canManage={canManage}
             sortBy={sortBy ?? undefined}
             sortOrder={sortOrder}
             onSort={sortRegistry}

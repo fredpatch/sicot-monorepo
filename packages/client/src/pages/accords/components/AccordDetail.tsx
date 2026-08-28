@@ -51,10 +51,11 @@ import { AccordStatusBadge } from './AccordStatusBadge';
 
 interface AccordDetailProps {
   accordId: number;
+  canManage: boolean;
   onModifier: () => void;
 }
 
-export default function AccordDetail({ accordId, onModifier }: AccordDetailProps) {
+export default function AccordDetail({ accordId, canManage, onModifier }: AccordDetailProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -249,11 +250,13 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
             <FileDown size={14} aria-hidden="true" />
             Exporter PDF
           </Button>
-          <Button type="button" variant="outline" onClick={onModifier} className="gap-2">
-            <Pencil size={14} aria-hidden="true" />
-            Modifier
-          </Button>
-          {isRenewable(accord) && (
+          {canManage && (
+            <Button type="button" variant="outline" onClick={onModifier} className="gap-2">
+              <Pencil size={14} aria-hidden="true" />
+              Modifier
+            </Button>
+          )}
+          {canManage && isRenewable(accord) && (
             <Button type="button" onClick={() => setRenewOpen(true)} className="gap-2 bg-anac-blue">
               <RefreshCw size={14} aria-hidden="true" />
               Renouveler l&apos;accord
@@ -436,9 +439,11 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
               ) : (
                 <div className="mt-4 rounded-md border border-anac-border bg-anac-gray p-6 text-center">
                   <p className="font-medium text-anac-navy">Aucun document de référence n&apos;est lié à cet accord.</p>
-                  <Button type="button" variant="outline" onClick={onModifier} className="mt-4">
-                    Modifier l&apos;accord pour lier un document
-                  </Button>
+                  {canManage && (
+                    <Button type="button" variant="outline" onClick={onModifier} className="mt-4">
+                      Modifier l&apos;accord pour lier un document
+                    </Button>
+                  )}
                 </div>
               )}
             </section>
@@ -481,24 +486,26 @@ export default function AccordDetail({ accordId, onModifier }: AccordDetailProps
                   {accord.partenaires.length - recipients.length > 0 &&
                     ` ${accord.partenaires.length - recipients.length} partenaire(s) seront ignorés faute d'email.`}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" onClick={() => setRelanceOpen(true)} className="gap-2">
-                    <Send size={14} aria-hidden="true" />
-                    Préparer une relance
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setGroupResult(null);
-                      notifyAllMutation.mutate();
-                    }}
-                    disabled={recipients.length === 0 || notifyAllMutation.isPending}
-                    className="gap-2 bg-anac-blue"
-                  >
-                    {notifyAllMutation.isPending && <Loader2 size={14} className="animate-spin" />}
-                    Notifier les partenaires
-                  </Button>
-                </div>
+                {canManage && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" onClick={() => setRelanceOpen(true)} className="gap-2">
+                      <Send size={14} aria-hidden="true" />
+                      Préparer une relance
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setGroupResult(null);
+                        notifyAllMutation.mutate();
+                      }}
+                      disabled={recipients.length === 0 || notifyAllMutation.isPending}
+                      className="gap-2 bg-anac-blue"
+                    >
+                      {notifyAllMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                      Notifier les partenaires
+                    </Button>
+                  </div>
+                )}
                 {groupResult && (
                   <div className="mt-4 rounded-md border border-anac-border bg-anac-gray px-4 py-3 text-sm">
                     <p className="font-semibold text-anac-navy">

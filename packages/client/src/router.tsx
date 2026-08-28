@@ -119,10 +119,15 @@ export const routeConfig = createRoutesFromElements(
           </CapabilityRoute>
         }
       />
+      {/* Mutation-oriented - AGREEMENT_MANAGE, distinct from the viewing
+            route above (AGREEMENT_VIEW). Both happen to be granted together
+            today (admin+), but the guard should express the real contract
+            rather than that bundling (Phase 10.5 alignment fix, same rule
+            as Phase 10.2's mission route guards). */}
       <Route
         path="/accords/new"
         element={
-          <CapabilityRoute capability="AGREEMENT_VIEW">
+          <CapabilityRoute capability="AGREEMENT_MANAGE">
             <AccordFormPage />
           </CapabilityRoute>
         }
@@ -130,7 +135,7 @@ export const routeConfig = createRoutesFromElements(
       <Route
         path="/accords/:id/edit"
         element={
-          <CapabilityRoute capability="AGREEMENT_VIEW">
+          <CapabilityRoute capability="AGREEMENT_MANAGE">
             <AccordFormPage />
           </CapabilityRoute>
         }
@@ -143,10 +148,13 @@ export const routeConfig = createRoutesFromElements(
           </CapabilityRoute>
         }
       />
+      {/* Mutation-oriented - PARTNER_MANAGE, distinct from the viewing
+            routes (PARTNER_VIEW). Phase 10.5 alignment fix, same rule as
+            Phase 10.2's mission route guards. */}
       <Route
         path="/partenaires/new"
         element={
-          <CapabilityRoute capability="PARTNER_VIEW">
+          <CapabilityRoute capability="PARTNER_MANAGE">
             <PartenaireFormPage />
           </CapabilityRoute>
         }
@@ -162,7 +170,7 @@ export const routeConfig = createRoutesFromElements(
       <Route
         path="/partenaires/:id/edit"
         element={
-          <CapabilityRoute capability="PARTNER_VIEW">
+          <CapabilityRoute capability="PARTNER_MANAGE">
             <PartenaireFormPage />
           </CapabilityRoute>
         }
@@ -211,10 +219,13 @@ export const routeConfig = createRoutesFromElements(
           </CapabilityRoute>
         }
       />
+      {/* Mutation-oriented - CORRESPONDENCE_MANAGE, distinct from the
+            viewing route above (CORRESPONDENCE_VIEW). Phase 10.5 alignment
+            fix, same rule as Phase 10.2's mission route guards. */}
       <Route
         path="/courriers/new"
         element={
-          <CapabilityRoute capability="CORRESPONDENCE_VIEW">
+          <CapabilityRoute capability="CORRESPONDENCE_MANAGE">
             <CourrierFormPage />
           </CapabilityRoute>
         }
@@ -222,7 +233,7 @@ export const routeConfig = createRoutesFromElements(
       <Route
         path="/courriers/:id/edit"
         element={
-          <CapabilityRoute capability="CORRESPONDENCE_VIEW">
+          <CapabilityRoute capability="CORRESPONDENCE_MANAGE">
             <CourrierFormPage />
           </CapabilityRoute>
         }

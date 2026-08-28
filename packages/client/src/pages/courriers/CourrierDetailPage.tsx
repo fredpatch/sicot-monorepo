@@ -4,8 +4,10 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FileText, History, Info, Loader2, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/App';
 import { courriersApi } from '@/lib/courriers.api';
 import type { Courrier } from './courrier.types';
+import { canManageCourriers } from './courrier.permissions';
 import { formatCourrierDate } from './courrier.utils';
 import { CourrierDetailHeader } from './components/CourrierDetailHeader';
 import { CourrierSummaryStrip } from './components/CourrierSummaryStrip';
@@ -23,6 +25,8 @@ const SECTIONS = [
 export default function CourrierDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const canManage = canManageCourriers(user?.role);
   const { id } = useParams<{ id: string }>();
   const courrierId = id ? parseInt(id, 10) : null;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,6 +99,7 @@ export default function CourrierDetailPage() {
     <div className="mx-auto max-w-[1180px] space-y-5">
       <CourrierDetailHeader
         courrier={courrier}
+        canManage={canManage}
         onEdit={() => navigate(`/courriers/${courrier.id}/edit`)}
         onRepondre={() => navigate(`/courriers/new?reponseAId=${courrier.id}`)}
         onArchiver={() => archiverMutation.mutate()}
@@ -123,8 +128,12 @@ export default function CourrierDetailPage() {
 
         <main>
           {section === 'overview' && <CourrierOverview courrier={courrier} />}
-          {section === 'documents' && <CourrierDocumentSection courrier={courrier} />}
-          {section === 'reponse' && <CourrierResponseSection courrier={courrier} />}
+          {section === 'documents' && (
+            <CourrierDocumentSection courrier={courrier} canManage={canManage} />
+          )}
+          {section === 'reponse' && (
+            <CourrierResponseSection courrier={courrier} canManage={canManage} />
+          )}
 
           {section === 'historique' && (
             <section className="card p-5">

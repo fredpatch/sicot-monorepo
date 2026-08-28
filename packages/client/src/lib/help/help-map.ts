@@ -423,14 +423,10 @@ export const HELP_MAP: HelpEntry[] = [
   },
   {
     // Phase 10.4 — audited against GlossairePage.tsx and the server's
-    // glossaire.route.ts. No client-side capability gating exists on any
-    // glossary action today (create/edit/deactivate/reactivate all render
-    // unconditionally) — left as-is per this phase's scope (adding new UI
-    // gating would be new authorization architecture, not a fix to an
-    // existing mismatch like the /documents ones above). Every role that
-    // reaches /glossaire already holds GLOSSARY_MANAGE too (both
-    // operateur+-only), so this is not a live gap — sections below are
-    // still capability-gated correctly for when that stops being true.
+    // glossaire.route.ts; mutation controls (create/edit/deactivate/
+    // reactivate) are now gated on GLOSSARY_MANAGE via
+    // glossary.permissions.ts (final Phase 10.4 alignment pass), matching
+    // the sections below.
     routePattern: '/glossaire',
     title: 'Aide - Glossaire terminologique',
     articles: ['utiliser-glossaire'],
@@ -491,6 +487,229 @@ export const HELP_MAP: HelpEntry[] = [
           'Les modules visibles dans la barre latérale dépendent de vos droits d’accès et de vos ' +
           'responsabilités dans SICOT, pas de la page où vous vous trouvez - un module absent n’est jamais un ' +
           'signe d’erreur.',
+      },
+    ],
+  },
+  {
+    // Phase 10.5 — audited against AccordsPage.tsx, AccordDetail.tsx,
+    // AccordRegistryTable.tsx, router.tsx and the server's accords.route.ts.
+    // A capability-naming mismatch was found and fixed during this audit:
+    // /accords/new and /accords/:id/edit were route-guarded on AGREEMENT_VIEW
+    // instead of AGREEMENT_MANAGE (mirrored in AccordsPage.tsx's "Nouvel
+    // accord" button and AccordDetail.tsx's Modifier/Renouveler/notify
+    // actions, none of which checked a capability at all before this phase)
+    // — sections below reflect the corrected, accurate capability per action.
+    routePattern: '/accords',
+    title: 'Aide - Registre des accords',
+    articles: ['gerer-suivre-accords'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Liste les accords et conventions de coopération internationale de l’organisation, avec leur statut ' +
+          'et leur échéance.',
+      },
+      {
+        id: 'statuts-echeance',
+        heading: 'Statuts et échéance',
+        body:
+          'Un accord peut être actif, expiré, suspendu ou en renouvellement. Une échéance proche (90 jours ou ' +
+          'moins) ou dépassée est signalée directement dans le registre.',
+      },
+      {
+        id: 'gestion',
+        heading: 'Créer, modifier, renouveler',
+        body:
+          'La création, la modification et le renouvellement d’un accord sont réservés aux comptes disposant ' +
+          'du droit de gestion des accords.',
+        capability: 'AGREEMENT_MANAGE',
+      },
+    ],
+  },
+  {
+    // Audited against AccordDetail.tsx (section tabs) + the server's
+    // notifications.policies.ts (peutEnvoyerNotification: AGREEMENT_MANAGE
+    // to send an échéance notification, AGREEMENT_VIEW to view its history).
+    routePattern: '/accords/:id',
+    title: 'Aide - Fiche accord',
+    articles: ['gerer-suivre-accords'],
+    sections: [
+      {
+        id: 'sections',
+        heading: 'Sections de la fiche',
+        body:
+          'Aperçu, Partenaires, Document, Validité et versions, Notifications - accessibles depuis le menu à ' +
+          'gauche de la fiche.',
+      },
+      {
+        id: 'validite-versions',
+        heading: 'Validité et versions',
+        body:
+          'Un accord renouvelé garde un lien vers ses versions précédente et suivante, consultable depuis cet ' +
+          'onglet - l’historique de suivi n’est jamais perdu lors d’un renouvellement.',
+      },
+      {
+        id: 'modifier-renouveler',
+        heading: 'Modifier et renouveler',
+        body:
+          'Le renouvellement crée une nouvelle version de l’accord et fait passer la version actuelle au ' +
+          'statut « En renouvellement ».',
+        capability: 'AGREEMENT_MANAGE',
+      },
+      {
+        id: 'notifications',
+        heading: 'Relancer les partenaires',
+        body:
+          'Préparer une relance ou notifier l’ensemble des partenaires associés se fait depuis l’onglet ' +
+          'Notifications. L’historique des relances envoyées y reste consultable même sans ce droit.',
+        capability: 'AGREEMENT_MANAGE',
+      },
+    ],
+  },
+  {
+    // Phase 10.5 — audited against PartenairesPage.tsx,
+    // PartenaireDetailPage.tsx, PartenairesRegistryTable.tsx, router.tsx and
+    // the server's organisations.route.ts. A capability-naming mismatch was
+    // found and fixed during this audit: /partenaires/new and
+    // /partenaires/:id/edit were route-guarded on PARTNER_VIEW instead of
+    // PARTNER_MANAGE (mirrored in the page's action buttons, none of which
+    // checked a capability before this phase). Contacts have no separate
+    // capability server-side - creating, editing, or setting a contact as
+    // principal all require PARTNER_MANAGE too, reflected below rather than
+    // assuming a dedicated contact capability exists.
+    routePattern: '/partenaires',
+    title: 'Aide - Annuaire des partenaires',
+    articles: ['gerer-partenaires'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Recense les organisations partenaires de la coopération internationale de l’ANAC, avec leurs pays, ' +
+          'contacts et accords associés.',
+      },
+      {
+        id: 'organisation-vs-contact',
+        heading: 'Organisation et contact',
+        body:
+          'Une organisation (le partenaire) et ses contacts sont distincts - une organisation peut avoir ' +
+          'plusieurs contacts, dont l’un peut être désigné contact principal.',
+      },
+      {
+        id: 'gestion',
+        heading: 'Créer et modifier',
+        body:
+          'La création et la modification d’une organisation, ainsi que la gestion de ses contacts, sont ' +
+          'réservées aux comptes disposant du droit de gestion des partenaires.',
+        capability: 'PARTNER_MANAGE',
+      },
+    ],
+  },
+  {
+    // Audited against PartenaireDetailPage.tsx (section tabs + contact
+    // management dialog).
+    routePattern: '/partenaires/:id',
+    title: 'Aide - Fiche partenaire',
+    articles: ['gerer-partenaires'],
+    sections: [
+      {
+        id: 'sections',
+        heading: 'Sections de la fiche',
+        body:
+          'Aperçu, Contacts, Informations, Accords liés, Informations système - accessibles depuis le menu à ' +
+          'gauche de la fiche.',
+      },
+      {
+        id: 'accords-lies',
+        heading: 'Accords liés',
+        body: 'Liste les accords de coopération associés à cette organisation, avec un accès direct à chacun.',
+      },
+      {
+        id: 'gestion-contacts',
+        heading: 'Gérer les contacts',
+        body:
+          'Ajouter, modifier un contact ou en désigner un comme principal se fait depuis l’onglet Contacts - ' +
+          'réservé aux comptes disposant du droit de gestion des partenaires.',
+        capability: 'PARTNER_MANAGE',
+      },
+    ],
+  },
+  {
+    // Phase 10.5 — audited against CourriersPage.tsx, CourrierDetailPage.tsx
+    // (+ CourrierDetailHeader/DocumentSection/ResponseSection), router.tsx
+    // and the server's courriers.route.ts. A capability-naming mismatch was
+    // found and fixed during this audit: /courriers/new and
+    // /courriers/:id/edit were route-guarded on CORRESPONDENCE_VIEW instead
+    // of CORRESPONDENCE_MANAGE (mirrored in the page's action buttons, none
+    // of which checked a capability before this phase). No formal approval
+    // circuit or signature flow exists in the current implementation -
+    // suivi is limited to en_attente/répondu/archivé, reflected below rather
+    // than describing a workflow the application doesn't have.
+    routePattern: '/courriers',
+    title: 'Aide - Registre des courriers',
+    articles: ['suivre-courriers'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'Liste les courriers entrants et sortants liés à la coopération internationale, avec leur statut de ' +
+          'suivi et leur échéance de réponse.',
+      },
+      {
+        id: 'entrant-sortant',
+        heading: 'Entrant et sortant',
+        body:
+          'Un courrier entrant est reçu ; un courrier sortant est envoyé. Répondre à un courrier entrant crée ' +
+          'automatiquement un nouveau courrier sortant, relié à l’original.',
+      },
+      {
+        id: 'gestion',
+        heading: 'Enregistrer, modifier, répondre, archiver',
+        body:
+          'Ces actions sont réservées aux comptes disposant du droit de gestion des courriers.',
+        capability: 'CORRESPONDENCE_MANAGE',
+      },
+    ],
+  },
+  {
+    // Audited against CourrierDetailHeader.tsx (peutRepondre/peutArchiver/
+    // peutRelancer local rules) + CourrierResponseSection.tsx +
+    // CourrierDocumentSection.tsx + the server's notifications.policies.ts
+    // (peutEnvoyerNotification: CORRESPONDENCE_MANAGE to send a relance,
+    // CORRESPONDENCE_VIEW to view its history).
+    routePattern: '/courriers/:id',
+    title: 'Aide - Fiche courrier',
+    articles: ['suivre-courriers'],
+    sections: [
+      {
+        id: 'sections',
+        heading: 'Sections de la fiche',
+        body:
+          'Aperçu, Documents, Réponse / Courriers liés, Historique - accessibles depuis le menu à gauche de la ' +
+          'fiche.',
+      },
+      {
+        id: 'suivi-reponse',
+        heading: 'Suivi de la réponse',
+        body:
+          'Le statut et, pour un courrier entrant en attente, la date limite de réponse sont visibles dans ' +
+          'l’onglet Réponse / Courriers liés, avec l’historique des relances envoyées.',
+      },
+      {
+        id: 'documents-joints',
+        heading: 'Documents joints',
+        body: 'Consultables par tout compte pouvant consulter le courrier ; ajouter ou retirer un document est réservé à la gestion des courriers.',
+        capability: 'CORRESPONDENCE_MANAGE',
+      },
+      {
+        id: 'repondre-relancer',
+        heading: 'Répondre et relancer',
+        body:
+          'Répondre, archiver ou préparer une relance pour un courrier entrant en attente sont réservés à la ' +
+          'gestion des courriers.',
+        capability: 'CORRESPONDENCE_MANAGE',
       },
     ],
   },

@@ -12,8 +12,8 @@ import {
 import { ARTICLE_CATEGORIES } from './article.schema';
 
 describe('article registry - loaded from docs/user-guide/**/*.md', () => {
-  it('loads exactly the nine articles (5 from Phase 10.3 + 4 from Phase 10.4)', () => {
-    expect(ARTICLES).toHaveLength(9);
+  it('loads exactly the twelve articles (5 from Phase 10.3 + 4 from Phase 10.4 + 3 from Phase 10.5)', () => {
+    expect(ARTICLES).toHaveLength(12);
   });
 
   it('every article has unique, kebab-case slugs (registry construction throws on duplicates)', () => {
@@ -48,6 +48,13 @@ describe('article registry - loaded from docs/user-guide/**/*.md', () => {
     expect(slugs.has('publier-portail-externe')).toBe(true);
     expect(slugs.has('utiliser-glossaire')).toBe(true);
     expect(slugs.has('mon-espace')).toBe(true);
+  });
+
+  it('the Phase 10.5 required slugs are all present', () => {
+    const slugs = new Set(ARTICLES.map((a) => a.slug));
+    expect(slugs.has('gerer-suivre-accords')).toBe(true);
+    expect(slugs.has('gerer-partenaires')).toBe(true);
+    expect(slugs.has('suivre-courriers')).toBe(true);
   });
 });
 
@@ -170,21 +177,34 @@ describe('capability visibility - fails closed, affects listing and direct/relat
     expect(isArticleVisible(article, 'agent')).toBe(false);
   });
 
-  it('visibleArticles excludes gated articles for agent, includes TRANSLATION_PROCESS-only for operateur, includes both for admin+', () => {
+  it('visibleArticles excludes gated articles for agent, includes TRANSLATION_PROCESS-only for operateur, includes all for admin+', () => {
+    // 12 total: 3 cooperation articles now require AGREEMENT_VIEW/
+    // PARTNER_VIEW/CORRESPONDENCE_VIEW (admin+ only today, Phase 10.5
+    // capability-visibility fix) - agent/operateur lose all three,
+    // admin/super_admin (who hold every capability) keep all 12.
     const forAgent = visibleArticles('agent').map((a) => a.slug);
     expect(forAgent).not.toContain('traiter-relire-approuver');
     expect(forAgent).not.toContain('publier-portail-externe');
+    expect(forAgent).not.toContain('gerer-suivre-accords');
+    expect(forAgent).not.toContain('gerer-partenaires');
+    expect(forAgent).not.toContain('suivre-courriers');
     expect(forAgent).toHaveLength(7);
 
     const forOperateur = visibleArticles('operateur').map((a) => a.slug);
     expect(forOperateur).toContain('traiter-relire-approuver');
     expect(forOperateur).not.toContain('publier-portail-externe');
+    expect(forOperateur).not.toContain('gerer-suivre-accords');
+    expect(forOperateur).not.toContain('gerer-partenaires');
+    expect(forOperateur).not.toContain('suivre-courriers');
     expect(forOperateur).toHaveLength(8);
 
     const forAdmin = visibleArticles('admin').map((a) => a.slug);
     expect(forAdmin).toContain('traiter-relire-approuver');
     expect(forAdmin).toContain('publier-portail-externe');
-    expect(forAdmin).toHaveLength(9);
+    expect(forAdmin).toContain('gerer-suivre-accords');
+    expect(forAdmin).toContain('gerer-partenaires');
+    expect(forAdmin).toContain('suivre-courriers');
+    expect(forAdmin).toHaveLength(12);
   });
 
   it('getVisibleArticleBySlug denies direct access to a gated article for a role lacking the capability', () => {
@@ -226,6 +246,68 @@ describe('capability visibility - fails closed, affects listing and direct/relat
   });
 });
 
+describe('cooperation articles - gated on their module VIEW capability (Phase 10.5 capability-visibility fix)', () => {
+  it('each article carries the capability of its own module, not a shared/borrowed one', () => {
+    expect(getArticleBySlug('gerer-suivre-accords')!.capability).toBe('AGREEMENT_VIEW');
+    expect(getArticleBySlug('gerer-partenaires')!.capability).toBe('PARTNER_VIEW');
+    expect(getArticleBySlug('suivre-courriers')!.capability).toBe('CORRESPONDENCE_VIEW');
+  });
+
+  it('agent (no AGREEMENT_VIEW/PARTNER_VIEW/CORRESPONDENCE_VIEW) cannot discover or open any of the three', () => {
+    for (const slug of ['gerer-suivre-accords', 'gerer-partenaires', 'suivre-courriers']) {
+      expect(visibleArticles('agent').map((a) => a.slug)).not.toContain(slug);
+      expect(getVisibleArticleBySlug(slug, 'agent')).toBeUndefined();
+    }
+  });
+
+  it('operateur (also lacking all three VIEW capabilities today) cannot discover or open any of the three', () => {
+    for (const slug of ['gerer-suivre-accords', 'gerer-partenaires', 'suivre-courriers']) {
+      expect(visibleArticles('operateur').map((a) => a.slug)).not.toContain(slug);
+      expect(getVisibleArticleBySlug(slug, 'operateur')).toBeUndefined();
+    }
+  });
+
+  it('admin+ (the only roles holding AGREEMENT_VIEW/PARTNER_VIEW/CORRESPONDENCE_VIEW today) can find and open all three', () => {
+    for (const role of ['admin', 'super_admin'] as const) {
+      for (const slug of ['gerer-suivre-accords', 'gerer-partenaires', 'suivre-courriers']) {
+        expect(visibleArticles(role).map((a) => a.slug)).toContain(slug);
+        expect(getVisibleArticleBySlug(slug, role)?.slug).toBe(slug);
+      }
+    }
+  });
+
+  it('undefined role (unauthenticated) cannot discover or open any of the three', () => {
+    for (const slug of ['gerer-suivre-accords', 'gerer-partenaires', 'suivre-courriers']) {
+      expect(getVisibleArticleBySlug(slug, undefined)).toBeUndefined();
+    }
+  });
+
+  it('gerer-suivre-accords links to gerer-partenaires and back, each independently filtered by its own capability', () => {
+    const accords = getArticleBySlug('gerer-suivre-accords')!;
+    const partenaires = getArticleBySlug('gerer-partenaires')!;
+    expect(accords.relatedArticles).toContain('gerer-partenaires');
+    expect(partenaires.relatedArticles).toContain('gerer-suivre-accords');
+
+    // A role holding AGREEMENT_VIEW but not PARTNER_VIEW would resolve the
+    // accords article but not the related partenaires link - not a real
+    // combination today (both are bundled at admin+), but proves the
+    // resolution mechanism filters each related slug on its own capability
+    // rather than inheriting the parent article's visibility.
+    for (const role of ['admin', 'super_admin'] as const) {
+      const related = accords.relatedArticles
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((a): a is NonNullable<typeof a> => Boolean(a));
+      expect(related.map((a) => a.slug)).toContain('gerer-partenaires');
+    }
+    for (const role of ['agent', 'operateur'] as const) {
+      const related = accords.relatedArticles
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((a): a is NonNullable<typeof a> => Boolean(a));
+      expect(related.map((a) => a.slug)).not.toContain('gerer-partenaires');
+    }
+  });
+});
+
 describe('searchArticles - case- and accent-insensitive over title/excerpt/category', () => {
   it('matches by title, case-insensitive', () => {
     const results = searchArticles(ARTICLES, 'PREMIERS PAS');
@@ -260,6 +342,15 @@ describe('searchArticles - case- and accent-insensitive over title/excerpt/categ
       'comprendre-bibliotheque-documents'
     );
     expect(searchArticles(ARTICLES, 'mon espace').map((a) => a.slug)).toContain('mon-espace');
+  });
+
+  it('finds the Phase 10.5 cooperation articles by title/category', () => {
+    expect(searchArticles(ARTICLES, 'accords').map((a) => a.slug)).toContain('gerer-suivre-accords');
+    expect(searchArticles(ARTICLES, 'partenaires').map((a) => a.slug)).toContain('gerer-partenaires');
+    expect(searchArticles(ARTICLES, 'courriers').map((a) => a.slug)).toContain('suivre-courriers');
+    expect(searchArticles(ARTICLES, 'cooperation').map((a) => a.slug)).toEqual(
+      expect.arrayContaining(['gerer-suivre-accords', 'gerer-partenaires', 'suivre-courriers'])
+    );
   });
 
   it('returns everything for an empty/whitespace query', () => {

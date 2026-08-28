@@ -7,4 +7,5 @@ export const CATEGORY_LABELS: Record<ArticleCategory, string> = {
   translation: 'Traduction',
   missions: 'Missions',
   documents: 'Documents',
+  cooperation: 'Coopération internationale',
 };

@@ -12,6 +12,7 @@ import { CourrierHealthBadge } from './CourrierHealthBadge';
 
 export function CourrierDetailHeader({
   courrier,
+  canManage,
   onEdit,
   onRepondre,
   onArchiver,
@@ -19,6 +20,7 @@ export function CourrierDetailHeader({
   archiverEnCours,
 }: {
   courrier: Courrier;
+  canManage: boolean;
   onEdit: () => void;
   onRepondre: () => void;
   onArchiver: () => void;
@@ -51,11 +53,13 @@ export function CourrierDetailHeader({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" onClick={onEdit} className="gap-2">
-          <Pencil size={14} aria-hidden="true" />
-          Modifier
-        </Button>
-        {peutRepondre && (
+        {canManage && (
+          <Button type="button" variant="outline" onClick={onEdit} className="gap-2">
+            <Pencil size={14} aria-hidden="true" />
+            Modifier
+          </Button>
+        )}
+        {canManage && peutRepondre && (
           <Button type="button" onClick={onRepondre} className="gap-2 bg-anac-blue">
             <Send size={14} aria-hidden="true" />
             Répondre
@@ -88,7 +92,7 @@ export function CourrierDetailHeader({
                 <FileDown size={14} aria-hidden="true" />
                 Imprimer / Exporter PDF
               </button>
-              {peutRelancer && (
+              {canManage && peutRelancer && (
                 <button
                   type="button"
                   onClick={() => {
@@ -101,7 +105,7 @@ export function CourrierDetailHeader({
                   Préparer une relance
                 </button>
               )}
-              {peutArchiver && (
+              {canManage && peutArchiver && (
                 <button
                   type="button"
                   disabled={archiverEnCours}

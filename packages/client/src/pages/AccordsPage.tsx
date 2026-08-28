@@ -4,8 +4,10 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/App';
 import { accordsApi, type AccordStatut } from '@/lib/accords.api';
 import { organisationsApi } from '@/lib/organisations.api';
+import { canManageAccords } from './accords/accord.permissions';
 import AccordDetail from './accords/components/AccordDetail';
 import { ACCORD_EXPIRY_WARNING_DAYS, ACCORD_PAGE_SIZE } from './accords/accord.constants';
 import type { AccordListResponse, ExpiryFilter, OrganisationOption } from './accords/accord.types';
@@ -36,6 +38,8 @@ function getExpiryDateParam(expiry: ExpiryFilter) {
 
 export default function AccordsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = canManageAccords(user?.role);
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const accordIdSelectionne = id ? parseInt(id, 10) : null;
@@ -108,6 +112,7 @@ export default function AccordsPage() {
     return (
       <AccordDetail
         accordId={accordIdSelectionne}
+        canManage={canManage}
         onModifier={() => navigate(`/accords/${accordIdSelectionne}/edit`)}
       />
     );
@@ -135,12 +140,14 @@ export default function AccordsPage() {
             Gérez les accords et conventions de coopération internationale.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button type="button" onClick={() => navigate('/accords/new')} className="gap-2 bg-anac-blue">
-            <Plus size={14} aria-hidden="true" />
-            Nouvel accord
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex gap-2">
+            <Button type="button" onClick={() => navigate('/accords/new')} className="gap-2 bg-anac-blue">
+              <Plus size={14} aria-hidden="true" />
+              Nouvel accord
+            </Button>
+          </div>
+        )}
       </header>
 
       <AccordSummaryCards
@@ -190,22 +197,24 @@ export default function AccordsPage() {
           <p className="text-sm text-anac-muted">
             {hasFilters
               ? 'Modifiez les filtres ou réinitialisez la recherche.'
-              : 'Créez le premier accord de coopération internationale.'}
+              : canManage
+                ? 'Créez le premier accord de coopération internationale.'
+                : 'Aucun accord n\'a encore été enregistré.'}
           </p>
           {hasFilters ? (
             <Button type="button" variant="outline" onClick={resetFilters}>
               Réinitialiser les filtres
             </Button>
-          ) : (
+          ) : canManage ? (
             <Button type="button" onClick={() => navigate('/accords/new')} className="gap-2 bg-anac-blue">
               <Plus size={14} aria-hidden="true" />
               Nouvel accord
             </Button>
-          )}
+          ) : null}
         </div>
       ) : (
         <>
-          <AccordRegistryTable accords={accords} />
+          <AccordRegistryTable accords={accords} canManage={canManage} />
           <AccordRegistryMobileCards accords={accords} />
         </>
       )}
