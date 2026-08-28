@@ -9,10 +9,11 @@ import {
   visibleArticles,
   searchArticles,
 } from './articles';
+import { ARTICLE_CATEGORIES } from './article.schema';
 
 describe('article registry - loaded from docs/user-guide/**/*.md', () => {
-  it('loads exactly the five Phase 10.3 articles', () => {
-    expect(ARTICLES).toHaveLength(5);
+  it('loads exactly the nine articles (5 from Phase 10.3 + 4 from Phase 10.4)', () => {
+    expect(ARTICLES).toHaveLength(9);
   });
 
   it('every article has unique, kebab-case slugs (registry construction throws on duplicates)', () => {
@@ -27,20 +28,26 @@ describe('article registry - loaded from docs/user-guide/**/*.md', () => {
     for (const a of ARTICLES) {
       expect(a.title.length).toBeGreaterThan(0);
       expect(a.excerpt.length).toBeGreaterThan(0);
-      expect(['getting-started', 'personal-workspace', 'translation', 'missions']).toContain(
-        a.category
-      );
+      expect(ARTICLE_CATEGORIES).toContain(a.category);
       expect(a.content.length).toBeGreaterThan(0);
     }
   });
 
-  it('the required first five slugs are all present', () => {
+  it('the Phase 10.3 required slugs are all present', () => {
     const slugs = new Set(ARTICLES.map((a) => a.slug));
     expect(slugs.has('premiers-pas')).toBe(true);
     expect(slugs.has('creer-suivre-demande')).toBe(true);
     expect(slugs.has('statuts-demande')).toBe(true);
     expect(slugs.has('traiter-relire-approuver')).toBe(true);
     expect(slugs.has('rapport-mission')).toBe(true);
+  });
+
+  it('the Phase 10.4 required slugs are all present', () => {
+    const slugs = new Set(ARTICLES.map((a) => a.slug));
+    expect(slugs.has('comprendre-bibliotheque-documents')).toBe(true);
+    expect(slugs.has('publier-portail-externe')).toBe(true);
+    expect(slugs.has('utiliser-glossaire')).toBe(true);
+    expect(slugs.has('mon-espace')).toBe(true);
   });
 });
 
@@ -155,14 +162,29 @@ describe('capability visibility - fails closed, affects listing and direct/relat
     expect(isArticleVisible(article, undefined)).toBe(false);
   });
 
-  it('visibleArticles excludes the gated article for agent, includes it for operateur+', () => {
+  it('the PORTAL_PUBLICATION_MANAGE-gated article is visible to admin+ only', () => {
+    const article = getArticleBySlug('publier-portail-externe')!;
+    expect(article.capability).toBe('PORTAL_PUBLICATION_MANAGE');
+    expect(isArticleVisible(article, 'admin')).toBe(true);
+    expect(isArticleVisible(article, 'operateur')).toBe(false);
+    expect(isArticleVisible(article, 'agent')).toBe(false);
+  });
+
+  it('visibleArticles excludes gated articles for agent, includes TRANSLATION_PROCESS-only for operateur, includes both for admin+', () => {
     const forAgent = visibleArticles('agent').map((a) => a.slug);
     expect(forAgent).not.toContain('traiter-relire-approuver');
-    expect(forAgent).toHaveLength(4);
+    expect(forAgent).not.toContain('publier-portail-externe');
+    expect(forAgent).toHaveLength(7);
 
     const forOperateur = visibleArticles('operateur').map((a) => a.slug);
     expect(forOperateur).toContain('traiter-relire-approuver');
-    expect(forOperateur).toHaveLength(5);
+    expect(forOperateur).not.toContain('publier-portail-externe');
+    expect(forOperateur).toHaveLength(8);
+
+    const forAdmin = visibleArticles('admin').map((a) => a.slug);
+    expect(forAdmin).toContain('traiter-relire-approuver');
+    expect(forAdmin).toContain('publier-portail-externe');
+    expect(forAdmin).toHaveLength(9);
   });
 
   it('getVisibleArticleBySlug denies direct access to a gated article for a role lacking the capability', () => {
@@ -181,6 +203,26 @@ describe('capability visibility - fails closed, affects listing and direct/relat
       .map((slug) => getVisibleArticleBySlug(slug, 'agent'))
       .filter((a): a is NonNullable<typeof a> => Boolean(a));
     expect(resolvedForAgent.map((a) => a.slug)).not.toContain('traiter-relire-approuver');
+  });
+
+  it('publier-portail-externe never appears in listing/direct/related resolution below admin+ (Phase 10.4)', () => {
+    for (const role of ['agent', 'operateur'] as const) {
+      expect(visibleArticles(role).map((a) => a.slug)).not.toContain('publier-portail-externe');
+      expect(getVisibleArticleBySlug('publier-portail-externe', role)).toBeUndefined();
+    }
+    // comprendre-bibliotheque-documents links to it as a related article -
+    // resolving that link below admin+ must come back empty too.
+    const related = getArticleBySlug('comprendre-bibliotheque-documents')!.relatedArticles;
+    expect(related).toContain('publier-portail-externe');
+    for (const role of ['agent', 'operateur'] as const) {
+      const resolved = related
+        .map((slug) => getVisibleArticleBySlug(slug, role))
+        .filter((a): a is NonNullable<typeof a> => Boolean(a));
+      expect(resolved.map((a) => a.slug)).not.toContain('publier-portail-externe');
+    }
+    expect(getVisibleArticleBySlug('publier-portail-externe', 'admin')?.slug).toBe(
+      'publier-portail-externe'
+    );
   });
 });
 
@@ -204,6 +246,20 @@ describe('searchArticles - case- and accent-insensitive over title/excerpt/categ
     // "désigné" without accents should still find the mission article
     const results = searchArticles(ARTICLES, 'designe');
     expect(results.map((a) => a.slug)).toContain('rapport-mission');
+  });
+
+  it('finds the Phase 10.4 articles by title/category', () => {
+    expect(searchArticles(ARTICLES, 'bibliothèque').map((a) => a.slug)).toContain(
+      'comprendre-bibliotheque-documents'
+    );
+    expect(searchArticles(ARTICLES, 'portail externe').map((a) => a.slug)).toContain(
+      'publier-portail-externe'
+    );
+    expect(searchArticles(ARTICLES, 'glossaire').map((a) => a.slug)).toContain('utiliser-glossaire');
+    expect(searchArticles(ARTICLES, 'documents').map((a) => a.slug)).toContain(
+      'comprendre-bibliotheque-documents'
+    );
+    expect(searchArticles(ARTICLES, 'mon espace').map((a) => a.slug)).toContain('mon-espace');
   });
 
   it('returns everything for an empty/whitespace query', () => {

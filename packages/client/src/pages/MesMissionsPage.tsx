@@ -12,7 +12,7 @@ import { useAuth } from '@/App';
 import { missionsApi } from '@/lib/missions.api';
 import { QuickUploadDialog, type UploadedDocument } from '@/components/documents/QuickUploadDialog';
 import { MissionStatusBadge } from './missions/components/MissionStatusBadge';
-import { formatMissionPeriod } from './missions/mission.utils';
+import { formatMissionPeriod, getMissionReportStatus } from './missions/mission.utils';
 import type { Mission, MissionListResponse } from './missions/mission.types';
 
 const PAGE_SIZE = 10;
@@ -99,25 +99,31 @@ export default function MesMissionsPage() {
                     <MissionStatusBadge statut={mission.statut} />
                   </td>
                   <td className="px-4 py-3 align-top">
-                    {mission.rapportDocumentId ? (
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
-                        <CheckCircle2 size={13} aria-hidden="true" /> Déposé
-                      </span>
-                    ) : mission.statut === 'terminee' &&
-                      mission.rapportResponsableId === user.id ? (
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        onClick={() => setMissionUpload(mission)}
-                        disabled={linkReportMutation.isPending}
-                        className="h-auto gap-1.5 p-0 text-xs text-anac-warning hover:text-anac-danger"
-                      >
-                        <Upload size={12} aria-hidden="true" /> Déposer
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-anac-muted">-</span>
-                    )}
+                    {(() => {
+                      const status = getMissionReportStatus(mission, user.id);
+                      if (status === 'deposited') {
+                        return (
+                          <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
+                            <CheckCircle2 size={13} aria-hidden="true" /> Déposé
+                          </span>
+                        );
+                      }
+                      if (status === 'action-available') {
+                        return (
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            onClick={() => setMissionUpload(mission)}
+                            disabled={linkReportMutation.isPending}
+                            className="h-auto gap-1.5 p-0 text-xs text-anac-warning hover:text-anac-danger"
+                          >
+                            <Upload size={12} aria-hidden="true" /> Déposer
+                          </Button>
+                        );
+                      }
+                      return <span className="text-xs text-anac-muted">-</span>;
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -138,30 +144,40 @@ export default function MesMissionsPage() {
             </div>
             <p className="mt-2 text-xs text-anac-muted">{formatMissionPeriod(mission)}</p>
             <div className="mt-3 border-t border-anac-border pt-3">
-              {mission.rapportDocumentId ? (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
-                  <CheckCircle2 size={13} aria-hidden="true" /> Rapport déposé
-                </span>
-              ) : mission.statut === 'terminee' && mission.rapportResponsableId === user.id ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setMissionUpload(mission)}
-                  disabled={linkReportMutation.isPending}
-                  className="gap-1.5"
-                >
-                  <Upload size={13} aria-hidden="true" /> Déposer le rapport
-                </Button>
-              ) : mission.statut === 'terminee' ? (
-                <span className="text-xs text-anac-muted">
-                  {mission.rapportResponsableId
-                    ? 'En attente du responsable désigné'
-                    : 'Aucun responsable désigné'}
-                </span>
-              ) : (
-                <span className="text-xs text-anac-muted">Mission non terminée</span>
-              )}
+              {(() => {
+                const status = getMissionReportStatus(mission, user.id);
+                switch (status) {
+                  case 'deposited':
+                    return (
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
+                        <CheckCircle2 size={13} aria-hidden="true" /> Rapport déposé
+                      </span>
+                    );
+                  case 'action-available':
+                    return (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMissionUpload(mission)}
+                        disabled={linkReportMutation.isPending}
+                        className="gap-1.5"
+                      >
+                        <Upload size={13} aria-hidden="true" /> Déposer le rapport
+                      </Button>
+                    );
+                  case 'waiting-for-responsible':
+                    return (
+                      <span className="text-xs text-anac-muted">
+                        En attente du responsable désigné
+                      </span>
+                    );
+                  case 'no-responsible':
+                    return <span className="text-xs text-anac-muted">Aucun responsable désigné</span>;
+                  case 'not-terminated':
+                    return <span className="text-xs text-anac-muted">Mission non terminée</span>;
+                }
+              })()}
             </div>
           </div>
         ))}

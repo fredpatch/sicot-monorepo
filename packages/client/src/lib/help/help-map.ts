@@ -353,6 +353,147 @@ export const HELP_MAP: HelpEntry[] = [
       },
     ],
   },
+  {
+    // Phase 10.4 — audited against DocumentsPage.tsx, documents.columns.tsx,
+    // DocumentActionsMenu.tsx, DocumentWorkspace.tsx, and the server's
+    // documents.route.ts. /documents itself carries no route-level
+    // capability gate (auth only) — visibility/actions are entirely
+    // per-document, via getDocumentCapabilities(). Two capability-naming
+    // mismatches were found and fixed during this audit (nouvelle version
+    // was gated on DOCUMENT_CATEGORY_MANAGE instead of DOCUMENT_UPLOAD;
+    // category change was gated on DOCUMENT_UPLOAD instead of
+    // DOCUMENT_CATEGORY_MANAGE) — sections below reflect the corrected,
+    // accurate capability per action.
+    routePattern: '/documents',
+    title: 'Aide - Bibliothèque de documents',
+    articles: ['comprendre-bibliotheque-documents', 'publier-portail-externe'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert cette page',
+        body:
+          'La bibliothèque centralise les documents déposés dans SICOT (pièces jointes de demandes, rapports ' +
+          'de mission, documents de coopération...).',
+      },
+      {
+        id: 'visibilite-variable',
+        heading: 'Pourquoi le contenu visible peut différer',
+        body:
+          'Deux comptes connectés ne voient pas nécessairement les mêmes documents ni les mêmes colonnes - ' +
+          'cela dépend de règles d’accès et du contexte de chaque document, pas de la page consultée.',
+      },
+      {
+        id: 'deposer',
+        heading: 'Déposer un document',
+        body:
+          'Déposer un fichier est une opération de stockage : cela ne le rend ni visible en interne, ni ' +
+          'publié sur le portail externe. Ce sont deux étapes distinctes, à faire séparément.',
+        capability: 'DOCUMENT_UPLOAD',
+      },
+      {
+        id: 'visibilite-interne',
+        heading: 'Visibilité interne',
+        body:
+          'Rend un document consultable par le personnel interne au-delà du seul déposant - distinct de la ' +
+          'publication externe.',
+        capability: 'DOCUMENT_INTERNAL_VISIBILITY_MANAGE',
+      },
+      {
+        id: 'publication-portail',
+        heading: 'Publication sur le portail externe',
+        body:
+          'Rend un document accessible au public, en dehors de SICOT, via un lien sécurisé - une étape ' +
+          'supplémentaire et réversible, distincte du dépôt et de la visibilité interne. Uniquement pour un ' +
+          'document dont l’OCR est traité.',
+        capability: 'PORTAL_PUBLICATION_MANAGE',
+      },
+      {
+        id: 'ocr',
+        heading: 'Correction et relance OCR',
+        body: 'Corriger le texte extrait ou relancer la reconnaissance après un échec.',
+        capability: 'DOCUMENT_OCR_MANAGE',
+      },
+      {
+        id: 'suppression',
+        heading: 'Retirer un document',
+        body: 'La suppression est réversible (restauration possible).',
+        capability: 'DOCUMENT_DELETE',
+      },
+    ],
+  },
+  {
+    // Phase 10.4 — audited against GlossairePage.tsx and the server's
+    // glossaire.route.ts. No client-side capability gating exists on any
+    // glossary action today (create/edit/deactivate/reactivate all render
+    // unconditionally) — left as-is per this phase's scope (adding new UI
+    // gating would be new authorization architecture, not a fix to an
+    // existing mismatch like the /documents ones above). Every role that
+    // reaches /glossaire already holds GLOSSARY_MANAGE too (both
+    // operateur+-only), so this is not a live gap — sections below are
+    // still capability-gated correctly for when that stops being true.
+    routePattern: '/glossaire',
+    title: 'Aide - Glossaire terminologique',
+    articles: ['utiliser-glossaire'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'À quoi sert le glossaire',
+        body:
+          'Recense la terminologie officielle FR/EN utilisée dans les traductions, pour garder un vocabulaire ' +
+          'cohérent d’une traduction à l’autre.',
+      },
+      {
+        id: 'rechercher',
+        heading: 'Rechercher un terme',
+        body:
+          'Filtrez par texte, domaine ou statut. Une suggestion du glossaire apparaît aussi automatiquement ' +
+          'dans l’atelier de traduction sur un passage de texte sélectionné.',
+      },
+      {
+        id: 'gestion',
+        heading: 'Créer, modifier, désactiver un terme',
+        body: 'Réservé aux comptes disposant du droit de gestion du glossaire.',
+        capability: 'GLOSSARY_MANAGE',
+      },
+    ],
+  },
+  {
+    // Phase 10.4 — audited against MonEspacePage.tsx + MyRequestsPanel.tsx +
+    // MyMissionsPanel.tsx + WorkspaceFooterCards.tsx. A real bug was found
+    // and fixed during this audit: MyMissionsPanel's report-upload button
+    // used the admin-only mettreAJour mutation and showed "Rapport à
+    // déposer" to any participant, not just the designated
+    // rapportResponsableId — the same bug Phase 8 already fixed on the full
+    // /mes-missions page, missed here. Now uses definirRapportPersonnel and
+    // the same responsable check.
+    routePattern: '/mon-espace',
+    title: 'Aide - Mon espace',
+    articles: ['mon-espace'],
+    sections: [
+      {
+        id: 'a-quoi-sert',
+        heading: 'Votre point d’entrée personnel',
+        body:
+          'Regroupe un résumé de vos demandes de traduction et missions, sans mélanger vos données avec ' +
+          'celles de l’ensemble de l’organisation.',
+      },
+      {
+        id: 'vs-registres-globaux',
+        heading: 'Espace personnel et registres globaux',
+        body:
+          'Pour le détail complet et filtrable de vos demandes, direction « Mes demandes » ; pour vos ' +
+          'missions, « Mes missions ». Mon espace n’en montre qu’un aperçu.',
+      },
+      {
+        id: 'modules-disponibles',
+        heading: 'Pourquoi certains modules n’apparaissent pas',
+        body:
+          'Les modules visibles dans la barre latérale dépendent de vos droits d’accès et de vos ' +
+          'responsabilités dans SICOT, pas de la page où vous vous trouvez - un module absent n’est jamais un ' +
+          'signe d’erreur.',
+      },
+    ],
+  },
 ];
 
 function matchesPattern(pattern: string, pathname: string): boolean {

@@ -27,6 +27,7 @@ export function canManagePortail(role: UserRole | undefined): boolean {
 export interface DocumentCapabilities {
   canUpload: boolean;
   canChangeCategory: boolean;
+  canToggleInternalVisibility: boolean;
   canCorrectOcr: boolean;
   canRetryOcr: boolean;
   canTranslate: boolean;
@@ -48,6 +49,11 @@ export function getDocumentCapabilities(
   return {
     canUpload: can(role, 'DOCUMENT_UPLOAD'),
     canChangeCategory: can(role, 'DOCUMENT_CATEGORY_MANAGE'),
+    // PATCH /:id/visibilite-interne requires DOCUMENT_INTERNAL_VISIBILITY_MANAGE
+    // server-side (documents.route.ts) — added as its own field during the
+    // Phase 10.4 audit; the toggle previously read DOCUMENT_UPLOAD directly
+    // via canManageDocuments() instead of a dedicated capability check.
+    canToggleInternalVisibility: can(role, 'DOCUMENT_INTERNAL_VISIBILITY_MANAGE'),
     canCorrectOcr: can(role, 'DOCUMENT_OCR_MANAGE'),
     canRetryOcr:
       can(role, 'DOCUMENT_OCR_MANAGE') &&

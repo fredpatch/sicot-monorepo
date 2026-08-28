@@ -52,7 +52,7 @@ describe('getHelpEntry - route matching', () => {
 
   it('returns undefined for a route with no contextual help', () => {
     expect(getHelpEntry('/dashboard')).toBeUndefined();
-    expect(getHelpEntry('/glossaire')).toBeUndefined();
+    expect(getHelpEntry('/audit')).toBeUndefined();
   });
 
   it('does not confuse /demandes with /mes-demandes (distinct segments)', () => {
@@ -240,6 +240,71 @@ describe('/missions and /missions/:id - capability filtering of mission manageme
     expect(detailIds).not.toContain('participants');
     expect(detailIds).not.toContain('rapport-officiel');
     expect(detailIds).not.toContain('recommandations-detail');
+  });
+});
+
+describe('/documents - document mutation-specific capability filtering (Phase 10.4)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/documents')!;
+
+  it('operateur+ sees upload/internal-visibility sections, not the admin-only portal one', () => {
+    const filtered = filterHelpEntry(entry, 'operateur');
+    const ids = filtered.sections.map((s) => s.id);
+    expect(ids).toContain('deposer');
+    expect(ids).toContain('visibilite-interne');
+    expect(ids).toContain('ocr');
+    expect(ids).toContain('suppression');
+    expect(ids).not.toContain('publication-portail');
+  });
+
+  it('admin+ additionally sees the portal-publication section', () => {
+    const filtered = filterHelpEntry(entry, 'admin');
+    expect(filtered.sections.map((s) => s.id)).toContain('publication-portail');
+  });
+
+  it('a viewer with no document-management capability sees only the two general orientation sections', () => {
+    // no live role reaches /documents without at least DOCUMENT_UPLOAD's
+    // tier holding the rest too, but the filter itself must still fail
+    // closed for a hypothetical view-only account.
+    const filtered = filterHelpEntry(entry, undefined);
+    expect(filtered.sections.map((s) => s.id)).toEqual(['a-quoi-sert', 'visibilite-variable']);
+  });
+});
+
+describe('/glossaire - view-only filtering never receives management instructions (Phase 10.4)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/glossaire')!;
+
+  it('agent (hypothetically) sees only the general sections, never the management one', () => {
+    const filtered = filterHelpEntry(entry, 'agent');
+    const ids = filtered.sections.map((s) => s.id);
+    expect(ids).toContain('a-quoi-sert');
+    expect(ids).toContain('rechercher');
+    expect(ids).not.toContain('gestion');
+  });
+
+  it('operateur+ (the only real viewers today) sees the management section too', () => {
+    for (const role of ['operateur', 'admin', 'super_admin'] as const) {
+      const filtered = filterHelpEntry(entry, role);
+      expect(filtered.sections.map((s) => s.id)).toContain('gestion');
+    }
+  });
+});
+
+describe('/mon-espace - no role-name framing, identical content for every role (Phase 10.4)', () => {
+  const entry = HELP_MAP.find((e) => e.routePattern === '/mon-espace')!;
+
+  it('carries no capability-gated section at all', () => {
+    expect(entry.sections.every((s) => !s.capability)).toBe(true);
+  });
+
+  it('content is identical for every role', () => {
+    for (const role of ['agent', 'operateur', 'admin', 'super_admin'] as const) {
+      expect(filterHelpEntry(entry, role).sections).toHaveLength(entry.sections.length);
+    }
+  });
+
+  it('does not use role-name language ("because you are an agent") anywhere in its copy', () => {
+    const text = entry.sections.map((s) => `${s.heading} ${s.body}`).join(' ').toLowerCase();
+    expect(text).not.toMatch(/agent|op[ée]rateur|admin|super_admin/);
   });
 });
 

@@ -4,7 +4,7 @@ title: Premiers pas dans SICOT
 excerpt: Navigation, espace personnel et bases de l'application.
 category: getting-started
 relatedRoutes: /mon-espace
-relatedArticles: creer-suivre-demande, rapport-mission
+relatedArticles: mon-espace, creer-suivre-demande, rapport-mission
 ---
 
 SICOT (Système Intégré de Coopération Internationale et de Traduction)

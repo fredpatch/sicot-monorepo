@@ -6,4 +6,5 @@ export const CATEGORY_LABELS: Record<ArticleCategory, string> = {
   'personal-workspace': 'Espace personnel',
   translation: 'Traduction',
   missions: 'Missions',
+  documents: 'Documents',
 };

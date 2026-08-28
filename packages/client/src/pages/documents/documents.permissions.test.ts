@@ -37,6 +37,7 @@ describe('getDocumentCapabilities - per-action capability, not one shared role t
     expect(cap).toMatchObject({
       canUpload: false,
       canChangeCategory: false,
+      canToggleInternalVisibility: false,
       canCorrectOcr: false,
       canRetryOcr: false,
       canTranslate: false,
@@ -51,6 +52,7 @@ describe('getDocumentCapabilities - per-action capability, not one shared role t
     const cap = getDocumentCapabilities('operateur', { statutOCR: 'traite' });
     expect(cap.canUpload).toBe(true);
     expect(cap.canChangeCategory).toBe(true);
+    expect(cap.canToggleInternalVisibility).toBe(true);
     expect(cap.canCorrectOcr).toBe(true);
     expect(cap.canDelete).toBe(true);
     expect(cap.canTranslate).toBe(true);

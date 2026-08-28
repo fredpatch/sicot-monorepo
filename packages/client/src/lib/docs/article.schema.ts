@@ -23,6 +23,7 @@ export const ARTICLE_CATEGORIES = [
   'personal-workspace',
   'translation',
   'missions',
+  'documents',
 ] as const;
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
 

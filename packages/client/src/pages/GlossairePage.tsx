@@ -5,10 +5,12 @@ import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/App';
 import { glossaireApi } from '@/lib/glossaire.api';
 import { GLOSSAIRE_PAGE_SIZE } from './glossaire/glossary.constants';
 import type { Terme } from './glossaire/glossary.types';
 import { getErrorMessage } from './glossaire/glossary.utils';
+import { canManageGlossaire } from './glossaire/glossary.permissions';
 import { useGlossaireAggregatesQuery, useTermeDetailQuery } from './glossaire/hooks/queries';
 import { useGlossaireMutations } from './glossaire/hooks/mutations';
 import { GlossaireFiltres } from './glossaire/components/GlossaryFilters';
@@ -32,6 +34,8 @@ function useDebouncedValue<T>(value: T, delay = 300) {
 }
 
 export default function GlossairePage() {
+  const { user } = useAuth();
+  const canManage = canManageGlossaire(user?.role);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
@@ -113,17 +117,19 @@ export default function GlossairePage() {
             Gérez les termes et leur terminologie officielle utilisés dans les traductions.
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={() => {
-            setTermeSelectionne(null);
-            setModalTerme('creer');
-          }}
-          className="gap-2 bg-anac-blue"
-        >
-          <Plus size={14} aria-hidden="true" />
-          Nouveau terme
-        </Button>
+        {canManage && (
+          <Button
+            type="button"
+            onClick={() => {
+              setTermeSelectionne(null);
+              setModalTerme('creer');
+            }}
+            className="gap-2 bg-anac-blue"
+          >
+            <Plus size={14} aria-hidden="true" />
+            Nouveau terme
+          </Button>
+        )}
       </header>
 
       <GlossarySummaryCards aggregates={aggregates} />
@@ -171,7 +177,9 @@ export default function GlossairePage() {
           <p className="text-sm text-anac-muted">
             {hasFilters
               ? 'Modifiez les filtres ou réinitialisez la recherche.'
-              : 'Créez le premier terme du glossaire.'}
+              : canManage
+                ? 'Créez le premier terme du glossaire.'
+                : 'Aucun terme n\'a encore été ajouté.'}
           </p>
           {hasFilters && (
             <Button type="button" variant="outline" onClick={resetFilters}>
@@ -183,6 +191,7 @@ export default function GlossairePage() {
         <>
           <GlossaryRegistryTable
             termes={termes}
+            canManage={canManage}
             onVoir={setTermeWorkspace}
             onModifier={(terme) => {
               setTermeSelectionne(terme);
@@ -195,6 +204,7 @@ export default function GlossairePage() {
           />
           <GlossaryRegistryMobileCards
             termes={termes}
+            canManage={canManage}
             onVoir={setTermeWorkspace}
             onReactiver={(id) => reactiverMutation.mutate(id)}
             reactiverEnCours={reactiverMutation.isPending}
@@ -262,6 +272,7 @@ export default function GlossairePage() {
         terme={termeWorkspace}
         termeDetail={termeDetail}
         detailLoading={detailLoading}
+        canManage={canManage}
         onOpenChange={(open) => !open && setTermeWorkspace(null)}
         onModifier={(terme) => {
           setTermeWorkspace(null);

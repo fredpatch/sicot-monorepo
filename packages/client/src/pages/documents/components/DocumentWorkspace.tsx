@@ -27,11 +27,7 @@ import { DocumentPortailBadge } from './DocumentPortailBadge';
 import { DocumentPreview } from './DocumentPreview';
 import { CATEGORIES } from '../documents.constants';
 import { formaterLangue, formaterTaille } from '../documents.utils';
-import {
-  canManageDocuments,
-  canManagePortail,
-  getDocumentCapabilities,
-} from '../documents.permissions';
+import { canManagePortail, getDocumentCapabilities } from '../documents.permissions';
 import type { Document } from '../documents.types';
 
 function iconePourMime(mimeType: string) {
@@ -174,7 +170,11 @@ export function DocumentWorkspace({
 
                 <dt className="text-anac-muted">Catégorie</dt>
                 <dd>
-                  {canManageDocuments(role) ? (
+                  {/* PATCH /:id/categorie requires DOCUMENT_CATEGORY_MANAGE
+                      server-side, not DOCUMENT_UPLOAD — fixed during the
+                      Phase 10.4 audit; previously gated on canManageDocuments
+                      (harmless today, both granted together to operateur+). */}
+                  {cap.canChangeCategory ? (
                     <Select
                       value={displayDoc.categorie}
                       onValueChange={(cat) => onChangerCategorie(doc.id, cat)}

@@ -10,6 +10,7 @@ import { LanguageVariantBadge } from './LanguageVariantBadge';
 
 interface GlossaryRegistryTableProps {
   termes: Terme[];
+  canManage: boolean;
   onVoir: (terme: Terme) => void;
   onModifier: (terme: Terme) => void;
   onDesactiver: (id: number) => void;
@@ -20,6 +21,7 @@ interface GlossaryRegistryTableProps {
 
 export function GlossaryRegistryTable({
   termes,
+  canManage,
   onVoir,
   onModifier,
   onDesactiver,
@@ -93,52 +95,56 @@ export function GlossaryRegistryTable({
                         <Eye size={14} aria-hidden="true" />
                       </Button>
                     </ActionTooltip>
-                    <ActionTooltip label="Modifier">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => onModifier(terme)}
-                        aria-label={`Modifier le terme ${primaire.value}`}
-                      >
-                        <Pencil size={14} aria-hidden="true" />
-                      </Button>
-                    </ActionTooltip>
-                    {terme.actif ? (
-                      <ActionTooltip label="Désactiver">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={async () => {
-                            const ok = await confirm({
-                              title: 'Désactiver ce terme ?',
-                              description: `« ${primaire.value} » ne sera plus proposé dans les suggestions de traduction.`,
-                              confirmLabel: 'Désactiver',
-                              variant: 'destructive',
-                            });
-                            if (ok) onDesactiver(terme.id);
-                          }}
-                          disabled={desactiverEnCours}
-                          aria-label={`Désactiver le terme ${primaire.value}`}
-                          className="hover:text-anac-danger"
-                        >
-                          <XCircle size={14} aria-hidden="true" />
-                        </Button>
-                      </ActionTooltip>
-                    ) : (
-                      <ActionTooltip label="Réactiver">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => onReactiver(terme.id)}
-                          disabled={reactiverEnCours}
-                          aria-label={`Réactiver le terme ${primaire.value}`}
-                        >
-                          <RotateCw size={14} aria-hidden="true" />
-                        </Button>
-                      </ActionTooltip>
+                    {canManage && (
+                      <>
+                        <ActionTooltip label="Modifier">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => onModifier(terme)}
+                            aria-label={`Modifier le terme ${primaire.value}`}
+                          >
+                            <Pencil size={14} aria-hidden="true" />
+                          </Button>
+                        </ActionTooltip>
+                        {terme.actif ? (
+                          <ActionTooltip label="Désactiver">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: 'Désactiver ce terme ?',
+                                  description: `« ${primaire.value} » ne sera plus proposé dans les suggestions de traduction.`,
+                                  confirmLabel: 'Désactiver',
+                                  variant: 'destructive',
+                                });
+                                if (ok) onDesactiver(terme.id);
+                              }}
+                              disabled={desactiverEnCours}
+                              aria-label={`Désactiver le terme ${primaire.value}`}
+                              className="hover:text-anac-danger"
+                            >
+                              <XCircle size={14} aria-hidden="true" />
+                            </Button>
+                          </ActionTooltip>
+                        ) : (
+                          <ActionTooltip label="Réactiver">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => onReactiver(terme.id)}
+                              disabled={reactiverEnCours}
+                              aria-label={`Réactiver le terme ${primaire.value}`}
+                            >
+                              <RotateCw size={14} aria-hidden="true" />
+                            </Button>
+                          </ActionTooltip>
+                        )}
+                      </>
                     )}
                   </div>
                 </td>
@@ -153,11 +159,13 @@ export function GlossaryRegistryTable({
 
 export function GlossaryRegistryMobileCards({
   termes,
+  canManage,
   onVoir,
   onReactiver,
   reactiverEnCours,
 }: {
   termes: Terme[];
+  canManage: boolean;
   onVoir: (terme: Terme) => void;
   onReactiver: (id: number) => void;
   reactiverEnCours: boolean;
@@ -193,7 +201,7 @@ export function GlossaryRegistryMobileCards({
               )}
               <span className="text-xs text-anac-muted">{formaterDate(terme.updatedAt)}</span>
             </div>
-            {!terme.actif && (
+            {canManage && !terme.actif && (
               <div className="mt-3 flex justify-end">
                 <Button
                   type="button"

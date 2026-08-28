@@ -76,6 +76,32 @@ export function isMissionReportMissing(
   return mission.statut === 'terminee' && !mission.rapportDocumentId;
 }
 
+export type MissionReportStatus =
+  | 'deposited'
+  | 'action-available'
+  | 'waiting-for-responsible'
+  | 'no-responsible'
+  | 'not-terminated';
+
+// Single source of truth for "what should the report-deposit UI show this
+// participant" - shared by MesMissionsPage.tsx and MyMissionsPanel.tsx so
+// the two can't drift again the way MyMissionsPanel did pre-Phase-8 (it
+// showed the deposit action to every participant, ignoring
+// rapportResponsableId, and posted through the admin-only mettreAJour
+// mutation instead of definirRapportPersonnel). Only the mission's
+// designated responsible participant ever sees the deposit action.
+export function getMissionReportStatus(
+  mission: Pick<Mission, 'statut' | 'rapportDocumentId' | 'rapportResponsableId'>,
+  participantId: number | undefined
+): MissionReportStatus {
+  if (mission.rapportDocumentId) return 'deposited';
+  if (mission.statut !== 'terminee') return 'not-terminated';
+  if (mission.rapportResponsableId != null && mission.rapportResponsableId === participantId) {
+    return 'action-available';
+  }
+  return mission.rapportResponsableId ? 'waiting-for-responsible' : 'no-responsible';
+}
+
 export function isRecommendationOverdue(
   rec: Pick<RecommandationView, 'statut' | 'dateLimite'>,
   now = new Date()

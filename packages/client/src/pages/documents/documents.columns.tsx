@@ -120,7 +120,7 @@ export function useDocumentsColumns({
         enableSorting: false,
         cell: ({ row }) => {
           const doc = row.original;
-          const peutGerer = canManageDocuments(role);
+          const peutGerer = getDocumentCapabilities(role, doc).canToggleInternalVisibility;
 
           return (
             <div className="flex items-center gap-1.5" data-stop-row-click>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { missionsApi } from '@/lib/missions.api';
 import { QuickUploadDialog, type UploadedDocument } from '@/components/documents/QuickUploadDialog';
 import { MissionStatusBadge } from '@/pages/missions/components/MissionStatusBadge';
-import { formatMissionDate } from '@/pages/missions/mission.utils';
+import { formatMissionDate, getMissionReportStatus } from '@/pages/missions/mission.utils';
 import type { Mission, MissionListResponse } from '@/pages/missions/mission.types';
 
 export function MyMissionsPanel({ participantId }: { participantId: number }) {
@@ -24,9 +24,14 @@ export function MyMissionsPanel({ participantId }: { participantId: number }) {
     },
   });
 
+  // definirRapportPersonnel, not mettreAJour (which requires MISSION_MANAGE,
+  // admin+ only) — mettreAJour would 403 for any participant depositing
+  // their own report. Fixed during the Phase 10.4 audit: this panel had
+  // reverted to the pre-Phase-8 bug that MesMissionsPage.tsx (the full
+  // /mes-missions page) already fixes the same way.
   const linkReportMutation = useMutation({
     mutationFn: ({ missionId, documentId }: { missionId: number; documentId: number }) =>
-      missionsApi.mettreAJour(missionId, { rapportDocumentId: documentId }),
+      missionsApi.definirRapportPersonnel(missionId, documentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['missions'] });
       queryClient.invalidateQueries({ queryKey: ['missions-aggregates'] });
@@ -78,24 +83,40 @@ export function MyMissionsPanel({ participantId }: { participantId: number }) {
               </div>
 
               <div className="mt-3">
-                {mission.rapportDocumentId ? (
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
-                    <CheckCircle2 size={13} aria-hidden="true" /> Rapport déposé
-                  </span>
-                ) : mission.statut === 'terminee' ? (
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    onClick={() => setMissionUpload(mission)}
-                    disabled={linkReportMutation.isPending}
-                    className="h-auto gap-1.5 p-0 text-xs text-anac-warning hover:text-anac-danger"
-                  >
-                    <Upload size={12} aria-hidden="true" /> Rapport à déposer
-                  </Button>
-                ) : (
-                  <span className="text-xs text-anac-muted">Mission non terminée</span>
-                )}
+                {(() => {
+                  const status = getMissionReportStatus(mission, participantId);
+                  switch (status) {
+                    case 'deposited':
+                      return (
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-anac-success">
+                          <CheckCircle2 size={13} aria-hidden="true" /> Rapport déposé
+                        </span>
+                      );
+                    case 'action-available':
+                      return (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          onClick={() => setMissionUpload(mission)}
+                          disabled={linkReportMutation.isPending}
+                          className="h-auto gap-1.5 p-0 text-xs text-anac-warning hover:text-anac-danger"
+                        >
+                          <Upload size={12} aria-hidden="true" /> Rapport à déposer
+                        </Button>
+                      );
+                    case 'waiting-for-responsible':
+                      return (
+                        <span className="text-xs text-anac-muted">
+                          En attente du responsable désigné
+                        </span>
+                      );
+                    case 'no-responsible':
+                      return <span className="text-xs text-anac-muted">Aucun responsable désigné</span>;
+                    case 'not-terminated':
+                      return <span className="text-xs text-anac-muted">Mission non terminée</span>;
+                  }
+                })()}
               </div>
             </div>
           ))

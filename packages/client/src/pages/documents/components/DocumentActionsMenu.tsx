@@ -46,7 +46,7 @@ export function DocumentActionsMenu({
   const aUneAction =
     cap.canCorrectOcr ||
     cap.canRetryOcr ||
-    cap.canChangeCategory ||
+    cap.canUpload ||
     cap.canManagePortal ||
     cap.canDelete;
 
@@ -94,7 +94,12 @@ export function DocumentActionsMenu({
             </DropdownMenuItem>
           )}
 
-          {cap.canChangeCategory && (
+          {/* Verser une nouvelle version -> POST /:id/nouvelle-version, requires
+              DOCUMENT_UPLOAD server-side (documents.route.ts), not
+              DOCUMENT_CATEGORY_MANAGE — fixed during the Phase 10.4 audit;
+              previously mislabeled (harmless today since both capabilities
+              are granted together to operateur+, but the wrong name). */}
+          {cap.canUpload && (
             <DropdownMenuItem
               disabled={verserVersionEnCours}
               onSelect={() => fichierInputRef.current?.click()}

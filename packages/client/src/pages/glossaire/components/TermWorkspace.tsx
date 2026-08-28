@@ -22,6 +22,7 @@ interface TermWorkspaceProps {
   terme: Terme | null;
   termeDetail?: Terme;
   detailLoading: boolean;
+  canManage: boolean;
   onOpenChange: (open: boolean) => void;
   onModifier: (terme: Terme) => void;
   onDesactiver: (id: number) => void;
@@ -34,6 +35,7 @@ export function TermWorkspace({
   terme,
   termeDetail,
   detailLoading,
+  canManage,
   onOpenChange,
   onModifier,
   onDesactiver,
@@ -160,45 +162,47 @@ export function TermWorkspace({
           )}
         </DialogBody>
 
-        <div className="flex items-center justify-end gap-2.5 border-t border-anac-border px-6 py-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => onModifier(terme)}
-            className="gap-2"
-          >
-            <Pencil size={13} aria-hidden="true" /> Modifier
-          </Button>
-          {terme.actif ? (
+        {canManage && (
+          <div className="flex items-center justify-end gap-2.5 border-t border-anac-border px-6 py-4">
             <Button
               type="button"
-              variant="outline"
-              className="gap-2 text-anac-danger hover:text-anac-danger"
-              onClick={async () => {
-                const ok = await confirm({
-                  title: 'Désactiver ce terme ?',
-                  description: `« ${primaire.value} » ne sera plus proposé dans les suggestions de traduction.`,
-                  confirmLabel: 'Désactiver',
-                  variant: 'destructive',
-                });
-                if (ok) onDesactiver(terme.id);
-              }}
-              disabled={desactiverEnCours}
-            >
-              <XCircle size={13} aria-hidden="true" /> Désactiver
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
+              variant="secondary"
+              onClick={() => onModifier(terme)}
               className="gap-2"
-              onClick={() => onReactiver(terme.id)}
-              disabled={reactiverEnCours}
             >
-              <RotateCw size={13} aria-hidden="true" /> Réactiver
+              <Pencil size={13} aria-hidden="true" /> Modifier
             </Button>
-          )}
-        </div>
+            {terme.actif ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2 text-anac-danger hover:text-anac-danger"
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: 'Désactiver ce terme ?',
+                    description: `« ${primaire.value} » ne sera plus proposé dans les suggestions de traduction.`,
+                    confirmLabel: 'Désactiver',
+                    variant: 'destructive',
+                  });
+                  if (ok) onDesactiver(terme.id);
+                }}
+                disabled={desactiverEnCours}
+              >
+                <XCircle size={13} aria-hidden="true" /> Désactiver
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => onReactiver(terme.id)}
+                disabled={reactiverEnCours}
+              >
+                <RotateCw size={13} aria-hidden="true" /> Réactiver
+              </Button>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
