@@ -4,15 +4,23 @@ CREATE TYPE "public"."courrier_reponse_statut" AS ENUM('oui', 'non', 'pour_infor
 CREATE TYPE "public"."courrier_suivi_statut" AS ENUM('en_attente', 'repondu', 'archive');--> statement-breakpoint
 CREATE TYPE "public"."demande_priorite" AS ENUM('normale', 'urgente');--> statement-breakpoint
 CREATE TYPE "public"."demande_statut" AS ENUM('soumise', 'en_cours', 'en_relecture', 'validee', 'archivee');--> statement-breakpoint
-CREATE TYPE "public"."document_categorie" AS ENUM('accord', 'correspondance', 'mission', 'traduction', 'glossaire', 'autre');--> statement-breakpoint
+CREATE TYPE "public"."document_categorie" AS ENUM('accord', 'correspondance', 'mission', 'traduction', 'glossaire', 'rapport', 'autre');--> statement-breakpoint
 CREATE TYPE "public"."document_statut_ocr" AS ENUM('en_attente', 'traite', 'a_retraiter', 'echec');--> statement-breakpoint
+CREATE TYPE "public"."job_execution_source" AS ENUM('manuel', 'cron');--> statement-breakpoint
+CREATE TYPE "public"."logistique_statut" AS ENUM('a_planifier', 'en_cours', 'confirme');--> statement-breakpoint
 CREATE TYPE "public"."mission_statut" AS ENUM('planifiee', 'en_cours', 'terminee', 'annulee');--> statement-breakpoint
 CREATE TYPE "public"."moteur_traduction" AS ENUM('libretranslate', 'deepl', 'manuel');--> statement-breakpoint
+CREATE TYPE "public"."notification_statut" AS ENUM('envoyee', 'echec');--> statement-breakpoint
+CREATE TYPE "public"."notification_type" AS ENUM('accord_echeance', 'courrier_relance', 'recommandation_rappel');--> statement-breakpoint
 CREATE TYPE "public"."organisation_type" AS ENUM('anac_etrangere', 'organisation_internationale', 'autre');--> statement-breakpoint
+CREATE TYPE "public"."parametre_type" AS ENUM('entier', 'booleen', 'texte');--> statement-breakpoint
+CREATE TYPE "public"."rapport_format" AS ENUM('pdf', 'excel');--> statement-breakpoint
+CREATE TYPE "public"."rapport_type" AS ENUM('mensuel', 'a_la_demande');--> statement-breakpoint
 CREATE TYPE "public"."recommandation_statut" AS ENUM('en_attente', 'en_cours', 'realisee');--> statement-breakpoint
+CREATE TYPE "public"."statut_relecture_ia" AS ENUM('non_applicable', 'en_attente', 'valide', 'rejete');--> statement-breakpoint
 CREATE TYPE "public"."traduction_direction" AS ENUM('fr_en', 'en_fr');--> statement-breakpoint
 CREATE TYPE "public"."traduction_statut" AS ENUM('a_reviser', 'en_relecture', 'approuvee', 'archivee', 'manuelle_requise');--> statement-breakpoint
-CREATE TYPE "public"."user_role" AS ENUM('agent', 'traducteur', 'relecteur', 'admin', 'super_admin');--> statement-breakpoint
+CREATE TYPE "public"."user_role" AS ENUM('agent', 'operateur', 'admin', 'super_admin');--> statement-breakpoint
 CREATE TABLE "accords" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"reference" varchar(20) NOT NULL,
@@ -58,6 +66,13 @@ CREATE TABLE "contacts" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "courrier_documents" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"courrier_id" integer NOT NULL,
+	"document_id" integer NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "courriers" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"reference" varchar(20) NOT NULL,
@@ -66,6 +81,8 @@ CREATE TABLE "courriers" (
 	"objet" varchar(500) NOT NULL,
 	"expediteur_organisation_id" integer,
 	"destinataire_organisation_id" integer,
+	"expediteur_contact_id" integer,
+	"destinataire_contact_id" integer,
 	"date_reception" timestamp NOT NULL,
 	"reponse_requise" "courrier_reponse_statut" NOT NULL,
 	"date_limite_reponse" timestamp,
@@ -73,10 +90,22 @@ CREATE TABLE "courriers" (
 	"reponse_a_id" integer,
 	"accord_id" integer,
 	"mission_id" integer,
+	"document_id" integer,
 	"cree_par" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "courriers_reference_unique" UNIQUE("reference")
+);
+--> statement-breakpoint
+CREATE TABLE "courriers_criticite_snapshots" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"date" date NOT NULL,
+	"normal" integer NOT NULL,
+	"a_surveiller" integer NOT NULL,
+	"critique" integer NOT NULL,
+	"total_en_attente" integer NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "courriers_criticite_snapshots_date_unique" UNIQUE("date")
 );
 --> statement-breakpoint
 CREATE TABLE "demandes_traduction" (
@@ -110,7 +139,19 @@ CREATE TABLE "documents" (
 	"version" integer DEFAULT 1 NOT NULL,
 	"parent_id" integer,
 	"uploade_par" integer NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp,
+	"visibilite_portail" boolean DEFAULT false NOT NULL,
+	"portail_token_duree_jours" integer,
+	"visibilite_interne" boolean DEFAULT false NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "gemini_usage_quotidien" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"modele" varchar(50) NOT NULL,
+	"date" date NOT NULL,
+	"nombre_appels" integer DEFAULT 0 NOT NULL,
+	"thinking_tokens_total" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "glossaire" (
@@ -134,6 +175,19 @@ CREATE TABLE "glossaire_historique" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "job_executions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"job_cle" varchar(100) NOT NULL,
+	"module" varchar(20) NOT NULL,
+	"source" "job_execution_source" NOT NULL,
+	"succes" boolean NOT NULL,
+	"resume" text NOT NULL,
+	"erreur" text,
+	"duree_ms" integer NOT NULL,
+	"declenche_par" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "mission_participants" (
 	"mission_id" integer NOT NULL,
 	"user_id" integer NOT NULL
@@ -148,9 +202,28 @@ CREATE TABLE "missions" (
 	"date_fin" timestamp NOT NULL,
 	"statut" "mission_statut" DEFAULT 'planifiee' NOT NULL,
 	"rapport_document_id" integer,
+	"rapport_responsable_id" integer,
 	"cree_par" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"confirmation_logistique" "logistique_statut" DEFAULT 'a_planifier' NOT NULL,
+	"logistique_billet_reserve" boolean DEFAULT false NOT NULL,
+	"logistique_hebergement_confirme" boolean DEFAULT false NOT NULL,
+	"logistique_financement_valide" boolean DEFAULT false NOT NULL,
+	"contact_sur_place_id" integer
+);
+--> statement-breakpoint
+CREATE TABLE "notifications" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"type" "notification_type" NOT NULL,
+	"entite_id" integer NOT NULL,
+	"destinataire_email" varchar(255) NOT NULL,
+	"destinataire_nom" varchar(200),
+	"message" text NOT NULL,
+	"declenche_par" integer NOT NULL,
+	"statut" "notification_statut" DEFAULT 'envoyee' NOT NULL,
+	"erreur" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "organisations" (
@@ -163,6 +236,56 @@ CREATE TABLE "organisations" (
 	"notes" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "parametres" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"cle" varchar(100) NOT NULL,
+	"valeur" text NOT NULL,
+	"type" "parametre_type" NOT NULL,
+	"module" varchar(20) NOT NULL,
+	"description" text,
+	"modifie_par" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "parametres_cle_unique" UNIQUE("cle")
+);
+--> statement-breakpoint
+CREATE TABLE "portail_tokens" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"document_id" integer NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"token" varchar(36) NOT NULL,
+	"expires_at" timestamp,
+	"utilise_le" timestamp,
+	"ip_utilisateur" varchar(45),
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "portail_tokens_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "rapports" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"type" "rapport_type" NOT NULL,
+	"periode_debut" timestamp NOT NULL,
+	"periode_fin" timestamp NOT NULL,
+	"modules_inclus" jsonb NOT NULL,
+	"format" "rapport_format" NOT NULL,
+	"document_id" integer NOT NULL,
+	"genere_par_user_id" integer,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"contenu_ia" text,
+	"contenu_ia_valide" text,
+	"statut_relecture_ia" "statut_relecture_ia" DEFAULT 'non_applicable' NOT NULL,
+	"moteur_ia" varchar(50),
+	"relecteur_ia_id" integer,
+	"relus_le_ia" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "rapports_ia_quotidien" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"date" date NOT NULL,
+	"nombre_generes" integer DEFAULT 0 NOT NULL,
+	CONSTRAINT "rapports_ia_quotidien_date_unique" UNIQUE("date")
 );
 --> statement-breakpoint
 CREATE TABLE "recommandations" (
@@ -188,7 +311,8 @@ CREATE TABLE "traductions" (
 	"traducteur_id" integer,
 	"relecteur_id" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -197,6 +321,9 @@ CREATE TABLE "users" (
 	"nom" varchar(100) NOT NULL,
 	"prenom" varchar(100) NOT NULL,
 	"email" varchar(255) NOT NULL,
+	"poste" varchar(150),
+	"service" varchar(150),
+	"direction" varchar(150),
 	"mot_de_passe_hash" varchar(255),
 	"otp_hash" varchar(255),
 	"otp_expires_at" timestamp,
@@ -217,9 +344,14 @@ ALTER TABLE "accords_organisations" ADD CONSTRAINT "accords_organisations_accord
 ALTER TABLE "accords_organisations" ADD CONSTRAINT "accords_organisations_organisation_id_organisations_id_fk" FOREIGN KEY ("organisation_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contacts" ADD CONSTRAINT "contacts_organisation_id_organisations_id_fk" FOREIGN KEY ("organisation_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "courrier_documents" ADD CONSTRAINT "courrier_documents_courrier_id_courriers_id_fk" FOREIGN KEY ("courrier_id") REFERENCES "public"."courriers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "courrier_documents" ADD CONSTRAINT "courrier_documents_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "courriers" ADD CONSTRAINT "courriers_expediteur_organisation_id_organisations_id_fk" FOREIGN KEY ("expediteur_organisation_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "courriers" ADD CONSTRAINT "courriers_destinataire_organisation_id_organisations_id_fk" FOREIGN KEY ("destinataire_organisation_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "courriers" ADD CONSTRAINT "courriers_expediteur_contact_id_contacts_id_fk" FOREIGN KEY ("expediteur_contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "courriers" ADD CONSTRAINT "courriers_destinataire_contact_id_contacts_id_fk" FOREIGN KEY ("destinataire_contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "courriers" ADD CONSTRAINT "courriers_accord_id_accords_id_fk" FOREIGN KEY ("accord_id") REFERENCES "public"."accords"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "courriers" ADD CONSTRAINT "courriers_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "courriers" ADD CONSTRAINT "courriers_cree_par_users_id_fk" FOREIGN KEY ("cree_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "demandes_traduction" ADD CONSTRAINT "demandes_traduction_demandeur_id_users_id_fk" FOREIGN KEY ("demandeur_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "demandes_traduction" ADD CONSTRAINT "demandes_traduction_traducteur_id_users_id_fk" FOREIGN KEY ("traducteur_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -229,10 +361,19 @@ ALTER TABLE "documents" ADD CONSTRAINT "documents_uploade_par_users_id_fk" FOREI
 ALTER TABLE "glossaire" ADD CONSTRAINT "glossaire_cree_par_users_id_fk" FOREIGN KEY ("cree_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "glossaire_historique" ADD CONSTRAINT "glossaire_historique_terme_id_glossaire_id_fk" FOREIGN KEY ("terme_id") REFERENCES "public"."glossaire"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "glossaire_historique" ADD CONSTRAINT "glossaire_historique_modifie_par_users_id_fk" FOREIGN KEY ("modifie_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "job_executions" ADD CONSTRAINT "job_executions_declenche_par_users_id_fk" FOREIGN KEY ("declenche_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mission_participants" ADD CONSTRAINT "mission_participants_mission_id_missions_id_fk" FOREIGN KEY ("mission_id") REFERENCES "public"."missions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mission_participants" ADD CONSTRAINT "mission_participants_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "missions" ADD CONSTRAINT "missions_rapport_document_id_documents_id_fk" FOREIGN KEY ("rapport_document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "missions" ADD CONSTRAINT "missions_rapport_responsable_id_users_id_fk" FOREIGN KEY ("rapport_responsable_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "missions" ADD CONSTRAINT "missions_cree_par_users_id_fk" FOREIGN KEY ("cree_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "missions" ADD CONSTRAINT "missions_contact_sur_place_id_contacts_id_fk" FOREIGN KEY ("contact_sur_place_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_declenche_par_users_id_fk" FOREIGN KEY ("declenche_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "parametres" ADD CONSTRAINT "parametres_modifie_par_users_id_fk" FOREIGN KEY ("modifie_par") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "portail_tokens" ADD CONSTRAINT "portail_tokens_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "rapports" ADD CONSTRAINT "rapports_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "rapports" ADD CONSTRAINT "rapports_genere_par_user_id_users_id_fk" FOREIGN KEY ("genere_par_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "rapports" ADD CONSTRAINT "rapports_relecteur_ia_id_users_id_fk" FOREIGN KEY ("relecteur_ia_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "recommandations" ADD CONSTRAINT "recommandations_mission_id_missions_id_fk" FOREIGN KEY ("mission_id") REFERENCES "public"."missions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "recommandations" ADD CONSTRAINT "recommandations_responsable_id_users_id_fk" FOREIGN KEY ("responsable_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "traductions" ADD CONSTRAINT "traductions_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -241,6 +382,7 @@ ALTER TABLE "traductions" ADD CONSTRAINT "traductions_relecteur_id_users_id_fk" 
 CREATE INDEX "audit_logs_user_idx" ON "audit_logs" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "audit_logs_module_idx" ON "audit_logs" USING btree ("module");--> statement-breakpoint
 CREATE INDEX "audit_logs_created_at_idx" ON "audit_logs" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "courrier_documents_courrier_idx" ON "courrier_documents" USING btree ("courrier_id");--> statement-breakpoint
 CREATE INDEX "courriers_direction_idx" ON "courriers" USING btree ("direction");--> statement-breakpoint
 CREATE INDEX "courriers_statut_idx" ON "courriers" USING btree ("suivi_statut");--> statement-breakpoint
 CREATE INDEX "demandes_statut_idx" ON "demandes_traduction" USING btree ("statut");--> statement-breakpoint
@@ -248,6 +390,14 @@ CREATE INDEX "demandes_traducteur_idx" ON "demandes_traduction" USING btree ("tr
 CREATE INDEX "documents_hash_idx" ON "documents" USING btree ("hash_md5");--> statement-breakpoint
 CREATE INDEX "documents_categorie_idx" ON "documents" USING btree ("categorie");--> statement-breakpoint
 CREATE INDEX "documents_statut_ocr_idx" ON "documents" USING btree ("statut_ocr");--> statement-breakpoint
+CREATE UNIQUE INDEX "gemini_usage_modele_date_idx" ON "gemini_usage_quotidien" USING btree ("modele","date");--> statement-breakpoint
 CREATE INDEX "glossaire_terme_fr_idx" ON "glossaire" USING btree ("terme_fr");--> statement-breakpoint
 CREATE INDEX "glossaire_terme_en_idx" ON "glossaire" USING btree ("terme_en");--> statement-breakpoint
+CREATE INDEX "job_executions_cle_idx" ON "job_executions" USING btree ("job_cle");--> statement-breakpoint
+CREATE INDEX "job_executions_created_at_idx" ON "job_executions" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "notifications_entite_idx" ON "notifications" USING btree ("type","entite_id");--> statement-breakpoint
+CREATE INDEX "notifications_created_at_idx" ON "notifications" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "portail_tokens_token_idx" ON "portail_tokens" USING btree ("token");--> statement-breakpoint
+CREATE INDEX "portail_tokens_document_idx" ON "portail_tokens" USING btree ("document_id");--> statement-breakpoint
+CREATE INDEX "portail_tokens_email_idx" ON "portail_tokens" USING btree ("email");--> statement-breakpoint
 CREATE UNIQUE INDEX "users_matricule_idx" ON "users" USING btree ("matricule");

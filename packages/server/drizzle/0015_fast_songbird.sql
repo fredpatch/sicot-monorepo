@@ -1,1 +1,0 @@
-ALTER TABLE "documents" ADD COLUMN "visibilite_interne" boolean DEFAULT false NOT NULL;

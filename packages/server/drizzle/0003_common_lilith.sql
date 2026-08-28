@@ -1,1 +1,0 @@
-ALTER TABLE "traductions" ADD COLUMN "deleted_at" timestamp;

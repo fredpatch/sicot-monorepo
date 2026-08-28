@@ -1,52 +1,57 @@
-Authorization refactor is complete and approved.
+Phase 9 baseline audit + validation is approved.
 
-Proceed with Phase 8 — Mission official report responsibility.
+Proceed with the migration baseline replacement exactly as validated.
 
-Business rule already decided:
+Required:
 
-one official consolidated report per mission
-exactly one designated participant may be responsible for submitting that report
-existing rapportDocumentId remains the single official report document
-introduce:
-rapportResponsableId?: number | null
+remove the old active migration chain under packages/server/drizzle/
+replace it with the validated clean baseline:
+drizzle/
+0000_initial_schema.sql
+meta/
+0000_snapshot.json
+_journal.json
+remove temporary drizzle_baseline/
+remove temporary drizzle.baseline.config.ts
+do not modify application code
+do not touch sicot_db
+do not add unaccent
+do not clean up the duplicate users.matricule unique indexes in this commit
 
-as a nullable FK to users
+After replacement, re-run:
 
-Required domain rules:
+npx drizzle-kit migrate against a freshly reset disposable sicot_migration_check
+verify ledger contains exactly the new baseline migration
+verify user_role = agent, operateur, admin, super_admin
+verify missions.rapport_responsable_id nullable FK → users.id
+verify all tables are empty after migration
+run drizzle-kit generate and confirm No schema changes, nothing to migrate
+full build
+full test suite
+client tsc --noEmit
 
-rapportResponsableId must reference a user who is actually a participant of the mission
-a mission may exist with no responsible person yet
-legacy/existing missions with rapportDocumentId but no rapportResponsableId remain valid
-only the designated responsible participant may submit/replace the official report through the personal mission workflow
-admin/super_admin with MISSION_MANAGE may assign/change the responsible participant
-do not create one report per participant
-do not remove or repurpose rapportDocumentId
+Then commit the baseline reset.
 
-Start with a fresh audit of:
+Suggested commit message:
 
-mission schema
-mission participants structure
-create/update mission DTOs
-/mes-missions
-current report upload path
-admin mission detail/edit UI
-any existing report replacement/delete behavior
+chore(db): reset migrations to pre-production baseline
 
-Then implement the smallest coherent change across DB/server/client.
+Commit body should mention:
 
-Add tests for:
+old development migration history replaced by one clean baseline
+no staging/production environment had consumed the old chain
+baseline generated from current authoritative schema.ts
+fresh database migration validated successfully
+no seed/mock data included
 
-assigning a participant as report responsible
-rejecting a non-participant
-responsible participant can upload official report
-another participant cannot upload/replace it
-unrelated user cannot upload
-admin assignment/change works
-mission with report but null responsible remains readable/valid
-only one official rapportDocumentId exists per mission
+Push after the commit if validation remains green.
 
-Preserve the current capability architecture; contextual responsibility should be enforced as a domain relationship, not a new persistent role.
+Final report:
 
-Generate the Drizzle migration but do not commit/push.
-
-Stop after this feature and report before starting documentation/help work.
+commit hash
+push result
+exact baseline files
+fresh-DB ledger result
+schema verification result
+final test totals
+clean git status

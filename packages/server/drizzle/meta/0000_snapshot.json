@@ -1,5 +1,5 @@
 {
-  "id": "12e8be98-2023-4884-ae0b-8e191e7ca24b",
+  "id": "d1e7f62c-2828-44ae-9163-d0148b41dee0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -392,6 +392,87 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.courrier_documents": {
+      "name": "courrier_documents",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "courrier_id": {
+          "name": "courrier_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "courrier_documents_courrier_idx": {
+          "name": "courrier_documents_courrier_idx",
+          "columns": [
+            {
+              "expression": "courrier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "courrier_documents_courrier_id_courriers_id_fk": {
+          "name": "courrier_documents_courrier_id_courriers_id_fk",
+          "tableFrom": "courrier_documents",
+          "tableTo": "courriers",
+          "columnsFrom": [
+            "courrier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "courrier_documents_document_id_documents_id_fk": {
+          "name": "courrier_documents_document_id_documents_id_fk",
+          "tableFrom": "courrier_documents",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.courriers": {
       "name": "courriers",
       "schema": "",
@@ -439,6 +520,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "expediteur_contact_id": {
+          "name": "expediteur_contact_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "destinataire_contact_id": {
+          "name": "destinataire_contact_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "date_reception": {
           "name": "date_reception",
           "type": "timestamp",
@@ -480,6 +573,12 @@
         },
         "mission_id": {
           "name": "mission_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "document_id": {
+          "name": "document_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
@@ -564,12 +663,51 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
+        "courriers_expediteur_contact_id_contacts_id_fk": {
+          "name": "courriers_expediteur_contact_id_contacts_id_fk",
+          "tableFrom": "courriers",
+          "tableTo": "contacts",
+          "columnsFrom": [
+            "expediteur_contact_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "courriers_destinataire_contact_id_contacts_id_fk": {
+          "name": "courriers_destinataire_contact_id_contacts_id_fk",
+          "tableFrom": "courriers",
+          "tableTo": "contacts",
+          "columnsFrom": [
+            "destinataire_contact_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "courriers_accord_id_accords_id_fk": {
           "name": "courriers_accord_id_accords_id_fk",
           "tableFrom": "courriers",
           "tableTo": "accords",
           "columnsFrom": [
             "accord_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "courriers_document_id_documents_id_fk": {
+          "name": "courriers_document_id_documents_id_fk",
+          "tableFrom": "courriers",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_id"
           ],
           "columnsTo": [
             "id"
@@ -598,6 +736,70 @@
           "nullsNotDistinct": false,
           "columns": [
             "reference"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.courriers_criticite_snapshots": {
+      "name": "courriers_criticite_snapshots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "normal": {
+          "name": "normal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "a_surveiller": {
+          "name": "a_surveiller",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "critique": {
+          "name": "critique",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_en_attente": {
+          "name": "total_en_attente",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "courriers_criticite_snapshots_date_unique": {
+          "name": "courriers_criticite_snapshots_date_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "date"
           ]
         }
       },
@@ -888,6 +1090,32 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visibilite_portail": {
+          "name": "visibilite_portail",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "portail_token_duree_jours": {
+          "name": "portail_token_duree_jours",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visibilite_interne": {
+          "name": "visibilite_interne",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {
@@ -952,6 +1180,73 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.gemini_usage_quotidien": {
+      "name": "gemini_usage_quotidien",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "modele": {
+          "name": "modele",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre_appels": {
+          "name": "nombre_appels",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "thinking_tokens_total": {
+          "name": "thinking_tokens_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "gemini_usage_modele_date_idx": {
+          "name": "gemini_usage_modele_date_idx",
+          "columns": [
+            {
+              "expression": "modele",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1150,6 +1445,126 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.job_executions": {
+      "name": "job_executions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "job_cle": {
+          "name": "job_cle",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "name": "module",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "job_execution_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "succes": {
+          "name": "succes",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resume": {
+          "name": "resume",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "erreur": {
+          "name": "erreur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duree_ms": {
+          "name": "duree_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "declenche_par": {
+          "name": "declenche_par",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "job_executions_cle_idx": {
+          "name": "job_executions_cle_idx",
+          "columns": [
+            {
+              "expression": "job_cle",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "job_executions_created_at_idx": {
+          "name": "job_executions_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "job_executions_declenche_par_users_id_fk": {
+          "name": "job_executions_declenche_par_users_id_fk",
+          "tableFrom": "job_executions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "declenche_par"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.mission_participants": {
       "name": "mission_participants",
       "schema": "",
@@ -1256,6 +1671,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "rapport_responsable_id": {
+          "name": "rapport_responsable_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "cree_par": {
           "name": "cree_par",
           "type": "integer",
@@ -1275,6 +1696,41 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "confirmation_logistique": {
+          "name": "confirmation_logistique",
+          "type": "logistique_statut",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'a_planifier'"
+        },
+        "logistique_billet_reserve": {
+          "name": "logistique_billet_reserve",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "logistique_hebergement_confirme": {
+          "name": "logistique_hebergement_confirme",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "logistique_financement_valide": {
+          "name": "logistique_financement_valide",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "contact_sur_place_id": {
+          "name": "contact_sur_place_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -1292,12 +1748,166 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
+        "missions_rapport_responsable_id_users_id_fk": {
+          "name": "missions_rapport_responsable_id_users_id_fk",
+          "tableFrom": "missions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "rapport_responsable_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "missions_cree_par_users_id_fk": {
           "name": "missions_cree_par_users_id_fk",
           "tableFrom": "missions",
           "tableTo": "users",
           "columnsFrom": [
             "cree_par"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "missions_contact_sur_place_id_contacts_id_fk": {
+          "name": "missions_contact_sur_place_id_contacts_id_fk",
+          "tableFrom": "missions",
+          "tableTo": "contacts",
+          "columnsFrom": [
+            "contact_sur_place_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notifications": {
+      "name": "notifications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "notification_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entite_id": {
+          "name": "entite_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destinataire_email": {
+          "name": "destinataire_email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destinataire_nom": {
+          "name": "destinataire_nom",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "declenche_par": {
+          "name": "declenche_par",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut": {
+          "name": "statut",
+          "type": "notification_statut",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'envoyee'"
+        },
+        "erreur": {
+          "name": "erreur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "notifications_entite_idx": {
+          "name": "notifications_entite_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entite_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "notifications_created_at_idx": {
+          "name": "notifications_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "notifications_declenche_par_users_id_fk": {
+          "name": "notifications_declenche_par_users_id_fk",
+          "tableFrom": "notifications",
+          "tableTo": "users",
+          "columnsFrom": [
+            "declenche_par"
           ],
           "columnsTo": [
             "id"
@@ -1379,6 +1989,416 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.parametres": {
+      "name": "parametres",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cle": {
+          "name": "cle",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valeur": {
+          "name": "valeur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "parametre_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "name": "module",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modifie_par": {
+          "name": "modifie_par",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "parametres_modifie_par_users_id_fk": {
+          "name": "parametres_modifie_par_users_id_fk",
+          "tableFrom": "parametres",
+          "tableTo": "users",
+          "columnsFrom": [
+            "modifie_par"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "parametres_cle_unique": {
+          "name": "parametres_cle_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "cle"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.portail_tokens": {
+      "name": "portail_tokens",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "utilise_le": {
+          "name": "utilise_le",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ip_utilisateur": {
+          "name": "ip_utilisateur",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "portail_tokens_token_idx": {
+          "name": "portail_tokens_token_idx",
+          "columns": [
+            {
+              "expression": "token",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "portail_tokens_document_idx": {
+          "name": "portail_tokens_document_idx",
+          "columns": [
+            {
+              "expression": "document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "portail_tokens_email_idx": {
+          "name": "portail_tokens_email_idx",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "portail_tokens_document_id_documents_id_fk": {
+          "name": "portail_tokens_document_id_documents_id_fk",
+          "tableFrom": "portail_tokens",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "portail_tokens_token_unique": {
+          "name": "portail_tokens_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rapports": {
+      "name": "rapports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "rapport_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "periode_debut": {
+          "name": "periode_debut",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "periode_fin": {
+          "name": "periode_fin",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "modules_inclus": {
+          "name": "modules_inclus",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "format": {
+          "name": "format",
+          "type": "rapport_format",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "genere_par_user_id": {
+          "name": "genere_par_user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "contenu_ia": {
+          "name": "contenu_ia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contenu_ia_valide": {
+          "name": "contenu_ia_valide",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut_relecture_ia": {
+          "name": "statut_relecture_ia",
+          "type": "statut_relecture_ia",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'non_applicable'"
+        },
+        "moteur_ia": {
+          "name": "moteur_ia",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relecteur_ia_id": {
+          "name": "relecteur_ia_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relus_le_ia": {
+          "name": "relus_le_ia",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rapports_document_id_documents_id_fk": {
+          "name": "rapports_document_id_documents_id_fk",
+          "tableFrom": "rapports",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rapports_genere_par_user_id_users_id_fk": {
+          "name": "rapports_genere_par_user_id_users_id_fk",
+          "tableFrom": "rapports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "genere_par_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rapports_relecteur_ia_id_users_id_fk": {
+          "name": "rapports_relecteur_ia_id_users_id_fk",
+          "tableFrom": "rapports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "relecteur_ia_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rapports_ia_quotidien": {
+      "name": "rapports_ia_quotidien",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre_generes": {
+          "name": "nombre_generes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rapports_ia_quotidien_date_unique": {
+          "name": "rapports_ia_quotidien_date_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "date"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1557,6 +2577,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -1640,6 +2666,24 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "poste": {
+          "name": "poste",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service": {
+          "name": "service",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "direction": {
+          "name": "direction",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": false
         },
         "mot_de_passe_hash": {
           "name": "mot_de_passe_hash",
@@ -1814,6 +2858,7 @@
         "mission",
         "traduction",
         "glossaire",
+        "rapport",
         "autre"
       ]
     },
@@ -1825,6 +2870,23 @@
         "traite",
         "a_retraiter",
         "echec"
+      ]
+    },
+    "public.job_execution_source": {
+      "name": "job_execution_source",
+      "schema": "public",
+      "values": [
+        "manuel",
+        "cron"
+      ]
+    },
+    "public.logistique_statut": {
+      "name": "logistique_statut",
+      "schema": "public",
+      "values": [
+        "a_planifier",
+        "en_cours",
+        "confirme"
       ]
     },
     "public.mission_statut": {
@@ -1846,6 +2908,23 @@
         "manuel"
       ]
     },
+    "public.notification_statut": {
+      "name": "notification_statut",
+      "schema": "public",
+      "values": [
+        "envoyee",
+        "echec"
+      ]
+    },
+    "public.notification_type": {
+      "name": "notification_type",
+      "schema": "public",
+      "values": [
+        "accord_echeance",
+        "courrier_relance",
+        "recommandation_rappel"
+      ]
+    },
     "public.organisation_type": {
       "name": "organisation_type",
       "schema": "public",
@@ -1855,6 +2934,31 @@
         "autre"
       ]
     },
+    "public.parametre_type": {
+      "name": "parametre_type",
+      "schema": "public",
+      "values": [
+        "entier",
+        "booleen",
+        "texte"
+      ]
+    },
+    "public.rapport_format": {
+      "name": "rapport_format",
+      "schema": "public",
+      "values": [
+        "pdf",
+        "excel"
+      ]
+    },
+    "public.rapport_type": {
+      "name": "rapport_type",
+      "schema": "public",
+      "values": [
+        "mensuel",
+        "a_la_demande"
+      ]
+    },
     "public.recommandation_statut": {
       "name": "recommandation_statut",
       "schema": "public",
@@ -1862,6 +2966,16 @@
         "en_attente",
         "en_cours",
         "realisee"
+      ]
+    },
+    "public.statut_relecture_ia": {
+      "name": "statut_relecture_ia",
+      "schema": "public",
+      "values": [
+        "non_applicable",
+        "en_attente",
+        "valide",
+        "rejete"
       ]
     },
     "public.traduction_direction": {
@@ -1888,8 +3002,7 @@
       "schema": "public",
       "values": [
         "agent",
-        "traducteur",
-        "relecteur",
+        "operateur",
         "admin",
         "super_admin"
       ]
