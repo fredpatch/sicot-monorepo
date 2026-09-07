@@ -42,10 +42,22 @@ virgules. `capability` (optionnel) restreint la visibilité de l'article à
 un rôle disposant de cette capacité (voir `@sicot/shared`) ; un article sans
 `capability` est visible par tout utilisateur authentifié.
 
+## `architecture/`
+
+Documentation technique décrivant l'implémentation actuelle du dépôt (pas
+une architecture aspirationnelle), destinée aux développeurs et mainteneurs :
+
+- [`overview.md`](./architecture/overview.md) - structure du monorepo,
+  composants runtime, flux de requêtes, découpage des couches serveur,
+  modèle d'autorisation (résumé).
+- [`runtime-topology.md`](./architecture/runtime-topology.md) - comment les
+  composants sont reliés en développement, pré-production et production.
+- [`data-model.md`](./architecture/data-model.md) - domaines de données
+  persistantes, relations clés, règles architecturales notables.
+
 ## Autres sous-dossiers (hors périmètre de ce slice)
 
-`workflows/`, `functional-reference/`, `architecture/`, `security/`,
-`api/`, `operations/`, `troubleshooting/` et `changelog/` sont prévus par
-l'architecture cible (voir l'audit Phase 10) mais ne sont pas encore créés
-
-- ils le seront quand un travail réel les remplira, pas par anticipation.
+`workflows/`, `functional-reference/`, `security/`, `api/`, `operations/`,
+`troubleshooting/` et `changelog/` sont prévus par l'architecture cible (voir
+l'audit Phase 10 et le plan Phase 11) mais ne sont pas encore créés - ils le
+seront quand un travail réel les remplira, pas par anticipation.
