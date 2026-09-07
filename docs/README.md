@@ -55,9 +55,31 @@ une architecture aspirationnelle), destinée aux développeurs et mainteneurs :
 - [`data-model.md`](./architecture/data-model.md) - domaines de données
   persistantes, relations clés, règles architecturales notables.
 
+## `security/`
+
+Documentation de l'architecture de sécurité actuelle - y compris ses limites
+connues, décrites sans les euphémiser :
+
+- [`authentication.md`](./security/authentication.md) - identité de
+  connexion, hachage des mots de passe, OTP, verrouillage de compte.
+- [`authorization.md`](./security/authorization.md) - modèle rôle ->
+  capacité -> middleware -> politique contextuelle ; acteurs de workflow vs.
+  rôles persistants.
+- [`csrf-and-session-security.md`](./security/csrf-and-session-security.md) -
+  sessions/tokens, posture CSRF actuelle (y compris l'absence de protection
+  dédiée), CORS, limitation de débit.
+- [`document-access.md`](./security/document-access.md) - fichier stocké vs.
+  visibilité interne vs. exposition publique ; portail public et tokens de
+  téléchargement.
+- [`audit-and-traceability.md`](./security/audit-and-traceability.md) - ce
+  que le journal d'audit capture réellement, et ce qu'il ne garantit pas.
+- [`security-checklist.md`](./security/security-checklist.md) - liste
+  vivante : implémenté / à vérifier avant pré-production / lacunes connues /
+  décisions de production requises.
+
 ## Autres sous-dossiers (hors périmètre de ce slice)
 
-`workflows/`, `functional-reference/`, `security/`, `api/`, `operations/`,
+`workflows/`, `functional-reference/`, `api/`, `operations/`,
 `troubleshooting/` et `changelog/` sont prévus par l'architecture cible (voir
 l'audit Phase 10 et le plan Phase 11) mais ne sont pas encore créés - ils le
 seront quand un travail réel les remplira, pas par anticipation.
