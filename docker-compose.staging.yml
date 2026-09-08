@@ -120,12 +120,12 @@ services:
       dockerfile: packages/client/Dockerfile
       target: prod
     networks: [staging_net]
+    restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
-      restart: unless-stopped
 
   nginx_staging:
     image: nginx:alpine
