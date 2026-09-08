@@ -14,13 +14,21 @@ export interface PersonnelAnacView {
   direction: string | null;
 }
 
+// L'API Personnel ANAC renvoie identity.matricule en number - un matricule
+// "0230" y est donc déjà indiscernable de 230 (un nombre ne porte pas de
+// zéro non significatif). SICOT restaure le format à 4 chiffres attendu en
+// interne (badge/matricule ANAC) en le re-complétant de zéros ici, au seul
+// point de la conversion number -> string. Si l'API source expose un jour un
+// champ matricule déjà formaté en string, préférer ce champ à identity.matricule.
+const MATRICULE_LONGUEUR = 4;
+
 function normaliser(raw: PersonnelAnacRaw): PersonnelAnacView {
   const { service, direction, function: fonction } = raw.organization;
   const organisationLabel =
     [service?.name, direction?.name, fonction?.name].filter(Boolean).join(' - ') || null;
 
   return {
-    matricule: String(raw.identity.matricule),
+    matricule: String(raw.identity.matricule).padStart(MATRICULE_LONGUEUR, '0'),
     nom: raw.identity.lastName,
     prenom: raw.identity.firstName,
     organisationLabel,
