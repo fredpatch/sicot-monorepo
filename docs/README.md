@@ -77,9 +77,29 @@ connues, décrites sans les euphémiser :
   vivante : implémenté / à vérifier avant pré-production / lacunes connues /
   décisions de production requises.
 
+## `api/`
+
+Documentation Markdown de l'API Express telle qu'implémentée - pas un
+contrat OpenAPI formel (voir [`overview.md`](./api/overview.md) pour le
+raisonnement) :
+
+- [`overview.md`](./api/overview.md) - préfixe de base, carte des modules,
+  surfaces authentifiées vs. publiques, décision OpenAPI.
+- [`authentication.md`](./api/authentication.md) - endpoints de session,
+  usage côté API (renvoie vers `security/authentication.md` pour le détail
+  cryptographique).
+- [`conventions.md`](./api/conventions.md) - codes de statut, formes
+  d'erreur (y compris leurs incohérences), validation, pagination, dates,
+  uploads/downloads, idempotence.
+- `endpoints/` - un fichier par domaine métier : `auth.md`, `users.md`,
+  `documents.md`, `translation.md`, `missions.md`, `cooperation.md`,
+  `correspondence.md`, `glossary.md`, `analytics.md`, `portal.md`,
+  `administration.md` (+ `administration/audit.md`, `settings.md`,
+  `jobs.md`).
+
 ## Autres sous-dossiers (hors périmètre de ce slice)
 
-`workflows/`, `functional-reference/`, `api/`, `operations/`,
-`troubleshooting/` et `changelog/` sont prévus par l'architecture cible (voir
-l'audit Phase 10 et le plan Phase 11) mais ne sont pas encore créés - ils le
-seront quand un travail réel les remplira, pas par anticipation.
+`workflows/`, `functional-reference/`, `operations/`, `troubleshooting/` et
+`changelog/` sont prévus par l'architecture cible (voir l'audit Phase 10 et
+le plan Phase 11) mais ne sont pas encore créés - ils le seront quand un
+travail réel les remplira, pas par anticipation.
