@@ -3,6 +3,7 @@ name: sicot_staging
 services:
   postgres_staging:
     image: postgres:16
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -24,6 +25,7 @@ services:
     volumes:
       - libretranslate_staging_data:/home/libretranslate/.local
     networks: [staging_net]
+    restart: unless-stopped
     healthcheck:
       test:
         [
@@ -47,6 +49,7 @@ services:
     depends_on:
       libretranslate_staging: { condition: service_healthy }
     networks: [staging_net]
+    restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:5002/health >/dev/null || exit 1']
       interval: 30s
@@ -59,6 +62,7 @@ services:
       context: .
       dockerfile: packages/ocr-service/Dockerfile
     networks: [staging_net]
+    restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:5001/health >/dev/null || exit 1']
       interval: 30s
@@ -76,7 +80,7 @@ services:
       NODE_ENV: staging
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres_staging:5432/${DB_NAME}_staging
       PORT: 3001
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4001}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://100.110.227.69:8100}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       OCR_SERVICE_URL: http://ocr_staging:5001
@@ -98,6 +102,7 @@ services:
       ocr_staging: { condition: service_healthy }
       translate_staging: { condition: service_healthy }
     networks: [staging_net]
+    restart: unless-stopped
     healthcheck:
       test:
         [
@@ -120,20 +125,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      restart: unless-stopped
 
   nginx_staging:
     image: nginx:alpine
     ports:
-      - '4001:80'
+      - '8100:80'
     volumes:
       - ./nginx/staging.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       api_staging: { condition: service_healthy }
       client_staging: { condition: service_healthy }
     networks: [staging_net]
+    restart: unless-stopped
 
 networks:
   staging_net:
+    name: sicot_staging_internal
     driver: bridge
 
 volumes:

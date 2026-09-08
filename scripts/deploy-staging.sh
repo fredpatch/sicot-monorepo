@@ -11,4 +11,4 @@ docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --wait postgres_s
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" run --rm --no-deps api_staging npm run db:migrate
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans
 
-echo "Staging deployed - http://localhost:4001"
+echo "Staging deployed - http://localhost:8100"
