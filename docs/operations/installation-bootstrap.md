@@ -13,22 +13,17 @@ this document focuses on the operator steps to get there, not the topology.
 ## 1. Native (host) development
 
 **Verdict: partially supported.** The database, API, and client run fully
-natively. OCR and translation have real native gaps (below), and one setup
-step is missing from the root README.
+natively. OCR and translation have real native gaps (below).
 
 ### Prerequisites
 
 - **PostgreSQL ≥ 15** (native install, or any reachable instance).
-- **Node.js** - the root `README.md` states "≥ 22", but this is not enforced
-  anywhere and does not match the version actually pinned by the project: CI
-  (`.github/workflows/ci.yml`) and both `packages/server/Dockerfile` /
-  `packages/client/Dockerfile` pin **Node 20** (`node:20-alpine`). No
-  `engines` field exists in any `package.json`, and there is no `.nvmrc`.
-  Since no `package.json` in this repo declares an `engines` field, **CI and
-  the Docker image pins are the only enforced authority on Node version**,
-  and both say 20. Use Node 20 to match them; the README's "≥ 22" is stale
-  documentation, not an enforced requirement, and should not be followed as
-  a hard minimum until reconciled (see Findings in the final report).
+- **Node.js 20** - CI (`.github/workflows/ci.yml`) and both
+  `packages/server/Dockerfile` / `packages/client/Dockerfile` pin Node 20
+  (`node:20-alpine`). No `engines` field exists in any `package.json`, and
+  there is no `.nvmrc`, so this is a reference/toolchain version rather
+  than an enforced minimum - but it's the only version actually exercised
+  by CI and the Docker images, so use it to match them.
 - **Python 3.11**, only if you intend to run `ocr-service` and/or
   `translate-service` natively (their Docker images use `python:3.11-slim`;
   nothing enforces this version for a native install).
