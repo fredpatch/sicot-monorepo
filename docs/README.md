@@ -124,6 +124,31 @@ de ce qui est confirmé en infrastructure réelle :
   endpoints de santé réels et leur profondeur, lacunes d'observabilité
   actuelles.
 
+## `troubleshooting/`
+
+Index de dépannage organisé par symptôme, construit à partir des modes de
+défaillance réels de l'implémentation et du modèle opérationnel actuel -
+pas une FAQ générique. Chaque article suit la même structure (Symptôme /
+Causes probables / Vérifications / Actions correctives sûres / Escalade) :
+
+- [`README.md`](./troubleshooting/README.md) - index par symptôme, règle
+  "diagnostiquer avant de modifier la configuration".
+- [`startup-and-bootstrap.md`](./troubleshooting/startup-and-bootstrap.md) -
+  l'API ne démarre pas, variables manquantes, bootstrap.
+- [`database-and-migrations.md`](./troubleshooting/database-and-migrations.md) -
+  connexion PostgreSQL, échecs de migration, immutabilité de `0000`.
+- [`authentication-and-session.md`](./troubleshooting/authentication-and-session.md) -
+  connexion, verrouillage, OTP, 401 vs. 403, cookies, CORS.
+- [`documents-and-ocr.md`](./troubleshooting/documents-and-ocr.md) -
+  upload, visibilité, statut OCR, téléchargement, portail public.
+- [`translation-service.md`](./troubleshooting/translation-service.md) -
+  diagnostic du défaut de câblage confirmé en Phase 11.4
+  (`TRANSLATE_SERVICE_URL` non injecté).
+- [`jobs-and-backups.md`](./troubleshooting/jobs-and-backups.md) - jobs
+  planifiés, exécution manuelle, sauvegardes, statut de restauration.
+- [`deployment-and-health.md`](./troubleshooting/deployment-and-health.md) -
+  échecs de déploiement, healthchecks Docker, nginx/TLS, prérequis manuels.
+
 ## Autres sous-dossiers (hors périmètre de ce slice)
 
 `workflows/`, `functional-reference/`, `operations/`, `troubleshooting/` et
