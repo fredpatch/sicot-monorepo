@@ -1,3 +1,9 @@
+> **Reference only / non-canonical.** This is a generic, reusable
+> deployment playbook, not SICOT's operational documentation. For SICOT's
+> actual, re-audited deployment procedure, see
+> [`./operations/deployment.md`](./operations/deployment.md) and the rest
+> of [`docs/operations/`](./operations/).
+
 # Deployment Infrastructure - Reusable Documentation
 
 This document describes a complete, reproducible deployment strategy -

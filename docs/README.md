@@ -17,10 +17,13 @@ Organisation par catégorie (un sous-dossier par catégorie active) :
 - `personal-workspace/` - espace personnel, demandes de traduction
 - `translation/` - traitement, relecture, approbation des traductions
 - `missions/` - missions et rapport officiel
+- `cooperation/` - accords, partenaires, courriers
+- `documents/` - bibliothèque documentaire, portail externe
+- `administration/` - gestion des comptes, paramètres système, jobs
+- `analytics/` - tableau de bord, rapports et analyses
 
-D'autres catégories (coopération internationale, documents, administration,
-etc.) seront ajoutées au fil des phases suivantes, avec leurs propres
-sous-dossiers - ce dossier ne préremplit pas de catégories vides.
+Ce dossier ne préremplit pas de catégories vides - une nouvelle catégorie
+n'apparaît ici que lorsqu'un article réel la remplit.
 
 ### Format d'un article
 
@@ -152,9 +155,8 @@ Causes probables / Vérifications / Actions correctives sûres / Escalade) :
 - [`deployment-and-health.md`](./troubleshooting/deployment-and-health.md) -
   échecs de déploiement, healthchecks Docker, nginx/TLS, prérequis manuels.
 
-## Autres sous-dossiers (hors périmètre de ce slice)
+## Dossiers non encore créés
 
-`workflows/`, `functional-reference/`, `operations/`, `troubleshooting/` et
-`changelog/` sont prévus par l'architecture cible (voir l'audit Phase 10 et
-le plan Phase 11) mais ne sont pas encore créés - ils le seront quand un
+`workflows/`, `functional-reference/` et `changelog/` restent prévus par
+l'architecture cible mais ne sont pas encore créés - ils le seront quand un
 travail réel les remplira, pas par anticipation.

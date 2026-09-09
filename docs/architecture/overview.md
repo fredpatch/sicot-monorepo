@@ -2,7 +2,7 @@
 
 Audience: developers and technical maintainers who need to understand SICOT
 before changing it. This is not a user guide (see [`docs/user-guide/`](../user-guide/))
-and not an operations manual (see `docs/operations/`, planned).
+and not an operations manual (see [`docs/operations/`](../operations/)).
 
 ## System purpose
 

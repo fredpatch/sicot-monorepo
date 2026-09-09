@@ -146,9 +146,7 @@ npm run dev
 
 ## 2. Docker development
 
-Documented in full in
-[`docs/deployment/local-dev-with-docker.md`](../deployment/local-dev-with-docker.md);
-summarized here for completeness against the audited `docker-compose.yml`.
+Summarized here against the audited `docker-compose.yml`.
 
 ### Services started
 

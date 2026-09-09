@@ -6,12 +6,12 @@ topology (which services talk to which, and where) is documented in
 this document focuses on the operator-facing procedure - what to run, in
 what order, and what the repository does and does not automate.
 
-A pre-existing, more narrative deployment playbook also exists at
-[`docs/deployment/production-guide.md`](../deployment/production-guide.md)
-and its generic companion
-[`docs/deployment-documentation.md`](../deployment-documentation.md) - this
-document is the canonical, re-audited reference; where the two differ,
-trust this one and treat the other as historical context.
+A generic, non-project-specific deployment playbook also exists at
+[`docs/deployment-documentation.md`](../deployment-documentation.md)
+(marked reference-only/non-canonical) - it describes the reusable
+Docker/Compose/GHCR pattern this setup was built from. This document is
+the canonical, re-audited reference for SICOT specifically; where the two
+differ, trust this one.
 
 **Repository-defined procedure vs. confirmed live infrastructure:**
 everything below describes what the repository is capable of doing. It is
