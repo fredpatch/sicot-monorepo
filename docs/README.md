@@ -54,6 +54,9 @@ une architecture aspirationnelle), destinée aux développeurs et mainteneurs :
   composants sont reliés en développement, pré-production et production.
 - [`data-model.md`](./architecture/data-model.md) - domaines de données
   persistantes, relations clés, règles architecturales notables.
+- [`decisions/`](./architecture/decisions/README.md) - registre des
+  décisions d'architecture (ADR) déjà implémentées - le pourquoi, pas le
+  comment (déjà couvert par les documents ci-dessus).
 
 ## `security/`
 
