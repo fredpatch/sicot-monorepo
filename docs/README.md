@@ -97,6 +97,33 @@ raisonnement) :
   `administration.md` (+ `administration/audit.md`, `settings.md`,
   `jobs.md`).
 
+## `operations/`
+
+Documentation opérationnelle du modèle actuel défini par le dépôt -
+installation, configuration, migrations, déploiement, jobs planifiés,
+sauvegardes et supervision. Distingue explicitement ce que le dépôt définit
+de ce qui est confirmé en infrastructure réelle :
+
+- [`installation-bootstrap.md`](./operations/installation-bootstrap.md) -
+  démarrage natif vs. Docker, initialisation base de données, création du
+  premier super admin (API, pas CLI).
+- [`configuration-reference.md`](./operations/configuration-reference.md) -
+  inventaire des variables d'environnement par domaine, sans valeurs
+  sensibles.
+- [`migrations.md`](./operations/migrations.md) - modèle de migration
+  Drizzle, règle d'immutabilité de la baseline `0000_initial_schema.sql`.
+- [`deployment.md`](./operations/deployment.md) - déploiement pré-production
+  et production tels que définis par le dépôt (images, nginx, TLS, pipeline
+  GitHub Actions, prérequis manuels, absence de rollback automatisé).
+- [`scheduled-jobs.md`](./operations/scheduled-jobs.md) - scheduler
+  `node-cron` en processus, jobs enregistrés, risque de doublons en cas de
+  réplication.
+- [`backups.md`](./operations/backups.md) - ce qui est sauvegardé
+  aujourd'hui et ce qui ne l'est pas ; statut de restauration (non prouvé).
+- [`monitoring-and-health.md`](./operations/monitoring-and-health.md) -
+  endpoints de santé réels et leur profondeur, lacunes d'observabilité
+  actuelles.
+
 ## Autres sous-dossiers (hors périmètre de ce slice)
 
 `workflows/`, `functional-reference/`, `operations/`, `troubleshooting/` et
