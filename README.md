@@ -137,11 +137,6 @@ ne décrit pas SICOT spécifiquement.
 Faits à connaître avant d'opérer ou de faire évoluer le système - le détail
 complet vit dans `docs/`, pas ici.
 
-- **Câblage traduction** : la configuration Docker actuelle contient un
-  défaut de câblage confirmé - l'API attend `TRANSLATE_SERVICE_URL`,
-  `translate-service` utilise `LIBRETRANSLATE_URL`, et aucun fichier
-  Compose n'injecte actuellement `TRANSLATE_SERVICE_URL` dans l'API.
-  Diagnostic : [`docs/troubleshooting/translation-service.md`](./docs/troubleshooting/translation-service.md).
 - **Sauvegardes** : la couverture automatisée actuelle est **PostgreSQL
   uniquement** - les fichiers de documents déposés ne sont pas
   sauvegardés, et la restauration n'a pas été démontrée comme testée.

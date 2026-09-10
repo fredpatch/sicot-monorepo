@@ -78,7 +78,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       OCR_SERVICE_URL: http://ocr-service:5001
-      LIBRETRANSLATE_URL: http://libretranslate:5000
+      TRANSLATE_SERVICE_URL: http://translate-service:5002
       UPLOAD_DIR: /sicot/documents
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}

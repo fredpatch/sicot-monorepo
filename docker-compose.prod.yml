@@ -79,7 +79,7 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       OCR_SERVICE_URL: http://ocr:5001
-      LIBRETRANSLATE_URL: http://libretranslate:5000
+      TRANSLATE_SERVICE_URL: http://translate:5002
       UPLOAD_DIR: /sicot/documents
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}

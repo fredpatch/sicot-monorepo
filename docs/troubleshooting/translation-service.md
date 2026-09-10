@@ -1,20 +1,14 @@
 # Translation Service
 
-**This document is important because Phase 11.4 confirmed a real
-configuration/runtime wiring defect** in how the Node API reaches
-`translate-service` in Docker environments. Read the confirmed defect
-section below before diagnosing an unfamiliar translation failure - it may
-already be the explanation.
-
 Full variable-level detail:
 [../operations/configuration-reference.md](../operations/configuration-reference.md#translation---libretranslate--deepl--gemini).
-Job/DeepL-toggle detail: same document.
+DeepL-toggle detail: same document.
 
-## The intended chain, and the confirmed defect
+## The call chain
 
-Intended call chain: **Node API → `translate-service` → LibreTranslate**
-(and, when enabled, `translate-service` → DeepL as a fallback). The Node
-API never calls LibreTranslate directly.
+Intended and current call chain: **Node API → `translate-service` →
+LibreTranslate** (and, when enabled, `translate-service` → DeepL as a
+fallback). The Node API never calls LibreTranslate directly.
 
 - The Node API's translation client
   (`packages/server/src/utils/traduction.ts`) reads **only**
@@ -23,64 +17,66 @@ API never calls LibreTranslate directly.
 - `translate-service` (`packages/translate-service/main.py`) reads
   **only** `LIBRETRANSLATE_URL`, for its own separate call onward to
   LibreTranslate.
-- **`docker-compose.yml`, `docker-compose.staging.yml`, and
-  `docker-compose.prod.yml` all currently set `LIBRETRANSLATE_URL` on the
-  `api`/`api_staging` service - a variable the Node API never reads - and
-  none of the three set `TRANSLATE_SERVICE_URL` on it at all.**
+- Each Docker Compose environment sets `TRANSLATE_SERVICE_URL` on the API
+  service, pointing at that environment's `translate-service` Compose
+  service name on port 5002 (dev: `translate-service`; staging:
+  `translate_staging`; production: `translate`) - see
+  [../architecture/runtime-topology.md](../architecture/runtime-topology.md).
+  This wiring is checked automatically by
+  [`scripts/verify-translation-wiring.mjs`](../../scripts/verify-translation-wiring.mjs)
+  in CI (`npm run verify:translation-wiring`), which would fail if a future
+  change regressed it (e.g. a compose service rename without updating the
+  URL, or `TRANSLATE_SERVICE_URL` being removed from the API service
+  again).
 
-**Confirmed impact:** in every Dockerized environment (dev, staging,
-production), the Node API's translation client has no correctly-injected
-URL to reach `translate-service`. Its fallback default
-(`http://localhost:5002`) resolves, inside the `api` container, to the
-`api` container itself - not to `translate-service`. This is a
-configuration/runtime wiring defect in the tracked compose files, not a
-hypothetical risk. **Not fixed in this phase** - remediation direction is
-documented in
-[../operations/configuration-reference.md](../operations/configuration-reference.md#new-findings-from-this-audit-not-fixed---documentation-only)
-and belongs to a future phase, not this one.
+If you land on this page with a translation failure, the symptoms below
+assume this baseline is correctly wired - they help you find what's
+actually broken (a specific container down, a hostname used in the wrong
+context, DeepL misconfiguration), not a compose-file regression, which the
+CI check would already have caught before merge.
 
 ## Symptom: translation requests fail from Docker
 
 ### Likely causes
-This is very likely the confirmed defect above - the Node API cannot reach
-`translate-service` because it was never given a working
-`TRANSLATE_SERVICE_URL`.
+- `translate-service` container down or unhealthy.
+- LibreTranslate container down or unhealthy (see the second-hop symptom
+  below).
+- A local, uncommitted override of `TRANSLATE_SERVICE_URL` pointing
+  somewhere wrong.
 
 ### Checks
 ```bash
-# From inside the api container, is TRANSLATE_SERVICE_URL even set?
+# Is TRANSLATE_SERVICE_URL actually set as expected inside the api container?
 docker compose exec api node -e "console.log(process.env.TRANSLATE_SERVICE_URL ?? '(unset)')"
+# expected: http://translate-service:5002 (dev) / http://translate_staging:5002 (staging) / http://translate:5002 (prod)
 
-# Is translate-service itself up and healthy on its own?
-curl -i http://localhost:5002/health   # dev, host-exposed port
+# Is translate-service itself up and healthy?
 docker compose ps translate-service    # dev service name
+curl -i http://localhost:5002/health   # dev, host-exposed port
 ```
 
 ### Safe corrective actions
-None available without changing tracked compose/env configuration, which
-is out of scope for a troubleshooting fix. If you control the environment
-and need translation working now, you can set `TRANSLATE_SERVICE_URL`
-explicitly as a local override (not committed) pointing at the correct
-service host:port for your compose project (e.g. `translate-service` in
-dev, `translate_staging` in staging, `translate` in production) - but
-treat this as a workaround, not a resolution, and note it should be fixed
-properly in the tracked compose files.
+If `TRANSLATE_SERVICE_URL` is unexpectedly unset or wrong, confirm nothing
+locally overrides it (a stray `.env` value, a shell export) - the compose
+files themselves hardcode the correct value per environment and should not
+normally need adjustment. If `translate-service` is down/unhealthy, restart
+it (`docker compose restart translate-service`) and check its logs.
 
 ### Escalate when
-`TRANSLATE_SERVICE_URL` is confirmed correctly set and reachable, and
-translation still fails - proceed to the next two symptoms to isolate
-which hop is actually broken.
+`TRANSLATE_SERVICE_URL` is confirmed correctly set and `translate-service`
+reports healthy, and translation still fails - proceed to the next two
+symptoms to isolate which hop is actually broken.
 
 ---
 
 ## Symptom: Node API cannot reach `translate-service` (first hop)
 
 ### Likely causes
-- The wiring defect above (most likely in an untouched environment).
 - `translate-service` container down or unhealthy.
 - Wrong hostname for the environment (native `localhost` vs. Docker
   service name - these are genuinely different and neither works in the
-  other context).
+  other context; see the last symptom below).
+- A local override of `TRANSLATE_SERVICE_URL`.
 
 ### Checks
 ```bash
@@ -92,10 +88,13 @@ curl -i http://localhost:5002/health   # dev, host-exposed
 ```
 If this direct call succeeds but calls routed through the Node API fail,
 the problem is specifically in how the Node API is configured to reach
-`translate-service` - not in `translate-service` itself.
+`translate-service` (an override, a stale container needing a rebuild) -
+not in `translate-service` itself.
 
 ### Safe corrective actions
-See the wiring-defect section above.
+Restart or rebuild the affected container(s)
+(`docker compose up --build -d translate-service`); confirm no local
+override shadows the compose-provided `TRANSLATE_SERVICE_URL`.
 
 ### Escalate when
 `translate-service` is confirmed healthy and directly reachable at its own
@@ -109,7 +108,7 @@ container, and calls through the Node API still fail.
 ### Likely causes
 - LibreTranslate container down, still loading its language models (first
   boot can be slow), or unhealthy.
-- Wrong `LIBRETRANSLATE_URL` for the environment.
+- A local override of `LIBRETRANSLATE_URL` on `translate-service`.
 
 ### Checks
 ```bash
@@ -156,7 +155,8 @@ curl -s http://localhost:5002/health
 - If this call **succeeds and reports LibreTranslate reachable**, but
   translation requests routed through the Node API still fail → the
   problem is specifically the Node API's own configuration
-  (`TRANSLATE_SERVICE_URL`) - see the wiring-defect section at the top.
+  (`TRANSLATE_SERVICE_URL`) - see the "translation requests fail from
+  Docker" symptom above.
 
 This ordering avoids guessing which of three services is at fault.
 
@@ -226,7 +226,10 @@ share the host's `localhost`; each Docker container has its own - a
 Compose service reaches another only by that other service's **service
 name** (e.g. `translate-service`, `libretranslate`), never by `localhost`.
 A URL that's correct for native dev is never correct inside a container,
-and vice versa.
+and vice versa. Native dev's default (`http://localhost:5002`, from
+`packages/server/.env.example`) only works when `translate-service` is
+also run natively/host-exposed at that port - it is never the right value
+inside a container.
 
 ### Checks
 Confirm which context you're actually diagnosing, and whether the
@@ -235,10 +238,9 @@ hostname like `translate-service` for Docker, `localhost` for native).
 
 ### Safe corrective actions
 Set environment-specific values rather than assuming one URL works
-everywhere. This is the same underlying mechanism behind the confirmed
-wiring defect above - environment-specific host values must be injected
-correctly per environment, and today one of them (`TRANSLATE_SERVICE_URL`
-on `api`) simply isn't.
+everywhere - each Docker Compose environment already hardcodes the correct
+value on the API service; only native/non-Docker dev relies on the
+`.env.example` default.
 
 ### Escalate when
 Not applicable directly - this is foundational context for every symptom

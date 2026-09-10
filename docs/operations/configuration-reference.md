@@ -92,8 +92,8 @@ are ever filled in - confusing to read top-to-bottom. See Findings.
 
 | Variable                 | Consumer                                                                                                                                                            | Declared                                                                                                                                       | Required                                                          | Sensitive                                                | Note                                                                                                                                                                                           |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TRANSLATE_SERVICE_URL`  | `packages/server/src/utils/traduction.ts` (the Node API's **only** client for `/translate`, `/translate/batch`, `/detect`, and engine `/health`)                    | **No** - absent from every tracked `.env.example`, and **not set on the `api`/`api_staging` service in any of the three docker-compose files** | Optional, default `http://localhost:5002`                         | No                                                       | **Confirmed configuration/runtime wiring defect** - see Findings. Not injected by Docker anywhere.                                                                                             |
-| `LIBRETRANSLATE_URL`     | `packages/translate-service/main.py` (translate-service's own client to LibreTranslate) - **not read by `traduction.ts` or anywhere else in `packages/server/src`** | Yes (`packages/server/.env.example`, `packages/translate-service/.env.example`)                                                                | Optional, default `http://localhost:5000`                         | No                                                       | Set on the `api`/`api_staging` service in every compose file, but nothing in the Node API reads it - it is silently inert there. See Findings.                                                 |
+| `TRANSLATE_SERVICE_URL`  | `packages/server/src/utils/traduction.ts` (the Node API's **only** client for `/translate`, `/translate/batch`, `/detect`, and engine `/health`)                    | Yes (`packages/server/.env.example`) - hardcoded per-environment in all three docker-compose files on the `api`/`api_staging` service (not operator-configurable there, by design - see [deployment.md](./deployment.md)) | Optional, default `http://localhost:5002` (native/non-Docker dev) | No                                                       | Points at `translate-service`/`translate_staging`/`translate` (the Compose service name, port 5002) in each environment - see [../architecture/runtime-topology.md](../architecture/runtime-topology.md). |
+| `LIBRETRANSLATE_URL`     | `packages/translate-service/main.py` (translate-service's own client to LibreTranslate) - **not read by `traduction.ts` or anywhere else in `packages/server/src`** | Yes (`packages/translate-service/.env.example`)                                                                | Optional, default `http://localhost:5000`                         | No                                                       | Set only on `translate-service`/`translate_staging`/`translate` in every compose file, where it's legitimately consumed - not set on the API service (verified by [`scripts/verify-translation-wiring.mjs`](../../scripts/verify-translation-wiring.mjs), run in CI). |
 | `LIBRETRANSLATE_API_KEY` | `packages/translate-service/main.py`                                                                                                                                | Yes                                                                                                                                            | Optional, default empty                                           | Possibly (if the LibreTranslate instance requires a key) |                                                                                                                                                                                                |
 | `TRANSLATE_PORT`         | `packages/translate-service/main.py`                                                                                                                                | Yes                                                                                                                                            | Optional, default `5002`                                          | No                                                       |                                                                                                                                                                                                |
 | `DEEPL_ENABLED`          | `packages/translate-service/main.py`                                                                                                                                | Yes                                                                                                                                            | Optional, default `false`                                         | No                                                       | The server itself instead reads a **DB parameter** `deepl_fallback_actif` for its own DeepL toggle - two independent switches for the same feature, in two different subsystems. See Findings. |
@@ -149,31 +149,18 @@ production domain - no real domain is known to this documentation effort.
 
 These are reported per instruction, not remediated in this phase.
 
-1. **Confirmed configuration/runtime wiring defect: the Node API's
-   translation client is never given a reachable URL in Docker.** The
-   intended call chain is Node API → `translate-service` → LibreTranslate
-   (`traduction.ts` calls `/translate`, `/translate/batch`, `/detect`, and
-   `/health` - the exact routes `translate-service/main.py` implements; the
-   Node API never calls LibreTranslate directly). `traduction.ts` reads
-   only `TRANSLATE_SERVICE_URL`, with a fallback of `http://localhost:5002`.
-   None of the three compose files (`docker-compose.yml`,
-   `docker-compose.staging.yml`, `docker-compose.prod.yml`) set
-   `TRANSLATE_SERVICE_URL` on the `api`/`api_staging` service - all three
-   instead set `LIBRETRANSLATE_URL` there, a variable `traduction.ts` never
-   reads (only `translate-service/main.py` reads `LIBRETRANSLATE_URL`, for
-   its own separate call to LibreTranslate). Inside the `api` container,
-   the unset variable's fallback (`localhost:5002`) resolves to the `api`
-   container itself, which does not run a translate service on that port.
-   **Impact:** in every Dockerized environment (dev, staging, production),
-   server-initiated translation calls have no correctly-configured path to
-   `translate-service` - this is a wiring defect in the tracked
-   configuration, not a hypothetical or "likely" one. **Suggested
-   remediation:** set `TRANSLATE_SERVICE_URL` on the `api`/`api_staging`
-   service in all three compose files, pointing at the correct
-   `translate-service` container host:port (mirroring how
-   `LIBRETRANSLATE_URL` is already set on the `translate`/`translate_staging`/
-   `translate-service` containers) - do not maintain two different variable
-   names for the same concern. Not fixed in this phase per scope.
+1. ~~Confirmed configuration/runtime wiring defect: the Node API's
+   translation client was never given a reachable URL in Docker.~~ **Fixed
+   in Phase 12.1** - all three compose files now set `TRANSLATE_SERVICE_URL`
+   on the API service, pointing at the correct `translate-service`
+   Compose service name and port for that environment, and no longer set
+   the (unread) `LIBRETRANSLATE_URL` there. Regression protection:
+   [`scripts/verify-translation-wiring.mjs`](../../scripts/verify-translation-wiring.mjs),
+   run in CI (`npm run verify:translation-wiring`). See
+   [../architecture/runtime-topology.md](../architecture/runtime-topology.md)
+   for the current, correct wiring and
+   [../troubleshooting/translation-service.md](../troubleshooting/translation-service.md)
+   for diagnosis if translation still fails for another reason.
 2. **`JWT_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` declared but unused** -
    token lifetimes are hardcoded in `utils/jwt.ts` regardless of these
    variables. Impact: low (misleading, not insecure - the hardcoded values

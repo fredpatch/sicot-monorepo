@@ -38,10 +38,13 @@ origin defaults to `http://localhost:5173`. **Client** dev server runs on
 port 5173 ([`packages/client/vite.config.ts`](../../packages/client/vite.config.ts)).
 
 OCR and translation calls from the server are HTTP, not in-process:
-`OCR_SERVICE_URL` (default `http://localhost:5001`,
+`OCR_SERVICE_URL` (`http://ocr-service:5001` in this compose file,
 [`utils/ocr.ts`](../../packages/server/src/utils/ocr.ts)) and
-`TRANSLATE_SERVICE_URL` (default `http://localhost:5002`,
-[`utils/traduction.ts`](../../packages/server/src/utils/traduction.ts)).
+`TRANSLATE_SERVICE_URL` (`http://translate-service:5002` in this compose
+file, [`utils/traduction.ts`](../../packages/server/src/utils/traduction.ts))
+- both hardcoded per environment in the compose files, not left to their
+  native-dev fallback defaults, matching how the same two services are
+  addressed in staging/production below.
 
 ## Staging
 
