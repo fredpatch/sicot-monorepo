@@ -11,7 +11,11 @@ covers diagnosis only.
 - **No distributed lock exists.** If more than one API replica were ever
   run, every replica would independently fire the same schedules,
   producing duplicate runs. Today this isn't active (a single replica runs
-  by default), but it is a real, currently-latent risk.
+  by default), but it is a real, currently-latent risk. Note: the backup
+  job additionally has an **in-process** mutex (Phase 12.3A) - within a
+  single process, a manual backup that overlaps the scheduled cycle (or
+  another manual run) is rejected with `SAUVEGARDE_DEJA_EN_COURS` rather
+  than running concurrently. This does not address the multi-replica case.
 
 ## Symptom: a job isn't running on its schedule
 
@@ -157,12 +161,21 @@ pointed at the same database).
 
 ## Symptom: backup job fails
 
+A backup run now produces a **backup set** - a single timestamped directory
+per tier containing `database.sql`, `documents.tar.gz`, and `manifest.json`
+(see [../operations/backups.md](../operations/backups.md)). The job result
+reports the exact stage that failed (`failedStage` in the audit-log
+`details`): `pg_dump`, `archive`, `checksum`, `manifest`, or `finalisation`.
+
 ### Likely causes
-- `pg_dump` not found on `PATH` inside the container/host running the job
-  (`PG_DUMP_PATH` misconfigured or unset with no working default present).
-- Local or NAS destination directory not writable/mounted.
-- `DATABASE_URL` itself unreachable at the time the job ran (same causes
-  as any other DB connection failure).
+- `failedStage: pg_dump` - `DATABASE_URL` unreachable at the time the job
+  ran, or `pg_dump` missing/wrong path. As of Phase 12.3A the API image
+  ships `postgresql-client` (`pg_dump`/`psql`), so a missing binary should
+  only happen with a broken image build or a bad `PG_DUMP_PATH` override.
+- `failedStage: archive` - `tar` missing (again, bundled in the image
+  since 12.3A) or `UPLOAD_DIR` unreadable.
+- `failedStage: checksum` / `manifest` / `finalisation` - local backup
+  directory not writable, or disk full.
 
 ### Checks
 ```bash
@@ -172,61 +185,50 @@ docker compose logs api | grep -i sauvegarde
 ```
 
 ### Safe corrective actions
-Confirm `pg_dump` is present and executable in the environment the job
-actually runs in, and that both destination directories are writable. Do
-not delete existing backup files as a troubleshooting step.
+Read `failedStage` first, then check the corresponding cause above. A
+failed run leaves **no** partial set behind - the in-progress directory
+(`*.inprogress`) is removed on any failure before completion, so there is
+nothing to clean up manually. Do not delete existing completed backup-set
+directories as a troubleshooting step.
 
 ### Escalate when
-`pg_dump`, `DATABASE_URL`, and both destinations are all confirmed correct
-and the job still fails.
+`DATABASE_URL`, the local destination, and the reported `failedStage`
+cause are all confirmed correct and the job still fails.
 
 ---
 
-## Symptom: NAS destination unavailable
+## Symptom: NAS replication unavailable / skipped
+
+Since Phase 12.3A the model is **local-first**: one verified local backup
+set is created, then replicated (copied byte-for-byte) to NAS. NAS is no
+longer an independent second `pg_dump`. A NAS replication failure **never**
+invalidates or deletes the completed local set.
 
 ### Likely causes
-The NAS mount (configured via `BACKUP_NAS_DIR`, IT-managed, not
-admin-editable) is unreachable - a network mount issue outside this
-application's control.
+- `nasReplicationStatus: non_configure` - `BACKUP_NAS_DIR` is unset. NAS
+  replication is simply disabled; local backups are unaffected.
+- `nasReplicationStatus: indisponible` - `BACKUP_NAS_DIR` is set but the
+  directory does not exist. The job deliberately does **not** create the
+  NAS root itself (an auto-created directory would not prove the network
+  share is actually mounted), so an absent root reads as "not mounted".
+- `nasReplicationStatus: echec` - the root exists but the copy failed
+  (share went away mid-copy, permissions, disk full on the NAS).
 
 ### Checks
 Confirm the mount is actually present and writable at the OS/host level
 where the job runs - this is infrastructure, not application
-configuration.
+configuration. The local backup set's own audit entry
+(`localStatus: ok`) confirms the data was captured regardless.
 
 ### Safe corrective actions
-Escalate to whoever manages the NAS mount. The application-level backup job
-will still succeed to the local destination even if the NAS destination
-fails (both are written independently) - check the local destination's
-own history entry to confirm partial success.
+Escalate the mount issue to whoever manages the NAS. Once the share is back,
+run the manual `backup_sync_nas` job (`POST /api/jobs/backup_sync_nas/executer`,
+`SYSTEM_ADMIN_OPERATION`) to copy any completed local sets that are missing
+on the NAS. It never deletes anything and skips `*.inprogress` directories.
 
 ### Escalate when
-Always - a NAS mount problem is an infrastructure issue outside what
-application-level troubleshooting can resolve.
-
----
-
-## Symptom: `pg_dump` unavailable or wrong path
-
-### Likely causes
-`PG_DUMP_PATH` unset (defaults to relying on `PATH`) or set to a path that
-doesn't exist in the environment actually running the job - this variable
-is used but undocumented in any tracked `.env.example`, so it's easy to
-overlook. See
-[../operations/configuration-reference.md](../operations/configuration-reference.md#backup--nas).
-
-### Checks
-```bash
-docker compose exec api sh -c 'which pg_dump || echo "not found"'
-```
-
-### Safe corrective actions
-Set `PG_DUMP_PATH` explicitly if `pg_dump` isn't on the default `PATH` in
-that environment.
-
-### Escalate when
-`pg_dump` is confirmed present and correctly referenced, and the backup
-job still fails to invoke it.
+The NAS root is confirmed mounted and writable at the OS level and
+replication still reports `echec`.
 
 ---
 
@@ -242,17 +244,16 @@ Not applicable via automated checks - this is a documented process gap,
 not a runtime symptom.
 
 ### Safe corrective actions
-**No restore recipe is provided here, invented, or implied.** If a restore
-is genuinely needed, this requires an operator to manually run `pg_restore`
-or `psql` against a chosen dump file, with no in-repo guidance - treat this
-as a high-stakes manual operation requiring care, not a routine
-troubleshooting step. Before relying on backups as a disaster-recovery
-plan, a restore drill should be designed and validated - see
+**No restore recipe is provided here, invented, or implied.** As of Phase
+12.3A a backup set now contains both `database.sql` (plain SQL, restorable
+with `psql`) and `documents.tar.gz` (the uploaded file bytes), paired in
+one directory with a `manifest.json` carrying SHA-256 checksums - so the
+data needed for a full restore is now captured. **But restore itself is
+still not built or validated** (that is Phase 12.3B): there is no restore
+script, no drill, and no in-repo procedure. Treat any actual restore as a
+high-stakes manual operation requiring deliberate planning, not a routine
+troubleshooting step - see
 [../operations/backups.md](../operations/backups.md#restore-status).
-
-Also remember: **current backups are database-only.** Uploaded document
-bytes are not covered by any backup mechanism - a database restore alone
-would not recover document files, only the metadata referencing them.
 
 ### Escalate when
 Always, if an actual restore is being considered for anything other than a

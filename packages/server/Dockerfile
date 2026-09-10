@@ -5,8 +5,11 @@ WORKDIR /app
 # Chromium for Puppeteer (PDF export, src/utils/pdf.ts) - Alpine's own
 # chromium package instead of Puppeteer's bundled download, which doesn't
 # run reliably on Alpine's musl libc.
+# postgresql-client provides pg_dump / psql, required by the backup job
+# (src/jobs/backup.ts). Installed here in `base` so `dev` and `build`
+# inherit it; the standalone `prod` stage installs it again separately.
 RUN apk add --no-cache chromium nss freetype freetype-dev harfbuzz \
-  ca-certificates ttf-freefont
+  ca-certificates ttf-freefont postgresql-client
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
@@ -29,8 +32,10 @@ RUN npm run build -w packages/shared && npm run build -w packages/server
 # ── Production ─────────────────────────────────────
 FROM node:20-alpine AS prod
 WORKDIR /app
+# postgresql-client (pg_dump / psql) required by the backup job at runtime -
+# this stage does not inherit from `base`, so it needs its own install.
 RUN apk add --no-cache chromium nss freetype freetype-dev harfbuzz \
-  ca-certificates ttf-freefont
+  ca-certificates ttf-freefont postgresql-client
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 

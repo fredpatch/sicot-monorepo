@@ -3,7 +3,7 @@
 What backup mechanisms exist today, and - just as importantly - what
 remains unvalidated. This document is deliberately conservative: it states
 only what the repository proves, and does not describe restore as tested
-unless it is.
+unless it is. **Restore is not yet built or validated - see Restore status.**
 
 Scheduling mechanics (cron cadence, manual-execution endpoint, execution
 history) are shared with the rest of the job system - see
@@ -12,48 +12,102 @@ content, destinations, retention, and restore status only.
 
 ## What is backed up
 
-**Only the PostgreSQL database**, via `pg_dump` (plain-format SQL dump).
-`packages/server/src/jobs/backup.ts` builds and runs a `pg_dump` command
-against `DATABASE_URL` directly.
+As of Phase 12.3A, a backup run produces a **complete backup set**: one
+timestamped directory per tier containing all three of:
 
-**Uploaded documents and files are not backed up by this mechanism.** There
-is no reference to the upload directory (`UPLOAD_DIR` / the `sicot/documents`
-volume) anywhere in the backup job code. In production, uploaded documents
-live in the `sicot_uploads_prod` Docker volume, which has no backup path in
-this codebase today. This is a real coverage gap, not a documentation
-omission - see Findings below.
+| Artifact | Content |
+|---|---|
+| `database.sql` | Full `pg_dump` of the PostgreSQL database, plain-format SQL (`--format=plain`). Invoked via `execFile` with an argument array - no shell string is constructed. |
+| `documents.tar.gz` | gzip archive of the entire `UPLOAD_DIR` tree (all uploaded document bytes, every category), produced with the system `tar` via `execFile`. An empty `UPLOAD_DIR` still yields a valid archive. |
+| `manifest.json` | Operational metadata only (see below). Written **last**, only after both artifacts exist and have been checksummed. |
 
-**Because of this, a database backup alone cannot fully reconstruct SICOT's
-document state.** Restoring only the database would recover metadata,
-records, and references to documents (`documents` rows, storage paths,
-etc.) without recovering the underlying uploaded file bytes those records
-point to - the two are backed up independently today, and only one of them
-is.
+`packages/server/src/jobs/backup.ts` orchestrates this. The API image
+(`packages/server/Dockerfile`) installs `postgresql-client` (`pg_dump` /
+`psql`); `tar` and `gzip` are already present in the base image.
+
+### Consistency ordering
+
+The database is dumped **before** the document archive, deliberately:
+
+1. in-progress set directory created
+2. `pg_dump` → `database.sql`
+3. `tar` → `documents.tar.gz`
+4. SHA-256 of both artifacts
+5. `manifest.json`
+6. atomic rename to the completed set name
+7. replicate the completed set to NAS
+
+If an upload happens between steps 2 and 3, the worst outcome is one extra
+unreferenced file inside the archive. The opposite order could produce a
+database dump referencing a document row whose bytes the earlier archive
+missed. This small window is accepted for the current single-instance
+architecture rather than introducing a maintenance-mode / write-lock
+mechanism.
+
+### Manifest contents
+
+`formatVersion`, `backupId`, `tier`, `createdAt`, and per-artifact
+`filename` / `sizeBytes` / `sha256` (plus `fileCount` for the document
+archive), and `applicationVersion` (`APP_VERSION` if set at runtime, else
+`null`).
+
+The manifest contains **no** secrets and **no** location/status data - no
+`DATABASE_URL`, credentials, SMTP details, API keys, or NAS hostname, and
+no local/NAS success flags. It describes the backup set itself, not where
+copies of it currently live. Local/NAS status is reported separately (job
+history + audit log), not in the manifest.
 
 ## Where backups go
 
-Two destinations, written in parallel on every run:
+**Local is canonical; NAS is replication.** One verified local backup set
+is created first, then copied byte-for-byte to NAS. NAS never runs its own
+`pg_dump` or rebuilds the archive - it receives an exact copy of the local
+set.
 
 - **Local** - directory from the DB-editable parameter `backup_local_dir`
-  (admin can change this via the Settings screen), falling back to the
-  `BACKUP_LOCAL_DIR` environment variable if the parameter isn't set. In
-  production this is the `sicot_backups_prod` volume, mounted at
-  `/sicot/backups/local` on `api`. **Staging has no equivalent volume** -
-  local dumps there live inside the container's ephemeral filesystem and do
-  not survive a container recreate.
-- **NAS** - directory from the `BACKUP_NAS_DIR` environment variable only;
-  deliberately not admin-editable (IT-managed network mount). No hostname,
-  credential, or mount detail is reproduced here - see
-  [configuration-reference.md](./configuration-reference.md) for the
-  variable name only.
+  (admin-editable via the Settings screen), falling back to the
+  `BACKUP_LOCAL_DIR` environment variable. In production this is the
+  `sicot_backups_prod` volume mounted at `/sicot/backups/local` on `api`.
+  **Dev and staging have no equivalent backup volume** - local sets there
+  live in the container's ephemeral filesystem and do not survive a
+  container recreate.
+- **NAS** - directory from `BACKUP_NAS_DIR` (environment only, not
+  admin-editable). The backup job **never creates the NAS root itself** -
+  an auto-created directory at that path would not prove the network share
+  is actually mounted. NAS replication status is reported as one of:
+  `ok`, `echec`, `non_configure` (`BACKUP_NAS_DIR` unset), or
+  `indisponible` (set, but the root directory does not exist). No NAS
+  volume/bind-mount is defined in any Compose file in this repository -
+  whether one is provided at the host/Docker-daemon level is an
+  operational detail outside this repo.
+
+**A NAS replication failure never invalidates or deletes a completed local
+backup set.** Local success and NAS replication success/failure are
+reported as distinct facts in the job history and audit log.
 
 Each destination is organized into per-tier subfolders: `quotidien/`,
-`hebdomadaire/`, `mensuel/`, `annuel/`.
+`hebdomadaire/`, `mensuel/`, `annuel/`, each containing
+`backup-<tier>-<timestamp>-<rand>/` set directories.
+
+## Atomic completion
+
+A set is generated inside a sibling `*.inprogress` directory. It only
+receives its final (completed) name via an atomic rename after all three
+artifacts are produced and validated. On **any** failure before that
+rename, the `*.inprogress` directory is removed and the job result records
+the exact `failedStage` (`pg_dump`, `archive`, `checksum`, `manifest`,
+`finalisation`). A partially-created set never looks restorable.
+
+Post-completion failures - NAS replication, retention cleanup, audit
+logging - do **not** delete or invalidate the completed local set.
 
 ## Retention strategy
 
-Grandfather-father-son rotation, applied only after a promotion to the next
-tier succeeds on at least one destination - never a blind delete:
+Grandfather-father-son rotation, unchanged in policy - only the unit
+changed, from an individual `.sql` file to a **complete backup-set
+directory**. Retention deletes whole set directories and never removes just
+one artifact from a set. `*.inprogress` directories are ignored when
+counting/pruning.
 
 | Tier | Kept | Pruned when |
 |---|---|---|
@@ -62,86 +116,77 @@ tier succeeds on at least one destination - never a blind delete:
 | Monthly | most recent N (default 12; admin-editable) | A yearly promotion succeeds |
 | Yearly | kept indefinitely - never pruned | never |
 
+## In-process concurrency guard
+
+The backup job has a module-level mutex. Within a single API process, a
+manual backup that would overlap the scheduled cycle (or another manual
+run) is rejected immediately with `SAUVEGARDE_DEJA_EN_COURS` rather than
+running concurrently. This is **not** a distributed lock - the
+multiple-replica case (see [scheduled-jobs.md](./scheduled-jobs.md)) is
+unaffected and remains a separate, latent issue.
+
 ## How jobs are triggered
 
 - **Scheduled:** a single daily cron (`0 0 * * *`) always runs the daily
-  dump; the same run internally checks the calendar and additionally
-  promotes to weekly/monthly/yearly tiers on Sundays / month-end / year-end
-  respectively. See [scheduled-jobs.md](./scheduled-jobs.md) for the exact
-  keys and cadence.
+  set; the same run additionally promotes to weekly/monthly/yearly tiers
+  on Sundays / month-end / year-end respectively.
 - **Manual:** `POST /api/jobs/:cle/executer` for `backup_quotidien`,
   `backup_hebdomadaire`, `backup_mensuel`, `backup_annuel`, and
-  `backup_sync_nas` (a one-off catch-up copy of local-only backups to the
-  NAS destination) - all five gated behind the `SYSTEM_ADMIN_OPERATION`
-  capability (super_admin only). Endpoint contract:
-  [administration/jobs.md](../api/endpoints/administration/jobs.md).
+  `backup_sync_nas` (catch-up copy of completed local sets missing on the
+  NAS) - all gated behind `SYSTEM_ADMIN_OPERATION` (super_admin only).
 
 ## What success/failure evidence exists
 
-Every backup run - scheduled or manual - writes a row to the `jobExecutions`
-history table (see [scheduled-jobs.md](./scheduled-jobs.md)) and a
-corresponding entry to the general audit log (action codes such as
-`SAUVEGARDE_QUOTIDIEN` / `SAUVEGARDE_QUOTIDIEN_ECHEC`). Console output is
-the only "live" signal beyond that.
+Every run writes a row to `job_executions` (human-readable `resume` +
+`erreur`) and an entry to `audit_logs` whose `details` (JSONB) carries
+structured metadata: `backupSetId`, `tier`, `localStatus`,
+`nasReplicationStatus`, `databaseSizeBytes`, `archiveSizeBytes`,
+`fileCount`, `durationMs`, and `failedStage` where applicable. No schema
+migration was added for this - it reuses the existing audit-log details
+channel.
 
-**There is no failure notification.** No email, Slack, or other alert fires
-on backup failure - a failed backup is visible only if someone actively
-checks the job history UI, the audit log, or container stdout logs. This is
-a real observability gap - see
+**There is still no failure notification.** No email/Slack/other alert
+fires on backup failure - it is visible only by checking job history, the
+audit log, or container stdout. This remains a real observability gap - see
 [monitoring-and-health.md](./monitoring-and-health.md).
 
 ## Restore status
 
-**Restore has not been evidenced as tested.**
+**Restore is not built and not validated.** Phase 12.3A produces a
+recoverable backup *set* (database + documents + checksummed manifest), but:
 
-A repository-wide search for restore-related code found nothing related to
-backup restoration - the only "restore" hits in the codebase are unrelated
-document/translation soft-delete-restore features in other modules. **There
-is no restore script, no `pg_restore` invocation, no restore tooling, and
-no restore test anywhere in this repository.** Restoring a backup today
-would require an operator to manually run `pg_restore` or `psql` against a
-chosen `.sql` dump file, with no in-repo guidance, tooling, or automation to
-support that.
+- there is no restore script, no `psql`/`pg_restore` tooling, no restore
+  test, and no drill in this repository;
+- the plain-format `database.sql` would need to be replayed with `psql`
+  into an empty/freshly-created database - the destructive-safety model and
+  tooling for that are **Phase 12.3B**, not done here.
 
-A restore drill must be designed and validated before backups can be
-considered a proven disaster-recovery mechanism. Until that happens, treat
-"backups are being written" and "the data is recoverable" as two separate,
-unequally-proven claims.
-
-This document intentionally does not create a combined
-`backups-and-restore.md` - a real restore procedure, once designed and
-validated, belongs in its own document at that point, not asserted here in
-advance of that work.
+Until 12.3B lands, treat "backup sets are being written and checksummed"
+and "the data is provably recoverable" as two separate claims - only the
+first is true today.
 
 ## Security
 
+Backup sets contain sensitive data: the database dump includes password
+hashes and all business content, and `documents.tar.gz` contains the raw
+uploaded files. Protection today is whatever the OS/Docker-volume
+filesystem permissions on the local backup directory (and any NAS share)
+provide - there is no archive-level encryption. Introducing encryption at
+rest is explicitly deferred (future hardening), not part of 12.3A.
+
 No NAS credentials, SSH keys, database passwords, or private hostnames
-appear in this document - only environment variable names and conceptual
-destinations, per the backup job's own env var usage in
-`packages/server/src/jobs/backup.ts`.
+appear in backup code, manifests, or this document - only environment
+variable names and conceptual destinations.
 
-## New findings from this audit (not fixed - documentation only)
+## Still open after 12.3A
 
-1. **Uploaded documents are not covered by any backup mechanism.** Only the
-   Postgres database is dumped; the `sicot_uploads_prod` volume (and its
-   staging/dev equivalents) has no corresponding backup path anywhere in
-   the codebase. Impact: a volume-level failure or accidental deletion
-   would lose uploaded documents even though the database backup succeeded
-   and reported healthy. Suggested remediation: extend the backup job (or
-   add a parallel one) to archive the upload directory, or document an
-   external volume-snapshot strategy if one exists outside this repo.
-2. **No restore tooling or drill exists.** See Restore status above.
-   Suggested remediation: design and validate a restore procedure
-   (ideally rehearsed against a non-production database) before relying on
-   these backups as a disaster-recovery plan.
-3. **No failure notification on backup failure.** A failed backup is only
-   discoverable by actively checking job history/audit logs - there is no
-   push alert. Suggested remediation: at minimum, surface failed backup
-   executions somewhere an operator will actually see promptly (e.g. an
-   admin-dashboard indicator, since email/Slack alerting infrastructure
-   does not currently exist in this project - see
-   [monitoring-and-health.md](./monitoring-and-health.md)).
-4. **Staging has no backup volume.** Local staging dumps live in the
-   container's ephemeral filesystem and are lost on container recreation.
-   Low impact given staging is not the system of record, but worth noting
-   if staging is ever used to validate the backup mechanism itself.
+1. **Restore tooling + validation** - Phase 12.3B.
+2. **No failure notification** - a failed backup is only discoverable by
+   actively checking job history / audit logs.
+3. **Dev and staging have no persistent backup volume** - low impact (not
+   systems of record), noted for anyone using them to exercise the backup
+   mechanism itself.
+4. **NAS mount is not defined in any Compose file** - if no host-level
+   mount is provided operationally, NAS replication reports `indisponible`
+   and only the local set exists.
+5. **Archive-level encryption at rest** - deferred future hardening.

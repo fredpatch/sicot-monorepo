@@ -112,11 +112,13 @@ are ever filled in - confusing to read top-to-bottom. See Findings.
 
 | Variable           | Consumer                                                      | Declared | Required                                          | Sensitive | Note                                                                                                    |
 | ------------------ | ------------------------------------------------------------- | -------- | ------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------- |
-| `BACKUP_LOCAL_DIR` | `jobs/backup.ts`, `start/services/parameters-seed.service.ts` | Yes      | Optional, default `/sicot/backups/local`          | No        | Only a seed default - actual value is admin-editable at runtime via a DB parameter (`backup_local_dir`) |
-| `BACKUP_NAS_DIR`   | `jobs/backup.ts`                                              | Yes      | Optional, default `/mnt/nas/sicot/backups`        | No        | Deliberately **not** DB-configurable - IT-managed mount, env-only by design                             |
-| `PG_DUMP_PATH`     | `jobs/backup.ts`                                              | **No**   | Optional, default `pg_dump` (resolved via `PATH`) | No        | Used but undocumented                                                                                   |
+| `BACKUP_LOCAL_DIR` | `jobs/backup.ts`, `start/services/parameters-seed.service.ts` | Yes      | Optional, default `/sicot/backups/local`          | No        | Only a seed default - actual value is admin-editable at runtime via a DB parameter (`backup_local_dir`). Canonical destination: the verified local backup set. |
+| `BACKUP_NAS_DIR`   | `jobs/backup.ts`                                              | Yes      | Optional, **default empty** (NAS replication disabled) | No        | Deliberately **not** DB-configurable - IT-managed mount, env-only. Replication target only (the completed local set is copied here). The job never creates this root; if it is set but absent, replication reports `indisponible`. |
+| `PG_DUMP_PATH`     | `jobs/backup.ts`                                              | **No**   | Optional, default `pg_dump` (resolved via `PATH`) | No        | Escape hatch only. The API image ships `postgresql-client`, so the default `pg_dump` on `PATH` works out of the box - override only for a non-standard install. |
+| `TAR_PATH`         | `jobs/backup.ts`                                              | **No**   | Optional, default `tar` (resolved via `PATH`)     | No        | Escape hatch only. `tar` is present in the base image; override only for a non-standard install. |
 
-Full backup behavior (what's backed up, retention, restore status):
+Full backup behavior (backup-set format, local-first / NAS-replication
+model, atomic completion, retention as set units, restore status):
 [backups.md](./backups.md).
 
 ## Jobs / scheduling
