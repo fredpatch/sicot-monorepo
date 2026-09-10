@@ -650,7 +650,20 @@ export async function getGlobalAnalytics(filtre: PeriodeFiltre): Promise<GlobalA
   });
 }
 
-export const SERVICE_PAR_MODULE: Record<string, (filtre: PeriodeFiltre) => Promise<any>> = {
+// Each getter below returns its own concrete, named analytics interface
+// (AccordsAnalytics, DemandesAnalytics, etc.) - real, checked types, not
+// `any`. TypeScript's structural rules don't let a plain `interface`
+// (declared without an index signature) satisfy `Record<string, unknown>`
+// directly, even though every property on these interfaces is a plain,
+// JSON-serializable value - which is exactly how every caller of this map
+// actually uses the result (generic key/value iteration for
+// export/reporting, never a property read requiring the specific
+// interface). The `as unknown as ...` below is a single, narrow, and
+// audited widening at this one dispatch-table declaration, not a
+// type-safety opt-out - the target type stays concrete
+// (`Record<string, unknown>`), matching what every consumer
+// (analytics.controller.ts, rapports.service.ts) already expects.
+export const SERVICE_PAR_MODULE = {
   global: getGlobalAnalytics,
   accords: getAccordsAnalytics,
   courriers: getCourriersAnalytics,
@@ -659,4 +672,4 @@ export const SERVICE_PAR_MODULE: Record<string, (filtre: PeriodeFiltre) => Promi
   demandes: getDemandesAnalytics,
   documents: getDocumentsAnalytics,
   glossaire: getGlossaireAnalytics,
-};
+} as unknown as Record<string, (filtre: PeriodeFiltre) => Promise<Record<string, unknown>>>;
