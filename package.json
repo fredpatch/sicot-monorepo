@@ -17,6 +17,7 @@
     "test": "npm run test --workspace=packages/shared && npm run test --workspace=packages/server && npm run test --workspace=packages/client",
     "lint": "eslint packages/*/src --ext .ts,.tsx",
     "verify:translation-wiring": "node scripts/verify-translation-wiring.mjs",
+    "verify:document-soft-delete": "npm run test --workspace=packages/server -- src/modules/document/services/documents.service.test.ts",
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
     "db:generate": "npm run db:generate --workspace=packages/server",
     "db:migrate": "npm run db:migrate --workspace=packages/server",

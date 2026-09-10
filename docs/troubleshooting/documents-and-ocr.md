@@ -1,7 +1,7 @@
 # Documents & OCR
 
 Full access-model reasoning (stored vs. internally visible vs. publicly
-exposed, the known soft-delete gap on direct-ID access):
+exposed, soft-delete lifecycle enforcement on direct-ID access):
 [../security/document-access.md](../security/document-access.md). This
 document covers diagnosis only.
 
@@ -213,28 +213,33 @@ file - treat this as a storage-integrity incident, not a routine retry.
 ## Symptom: soft-deleted document still directly retrievable
 
 ### Likely causes
-This is a **known, documented gap**, not unexpected behavior:
-`GET /api/documents/:id` and `GET /api/documents/:id/telecharger` do **not**
-filter on `deletedAt` - a soft-deleted document remains directly
-retrievable by ID even though it's correctly excluded from listings.
-Full detail: [../security/document-access.md](../security/document-access.md).
+**Resolved (Phase 12.2)** - `GET /api/documents/:id` and
+`GET /api/documents/:id/telecharger` now filter on `deletedAt` (via
+`getDocument()`/`getCheminDocument()`), and the underlying
+`verifierAccesDocument()` checks lifecycle state before evaluating any
+capability, so no role can bypass it. A soft-deleted document returns the
+same `404 DOCUMENT_INTROUVABLE` as a nonexistent one on both routes. Full
+detail: [../security/document-access.md](../security/document-access.md).
+
+If you still observe a soft-deleted document being retrievable directly by
+ID, treat it as a genuine regression, not expected behavior - check
+whether the deployed server build actually includes this fix (commit
+history / build timestamp) before assuming it's this known-resolved case.
 
 ### Checks
-Confirm whether you're hitting the direct-by-ID routes (affected) or a
-listing/search endpoint (correctly filters `deletedAt`).
+Confirm whether you're hitting the direct-by-ID routes (should now 404 for
+a deleted document) or a listing/search endpoint (already filtered
+`deletedAt` before this fix too).
 
 ### Safe corrective actions
-None available at the documentation level - this is an access-control gap
-in the current implementation, tracked in
-[../security/security-checklist.md](../security/security-checklist.md). Do
-not attempt to work around it by adding client-side filtering only; that
-does not close the server-side gap.
+Restoring a document (`PATCH /documents/:id/restaurer`, `DOCUMENT_DELETE`
+capability) is the only supported way to make a soft-deleted document
+reachable again - there is no other administrative workaround.
 
 ### Escalate when
-This needs to actually be fixed in application code (not this phase) - if
-you're evaluating whether it's exploitable in your environment, treat any
-soft-deleted document as still reachable by anyone who has (or can guess)
-its ID and otherwise passes the visibility check.
+The direct-by-ID routes still return a soft-deleted document's content
+after confirming the fix is deployed - treat this as a regression of a
+previously-fixed security finding, not a routine issue.
 
 ---
 

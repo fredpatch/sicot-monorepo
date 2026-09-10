@@ -47,6 +47,14 @@ underlying code changes, not the other way around.
       **External rotation/revocation of that credential on the mail-account
       side is a separate action, outside this repository, and is listed as
       an item to confirm below rather than assumed complete here.**
+- [x] **Authenticated direct document access enforces `deletedAt`** (Phase
+      12.2) - `GET /documents/:id` and `GET /documents/:id/telecharger`,
+      and the underlying `verifierAccesDocument()`, now treat a
+      soft-deleted document identically to a nonexistent one (`404
+      DOCUMENT_INTROUVABLE`), consistent with listings, aggregates, and the
+      public portal. `verifierAccesDocument()` checks lifecycle state
+      before evaluating `DOCUMENT_UPLOAD`, so no capability tier can bypass
+      it. See [document-access.md](./document-access.md).
 
 ## Known gaps
 
@@ -69,14 +77,6 @@ underlying code changes, not the other way around.
       repeatedly until expiry (or indefinitely, if no expiry was
       configured for that document). See
       [document-access.md](./document-access.md).
-- [ ] **Authenticated direct document access does not enforce `deletedAt`** -
-      `GET /documents/:id` and `GET /documents/:id/telecharger` both go
-      through `verifierAccesDocument()`, which does not check whether the
-      document is soft-deleted. An otherwise-authorized user who knows the
-      document ID can retrieve/download a soft-deleted document directly,
-      even though it is correctly excluded from listings, aggregates, and
-      the public portal. Classified as an access/lifecycle enforcement gap.
-      See [document-access.md](./document-access.md).
 - [ ] **Audit coverage is manual, not automatic** - an action without an
       explicit `logAudit()` call in its code path leaves no trace. See
       [audit-and-traceability.md](./audit-and-traceability.md).

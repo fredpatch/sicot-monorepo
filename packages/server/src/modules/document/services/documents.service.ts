@@ -250,8 +250,16 @@ export async function getDocumentsAggregates(
 }
 
 // ── Récupérer un document par ID ──────────────────────────────────────────
+// Actif uniquement (Phase 12.2) - un document soft-supprimé est traité comme
+// inexistant, jamais distingué par un code d'erreur différent (évite de
+// révéler à un appelant non autorisé qu'un document a existé). Restauration
+// via restaurerDocument (route dédiée, DOCUMENT_DELETE) reste le seul chemin
+// qui voit intentionnellement les lignes supprimées.
 export async function getDocument(id: number): Promise<DocumentView> {
-  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+  const [doc] = await db
+    .select()
+    .from(documents)
+    .where(and(eq(documents.id, id), isNull(documents.deletedAt)));
 
   if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
   return toDocumentView(doc);
@@ -349,10 +357,15 @@ export async function nouvellVersionDocument(
 }
 
 // ── Récupérer le chemin d'un document pour téléchargement ───────────────
+// Actif uniquement (Phase 12.2) - voir le commentaire de getDocument
+// ci-dessus, même principe pour le téléchargement.
 export async function getCheminDocument(
   id: number
 ): Promise<{ chemin: string; nomOriginal: string; mimeType: string }> {
-  const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+  const [doc] = await db
+    .select()
+    .from(documents)
+    .where(and(eq(documents.id, id), isNull(documents.deletedAt)));
   if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
   return { chemin: doc.chemin, nomOriginal: doc.nomOriginal, mimeType: doc.mimeType };
 }
@@ -392,18 +405,24 @@ export async function toggleVisibiliteInterne(
 // (voir listerDocuments#visibleOuUploadePar pour la même règle appliquée au
 // listing). Dérivé de la capacité plutôt que du littéral de rôle 'agent'
 // (Phase 4.7). ───────────────────────────────────────────────────────────
+// Phase 12.2 : le cycle de vie (deletedAt) est vérifié AVANT la capacité -
+// DOCUMENT_UPLOAD élargit la portée d'autorisation (voir plus haut), mais ne
+// doit jamais court-circuiter la vérification qu'un document supprimé est
+// traité comme inexistant. La requête active-only s'exécute donc dans tous
+// les cas, y compris pour un appelant privilégié.
 export async function verifierAccesDocument(
   id: number,
   utilisateur: { role: string; userId: number }
 ): Promise<void> {
-  if (hasCapability(utilisateur.role as UserRole, 'DOCUMENT_UPLOAD')) return;
-
   const [doc] = await db
     .select({ visibiliteInterne: documents.visibiliteInterne, uploadePar: documents.uploadePar })
     .from(documents)
-    .where(eq(documents.id, id));
+    .where(and(eq(documents.id, id), isNull(documents.deletedAt)));
 
   if (!doc) throw new Error('DOCUMENT_INTROUVABLE');
+
+  if (hasCapability(utilisateur.role as UserRole, 'DOCUMENT_UPLOAD')) return;
+
   if (!doc.visibiliteInterne && doc.uploadePar !== utilisateur.userId) {
     throw new Error('DOCUMENT_NON_AUTORISE');
   }

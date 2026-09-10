@@ -120,43 +120,34 @@ capability (there is no separate `DOCUMENT_RESTORE` capability, by
 deliberate design - see [authorization.md](./authorization.md) on
 capability proliferation).
 
-**`deletedAt` exclusion is not uniformly enforced across every access path -
-current gap, not fixed in this phase:**
+**`deletedAt` exclusion is enforced uniformly across every access path
+(Phase 12.2):**
 
 | Access path | Excludes soft-deleted documents? |
 |---|---|
 | Internal listing (`GET /documents`) / aggregates | Yes - filters `isNull(deletedAt)`. |
 | Public portal (listing, aggregates, download-token consumption) | Yes - every portal query filters `isNull(deletedAt)`, re-checked at token-consumption time. |
-| Authenticated direct `GET /documents/:id` | **No** - `verifierAccesDocument()` does not check `deletedAt`. |
-| Authenticated direct `GET /documents/:id/telecharger` | **No** - same `verifierAccesDocument()` gate, same gap. |
+| Authenticated direct `GET /documents/:id` | Yes - `getDocument()` filters `isNull(deletedAt)`. |
+| Authenticated direct `GET /documents/:id/telecharger` | Yes - `getCheminDocument()` filters `isNull(deletedAt)`. |
 
-`verifierAccesDocument()` also returns immediately for any user holding
-`DOCUMENT_UPLOAD`, without inspecting `deletedAt` at all for that tier
-either. **Practical consequence: an otherwise-authorized user who already
-knows (or guesses/enumerates) a document's ID can retrieve or download it
-directly even after it has been soft-deleted** - it simply no longer
-appears in listings or the public portal. See the corresponding entry in
-[security-checklist.md](./security-checklist.md) and the finding recorded
-below.
+`verifierAccesDocument()` now checks `id + deletedAt IS NULL` **before**
+evaluating `DOCUMENT_UPLOAD` or any other capability - the lifecycle state
+is checked first, authorization breadth second, so no capability tier can
+bypass it. **A soft-deleted document is treated identically to a
+nonexistent one on these two direct-access paths: `404
+DOCUMENT_INTROUVABLE`**, the same response an unknown ID would produce -
+deliberately, so a caller cannot distinguish "never existed" from "was
+deleted." `getDocument()`/`getCheminDocument()` enforce the same predicate
+independently of `verifierAccesDocument()`, as defense in depth.
 
-> **Security finding - authenticated direct document access does not
-> enforce `deletedAt`**
->
-> **Impact:** documents placed in the application's soft-deleted
-> ("recycle-bin") state remain directly retrievable/downloadable by an
-> otherwise-authorized user who knows the document ID, via
-> `GET /documents/:id` and `GET /documents/:id/telecharger`.
->
-> **Classification:** access/lifecycle enforcement gap - not a broken
-> authentication or capability boundary; the capability and
-> internal-visibility/ownership checks still apply correctly, only the
-> `deletedAt` state is not additionally enforced on these two direct-access
-> paths.
->
-> **Suggested remediation (not implemented in this phase):** make
-> `verifierAccesDocument()` (or the two direct-access read/download paths)
-> fail for a soft-deleted document, unless the operation is an explicit
-> restore/recycle-bin administrative workflow.
+The only way to interact with a soft-deleted document is the explicit
+restore path: `PATCH /documents/:id/restaurer`, gated on `DOCUMENT_DELETE`
+(see below) - there is no ordinary read/download route that can see a
+deleted row. This does not change physical file retention: soft delete
+still only sets `deletedAt`, the file bytes remain on disk under
+`UPLOAD_DIR` regardless (see [File storage](#file-storage) below) - what
+changed is that the ordinary direct-access routes can no longer reach
+those retained bytes for a deleted document.
 
 ## File storage
 

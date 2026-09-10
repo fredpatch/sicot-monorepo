@@ -23,7 +23,14 @@ jobs:
       # translation-service Docker wiring defect recurring. Docker Compose
       # v2 ships preinstalled on GitHub-hosted ubuntu-latest runners.
       - run: npm run verify:translation-wiring
-      # No automated test suite exists yet - `build` runs `tsc` for every
-      # workspace (shared/server/client) plus the Vite build, so it's the
-      # closest thing to a type-safety gate until tests are added.
+      # Focused regression test (Phase 12.2) - guards the soft-deleted
+      # document direct-access fix (GET /documents/:id and .../telecharger
+      # must treat a soft-deleted document as nonexistent). Not the full
+      # test suite - see prompt.md Phase 12.2 for why that's out of scope
+      # here.
+      - run: npm run verify:document-soft-delete
+      # No full automated test suite runs in CI yet - `build` runs `tsc` for
+      # every workspace (shared/server/client) plus the Vite build, so it's
+      # the closest thing to a broad type-safety gate until more tests are
+      # wired in.
       - run: npm run build
