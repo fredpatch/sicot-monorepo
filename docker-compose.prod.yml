@@ -73,6 +73,9 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       PORT: 3001
+      # Un seul saut Nginx entre le client et l'API (voir nginx/prod.conf) -
+      # fixe pour cette topologie, pas configurable par l'opérateur.
+      TRUST_PROXY_HOPS: '1'
       CORS_ORIGIN: ${CORS_ORIGIN}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}

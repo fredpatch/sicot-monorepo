@@ -175,6 +175,41 @@ documented model, and the server still returns 403.
 
 ---
 
+## Symptom: login returns 429 instead of a login error
+
+### Likely causes
+`POST /api/auth/login` carries a dedicated, IP-keyed rate limiter (30
+requests / 15 min, Phase 12.4) - distinct from account lockout. Response
+body is `{message, code: 'TROP_DE_REQUETES'}`.
+
+### Checks
+**Do not confuse this with `423 COMPTE_BLOQUE`** (see "Symptom: account
+locked" above) - they are two independent mechanisms with different scopes:
+
+| | Status | Scope | Trigger |
+|---|---|---|---|
+| Rate limiter | 429 `TROP_DE_REQUETES` | One source IP, all `/login` traffic through it | Request volume, regardless of which account(s) |
+| Account lockout | 423 `COMPTE_BLOQUE` | One account | Repeated failed attempts against that specific account |
+
+A shared-office/NAT IP hitting the rate limit does **not** mean any one
+account is locked, and an account being locked does **not** mean the IP is
+rate-limited. Read the response `code` field to tell them apart.
+
+### Safe corrective actions
+Wait out the 15-minute window (check the `Retry-After` header for the exact
+remaining time). If this happens routinely for a legitimate shared-IP
+office, that's a signal the threshold may need revisiting - see
+[../security/security-checklist.md](../security/security-checklist.md#production-decisions-required)
+- not something to work around by disabling the limiter.
+
+### Escalate when
+The 429 recurs immediately after the window elapses, well before 30
+genuine login attempts could plausibly have occurred from that source
+(possible sustained attack, or a client-side retry loop worth
+investigating).
+
+---
+
 ## Symptom: refresh fails
 
 ### Likely causes

@@ -55,18 +55,20 @@ underlying code changes, not the other way around.
       public portal. `verifierAccesDocument()` checks lifecycle state
       before evaluating `DOCUMENT_UPLOAD`, so no capability tier can bypass
       it. See [document-access.md](./document-access.md).
+- [x] **Request-rate limiting is enabled** (Phase 12.4) - a global `/api`
+      safety net (3000/15min, excludes `/api/health`), a dedicated
+      `POST /api/auth/login` limiter (30/15min, separate from the rest of
+      `/api/auth`), and portal listing/token/view-download limiters, all
+      IP-keyed and returning a consistent `{message, code:
+      "TROP_DE_REQUETES"}` JSON 429. Complements, not replaces, the
+      per-account lockout below. See
+      [csrf-and-session-security.md](./csrf-and-session-security.md).
 
 ## Known gaps
 
 - [ ] **No dedicated CSRF token or CSRF middleware.** Current mitigation is
       `SameSite=strict` + CORS origin restriction only - not a substitute
       for a dedicated defense. See
-      [csrf-and-session-security.md](./csrf-and-session-security.md).
-- [ ] **Global and auth-specific request-rate limiting are implemented in
-      code but not enabled** (`app.use(limiter)` and the auth router's
-      `authLimiter` are both commented out in
-      [`index.ts`](../../packages/server/src/index.ts)). Only the public
-      portal has active rate limiting. See
       [csrf-and-session-security.md](./csrf-and-session-security.md).
 - [ ] **No server-side session/token revocation.** Logout clears cookies
       client-side only; a previously issued access or refresh token remains
@@ -93,6 +95,14 @@ underlying code changes, not the other way around.
       drift, not a vulnerability by itself, but worth fixing before it
       misleads an operator. See
       [csrf-and-session-security.md](./csrf-and-session-security.md).
+- [ ] **`express.static('/uploads', UPLOAD_DIR)` (`index.ts`) serves the
+      entire upload tree with no authentication and no relation to document
+      soft-delete/visibility checks.** Found during the Phase 12.4 rate-
+      limiting audit; explicitly **not** addressed by that phase (rate
+      limiting is not an access-control fix) and **not yet remediated** -
+      this is a real access-control gap, separate from the intentionally
+      public, token-gated portal surface. Flagged for urgent, dedicated
+      remediation immediately after Phase 12.4.
 
 ## Verify before pre-production
 
@@ -145,11 +155,11 @@ underlying code changes, not the other way around.
 
 ## Production decisions required
 
-- [ ] Whether to enable global/auth rate limiting as currently coded, or
-      replace it with a different mechanism (e.g. a reverse-proxy-level
-      limiter) - a decision, not just a flip of a commented-out line, since
-      thresholds (100 req/15min global, 10 req/15min auth) have not been
-      validated against real traffic patterns.
+- [ ] Whether the Phase 12.4 rate-limit thresholds (3000/15min global,
+      30/15min login, 120|10|60/15min portal) hold up against real
+      production traffic patterns - they were derived conservatively from
+      an institutional-shared-IP assumption, not measured against live
+      usage. Revisit once real numbers are observable.
 - [ ] Whether to add a dedicated CSRF defense before broadening who can
       reach the authenticated API (e.g. before adding any new public or
       third-party integration surface).

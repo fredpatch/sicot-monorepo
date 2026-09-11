@@ -22,7 +22,8 @@ Scoped server-side to `visibilitePortail=true`, not deleted, and
 `statutOCR='traite'`.
 
 ## GET /api/portal/documents/:id
-**Authentication:** public. No rate limit on this specific route.
+**Authentication:** public. Rate limit: 60 req / 15 min (shared with
+`consulter` and `telecharger` below - Phase 12.4).
 
 **Response:** `DocumentPortailView`.
 
@@ -30,7 +31,9 @@ Scoped server-side to `visibilitePortail=true`, not deleted, and
 not found - the two cases aren't distinguished).
 
 ## GET /api/portal/documents/:id/consulter
-**Authentication:** public, no token required. No rate limit.
+**Authentication:** public, no token required. Rate limit: 60 req / 15 min
+(same limiter/bucket as `GET /api/portal/documents/:id` and
+`GET /api/portal/telecharger/:token` - Phase 12.4).
 
 Purpose: stream the file inline for in-browser viewing - no download token
 needed for this one.
@@ -56,8 +59,10 @@ only via the emailed link, never returned in the API response.
 **Important errors:** 400 invalid `id`/email; 404 `DOCUMENT_PORTAIL_INTROUVABLE`.
 
 ## GET /api/portal/telecharger/:token
-**Authentication:** public. No rate limit on consumption (only issuance is
-limited).
+**Authentication:** public. Rate limit: 60 req / 15 min (Phase 12.4 - same
+limiter/bucket as `GET /api/portal/documents/:id` and `.../consulter`
+above; issuance, `POST .../token`, has its own separate, stricter 10/15min
+limiter).
 
 **Response:** binary stream, `Content-Disposition: attachment` (forces
 download - the one route in this API that differs from the general

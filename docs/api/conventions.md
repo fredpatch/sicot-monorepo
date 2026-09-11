@@ -22,7 +22,7 @@ reading the route/controller/error-handling code directly.
 | 415 | Unsupported media type | multer MIME-type rejection |
 | 422 | Semantically invalid but well-formed (an OCR engine error surfaced as a business error) | `documents` OCR routes only |
 | 423 | Locked - account lockout | `POST /api/auth/login` only |
-| 429 | Rate limit / quota exceeded | portal rate limiters; `POST /api/analytics/rapports/:id/analyse-ia` daily-quota check |
+| 429 | Rate limit / quota exceeded | global `/api` limiter; `POST /api/auth/login`; portal listing/token/view limiters (all `{message, code: "TROP_DE_REQUETES"}`, see below); `POST /api/analytics/rapports/:id/analyse-ia` daily-quota check (a separate, DB-backed mechanism - `{message}` only, no `code`) |
 | 502 | The operation ran but failed internally (job execution failure, notification email send failure) | `POST /api/jobs/:cle/executer`, `POST /api/notifications/envoyer` |
 | 503 | An upstream dependency is unreachable (OCR service, translation engine) | documents OCR, traduction relance |
 | 504 | An upstream dependency timed out | documents OCR |
@@ -68,6 +68,21 @@ audit:**
 **Do not assume `{ message, code }` is a guaranteed contract everywhere.**
 Check the specific endpoint's doc for its actual error behavior before
 writing client code that depends on `code`.
+
+**Rate-limit responses are a deliberate, uniform exception.** Every
+express-rate-limit-based 429 in this API (global `/api` safety net, the
+`POST /api/auth/login` limiter, and the portal listing/token/view
+limiters - all built from factories in
+[`middleware/rateLimiters.ts`](../../packages/server/src/middleware/rateLimiters.ts))
+returns exactly `{ message: '<French text>', code: 'TROP_DE_REQUETES' }`,
+with `Retry-After` and `RateLimit-*` headers set (`standardHeaders: true`,
+`legacyHeaders: false` - no legacy `X-RateLimit-*` headers). Client code
+*can* rely on `code === 'TROP_DE_REQUETES'` to detect this specific case
+reliably, unlike most other error codes in this API. The one 429 that does
+**not** follow this shape is the AI-report daily quota
+(`LIMITE_QUOTIDIENNE_ATTEINTE`, `POST /api/analytics/rapports/:id/analyse-ia`)
+- a separate, DB-backed mechanism, not express-rate-limit, and it omits
+`code` entirely.
 
 ## Validation - ad hoc and manual everywhere, no Zod
 

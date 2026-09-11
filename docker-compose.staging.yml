@@ -80,6 +80,9 @@ services:
       NODE_ENV: staging
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres_staging:5432/${DB_NAME}_staging
       PORT: 3001
+      # Un seul saut Nginx entre le client et l'API (voir nginx/staging.conf) -
+      # fixe pour cette topologie, pas configurable par l'opérateur.
+      TRUST_PROXY_HOPS: '1'
       CORS_ORIGIN: ${CORS_ORIGIN:-http://100.110.227.69:8100}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}

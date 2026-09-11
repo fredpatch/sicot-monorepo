@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 
 // Routes
@@ -37,9 +35,18 @@ import { demarrerJobsAlertes } from './jobs/alertes';
 import { seedParametresDefaut } from './start/services/parameters-seed.service';
 import { demarrerJobSnapshotCriticite } from './jobs/criticite-snapshot';
 import { demarrerJobRapportMensuel } from './jobs/rapport-mensuel';
+import { createGlobalLimiter } from './middleware/rateLimiters';
+import { resolveTrustProxyHops, toExpressTrustProxySetting } from './utils/trustProxy';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
+
+// ── Reverse proxy ──────────────────────────────────────────────────────────
+// Voir utils/trustProxy.ts : sans ceci, req.ip (et donc les limiteurs
+// IP-based ci-dessous) verrait l'IP du conteneur Nginx pour toute requête
+// en production/staging, pas celle du vrai client.
+const trustProxyHops = resolveTrustProxyHops(process.env.TRUST_PROXY_HOPS);
+app.set('trust proxy', toExpressTrustProxySetting(trustProxyHops));
 
 // ── Sécurité ───────────────────────────────────────────────────────────────
 app.use(helmet());
@@ -53,43 +60,37 @@ app.use(
 // ── Cookies ────────────────────────────────────────────────────────────────
 app.use(cookieParser());
 
-// ── Rate limiting ──────────────────────────────────────────────────────────
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-// app.use(limiter);
-
-// Rate limit strict pour l'auth
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { message: 'Trop de tentatives de connexion, réessayez dans 15 minutes.' },
-});
-
-// ── Body parsing ───────────────────────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
 // ── Logging ───────────────────────────────────────────────────────────────
+// Doit tourner AVANT le limiteur global : sinon une requête rejetée par le
+// limiteur (429) se termine avant d'atteindre Morgan et n'apparaît jamais
+// dans l'access log - notre seul mécanisme de visibilité pour les 429
+// (voir docs/security/csrf-and-session-security.md#rate-limiting ; pas
+// d'écriture audit_logs par 429, pour éviter d'amplifier un flood en
+// flood d'écritures DB).
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
 }
 
+// ── Rate limiting - filet de sécurité global /api ─────────────────────────
+// Volume-based, pas un mécanisme anti-brute-force (voir loginLimiter dans
+// auth.route.ts et le verrouillage de compte existant dans auth.helpers.ts).
+// Placé avant le parsing du corps pour éviter ce coût sur une requête déjà
+// vouée au rejet. /api/health est explicitement exclu (healthchecks Docker/
+// reverse-proxy).
+app.use('/api', createGlobalLimiter());
+
+// ── Body parsing ───────────────────────────────────────────────────────────
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
 // ── Fichiers statiques uploadés ────────────────────────────────────────────
 app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? '/sicot/documents'));
 
 // ── Routes API ─────────────────────────────────────────────────────────────
 app.use('/api/bootstrap', bootstrapRoutes);
-app.use(
-  '/api/auth',
-  //  authLimiter,
-  authRoutes
-);
+app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/documents', documentsRoutes);

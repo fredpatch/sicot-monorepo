@@ -106,29 +106,59 @@ this combination is still a current gap, not a resolved one.
 
 ## Rate limiting
 
-Re-checked directly in
-[`index.ts`](../../packages/server/src/index.ts): `express-rate-limit` is a
-real dependency and both limiters are fully defined, but:
+**As of Phase 12.4, request-rate limiting is enabled**, built from shared
+factories in
+[`middleware/rateLimiters.ts`](../../packages/server/src/middleware/rateLimiters.ts):
 
-- **The global rate limiter is defined but not applied**
-  (`app.use(limiter)` is commented out).
-- **The auth-specific rate limiter is defined but not applied to
-  `/api/auth`** (`authLimiter` is commented out where it would be wired to
-  the auth router).
+- **Global safety net** - `app.use('/api', ...)` in
+  [`index.ts`](../../packages/server/src/index.ts), 3000 req / 15 min,
+  keyed by `req.ip`. Excludes `/api/health` explicitly (Docker/reverse-proxy
+  healthchecks must never be throttled). This is a volume/flood backstop,
+  not a precise per-user throttle - the number is deliberately generous
+  given SICOT users may share one institutional/NAT public IP.
+- **Login limiter** - applied only to `POST /api/auth/login` in
+  [`auth.route.ts`](../../packages/server/src/modules/auth/routes/auth.route.ts),
+  30 req / 15 min, keyed by `req.ip`, counting all requests (not
+  failed-only). Deliberately **not** applied to the rest of `/api/auth`
+  (`/refresh`, `/logout`, `/me`, password-change routes) - those are normal
+  session traffic and would risk throttling legitimate shared-IP users
+  alongside actual login attempts.
+- **Portal limiters** - unchanged listing (120/15min) and token-issuance
+  (10/15min) limiters, plus a new view/download limiter (60/15min) now
+  covering `GET /documents/:id`, `GET /documents/:id/consulter`, and
+  `GET /telecharger/:token` (previously unprotected - see
+  [document-access.md](./document-access.md)).
 
-**Current gap:** as a result, authenticated application routes and
-`POST /api/auth/login` currently have **no request-rate limiting** from
-this middleware. The only mitigation against repeated login attempts is
-**account lockout** (see [authentication.md](./authentication.md)) - which
-is a different mechanism: it locks one *account* after repeated failures
-against it, not repeated *requests* from one source. It doesn't limit
-distributed guessing across many accounts, and it doesn't protect any
-non-auth endpoint from request flooding.
+**Account lockout remains the primary defense against brute force on one
+account.** See [authentication.md](./authentication.md) -
+`lockout_max_tentatives`/`lockout_duree_minutes`, enforced per-account in
+the database (`bloqueJusquA`/`tentativesEchouees`), independent of and
+unaffected by this phase. The IP-based login limiter is a *complementary*
+control: it catches spray/enumeration across many accounts and
+request-volume/CPU-exhaustion attempts that per-account lockout cannot see,
+since lockout only ever looks at one account's own failure count.
 
-The **only actually-enabled rate limiting in the codebase** is on the public
-portal (`packages/server/src/modules/portal/routes/portal.route.ts`):
-a listing limiter and a token-generation limiter, both scoped to that
-unauthenticated surface only.
+**429 vs 423:** a `429 TROP_DE_REQUETES` response (rate limiter) and a
+`423 COMPTE_BLOQUE` response (account lockout) are two independent
+mechanisms with different scopes (IP vs. account) - do not conflate them
+when diagnosing a login failure. See
+[../troubleshooting/authentication-and-session.md](../troubleshooting/authentication-and-session.md).
+
+**In-memory store, single instance:** all limiters use express-rate-limit's
+default in-memory store. Counters reset on process/container restart and
+are **not** shared across replicas - correct for the current single-`api`-
+container deployment (see
+[../operations/backups.md](../operations/backups.md) for the analogous
+single-instance assumption in the backup job's mutex), but would need a
+shared store (e.g. Redis) if SICOT ever runs multiple API replicas. Not
+introduced in Phase 12.4.
+
+**Reverse-proxy / `req.ip` correctness:** all IP-keyed limiters depend on
+`TRUST_PROXY_HOPS` being configured correctly for the topology - see
+[../operations/configuration-reference.md](../operations/configuration-reference.md).
+Production and staging set it to `1` (exactly one Nginx hop); native/Docker
+dev leaves it unset (no proxy in front of the API there), so a spoofed
+`X-Forwarded-For` is never trusted in that environment.
 
 ## Logout / refresh - summary
 
