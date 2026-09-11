@@ -3,7 +3,9 @@
 What backup mechanisms exist today, and - just as importantly - what
 remains unvalidated. This document is deliberately conservative: it states
 only what the repository proves, and does not describe restore as tested
-unless it is. **Restore is not yet built or validated - see Restore status.**
+unless it is. **Restore tooling exists and is CI-validated against a real,
+disposable PostgreSQL with synthetic data - see [Restore status](#restore-status)
+and [restore-drill.md](./restore-drill.md) for what that does and does not cover.**
 
 Scheduling mechanics (cron cadence, manual-execution endpoint, execution
 history) are shared with the rest of the job system - see
@@ -22,8 +24,11 @@ timestamped directory per tier containing all three of:
 | `manifest.json` | Operational metadata only (see below). Written **last**, only after both artifacts exist and have been checksummed. |
 
 `packages/server/src/jobs/backup.ts` orchestrates this. The API image
-(`packages/server/Dockerfile`) installs `postgresql-client` (`pg_dump` /
-`psql`); `tar` and `gzip` are already present in the base image.
+(`packages/server/Dockerfile`) installs `postgresql16-client` (`pg_dump` /
+`psql`) - pinned to major 16 to match the production PostgreSQL server (see
+[restore-drill.md](./restore-drill.md#postgresql-clientserver-version-contract)
+for why that pin is load-bearing, not cosmetic); `tar` and `gzip` are
+already present in the base image.
 
 ### Consistency ordering
 
@@ -152,18 +157,38 @@ audit log, or container stdout. This remains a real observability gap - see
 
 ## Restore status
 
-**Restore is not built and not validated.** Phase 12.3A produces a
-recoverable backup *set* (database + documents + checksummed manifest), but:
+**Restore tooling exists (`scripts/restore-backup.mjs`, Phase 12.3B) and is
+proven against a real, disposable PostgreSQL server in CI**, using
+synthetic data only (a dedicated `restore-verify` job runs the real backup
+job, then the real restore CLI as an external process, then independently
+re-verifies the restored marker row and restored file). Full usage,
+safety rules, and limitations live in
+[restore-drill.md](./restore-drill.md) - in particular:
 
-- there is no restore script, no `psql`/`pg_restore` tooling, no restore
-  test, and no drill in this repository;
-- the plain-format `database.sql` would need to be replayed with `psql`
-  into an empty/freshly-created database - the destructive-safety model and
-  tooling for that are **Phase 12.3B**, not done here.
-
-Until 12.3B lands, treat "backup sets are being written and checksummed"
-and "the data is provably recoverable" as two separate claims - only the
-first is true today.
+- both restore modes (`verify` and `disaster-recovery`) require an empty
+  target database and an empty/nonexistent target upload directory (the
+  current plain-format dump has no `--clean` and cannot be layered onto an
+  existing schema);
+- the CLI never runs `DROP DATABASE`/`CREATE DATABASE` and never
+  renames/deletes an existing upload directory - preparing the target
+  remains an explicit operator step;
+- a real `pg_dump`/PostgreSQL-server major-version mismatch was found
+  during implementation (an unpinned client package resolved to a newer
+  major than the declared production server, producing a dump the server
+  couldn't restore) and is now fixed and guarded: the API image pins
+  `postgresql16-client` to match the declared production server, and a
+  static CI check (`verify:backup-client-version`) fails the build if that
+  pin and any `docker-compose*.yml`'s declared PostgreSQL major ever
+  diverge again - see
+  [restore-drill.md](./restore-drill.md#postgresql-clientserver-version-contract);
+- **a restore fails outright if any restored `documents.chemin` row doesn't
+  map to an actually-restored file** (`documentChemins.invalides > 0` ->
+  `succes: false`, `failedStage: "post_restore_validation"`) - a database
+  whose document references don't match its files is never reported as a
+  successful recovery;
+- disaster-recovery mode itself has not been drilled end-to-end against a
+  production-shaped target - only `verify` mode has a fully automated,
+  CI-proven round trip.
 
 ## Security
 
@@ -178,15 +203,20 @@ No NAS credentials, SSH keys, database passwords, or private hostnames
 appear in backup code, manifests, or this document - only environment
 variable names and conceptual destinations.
 
-## Still open after 12.3A
+## Still open after 12.3B
 
-1. **Restore tooling + validation** - Phase 12.3B.
-2. **No failure notification** - a failed backup is only discoverable by
-   actively checking job history / audit logs.
-3. **Dev and staging have no persistent backup volume** - low impact (not
+1. **Disaster-recovery mode is not end-to-end drilled** - only `verify`
+   mode has a CI-proven real-Postgres round trip.
+2. **`--no-owner`/`--no-privileges` are not passed to `pg_dump`** - restore
+   currently assumes the dump-time and restore-time roles are compatible;
+   a separate, still-deferred dump-format hardening item (unrelated to the
+   client/server major-version contract, which is fixed and CI-guarded).
+3. **No failure notification** - a failed backup or restore is only
+   discoverable by actively checking job history / audit logs / CI.
+4. **Dev and staging have no persistent backup volume** - low impact (not
    systems of record), noted for anyone using them to exercise the backup
    mechanism itself.
-4. **NAS mount is not defined in any Compose file** - if no host-level
+5. **NAS mount is not defined in any Compose file** - if no host-level
    mount is provided operationally, NAS replication reports `indisponible`
    and only the local set exists.
-5. **Archive-level encryption at rest** - deferred future hardening.
+6. **Archive-level encryption at rest** - deferred future hardening.

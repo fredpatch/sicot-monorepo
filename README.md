@@ -137,10 +137,16 @@ ne décrit pas SICOT spécifiquement.
 Faits à connaître avant d'opérer ou de faire évoluer le système - le détail
 complet vit dans `docs/`, pas ici.
 
-- **Sauvegardes** : la couverture automatisée actuelle est **PostgreSQL
-  uniquement** - les fichiers de documents déposés ne sont pas
-  sauvegardés, et la restauration n'a pas été démontrée comme testée.
-  Détail : [`docs/operations/backups.md`](./docs/operations/backups.md).
+- **Sauvegardes** : chaque exécution produit un jeu complet (base
+  PostgreSQL + fichiers de documents + manifeste avec SHA-256). Un outil de
+  restauration existe et son fonctionnement de bout en bout est prouvé en
+  CI contre un PostgreSQL jetable réel, avec des données synthétiques
+  uniquement (mode `verify`) - le mode `disaster-recovery` n'est pas encore
+  répété de bout en bout contre une cible réaliste de production, et une
+  incompatibilité réelle de version `pg_dump`/serveur cible a été
+  identifiée (à confirmer avant tout usage réel).
+  Détail : [`docs/operations/backups.md`](./docs/operations/backups.md),
+  [`docs/operations/restore-drill.md`](./docs/operations/restore-drill.md).
 - **Santé/supervision** : `GET /api/health` de l'API principale est une
   vérification de vivacité superficielle, pas une vérification complète
   de disponibilité des dépendances (base de données, services externes).

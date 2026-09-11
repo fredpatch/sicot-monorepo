@@ -29,8 +29,77 @@ jobs:
       # test suite - see prompt.md Phase 12.2 for why that's out of scope
       # here.
       - run: npm run verify:document-soft-delete
+      # Static regression guard (Phase 12.3B correction): confirms
+      # packages/server/Dockerfile's pinned PostgreSQL client package major
+      # matches the PostgreSQL server major declared in every docker-compose
+      # file. Purely text-based - no Docker build, no image inspection - so
+      # it stays in this fast job. Exists because an unpinned
+      # "postgresql-client" meta-package silently tracked a newer major than
+      # production's PostgreSQL 16, producing backups PostgreSQL 16 could
+      # not restore (caught by restore-verify below, fixed by pinning to
+      # postgresql16-client - see docs/operations/restore-drill.md).
+      - run: npm run verify:backup-client-version
       # No full automated test suite runs in CI yet - `build` runs `tsc` for
       # every workspace (shared/server/client) plus the Vite build, so it's
       # the closest thing to a broad type-safety gate until more tests are
       # wired in.
       - run: npm run build
+      # Focused regression tests (Phase 12.3B) for the restore CLI itself -
+      # manifest/checksum/archive-safety/argument-parsing logic, mocking only
+      # the child_process boundary. The real-Postgres proof lives in the
+      # separate restore-verify job below.
+      - run: npm run test:restore-backup
+
+  # Phase 12.3B - proves a real backup -> restore round-trip against a real,
+  # disposable PostgreSQL, using only synthetic data. Kept as its own job
+  # (not appended to `verify` above) so a restore regression is clearly
+  # attributable and never blocks the fast lint/build signal. All non-trivial
+  # logic lives in scripts/verify-backup-restore.mjs - this job only wires
+  # its prerequisites together (checkout, Node, PostgreSQL client, builds,
+  # migration), it does not inline the scenario itself.
+  restore-verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sicot_ci
+          POSTGRES_PASSWORD: sicot_ci_disposable_password
+          POSTGRES_DB: sicot_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sicot_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://sicot_ci:sicot_ci_disposable_password@localhost:5432/sicot_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # ubuntu-latest's default postgresql-client package matches the
+      # postgres:16 service above (both PostgreSQL 16.x) - verified locally
+      # before adding this job (see Phase 12.3B implementation report).
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client busybox-static
+      # The production API image (packages/server/Dockerfile) is Alpine-based,
+      # so restore-backup.mjs's archive-entry parser is built and empirically
+      # validated against BusyBox tar's -tvzf output specifically (see the
+      # Phase 12.3B implementation report). Ubuntu's own GNU tar formats that
+      # listing differently (no seconds in the timestamp) and is correctly
+      # REJECTED by the parser as unparseable rather than guessed at - so
+      # this job shadows PATH with BusyBox's tar applet (confirmed to
+      # produce byte-identical -tvzf output to the Alpine image) instead of
+      # loosening the parser to accept a dialect production never produces.
+      - run: |
+          mkdir -p /opt/busybox-tar
+          ln -sf "$(command -v busybox)" /opt/busybox-tar/tar
+          echo "/opt/busybox-tar" >> "$GITHUB_PATH"
+      - run: npm run build --workspace=packages/shared
+      - run: npm run build --workspace=packages/server
+      - run: npm run db:migrate --workspace=packages/server
+      - run: node scripts/verify-backup-restore.mjs

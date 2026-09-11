@@ -127,10 +127,21 @@ underlying code changes, not the other way around.
       confirm this is provisioned before relying on that integration in
       production. See
       [architecture/runtime-topology.md](../architecture/runtime-topology.md).
-- [ ] **Backup/restore validation** - backup creation exists
-      (local + NAS, tiered rotation); restore has not been evidenced as
-      tested anywhere in the repository. Validate an actual restore before
-      relying on this for disaster recovery.
+- [ ] **Backup/restore validation** - backup creation exists (local + NAS,
+      tiered rotation) and restore tooling (`scripts/restore-backup.mjs`,
+      Phase 12.3B) is CI-proven against a real, disposable PostgreSQL with
+      synthetic data (`verify` mode only), including a full production-
+      shaped PostgreSQL-16-to-PostgreSQL-16 round trip. A real
+      `pg_dump`/PostgreSQL-server major-version mismatch was found during
+      implementation and is now fixed (API image pinned to
+      `postgresql16-client`) and CI-guarded (`verify:backup-client-version`
+      statically fails the build if the pin and any declared PostgreSQL
+      major ever diverge again) - see
+      [../operations/restore-drill.md](../operations/restore-drill.md#postgresql-clientserver-version-contract).
+      Remaining gap before relying on this for a real disaster recovery:
+      run a manual `disaster-recovery`-mode drill against a
+      production-shaped target - that mode is not yet end-to-end drilled
+      (only `verify` mode is).
 
 ## Production decisions required
 

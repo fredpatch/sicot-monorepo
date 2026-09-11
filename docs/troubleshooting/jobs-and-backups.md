@@ -232,30 +232,39 @@ replication still reports `echec`.
 
 ---
 
-## Symptom: backup exists but restore confidence is unknown
+## Symptom: a real restore is being considered
 
 ### Likely causes
-Not a fault - this reflects the actual current state of the system.
-**Restore has not been evidenced as tested anywhere in this repository.**
-There is no restore script, tooling, or drill.
+Not a fault - this is the situation restore tooling exists for. As of
+Phase 12.3B, `scripts/restore-backup.mjs` exists, is covered by focused
+tests, and its real-Postgres round trip is proven in CI (`restore-verify`
+job) against synthetic data. Full usage is in
+[../operations/restore-drill.md](../operations/restore-drill.md).
 
 ### Checks
-Not applicable via automated checks - this is a documented process gap,
-not a runtime symptom.
+Confirm you have: the exact backup-set directory to restore (never
+"latest" - the CLI requires an explicit path), an empty target database,
+an empty or nonexistent target upload directory, and - important, see
+restore-drill.md's Limitations section - that the API image's installed
+`pg_dump`/`psql` major version matches the target PostgreSQL server's major
+version. A version mismatch here was found and documented during Phase
+12.3B implementation and can make a restore fail at the first SQL
+statement.
 
 ### Safe corrective actions
-**No restore recipe is provided here, invented, or implied.** As of Phase
-12.3A a backup set now contains both `database.sql` (plain SQL, restorable
-with `psql`) and `documents.tar.gz` (the uploaded file bytes), paired in
-one directory with a `manifest.json` carrying SHA-256 checksums - so the
-data needed for a full restore is now captured. **But restore itself is
-still not built or validated** (that is Phase 12.3B): there is no restore
-script, no drill, and no in-repo procedure. Treat any actual restore as a
-high-stakes manual operation requiring deliberate planning, not a routine
-troubleshooting step - see
-[../operations/backups.md](../operations/backups.md#restore-status).
+Run `scripts/restore-backup.mjs --mode verify` first, against a disposable
+database and scratch directory, to confirm the specific backup set you
+intend to use actually restores cleanly - do not go straight to
+`--mode disaster-recovery` against a real target. Disaster-recovery mode
+still requires an empty target (its `--confirm-destructive` /
+`--confirm-database-name` flags acknowledge the action, they do not permit
+restoring onto an existing schema) - preparing that empty target (dropping/
+recreating the database, providing an empty upload directory) is an
+operator step the CLI deliberately does not perform. See
+[../operations/restore-drill.md](../operations/restore-drill.md) for the
+full procedure, including the manual drill runbook.
 
 ### Escalate when
-Always, if an actual restore is being considered for anything other than a
-disposable test environment - this needs deliberate planning, not an
-improvised troubleshooting response.
+Always, before running `--mode disaster-recovery` against anything other
+than a disposable test environment - this needs deliberate planning, not
+an improvised troubleshooting response.
